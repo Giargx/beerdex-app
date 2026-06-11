@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BeerDex - Social & Cloud</title>
+    
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+
+    <style>
+        :root {
+            --primary: #f1c40f;       
+            --primary-dark: #f39c12;  
+            --dark: #2c3e50;          
+            --light: #fdfbf7;         
+            --white: #ffffff;
+            --accent: #e67e22;        
+            --gray: #ecf0f1;
+            --gold: #f1c40f;
+            --text-muted: #7f8c8d;
+            --social-blue: #3498db;
+        }
+        
+        body { font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: var(--light); color: var(--dark); margin: 0; padding: 0; overflow-x: hidden; }
+
+        .overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); backdrop-filter: blur(3px); z-index: 90; opacity: 0; visibility: hidden; transition: 0.3s ease; }
+        .overlay.active { opacity: 1; visibility: visible; }
+
+        .sidebar { position: fixed; top: 0; bottom: 0; left: -320px; width: 300px; background-color: var(--white); box-shadow: 4px 0 15px rgba(0,0,0,0.1); padding: 25px 20px; z-index: 100; overflow-y: auto; transition: 0.4s cubic-bezier(0.25, 0.8, 0.25, 1); display: flex; flex-direction: column; }
+        .sidebar.open { left: 0; }
+        
+        .sidebar-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--gray); padding-bottom: 15px; margin-bottom: 20px; }
+        .sidebar h2 { color: var(--primary-dark); margin: 0; font-size: 22px; }
+        .close-sidebar { font-size: 24px; color: var(--text-muted); cursor: pointer; border: none; background: none; }
+        .close-sidebar:hover { color: var(--dark); }
+        
+        .profile-btn { background: linear-gradient(135deg, #2c3e50, #34495e); color: var(--white); border: none; padding: 14px 20px; font-size: 16px; font-weight: bold; border-radius: 12px; margin-bottom: 10px; cursor: pointer; box-shadow: 0 4px 10px rgba(44, 62, 80, 0.3); transition: 0.2s; width: 100%; }
+        .profile-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 15px rgba(44, 62, 80, 0.4); }
+
+        .social-btn { background: linear-gradient(135deg, #2980b9, #8e44ad); color: var(--white); border: none; padding: 14px 20px; font-size: 16px; font-weight: bold; border-radius: 12px; margin-bottom: 25px; cursor: pointer; box-shadow: 0 4px 10px rgba(52, 152, 219, 0.3); transition: 0.2s; width: 100%; }
+        .social-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 15px rgba(52, 152, 219, 0.4); }
+
+        .progress-container { width: 100%; height: 10px; background: var(--gray); border-radius: 10px; margin: 15px auto 5px auto; overflow: hidden; }
+        .progress-bar { height: 100%; background-color: var(--primary-dark); width: 0%; transition: width 0.8s cubic-bezier(0.25, 0.8, 0.25, 1); }
+        .progress-text { font-size: 13px; font-weight: bold; color: var(--text-muted); text-align: center; margin-bottom: 20px; }
+
+        .controls input[type="text"] { width: 100%; padding: 12px 15px; border: 2px solid var(--gray); border-radius: 12px; font-size: 15px; outline: none; box-sizing: border-box; background: #fbfcfc; margin-bottom: 20px; transition: border-color 0.3s; }
+        .controls input[type="text"]:focus { border-color: var(--primary-dark); }
+        
+        .filters-label { font-size: 12px; font-weight: bold; text-transform: uppercase; color: var(--text-muted); margin-bottom: 10px; display: block; letter-spacing: 1px; }
+        .filters { display: flex; flex-direction: column; gap: 10px; }
+        .filters button { background-color: var(--white); border: 2px solid var(--gray); color: var(--dark); padding: 12px 15px; border-radius: 10px; cursor: pointer; font-weight: bold; transition: 0.2s; text-align: left; display: flex; align-items: center; gap: 10px; }
+        .filters button.active, .filters button:hover { background-color: var(--primary-dark); color: var(--white); border-color: var(--primary-dark); transform: translateX(5px); box-shadow: 0 4px 8px rgba(243, 156, 18, 0.2); }
+
+        .main-content { transition: 0.4s; width: 100%; min-height: 100vh; display: flex; flex-direction: column; }
+        
+        header.hero { background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%); color: var(--dark); padding: 40px 20px 60px 20px; text-align: center; border-bottom-left-radius: 40px; border-bottom-right-radius: 40px; box-shadow: 0 10px 20px rgba(241, 196, 15, 0.2); position: relative; }
+        .menu-toggle { position: absolute; top: 20px; left: 20px; background: rgba(0,0,0,0.08); color: var(--dark); border: none; padding: 10px 15px; border-radius: 10px; font-weight: bold; font-size: 16px; cursor: pointer; transition: 0.2s; backdrop-filter: blur(5px); }
+        .menu-toggle:hover { background: rgba(0,0,0,0.15); transform: scale(1.05); }
+        header.hero h1 { margin: 20px 0 10px 0; font-size: 36px; font-weight: 800; letter-spacing: -1px; }
+        header.hero p { margin: 0; font-size: 16px; opacity: 0.85; font-weight: 500;}
+        
+        .container { display: flex; flex-wrap: wrap; justify-content: center; padding: 20px; gap: 25px; max-width: 1200px; margin: -40px auto 40px auto; position: relative; z-index: 5; flex-grow: 1; }
+        
+        .card { background: var(--white); border-radius: 16px; padding: 20px; width: 100%; max-width: 320px; box-shadow: 0 8px 24px rgba(0,0,0,0.06); cursor: pointer; transition: all 0.3s ease; position: relative; border-top: 5px solid var(--accent); align-self: flex-start; }
+        .card:hover { transform: translateY(-5px); box-shadow: 0 12px 30px rgba(0,0,0,0.12); }
+        .card h2 { margin: 0 0 10px 0; color: var(--dark); font-size: 22px; }
+        .toggle-icon { position: absolute; top: 20px; right: 20px; font-size: 16px; color: var(--text-muted); transition: transform 0.3s; }
+        .card.active .toggle-icon { transform: rotate(180deg); color: var(--primary-dark); }
+        .region { font-size: 11px; font-weight: bold; text-transform: uppercase; color: var(--primary-dark); margin-bottom: 8px; display: inline-block; background: #fef5e6; padding: 4px 8px; border-radius: 6px;}
+        .desc { font-size: 14px; line-height: 1.5; color: var(--text-muted); margin-bottom: 0; }
+        
+        .variants-container { max-height: 0; overflow: hidden; transition: max-height 0.4s ease-out, margin-top 0.4s ease-out, opacity 0.3s; opacity: 0; }
+        .card.active .variants-container { max-height: 1200px; margin-top: 20px; opacity: 1; }
+        .variants { font-size: 14px; background: var(--light); padding: 15px; border-radius: 10px; border-left: 4px solid var(--primary-dark); }
+        .variants p { margin: 0 0 15px 0; font-weight: bold; color: var(--dark); font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px;}
+        
+        .variant-item { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid #e1e8ed; }
+        .variant-item:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+        
+        .photo-btn { background-color: var(--primary-dark); color: var(--white); padding: 8px 14px; border-radius: 8px; cursor: pointer; font-size: 12px; font-weight: bold; display: inline-block; transition: 0.2s; box-shadow: 0 2px 5px rgba(243, 156, 18, 0.3); }
+        .photo-btn:hover { background-color: var(--accent); transform: translateY(-1px); }
+        input[type="file"] { display: none; }
+        
+        .thumb-preview { width: 45px; height: 45px; border-radius: 8px; object-fit: cover; border: 2px solid var(--accent); margin-left: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        .unlocked-status { display: flex; align-items: center; color: #27ae60; font-weight: bold; font-size: 13px;}
+
+        .card.completed { border-top: 5px solid var(--gold); background: #fffcf0; }
+        .card.completed h2 { color: #d35400; }
+
+        .footer-legal { background-color: var(--white); padding: 30px 20px; text-align: center; border-top: 1px solid var(--gray); margin-top: auto; color: var(--text-muted); font-size: 12px; line-height: 1.6; }
+        
+        .modal { display: none; position: fixed; z-index: 200; left: 0; top: 0; width: 100%; height: 100%; }
+        .modal.active { display: flex; align-items: center; justify-content: center; }
+        .modal-content { background-color: var(--white); padding: 30px; border-radius: 20px; width: 90%; max-width: 850px; max-height: 85vh; overflow-y: auto; position: relative; box-shadow: 0 20px 40px rgba(0,0,0,0.2); animation: slideUp 0.3s ease-out; }
+        @keyframes slideUp { from { transform: translateY(30px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        
+        .close-btn { position: absolute; top: 20px; right: 25px; font-size: 28px; font-weight: bold; color: var(--text-muted); cursor: pointer; transition: 0.2s; background: var(--gray); width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; z-index: 10;}
+        .close-btn:hover { color: var(--dark); background: #e0e6ed; }
+        .modal-title { text-align: center; color: var(--dark); margin-top: 0; padding-bottom: 20px; font-size: 26px; }
+        
+        .social-feed { max-width: 500px; margin: 0 auto; display: flex; flex-direction: column; gap: 30px; }
+        .post-card { background: var(--white); border: 1px solid var(--gray); border-radius: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); overflow: hidden; }
+        .post-header { display: flex; align-items: center; padding: 15px; border-bottom: 1px solid var(--gray); }
+        .post-avatar { width: 40px; height: 40px; background: linear-gradient(135deg, var(--social-blue), #8e44ad); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: var(--white); font-weight: bold; font-size: 18px; margin-right: 12px; }
+        .post-user { font-weight: bold; font-size: 15px; color: var(--dark); }
+        .post-time { font-size: 12px; color: var(--text-muted); }
+        .post-image { width: 100%; max-height: 400px; object-fit: contain; background: #000; display: block; border-bottom: 1px solid var(--gray); }
+        .post-actions { padding: 12px 15px; display: flex; gap: 15px; font-size: 22px; }
+        .action-icon { cursor: pointer; transition: 0.2s; user-select: none; }
+        .action-icon:hover { transform: scale(1.1); }
+        .post-caption { padding: 0 15px 20px 15px; font-size: 14px; line-height: 1.5; color: var(--dark); }
+
+        .trophy-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 15px; text-align: center; }
+        .trophy-card { background: var(--light); padding: 12px 8px; border-radius: 12px; display: flex; flex-direction: column; align-items: center; transition: 0.2s; }
+        .trophy-img-container { width: 70px; height: 70px; border-radius: 50%; overflow: hidden; background: #e0e6ed; display: flex; align-items: center; justify-content: center; font-size: 30px; border: 3px solid #ccc; margin-bottom: 10px; transition: 0.3s; }
+        .trophy-card.unlocked .trophy-img-container { border-color: var(--gold); background: var(--white); box-shadow: 0 0 10px rgba(241, 196, 15, 0.4); }
+        .trophy-card.unlocked img { width: 100%; height: 100%; object-fit: cover; }
+        .trophy-name { font-size: 12px; font-weight: bold; line-height: 1.2; color: var(--dark); }
+        .trophy-brand { font-size: 10px; color: var(--text-muted); text-transform: uppercase; margin-bottom: 4px;}
+
+    </style>
+</head>
+<body>
+
+    <div class="overlay" id="mainOverlay" onclick="closeSidebar()"></div>
+
+    <div class="sidebar" id="appSidebar">
+        <div class="sidebar-header">
+            <h2>🧭 Menu</h2>
+            <button class="close-sidebar" onclick="closeSidebar()">&times;</button>
+        </div>
+        
+        <button class="profile-btn" onclick="openModal('profileModal')">🏆 Bacheca Trofei</button>
+        <button class="social-btn" onclick="openModal('socialModal')">🌍 Community Social</button>
+
+        <div style="margin-bottom: 25px;">
+            <div class="progress-text" id="progressText">0 / 0 Birre scoperte</div>
+            <div class="progress-container"><div class="progress-bar" id="progressBar"></div></div>
+        </div>
+
+        <div class="controls">
+            <input type="text" id="searchBar" placeholder="Cerca marca o variante..." onkeyup="filterBeers()">
+            <span class="filters-label">Esplora per zona</span>
+            <div class="filters" id="filters">
+                <button class="active" onclick="setFilter('Tutte')">🌐 Tutte le Birre</button>
+                <button onclick="setFilter('Nord')">⛰️ Nord Italia</button>
+                <button onclick="setFilter('Centro')">🏛️ Centro Italia</button>
+                <button onclick="setFilter('Sud e Isole')">🌊 Sud e Isole</button>
+                <button onclick="setFilter('Estero')">🌍 Birre Estere</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="main-content">
+        <header class="hero">
+            <button class="menu-toggle" onclick="openSidebar()">☰ Menu</button>
+            <h1>🍻 BeerDex</h1>
+            <p>Cattura, esplora e condividi le birre migliori.</p>
+        </header>
+
+        <div class="container" id="beerList"></div>
+
+        <footer class="footer-legal">
+            <p>🍺 <strong>BeerDex</strong> è un'applicazione indipendente in Cloud.</p>
+        </footer>
+    </div>
+
+    <div id="profileModal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn" onclick="closeModal('profileModal')">&times;</span>
+            <h2 class="modal-title">I Tuoi Trofei</h2>
+            <div class="trophy-grid" id="trophyGrid"></div>
+        </div>
+    </div>
+
+    <div id="socialModal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn" onclick="closeModal('socialModal')">&times;</span>
+            <h2 class="modal-title">📸 Feed Community</h2>
+            <div class="social-feed" id="socialFeed"></div>
+        </div>
+    </div>
+
+    <script>
+        // --- 1. CONFIGURAZIONE FIREBASE ---
+        // Sostituirai questi valori vuoti con quelli che ti darà Google Firebase!
+        const firebaseConfig = {
+              apiKey: "AIzaSyC6uxvnl8LUyUGqH_fZwG0AVqoKnK6HZEw",
+  authDomain: "beerdex-79231.firebaseapp.com",
+  projectId: "beerdex-79231",
+  storageBucket: "beerdex-79231.firebasestorage.app",
+  messagingSenderId: "192552381552",
+  appId: "1:192552381552:web:bdcbbb0ff7fd6a365118b5"
+        };
+
+        // Inizializza Firebase
+        if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+        }
+        const db = firebase.database();
+
+        // --- 2. DATABASE BIRRE ---
+        const beers = [
+            // ITALIANE
+            { brand: "Ichnusa", region: "Sud e Isole", desc: "L'iconica birra sarda, amatissima in tutta Italia.", variants: ["Classica", "Non Filtrata", "Cruda", "Ambra Limpidissima", "Radler"] },
+            { brand: "Birra Moretti", region: "Nord", desc: "Storico marchio nato in Friuli-Venezia Giulia (Udine).", variants: ["Ricetta Originale", "Baffo d'Oro", "La Rossa", "Filtrata a Freddo", "IPA", "Bianca", "Zero"] },
+            { brand: "Peroni", region: "Centro", desc: "Il colosso romano, celebre a livello internazionale.", variants: ["Classica", "Nastro Azzurro", "Nastro Azzurro 0.0", "Non Filtrata", "Cruda", "Gran Riserva Puro Malto", "Gran Riserva Doppio Malto", "Gran Riserva Rossa", "Gran Riserva Bianca", "Chill Lemon", "Capri"] },
+            { brand: "Poretti", region: "Nord", desc: "Realtà lombarda che classifica le birre coi luppoli.", variants: ["3 Luppoli", "4 Luppoli Originale", "4 Luppoli Non Filtrata", "5 Luppoli Bock", "6 Luppoli Rossa", "7 Luppoli", "8 Luppoli", "Le 9 Luppoli (IPA)"] },
+            { brand: "Menabrea", region: "Nord", desc: "Pluripremiato birrificio di Biella (Piemonte).", variants: ["Bionda 150°", "Ambrata", "Non Filtrata", "Strong", "Weiss", "Rossa"] },
+            { brand: "Forst", region: "Nord", desc: "Birrificio indipendente del Trentino-Alto Adige.", variants: ["Kronen", "V.I.P. Pils", "1857", "Felsenkeller", "Sixtus (Doppelbock)", "0.0%"] },
+            { brand: "Birra Messina", region: "Sud e Isole", desc: "Storico marchio siciliano dai sapori del Mediterraneo.", variants: ["Ricetta Classica", "Cristalli di Sale", "Vivace"] },
+            { brand: "Raffo", region: "Sud e Isole", desc: "La 'birra dei due mari', simbolo della città di Taranto.", variants: ["Classica", "Lavorazione Grezza"] },
+            { brand: "Pedavena", region: "Nord", desc: "Antica tradizione bellunese (Veneto).", variants: ["Pils", "Lager", "Speciale", "Bock", "8 Gradi"] },
+            { brand: "Dreher", region: "Nord", desc: "Uno dei marchi storici più antichi, fondato a Trieste.", variants: ["Classica", "Radler Limone"] },
+            { brand: "Birra Castello", region: "Nord", desc: "Erede dello storico stabilimento di Udine, friulana DOC.", variants: ["La Decisa", "L'Intensa", "La Forte", "Radler"] },
+            { brand: "Wuhrer", region: "Nord", desc: "Il più antico marchio di birra italiano (Brescia, 1829).", variants: ["La Classica"] },
+            { brand: "Baladin", region: "Nord", desc: "Pioniere della birra artigianale italiana (Piemonte).", variants: ["Isaac (Blanche)", "Wayan (Saison)", "Nora (Speziata)", "Super Bitter", "Leon", "Nazionale", "L'IPPA", "Rock'n'Roll"] },
+            { brand: "Birra del Borgo", region: "Centro", desc: "Famoso birrificio laziale, noto per le sue ricette creative.", variants: ["ReAle", "Duchessa", "My Antonia", "Lisa", "Cortigiana"] },
+            { brand: "Mastri Birrai Umbri", region: "Centro", desc: "Realtà umbra che esalta i cereali del territorio.", variants: ["Cotta 21 (Bionda)", "Cotta 37 (Rossa)", "Cotta 74 (Nera)", "Cotta 68 (IPA)", "Cotta 50 (Weiss)"] },
+            { brand: "Birrificio Italiano", region: "Nord", desc: "Storico birrificio artigianale lombardo.", variants: ["Tipopils", "Bibock", "Nigredo", "Vudù", "Amber Shock"] },
+            { brand: "Birrificio Lambrate", region: "Nord", desc: "Il birrificio simbolo di Milano e del fermento artigianale.", variants: ["Montestella", "Sant'Ambroeus", "Ghisa", "Porpora", "Quarantot"] },
+            { brand: "Crak Brewery", region: "Nord", desc: "Rivoluzionario birrificio veneto, re indiscusso delle IPA in Italia.", variants: ["Guerrilla (IPA)", "Mundaka", "Mansueto", "After Summer"] },
+            { brand: "Birra Antoniana", region: "Nord", desc: "Birrificio agricolo padovano fortemente legato al territorio veneto.", variants: ["Marechiaro", "Stile Vienna", "Pasubio", "Altinate"] },
+            { brand: "Birra Salento", region: "Sud e Isole", desc: "Eccellenza artigianale pugliese, nata a Leverano (Lecce).", variants: ["Agricola (Lager)", "Nuda e Cruda", "Beggia", "Taranta (IPA)"] },
+            { brand: "Birra Flea", region: "Centro", desc: "Birre artigianali umbre brassate con acqua di sorgente.", variants: ["Costanza", "Bianca Lancia", "Federico II", "Bastola", "Violante"] },
+            { brand: "Semedorato", region: "Sud e Isole", desc: "Birra artigianale premium siciliana, nata a Caltanissetta.", variants: ["Bionda Premium", "Rossa Doppio Malto", "Non Filtrata"] },
+
+            // ESTERE
+            { brand: "Augustiner", region: "Estero", desc: "Storico birrificio di Monaco di Baviera.", variants: ["Lagerbier Hell", "Edelstoff", "Maximator"] },
+            { brand: "Bavaria", region: "Estero", desc: "Marchio olandese noto per la linea 8.6.", variants: ["Premium Pilsner", "8.6 Original", "8.6 Red", "8.6 Gold", "8.6 Extreme"] },
+            { brand: "Beck's", region: "Estero", desc: "Classica pilsner tedesca (Brema).", variants: ["Pilsner", "Blue (Analcolica)", "Lemon", "Green Lemon", "Unfiltered"] },
+            { brand: "Budweiser Budvar", region: "Estero", desc: "L'autentica lager ceca protetta.", variants: ["Original Lager", "Dark Lager", "Nealko"] },
+            { brand: "Carlsberg", region: "Estero", desc: "Colosso industriale danese.", variants: ["Pilsner", "Elephant", "Special Brew"] },
+            { brand: "Ceres", region: "Estero", desc: "Marchio danese diventato un cult in Italia per le strong ale.", variants: ["Strong Ale", "Red Erik", "Extreme Ten"] },
+            { brand: "Chimay", region: "Estero", desc: "Autentica birra trappista belga prodotta dai monaci.", variants: ["Première (Rossa)", "Cinq Cents (Tripel)", "Grande Réserve (Blu)"] },
+            { brand: "Chouffe", region: "Estero", desc: "La celebre birra artigianale belga dello gnomo.", variants: ["La Chouffe (Blonde)", "Mc Chouffe (Brune)", "Cherry Chouffe"] },
+            { brand: "Corona", region: "Estero", desc: "La lager messicana famosa in tutto il mondo.", variants: ["Extra", "Cero"] },
+            { brand: "Delirium", region: "Estero", desc: "Famosissima Strong Ale belga.", variants: ["Tremens", "Nocturnum", "Red"] },
+            { brand: "Desperados", region: "Estero", desc: "Birra bionda aromatizzata alla tequila.", variants: ["Original", "Lime", "Mojito"] },
+            { brand: "Duvel", region: "Estero", desc: "La leggendaria Strong Gold Ale belga.", variants: ["Original Blond", "Triple Hop", "6.66"] },
+            { brand: "Erdinger", region: "Estero", desc: "Il birrificio di frumento più grande del mondo.", variants: ["Weißbier", "Dunkel", "Pikantus"] },
+            { brand: "Estrella Damm", region: "Estero", desc: "La bionda di Barcellona (Spagna).", variants: ["Estrella Damm", "Inedit", "Daura"] },
+            { brand: "Franziskaner", region: "Estero", desc: "Eccellenza tedesca di birre di frumento.", variants: ["Weissbier Naturtrüb", "Weissbier Dunkel"] },
+            { brand: "Grolsch", region: "Estero", desc: "Iconica lager olandese.", variants: ["Premium Pilsner", "Radler"] },
+            { brand: "Guinness", region: "Estero", desc: "La regina delle Stout irlandesi.", variants: ["Draught", "Extra Stout", "Hop House 13", "0.0"] },
+            { brand: "Heineken", region: "Estero", desc: "Il colosso olandese di Amsterdam.", variants: ["Original", "Silver", "0.0"] },
+            { brand: "Hoegaarden", region: "Estero", desc: "La regina delle birre bianche belghe (Witbier).", variants: ["Witbier", "Rosée"] },
+            { brand: "Kozel", region: "Estero", desc: "Famosissima birra ceca (Repubblica Ceca).", variants: ["Premium Lager", "Dark (Cerna)"] },
+            { brand: "Kronenbourg 1664", region: "Estero", desc: "Il marchio francese più venduto al mondo.", variants: ["Blanc", "Lager"] },
+            { brand: "Leffe", region: "Estero", desc: "La storica birra d'abbazia belga.", variants: ["Blonde", "Brune", "Rituel 9°", "Rouge", "Triple"] },
+            { brand: "Paulaner", region: "Estero", desc: "Grande protagonista dell'Oktoberfest.", variants: ["Hefe-Weißbier Naturtrüb", "Oktoberfest Bier", "Münchner Hell", "Salvator"] },
+            { brand: "Pilsner Urquell", region: "Estero", desc: "La madre di tutte le birre bionde.", variants: ["Original Lager"] },
+            { brand: "San Miguel", region: "Estero", desc: "Marchio spagnolo popolarissimo.", variants: ["Especial", "Selecta", "0,0"] },
+            { brand: "Stella Artois", region: "Estero", desc: "Premium lager belga.", variants: ["Premium Lager", "Unfiltered", "0.0"] },
+            { brand: "Super Bock", region: "Estero", desc: "La birra più famosa del Portogallo.", variants: ["Original", "Abadia", "Stout"] },
+            { brand: "Tennent's", region: "Estero", desc: "Storico marchio scozzese (Glasgow).", variants: ["Super", "Extra", "1885 Lager", "Scotch Ale"] },
+            { brand: "Tripel Karmeliet", region: "Estero", desc: "Straordinaria birra belga ai tre cereali.", variants: ["Tripel"] },
+            { brand: "Tuborg", region: "Estero", desc: "Lager danese leggera.", variants: ["Green", "Strong", "Red"] },
+            { brand: "Weihenstephaner", region: "Estero", desc: "Il birrificio più antico del mondo (1040).", variants: ["Hefe Weissbier", "Vitus", "Original Hell"] }
+        ];
+        beers.sort((a, b) => a.brand.localeCompare(b.brand));
+
+        let currentFilter = 'Tutte';
+        
+        // --- 3. GESTIONE DATI DAL CLOUD ---
+        let pokedex = {};
+
+        // Invece di leggere dal computer, "ascoltiamo" in diretta il database Cloud
+        db.ref('community_pokedex').on('value', (snapshot) => {
+            pokedex = snapshot.val() || {};
+            
+            // Ogni volta che qualcuno carica una foto, lo schermo si aggiorna per tutti!
+            updateStats();
+            filterBeers(); 
+            if(document.getElementById('profileModal').classList.contains('active')) renderTrophies();
+            if(document.getElementById('socialModal').classList.contains('active')) renderSocialFeed();
+        });
+
+
+        // --- LOGICA UI (Identica a prima) ---
+        function openSidebar() { document.getElementById("appSidebar").classList.add("open"); document.getElementById("mainOverlay").classList.add("active"); }
+        function closeSidebar() { document.getElementById("appSidebar").classList.remove("open"); if (!document.querySelector('.modal.active')) { document.getElementById("mainOverlay").classList.remove("active"); } }
+
+        function openModal(modalId) { closeSidebar(); document.getElementById(modalId).classList.add("active"); document.getElementById("mainOverlay").classList.add("active"); if(modalId === 'profileModal') renderTrophies(); if(modalId === 'socialModal') renderSocialFeed(); }
+        function closeModal(modalId) { document.getElementById(modalId).classList.remove("active"); document.getElementById("mainOverlay").classList.remove("active"); }
+        document.getElementById("mainOverlay").onclick = function() { closeSidebar(); document.querySelectorAll('.modal').forEach(m => m.classList.remove('active')); this.classList.remove("active"); }
+
+        function handlePhotoUpload(event, variantId) {
+            event.stopPropagation();
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const img = new Image();
+                img.onload = function() {
+                    const canvas = document.createElement('canvas');
+                    const MAX_SIZE = 400;
+                    let width = img.width; let height = img.height;
+                    if (width > height) { if (width > MAX_SIZE) { height *= MAX_SIZE / width; width = MAX_SIZE; } } else { if (height > MAX_SIZE) { width *= MAX_SIZE / height; height = MAX_SIZE; } }
+                    canvas.width = width; canvas.height = height;
+                    const ctx = canvas.getContext('2d'); ctx.drawImage(img, 0, 0, width, height);
+
+                    const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.6);
+                    
+                    // Invece di salvare su localStorage, INVIAMO LA FOTO AL CLOUD
+                    db.ref('community_pokedex/' + variantId).set(compressedDataUrl)
+                        .then(() => alert("Foto caricata nel Cloud con successo!"))
+                        .catch((error) => alert("Errore nel caricamento: (Devi prima configurare Firebase)"));
+                }
+                img.src = e.target.result;
+            }
+            reader.readAsDataURL(file);
+        }
+
+        function generateVariantsHTML(brand, variantsArray) {
+            let listHTML = '';
+            variantsArray.forEach(variant => {
+                let uniqueId = brand + '-' + variant;
+                let hasPhoto = pokedex[uniqueId] !== undefined;
+                
+                listHTML += `
+                <div class="variant-item" onclick="event.stopPropagation()">
+                    <span style="flex-grow: 1; font-weight: 500;">${variant}</span>
+                    ${hasPhoto ? `
+                        <div class="unlocked-status"><span>✔ Sbloccato</span><img src="${pokedex[uniqueId]}" class="thumb-preview"></div>
+                    ` : `
+                        <label class="photo-btn">📷 Scatta<input type="file" accept="image/*" capture="environment" onchange="handlePhotoUpload(event, '${uniqueId}')"></label>
+                    `}
+                </div>`;
+            });
+            return listHTML;
+        }
+
+        function toggleCard(cardElement) { cardElement.classList.toggle('active'); }
+
+        function displayBeers(beerArray) {
+            const container = document.getElementById('beerList'); container.innerHTML = '';
+            beerArray.forEach((beer, index) => {
+                let realIndex = beers.findIndex(b => b.brand === beer.brand);
+                const card = document.createElement('div'); card.className = 'card'; card.id = 'card-' + realIndex; card.setAttribute('onclick', 'toggleCard(this)');
+                card.innerHTML = `
+                    <div class="toggle-icon">▼</div>
+                    <span class="region">${beer.region === 'Estero' ? '🌍' : '📍'} ${beer.region}</span>
+                    <h2>${beer.brand} <span class="trophy" style="display:none;">🏆</span></h2>
+                    <div class="desc">${beer.desc}</div>
+                    <div class="variants-container"><div class="variants" onclick="event.stopPropagation()"><p>📸 Varianti da trovare:</p>${generateVariantsHTML(beer.brand, beer.variants)}</div></div>
+                `;
+                container.appendChild(card);
+            });
+            updateStats();
+        }
+
+        function updateStats() {
+            let totalBeers = 0; let totalDrunk = 0;
+            beers.forEach((beer, index) => {
+                let brandTotal = beer.variants.length; let brandDrunk = 0; totalBeers += brandTotal;
+                beer.variants.forEach(variant => { if (pokedex[beer.brand + '-' + variant]) { totalDrunk++; brandDrunk++; } });
+                const card = document.getElementById('card-' + index);
+                if (card) { if (brandDrunk === brandTotal) { card.classList.add('completed'); card.querySelector('.trophy').style.display = 'inline-block'; } else { card.classList.remove('completed'); card.querySelector('.trophy').style.display = 'none'; } }
+            });
+            const percentage = totalBeers === 0 ? 0 : Math.round((totalDrunk / totalBeers) * 100);
+            document.getElementById('progressBar').style.width = percentage + '%';
+            document.getElementById('progressText').innerText = `Scoperte dalla Community: ${totalDrunk} su ${totalBeers} (${percentage}%)`;
+        }
+
+        function renderTrophies() {
+            const grid = document.getElementById('trophyGrid'); grid.innerHTML = '';
+            beers.forEach(beer => {
+                beer.variants.forEach(variant => {
+                    let uniqueId = beer.brand + '-' + variant; let photoUrl = pokedex[uniqueId]; let isUnlocked = photoUrl !== undefined;
+                    let trophyDiv = document.createElement('div'); trophyDiv.className = `trophy-card ${isUnlocked ? 'unlocked' : ''}`;
+                    let imageContent = isUnlocked ? `<img src="${photoUrl}" alt="${variant}">` : `🔒`;
+                    trophyDiv.innerHTML = `<div class="trophy-brand">${beer.brand}</div><div class="trophy-img-container">${imageContent}</div><div class="trophy-name">${variant}</div>`;
+                    grid.appendChild(trophyDiv);
+                });
+            });
+        }
+
+        function renderSocialFeed() {
+            const feed = document.getElementById('socialFeed'); feed.innerHTML = '';
+            const unlockedKeys = Object.keys(pokedex);
+            if(unlockedKeys.length === 0) { feed.innerHTML = '<p style="text-align:center;">Nessuna foto trovata nel Cloud.</p>'; return; }
+
+            unlockedKeys.reverse().forEach(key => {
+                let splitIndex = key.indexOf('-'); let brand = key.substring(0, splitIndex); let variant = key.substring(splitIndex + 1);
+                let photoUrl = pokedex[key];
+                let post = document.createElement('div'); post.className = 'post-card';
+                post.innerHTML = `
+                    <div class="post-header"><div class="post-avatar">C</div><div><div class="post-user">Membro Community</div><div class="post-time">Recente</div></div></div>
+                    <img src="${photoUrl}" class="post-image" alt="Foto Birra">
+                    <div class="post-actions"><span class="action-icon" onclick="toggleLike(this)" style="color: #ccc;">🤍</span></div>
+                    <div class="post-caption">Qualcuno ha sbloccato la <strong>${brand} - ${variant}</strong>! 🍻</div>
+                `;
+                feed.appendChild(post);
+            });
+        }
+
+        function toggleLike(element) { if (element.style.color === 'rgb(204, 204, 204)' || element.style.color === 'ccc' || element.style.color === '#ccc') { element.style.color = '#e74c3c'; element.innerHTML = '❤️'; } else { element.style.color = '#ccc'; element.innerHTML = '🤍'; } }
+
+        function setFilter(region) { currentFilter = region; const buttons = document.querySelectorAll('.filters button'); buttons.forEach(btn => btn.classList.remove('active')); event.target.classList.add('active'); filterBeers(); if(window.innerWidth < 900) { closeSidebar(); } }
+        function filterBeers() { const searchTerm = document.getElementById('searchBar').value.toLowerCase(); const filtered = beers.filter(beer => { const variantsText = beer.variants.join(' ').toLowerCase(); const matchSearch = beer.brand.toLowerCase().includes(searchTerm) || beer.desc.toLowerCase().includes(searchTerm) || variantsText.includes(searchTerm); const matchRegion = currentFilter === 'Tutte' || beer.region === currentFilter; return matchSearch && matchRegion; }); displayBeers(filtered); }
+
+        displayBeers(beers);
+    </script>
+</body>
+</html>
