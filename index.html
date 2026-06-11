@@ -32,7 +32,6 @@
         .overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); backdrop-filter: blur(5px); z-index: 90; opacity: 0; visibility: hidden; transition: 0.3s ease; }
         .overlay.active { opacity: 1; visibility: visible; }
 
-        /* Sidebar Cassetto */
         .sidebar { position: fixed; top: 0; bottom: 0; left: -350px; width: 320px; box-sizing: border-box; background-color: var(--white); box-shadow: 4px 0 15px rgba(0,0,0,0.1); padding: 25px 20px; z-index: 100; overflow-y: auto; transition: 0.4s cubic-bezier(0.25, 0.8, 0.25, 1); display: flex; flex-direction: column; }
         .sidebar.open { left: 0; }
         
@@ -53,7 +52,6 @@
         .btn-friends { background: linear-gradient(135deg, #8e44ad, #9b59b6); }
         .btn-logout { background: #e74c3c !important; text-align: center !important; display: block;}
         
-        /* Notifica Birra */
         .beer-badge { display: none; font-size: 18px; animation: bounce 1s infinite; }
         @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
 
@@ -137,15 +135,24 @@
         .tab { flex: 1; padding: 12px; text-align: center; font-weight: bold; cursor: pointer; color: var(--text-muted); transition: 0.3s; font-size: 13px; display: flex; align-items: center; justify-content: center; gap: 5px;}
         .tab.active { background: var(--primary-dark); color: var(--white); }
         
-        .add-friend-box { display: flex; gap: 10px; margin-bottom: 20px; }
+        /* Nuova Gestione Search & Add Friend */
+        .add-friend-wrapper { position: relative; margin-bottom: 20px; }
+        .add-friend-box { display: flex; gap: 10px; margin-bottom: 0; }
         .add-friend-box input { flex-grow: 1; padding: 12px 15px; border: 2px solid var(--gray); border-radius: 10px; font-size: 14px; outline: none; margin: 0; }
         .add-friend-box button { background: var(--social-blue); color: white; border: none; padding: 0 20px; border-radius: 10px; font-weight: bold; cursor: pointer; }
+        
+        .suggestions-box { position: absolute; top: 100%; left: 0; right: 0; background: var(--white); border: 1px solid var(--gray); border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); z-index: 10; display: none; max-height: 150px; overflow-y: auto; margin-top: 5px;}
+        .suggestion-item { padding: 10px 15px; cursor: pointer; border-bottom: 1px solid var(--gray); font-size: 14px; font-weight: bold; color: var(--dark); }
+        .suggestion-item:last-child { border-bottom: none; }
+        .suggestion-item:hover { background: var(--light); color: var(--social-blue); }
+
+        .search-result-card { display: flex; align-items: center; justify-content: space-between; background: #ebf5fb; border: 2px solid var(--social-blue); padding: 15px; border-radius: 12px; margin-bottom: 20px; animation: fadeIn 0.3s;}
 
         .btn-action { border: none; border-radius: 8px; font-weight: bold; cursor: pointer; transition: 0.2s; padding: 8px 12px; font-size: 12px;}
         .btn-action:hover { transform: scale(1.05); }
         .btn-accept { background: #d4efdf; color: #1e8449; }
         .btn-reject { background: #fdf2f2; color: #e74c3c; }
-        .btn-add { background: #ebf5fb; color: #2980b9; }
+        .btn-add { background: var(--primary-dark); color: var(--white); }
         .btn-cancel { background: #f0f3f4; color: #7f8c8d; }
         .badge-status { font-size: 12px; font-weight: bold; }
 
@@ -299,10 +306,17 @@
                     <div class="tab active" id="tab-friends" onclick="switchLeaderboardTab('friends')">Solo Amici</div>
                     <div class="tab" id="tab-global" onclick="switchLeaderboardTab('global')">Globale</div>
                 </div>
-                <div class="add-friend-box">
-                    <input type="text" id="friendInput" placeholder="Inserisci il Nickname esatto...">
-                    <button onclick="addFriend()">Cerca</button>
+                
+                <div class="add-friend-wrapper" id="friendSearchWrapper">
+                    <div class="add-friend-box">
+                        <input type="text" id="friendInput" placeholder="Digita un Nickname per cercare..." autocomplete="off" onkeyup="showSuggestions()">
+                        <button onclick="searchUser()">Cerca</button>
+                    </div>
+                    <div id="suggestionsBox" class="suggestions-box"></div>
                 </div>
+                
+                <div id="searchResultArea"></div>
+
                 <div class="list-container leaderboard-list" id="leaderboardList"><p style="text-align:center;">Caricamento classifica...</p></div>
             </div>
         </div>
@@ -354,7 +368,7 @@
         // --- SISTEMA LEGALE: AGE GATE ---
         function checkAgeGate() {
             if(localStorage.getItem('beerdex_18plus') === 'yes') {
-                checkAuthentication(); // Passa al controllo login se maggiorenne
+                checkAuthentication();
             } else {
                 document.getElementById('ageGateModal').style.display = 'flex';
             }
@@ -364,9 +378,7 @@
             document.getElementById('ageGateModal').style.display = 'none';
             checkAuthentication();
         }
-        function rejectAge() {
-            window.location.href = "https://www.google.com"; // Reindirizza via
-        }
+        function rejectAge() { window.location.href = "https://www.google.com"; }
 
         // --- MOTORE DI AUTENTICAZIONE ---
         let isRegisterMode = false;
@@ -391,20 +403,16 @@
                 }
             });
         }
-
-        // Avvia la catena di verifiche all'apertura del sito
         checkAgeGate();
 
         function toggleAuthMode() {
             isRegisterMode = !isRegisterMode;
             document.getElementById("authTitle").innerText = isRegisterMode ? "Crea Account 🍻" : "Accedi a BeerDex 🍻";
             document.getElementById("authSubtitle").innerText = isRegisterMode ? "Scegli una password forte (8 caratteri, 1 Maiuscola, 1 Speciale tra !?$%&)" : "Inserisci Email o Nickname per accedere";
-            
             document.getElementById("authLoginId").style.display = isRegisterMode ? "none" : "block";
             document.getElementById("authUsername").style.display = isRegisterMode ? "block" : "none";
             document.getElementById("authEmail").style.display = isRegisterMode ? "block" : "none";
             document.getElementById("confirmPwdContainer").style.display = isRegisterMode ? "block" : "none";
-            
             document.getElementById("authBtn").innerText = isRegisterMode ? "Registrati" : "Entra nel Pub";
             document.getElementById("authToggle").innerText = isRegisterMode ? "Hai già un account? Accedi" : "Non hai un account? Registrati";
         }
@@ -433,7 +441,6 @@
             } else {
                 const loginId = document.getElementById("authLoginId").value.trim();
                 if(!loginId || !password) { alert("Inserisci credenziali!"); return; }
-
                 if(loginId.includes('@')) {
                     auth.signInWithEmailAndPassword(loginId, password).catch(err => alert("Email o Password errata."));
                 } else {
@@ -441,14 +448,11 @@
                         const mappedEmail = snapshot.val();
                         if(mappedEmail) {
                             auth.signInWithEmailAndPassword(mappedEmail, password).catch(err => alert("Password errata per questo Nickname."));
-                        } else {
-                            alert("Nickname non trovato nei nostri archivi.");
-                        }
+                        } else { alert("Nickname non trovato nei nostri archivi."); }
                     });
                 }
             }
         }
-
         function logoutUser() { auth.signOut().then(() => { window.location.reload(); }); }
 
         // --- SISTEMA NAVIGAZIONE ---
@@ -472,6 +476,11 @@
             currentLeaderboardTab = tabName;
             document.getElementById('tab-friends').classList.toggle('active', tabName === 'friends');
             document.getElementById('tab-global').classList.toggle('active', tabName === 'global');
+            
+            // Mostra o nascondi la ricerca in base al tab selezionato
+            document.getElementById('friendSearchWrapper').style.display = (tabName === 'global') ? 'block' : 'none';
+            document.getElementById('searchResultArea').innerHTML = ''; // pulisci i vecchi risultati
+
             renderLeaderboard();
         }
 
@@ -484,7 +493,7 @@
             renderFriendsManager();
         }
 
-        // --- GESTIONE AMICI E DB ---
+        // --- GESTIONE DATI IN TEMPO REALE ---
         let myPokedex = {}; let globalPosts = []; let globalLeaderboardScores = {}; 
         let myFriendsList = []; let myReceivedRequests = []; let mySentRequests = []; let myRejectedRequests = [];
 
@@ -501,18 +510,15 @@
                 if(document.getElementById('page-friends').classList.contains('active')) renderFriendsManager();
             });
 
-            // Gestione Dinamica del BADGE DELLA BIRRA (Notifiche)
             db.ref('friend_requests/' + currentUserNick).on('value', (snapshot) => {
                 myReceivedRequests = Object.keys(snapshot.val() || {});
                 const sidebarBadge = document.getElementById('sidebarBeerBadge');
                 const tabBadge = document.getElementById('tabBeerBadge');
                 
                 if(myReceivedRequests.length > 0) {
-                    sidebarBadge.style.display = 'inline-block';
-                    tabBadge.style.display = 'inline-block';
+                    sidebarBadge.style.display = 'inline-block'; tabBadge.style.display = 'inline-block';
                 } else {
-                    sidebarBadge.style.display = 'none';
-                    tabBadge.style.display = 'none';
+                    sidebarBadge.style.display = 'none'; tabBadge.style.display = 'none';
                 }
                 if(document.getElementById('page-leaderboard').classList.contains('active')) renderLeaderboard();
                 if(document.getElementById('page-friends').classList.contains('active')) renderFriendsManager();
@@ -540,28 +546,95 @@
             });
         }
 
-        // AZIONI AMICIZIA
-        function addFriend() {
+        // --- SISTEMA RICERCA CON AUTOCOMPLETAMENTO ---
+        function showSuggestions() {
+            const val = document.getElementById('friendInput').value.trim().toLowerCase();
+            const box = document.getElementById('suggestionsBox');
+            box.innerHTML = '';
+            
+            if(val.length === 0) { box.style.display = 'none'; return; }
+            
+            // Trova gli utenti che contengono le lettere scritte (escluso te stesso)
+            let matches = Object.keys(globalLeaderboardScores).filter(name => name.toLowerCase().includes(val) && name.toLowerCase() !== currentUserNick.toLowerCase());
+            
+            if(matches.length === 0) { box.style.display = 'none'; return; }
+            
+            // Mostra al massimo 5 suggerimenti
+            matches.slice(0, 5).forEach(match => {
+                let div = document.createElement('div');
+                div.className = 'suggestion-item';
+                div.innerText = match;
+                div.onclick = function() {
+                    document.getElementById('friendInput').value = match;
+                    box.style.display = 'none';
+                    searchUser(); // Avvia la ricerca al click
+                };
+                box.appendChild(div);
+            });
+            box.style.display = 'block';
+        }
+
+        // Chiude la tendina se clicchi fuori
+        document.addEventListener('click', function(e) {
+            if(!e.target.closest('.add-friend-wrapper')) {
+                const box = document.getElementById('suggestionsBox');
+                if(box) box.style.display = 'none';
+            }
+        });
+
+        // --- RICERCA MANUALE E TASTO AGGIUNGI ---
+        function searchUser() {
             let friendName = document.getElementById('friendInput').value.trim();
+            let resultArea = document.getElementById('searchResultArea');
+            resultArea.innerHTML = '';
+            document.getElementById('suggestionsBox').style.display = 'none';
+
             if(!friendName) return;
-            if(friendName.toLowerCase() === currentUserNick.toLowerCase()) { alert("Non puoi aggiungere te stesso!"); return; }
+            if(friendName.toLowerCase() === currentUserNick.toLowerCase()) { 
+                resultArea.innerHTML = '<p style="color:var(--danger); text-align:center; font-size:14px; font-weight:bold;">Non puoi cercare te stesso!</p>'; 
+                return; 
+            }
             
             let exactName = null;
             for (let name in globalLeaderboardScores) {
                 if(name.toLowerCase() === friendName.toLowerCase()) { exactName = name; break; }
             }
+            
             if(exactName) {
-                sendFriendRequest(exactName);
-                document.getElementById('friendInput').value = '';
+                let actionsHtml = '';
+                if (myFriendsList.includes(exactName)) { 
+                    actionsHtml = `<span class="badge-status" style="color:var(--social-blue);">🤝 Già Amici</span>`; 
+                } 
+                else if (mySentRequests.includes(exactName)) { 
+                    actionsHtml = `<span class="badge-status" style="color:var(--text-muted);">⏳ In attesa di risposta</span>`; 
+                } 
+                else if (myReceivedRequests.includes(exactName)) { 
+                    actionsHtml = `<button class="btn-action btn-accept" onclick="navigateTo('page-friends')">Rispondi alla sua richiesta</button>`; 
+                } 
+                else { 
+                    actionsHtml = `<button class="btn-action btn-add" onclick="sendFriendRequestFromSearch('${exactName}')">➕ Invia Richiesta</button>`; 
+                }
+
+                resultArea.innerHTML = `
+                    <div class="search-result-card">
+                        <div style="font-weight: bold; font-size:18px; color:var(--dark);">👤 ${exactName}</div>
+                        <div>${actionsHtml}</div>
+                    </div>
+                `;
             } else {
-                alert("Utente non trovato! Controlla di aver scritto bene il Nickname.");
+                resultArea.innerHTML = '<p style="color:var(--danger); text-align:center; font-size:14px; font-weight:bold;">Utente non trovato nel database.</p>';
             }
+        }
+
+        function sendFriendRequestFromSearch(targetNick) {
+            sendFriendRequest(targetNick);
+            // La riga sotto aggiorna il box graficamente per mostrare "In attesa"
+            setTimeout(searchUser, 300); 
         }
 
         function sendFriendRequest(targetNick) {
             db.ref('friend_requests/' + targetNick + '/' + currentUserNick).set(true);
             db.ref('friend_requests_sent/' + currentUserNick + '/' + targetNick).set(true);
-            alert(`Richiesta inviata a ${targetNick}!`);
         }
 
         function acceptFriendRequest(senderNick) {
@@ -569,14 +642,13 @@
             db.ref('users_friends/' + senderNick + '/' + currentUserNick).set(true);
             db.ref('friend_requests/' + currentUserNick + '/' + senderNick).remove();
             db.ref('friend_requests_sent/' + senderNick + '/' + currentUserNick).remove();
-            // Rimuovi dalle rifiutate se per caso ci era finito
             db.ref('friend_requests_rejected/' + currentUserNick + '/' + senderNick).remove();
         }
 
         function rejectFriendRequest(senderNick) {
             db.ref('friend_requests/' + currentUserNick + '/' + senderNick).remove();
             db.ref('friend_requests_sent/' + senderNick + '/' + currentUserNick).remove();
-            db.ref('friend_requests_rejected/' + currentUserNick + '/' + senderNick).set(true); // Memorizza tra i rifiutati
+            db.ref('friend_requests_rejected/' + currentUserNick + '/' + senderNick).set(true); 
         }
 
         function cancelSentRequest(targetNick) {
@@ -593,10 +665,9 @@
 
         function restoreRejectedRequest(senderNick) {
             db.ref('friend_requests_rejected/' + currentUserNick + '/' + senderNick).remove();
-            acceptFriendRequest(senderNick); // Lo sblocca e lo accetta direttamente
+            acceptFriendRequest(senderNick);
         }
 
-        // REDERIZZAZIONE LISTE AMICI NELLA NUOVA PAGINA
         function renderFriendsManager() {
             const list = document.getElementById('friendsManagerList'); list.innerHTML = '';
             
@@ -634,11 +705,11 @@
             }
         }
 
-        // --- DATABASE INTEGRALE BIRRE ---
+        // --- DATABASE BIRRE ---
         const beers = [
             // ITALIANE 🇮🇹
             { brand: "Ichnusa", country: "Italia", flag: "🇮🇹", desc: "L'iconica birra sarda, amatissima in tutta Italia.", variants: ["Classica", "Non Filtrata", "Cruda", "Ambra Limpidissima", "Radler"] },
-            { brand: "Moretti", country: "Italia", flag: "🇮🇹", desc: "Storico marchio nato in Friuli-Venezia Giulia.", variants: ["Ricetta Originale", "Baffo d'Oro", "La Rossa", "Filtrata a Freddo", "IPA", "Bianca", "Zero", "Lunga Maturazione"] },
+            { brand: "Moretti", country: "Italia", flag: "🇮🇹", desc: "Storico marchio nato in Friuli-Venezia Giulia (Udine).", variants: ["Ricetta Originale", "Baffo d'Oro", "La Rossa", "Filtrata a Freddo", "IPA", "Bianca", "Zero", "Lunga Maturazione"] },
             { brand: "Peroni", country: "Italia", flag: "🇮🇹", desc: "Il colosso romano, celebre a livello internazionale.", variants: ["Classica", "Nastro Azzurro", "Nastro Azzurro 0.0", "Non Filtrata", "Cruda", "Gran Riserva Puro Malto", "Gran Riserva Doppio Malto", "Gran Riserva Rossa", "Gran Riserva Bianca", "Chill Lemon", "Capri"] },
             { brand: "Poretti", country: "Italia", flag: "🇮🇹", desc: "Realtà lombarda che classifica le birre coi luppoli.", variants: ["3 Luppoli", "4 Luppoli Originale", "4 Luppoli Non Filtrata", "5 Luppoli Bock", "6 Luppoli Rossa", "7 Luppoli", "8 Luppoli", "Le 9 Luppoli (IPA)"] },
             { brand: "Menabrea", country: "Italia", flag: "🇮🇹", desc: "Pluripremiato birrificio di Biella (Piemonte).", variants: ["Bionda 150°", "Ambrata", "Non Filtrata", "Strong", "Weiss", "Rossa"] },
@@ -695,9 +766,6 @@
         ];
         beers.sort((a, b) => a.brand.localeCompare(b.brand));
 
-        let currentFilter = 'Tutte'; 
-
-        // --- GESTIONE FOTO E LOGICA DI BASE (Già esistente e invariata) ---
         function handlePhotoUpload(event, brand, variant) {
             event.stopPropagation(); const file = event.target.files[0]; if (!file) return;
             if (!aiModel) { alert("L'AI si sta configurando, riprova tra poco!"); return; }
@@ -836,28 +904,33 @@
 
         function renderLeaderboard() {
             const list = document.getElementById('leaderboardList'); list.innerHTML = '';
+            
             let players = [];
             for (let name in globalLeaderboardScores) { 
                 if(currentLeaderboardTab === 'friends') { if(name !== currentUserNick && !myFriendsList.includes(name)) continue; }
                 players.push({ name: name, score: globalLeaderboardScores[name] }); 
             }
             players.sort((a, b) => b.score - a.score);
+            
             if(players.length === 0) { list.innerHTML = '<p style="text-align:center;">Nessun punteggio.</p>'; return; }
+            
             players.forEach((player, index) => {
                 let item = document.createElement('div'); item.className = 'leaderboard-item';
                 let medal = (index + 1); if(index === 0) medal = '🥇'; else if(index === 1) medal = '🥈'; else if(index === 2) medal = '🥉';
+                
                 let actionsHtml = '';
                 if (currentLeaderboardTab === 'global' && player.name !== currentUserNick) {
                     if (myFriendsList.includes(player.name)) { actionsHtml = `<span class="badge-status" style="color:var(--social-blue);">🤝 Amici</span>`; } 
                     else if (mySentRequests.includes(player.name)) { actionsHtml = `<span class="badge-status" style="color:var(--text-muted);">⏳ In attesa</span>`; } 
                     else if (myReceivedRequests.includes(player.name)) { actionsHtml = `<button class="btn-action btn-accept" onclick="navigateTo('page-friends')">Rispondi</button>`; } 
-                    else { actionsHtml = `<button class="btn-action btn-add" onclick="sendFriendRequest('${player.name}')" style="padding:5px 10px; font-size:12px;">➕ Aggiungi</button>`; }
+                    else { actionsHtml = `<button class="btn-action btn-add" onclick="sendFriendRequestFromSearch('${player.name}')" style="padding:5px 10px; font-size:12px;">➕ Aggiungi</button>`; }
                 }
                 item.innerHTML = `<div style="display:flex; align-items:center; flex-grow:1;"><div class="rank">${medal}</div><div class="lb-user">${player.name} ${player.name === currentUserNick ? '(Tu)' : ''}</div></div><div style="display:flex; align-items:center; gap:15px;"><div class="lb-score">${player.score} 🏆</div>${actionsHtml}</div>`;
                 list.appendChild(item);
             });
         }
 
+        let currentFilter = 'Tutte'; 
         function setFilter(country) { currentFilter = country; filterBeers(); navigateTo('page-home'); }
         function filterBeers() { const searchTerm = document.getElementById('searchBar').value.toLowerCase(); const filtered = beers.filter(beer => { const variantsText = beer.variants.join(' ').toLowerCase(); const matchSearch = beer.brand.toLowerCase().includes(searchTerm) || beer.desc.toLowerCase().includes(searchTerm) || variantsText.includes(searchTerm); const matchRegion = currentFilter === 'Tutte' || beer.country === currentFilter; return matchSearch && matchRegion; }); displayBeers(filtered); }
 
