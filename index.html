@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BeerDex - Social, Cloud & Ultimate Collection</title>
+    <title>BeerDex - Multiplayer Edition</title>
     
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
@@ -20,11 +20,12 @@
             --gold: #f1c40f;
             --text-muted: #7f8c8d;
             --social-blue: #3498db;
+            --leaderboard-green: #27ae60;
         }
         
         body { font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: var(--light); color: var(--dark); margin: 0; padding: 0; overflow-x: hidden; }
 
-        .overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); backdrop-filter: blur(3px); z-index: 90; opacity: 0; visibility: hidden; transition: 0.3s ease; }
+        .overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); backdrop-filter: blur(4px); z-index: 90; opacity: 0; visibility: hidden; transition: 0.3s ease; }
         .overlay.active { opacity: 1; visibility: visible; }
 
         .sidebar { position: fixed; top: 0; bottom: 0; left: -350px; width: 320px; box-sizing: border-box; background-color: var(--white); box-shadow: 4px 0 15px rgba(0,0,0,0.1); padding: 25px 20px; z-index: 100; overflow-y: auto; transition: 0.4s cubic-bezier(0.25, 0.8, 0.25, 1); display: flex; flex-direction: column; }
@@ -35,13 +36,17 @@
         .close-sidebar { font-size: 24px; color: var(--text-muted); cursor: pointer; border: none; background: none; }
         .close-sidebar:hover { color: var(--dark); }
         
-        .profile-btn { background: linear-gradient(135deg, #2c3e50, #34495e); color: var(--white); border: none; padding: 14px 20px; font-size: 16px; font-weight: bold; border-radius: 12px; margin-bottom: 10px; cursor: pointer; box-shadow: 0 4px 10px rgba(44, 62, 80, 0.3); transition: 0.2s; width: 100%; }
-        .profile-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 15px rgba(44, 62, 80, 0.4); }
+        .sidebar-user { text-align: center; padding: 10px; background: var(--gray); border-radius: 12px; margin-bottom: 20px; font-weight: bold; color: var(--dark); }
 
-        .social-btn { background: linear-gradient(135deg, #2980b9, #8e44ad); color: var(--white); border: none; padding: 14px 20px; font-size: 16px; font-weight: bold; border-radius: 12px; margin-bottom: 25px; cursor: pointer; box-shadow: 0 4px 10px rgba(52, 152, 219, 0.3); transition: 0.2s; width: 100%; }
-        .social-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 15px rgba(52, 152, 219, 0.4); }
+        .menu-btn { color: var(--white); border: none; padding: 14px 20px; font-size: 16px; font-weight: bold; border-radius: 12px; margin-bottom: 10px; cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.15); transition: 0.2s; width: 100%; }
+        .menu-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 15px rgba(0,0,0,0.2); }
+        
+        .btn-profile { background: linear-gradient(135deg, #2c3e50, #34495e); }
+        .btn-social { background: linear-gradient(135deg, #2980b9, #8e44ad); }
+        .btn-leaderboard { background: linear-gradient(135deg, #27ae60, #1e8449); }
+        .btn-invite { background: var(--white); color: var(--dark); border: 2px solid var(--primary-dark); margin-top: 10px; margin-bottom: 25px; }
 
-        .progress-container { width: 100%; height: 10px; background: var(--gray); border-radius: 10px; margin: 15px auto 5px auto; overflow: hidden; }
+        .progress-container { width: 100%; height: 10px; background: #e0e6ed; border-radius: 10px; margin: 15px auto 5px auto; overflow: hidden; }
         .progress-bar { height: 100%; background-color: var(--primary-dark); width: 0%; transition: width 0.8s cubic-bezier(0.25, 0.8, 0.25, 1); }
         .progress-text { font-size: 13px; font-weight: bold; color: var(--text-muted); text-align: center; margin-bottom: 20px; }
 
@@ -83,7 +88,7 @@
         .photo-btn:hover { background-color: var(--accent); transform: translateY(-1px); }
         input[type="file"] { display: none; }
         
-        .thumb-preview { width: 45px; height: 45px; border-radius: 8px; object-fit: cover; border: 2px solid var(--accent); margin-left: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        .thumb-preview { width: 45px; height: 45px; border-radius: 8px; object-fit: cover; border: 2px solid var(--accent); margin-left: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); cursor: pointer; }
         .unlocked-status { display: flex; align-items: center; color: #27ae60; font-weight: bold; font-size: 13px;}
 
         .card.completed { border-top: 5px solid var(--gold); background: #fffcf0; }
@@ -91,6 +96,7 @@
 
         .footer-legal { background-color: var(--white); padding: 30px 20px; text-align: center; border-top: 1px solid var(--gray); margin-top: auto; color: var(--text-muted); font-size: 12px; line-height: 1.6; }
         
+        /* Modali */
         .modal { display: none; position: fixed; z-index: 200; left: 0; top: 0; width: 100%; height: 100%; }
         .modal.active { display: flex; align-items: center; justify-content: center; }
         .modal-content { background-color: var(--white); padding: 30px; border-radius: 20px; width: 90%; max-width: 850px; max-height: 85vh; overflow-y: auto; position: relative; box-shadow: 0 20px 40px rgba(0,0,0,0.2); animation: slideUp 0.3s ease-out; }
@@ -100,17 +106,24 @@
         .close-btn:hover { color: var(--dark); background: #e0e6ed; }
         .modal-title { text-align: center; color: var(--dark); margin-top: 0; padding-bottom: 20px; font-size: 26px; }
         
+        /* Stili Social & Leaderboard */
         .social-feed { max-width: 500px; margin: 0 auto; display: flex; flex-direction: column; gap: 30px; }
         .post-card { background: var(--white); border: 1px solid var(--gray); border-radius: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); overflow: hidden; }
         .post-header { display: flex; align-items: center; padding: 15px; border-bottom: 1px solid var(--gray); }
-        .post-avatar { width: 40px; height: 40px; background: linear-gradient(135deg, var(--social-blue), #8e44ad); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: var(--white); font-weight: bold; font-size: 18px; margin-right: 12px; }
+        .post-avatar { width: 40px; height: 40px; background: linear-gradient(135deg, var(--social-blue), #8e44ad); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: var(--white); font-weight: bold; font-size: 18px; margin-right: 12px; text-transform: uppercase; }
         .post-user { font-weight: bold; font-size: 15px; color: var(--dark); }
         .post-time { font-size: 12px; color: var(--text-muted); }
         .post-image { width: 100%; max-height: 400px; object-fit: contain; background: #000; display: block; border-bottom: 1px solid var(--gray); }
-        .post-actions { padding: 12px 15px; display: flex; gap: 15px; font-size: 22px; }
-        .action-icon { cursor: pointer; transition: 0.2s; user-select: none; }
-        .action-icon:hover { transform: scale(1.1); }
-        .post-caption { padding: 0 15px 20px 15px; font-size: 14px; line-height: 1.5; color: var(--dark); }
+        .post-caption { padding: 15px; font-size: 14px; line-height: 1.5; color: var(--dark); }
+
+        .leaderboard-list { display: flex; flex-direction: column; gap: 10px; max-width: 500px; margin: 0 auto; }
+        .leaderboard-item { display: flex; align-items: center; justify-content: space-between; background: var(--gray); padding: 15px 20px; border-radius: 12px; }
+        .leaderboard-item:nth-child(1) { background: linear-gradient(135deg, #f1c40f, #f39c12); color: white; transform: scale(1.05); box-shadow: 0 5px 15px rgba(241,196,15,0.4); z-index: 2;}
+        .leaderboard-item:nth-child(2) { background: linear-gradient(135deg, #bdc3c7, #95a5a6); color: white; }
+        .leaderboard-item:nth-child(3) { background: linear-gradient(135deg, #e67e22, #d35400); color: white; }
+        .rank { font-weight: bold; font-size: 20px; width: 30px; }
+        .lb-user { flex-grow: 1; font-weight: bold; font-size: 18px; }
+        .lb-score { font-size: 20px; font-weight: bold; }
 
         .trophy-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 15px; text-align: center; }
         .trophy-card { background: var(--light); padding: 12px 8px; border-radius: 12px; display: flex; flex-direction: column; align-items: center; transition: 0.2s; }
@@ -120,11 +133,25 @@
         .trophy-name { font-size: 12px; font-weight: bold; line-height: 1.2; color: var(--dark); }
         .trophy-brand { font-size: 10px; color: var(--text-muted); text-transform: uppercase; margin-bottom: 4px;}
 
+        /* Login Modal for Username */
+        #loginModal .modal-content { max-width: 400px; text-align: center; }
+        #loginModal input { width: 80%; padding: 15px; margin: 20px 0; border: 2px solid var(--primary); border-radius: 10px; font-size: 18px; text-align: center; }
+        #loginModal button { background: var(--primary-dark); color: white; border: none; padding: 15px 30px; border-radius: 10px; font-size: 18px; font-weight: bold; cursor: pointer; }
     </style>
 </head>
 <body>
 
     <div class="overlay" id="mainOverlay" onclick="closeSidebar()"></div>
+
+    <div id="loginModal" class="modal" style="z-index: 999; background: rgba(0,0,0,0.8);">
+        <div class="modal-content">
+            <h2 class="modal-title">Benvenuto su BeerDex! 🍻</h2>
+            <p>Scegli il tuo nome da mastro birraio per iniziare a giocare, sbloccare trofei e sfidare i tuoi amici nella Classifica.</p>
+            <input type="text" id="usernameInput" placeholder="Es. Marco89" maxlength="12">
+            <br>
+            <button onclick="saveUsername()">Entra nel Pub</button>
+        </div>
+    </div>
 
     <div class="sidebar" id="appSidebar">
         <div class="sidebar-header">
@@ -132,8 +159,12 @@
             <button class="close-sidebar" onclick="closeSidebar()">&times;</button>
         </div>
         
-        <button class="profile-btn" onclick="openModal('profileModal')">🏆 Bacheca Trofei</button>
-        <button class="social-btn" onclick="openModal('socialModal')">🌍 Community Social</button>
+        <div class="sidebar-user">👤 Ciao, <span id="displayUsername">...</span>!</div>
+        
+        <button class="menu-btn btn-profile" onclick="openModal('profileModal')">🏆 La Mia Bacheca</button>
+        <button class="menu-btn btn-social" onclick="openModal('socialModal')">🌍 Community Feed</button>
+        <button class="menu-btn btn-leaderboard" onclick="openModal('leaderboardModal')">🏅 Classifica Amici</button>
+        <button class="menu-btn btn-invite" onclick="inviteFriends()">📩 Invita un Amico</button>
 
         <div style="margin-bottom: 25px;">
             <div class="progress-text" id="progressText">0 / 0 Birre scoperte</div>
@@ -157,13 +188,13 @@
         <header class="hero">
             <button class="menu-toggle" onclick="openSidebar()">☰ Menu</button>
             <h1>🍻 BeerDex</h1>
-            <p>Cattura, esplora e condividi le birre migliori.</p>
+            <p>Sfida gli amici a chi colleziona più birre!</p>
         </header>
 
         <div class="container" id="beerList"></div>
 
         <footer class="footer-legal">
-            <p>🍺 <strong>BeerDex</strong> è un'applicazione indipendente in Cloud.</p>
+            <p>🍺 <strong>BeerDex</strong> è un'applicazione multiplayer indipendente.</p>
         </footer>
     </div>
 
@@ -178,8 +209,18 @@
     <div id="socialModal" class="modal">
         <div class="modal-content">
             <span class="close-btn" onclick="closeModal('socialModal')">&times;</span>
-            <h2 class="modal-title">📸 Feed Community</h2>
+            <h2 class="modal-title">📸 Feed Amici</h2>
             <div class="social-feed" id="socialFeed"></div>
+        </div>
+    </div>
+
+    <div id="leaderboardModal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn" onclick="closeModal('leaderboardModal')">&times;</span>
+            <h2 class="modal-title">🏅 Classifica Globale</h2>
+            <div class="leaderboard-list" id="leaderboardList">
+                <p style="text-align:center;">Caricamento classifica...</p>
+            </div>
         </div>
     </div>
 
@@ -195,14 +236,30 @@
             appId: "1:192552381552:web:bdcbbb0ff7fd6a365118b5"
         };
 
-        if (!firebase.apps.length) {
-            firebase.initializeApp(firebaseConfig);
-        }
+        if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
         const db = firebase.database();
 
-        // --- 2. DATABASE COMPLETO BIRRE ---
+        // --- GESTIONE USERNAME (Identità dell'utente) ---
+        let currentUser = localStorage.getItem("beerdex_username");
+        
+        if (!currentUser) {
+            document.getElementById("loginModal").style.display = "flex";
+        } else {
+            document.getElementById("displayUsername").innerText = currentUser;
+        }
+
+        function saveUsername() {
+            let input = document.getElementById("usernameInput").value.trim();
+            if(input.length < 3) { alert("Il nome deve avere almeno 3 caratteri!"); return; }
+            currentUser = input;
+            localStorage.setItem("beerdex_username", currentUser);
+            document.getElementById("displayUsername").innerText = currentUser;
+            document.getElementById("loginModal").style.display = "none";
+            loadUserData(); // Carica i dati dell'utente appena creato/loggato
+        }
+
+        // --- 2. DATABASE BIRRE ---
         const beers = [
-            // ITALIANE
             { brand: "Ichnusa", region: "Sud e Isole", desc: "L'iconica birra sarda, amatissima in tutta Italia.", variants: ["Classica", "Non Filtrata", "Cruda", "Ambra Limpidissima", "Radler"] },
             { brand: "Moretti", region: "Nord", desc: "Storico marchio nato in Friuli-Venezia Giulia (Udine).", variants: ["Ricetta Originale", "Baffo d'Oro", "La Rossa", "Filtrata a Freddo", "IPA", "Bianca", "Zero", "Lunga Maturazione"] },
             { brand: "Peroni", region: "Centro", desc: "Il colosso romano, celebre a livello internazionale.", variants: ["Classica", "Nastro Azzurro", "Nastro Azzurro 0.0", "Non Filtrata", "Cruda", "Gran Riserva Puro Malto", "Gran Riserva Doppio Malto", "Gran Riserva Rossa", "Gran Riserva Bianca", "Chill Lemon", "Capri"] },
@@ -225,8 +282,6 @@
             { brand: "Salento", region: "Sud e Isole", desc: "Eccellenza artigianale pugliese, nata a Leverano (Lecce).", variants: ["Agricola (Lager)", "Nuda e Cruda", "Beggia", "Taranta (IPA)"] },
             { brand: "Flea", region: "Centro", desc: "Birre artigianali umbre brassate con acqua di sorgente.", variants: ["Costanza", "Bianca Lancia", "Federico II", "Bastola", "Violante"] },
             { brand: "Semedorato", region: "Sud e Isole", desc: "Birra artigianale premium siciliana, nata a Caltanissetta.", variants: ["Bionda Premium", "Rossa Doppio Malto", "Non Filtrata"] },
-
-            // ESTERE
             { brand: "Augustiner", region: "Estero", desc: "Storico birrificio di Monaco di Baviera.", variants: ["Lagerbier Hell", "Edelstoff", "Maximator"] },
             { brand: "Bavaria", region: "Estero", desc: "Marchio olandese noto per la linea 8.6.", variants: ["Premium Pilsner", "8.6 Original", "8.6 Red", "8.6 Gold", "8.6 Extreme"] },
             { brand: "Beck's", region: "Estero", desc: "Classica pilsner tedesca (Brema).", variants: ["Pilsner", "Blue (Analcolica)", "Lemon", "Green Lemon", "Unfiltered"] },
@@ -260,31 +315,64 @@
             { brand: "Weihenstephaner", region: "Estero", desc: "Il birrificio più antico del mondo (1040).", variants: ["Hefe Weissbier", "Vitus", "Original Hell"] }
         ];
         
-        // Ordina automaticamente in ordine alfabetico
         beers.sort((a, b) => a.brand.localeCompare(b.brand));
 
         let currentFilter = 'Tutte';
-        let pokedex = {};
+        let myPokedex = {}; // Pokedex PERSONALE
+        let globalPosts = []; // Post SOCIAL
+        let globalUsers = {}; // CLASSIFICA
 
-        // Sincronizzazione Realtime in diretta dal Cloud
-        db.ref('community_pokedex').on('value', (snapshot) => {
-            pokedex = snapshot.val() || {};
+        // --- 3. GESTIONE DATI IN REALTIME ---
+        function loadUserData() {
+            if(!currentUser) return;
             
-            // Aggiorna interfaccia e sblocchi
-            updateStats();
-            filterBeers(); 
-            if(document.getElementById('profileModal').classList.contains('active')) renderTrophies();
-            if(document.getElementById('socialModal').classList.contains('active')) renderSocialFeed();
-        });
+            // 1. Ascolta il Pokedex Personale
+            db.ref('users/' + currentUser + '/pokedex').on('value', (snapshot) => {
+                myPokedex = snapshot.val() || {};
+                updateStats();
+                filterBeers();
+                if(document.getElementById('profileModal').classList.contains('active')) renderTrophies();
+            });
 
+            // 2. Ascolta il Feed Social (Post di tutti)
+            db.ref('posts').limitToLast(50).on('value', (snapshot) => {
+                globalPosts = [];
+                snapshot.forEach(child => { globalPosts.push(child.val()); });
+                if(document.getElementById('socialModal').classList.contains('active')) renderSocialFeed();
+            });
+
+            // 3. Ascolta tutti gli utenti per la Classifica
+            db.ref('users').on('value', (snapshot) => {
+                globalUsers = snapshot.val() || {};
+                if(document.getElementById('leaderboardModal').classList.contains('active')) renderLeaderboard();
+            });
+        }
+
+        // Se l'utente è già loggato all'apertura, carica i dati subito
+        if(currentUser) loadUserData();
+
+        // --- LOGICA UI ---
         function openSidebar() { document.getElementById("appSidebar").classList.add("open"); document.getElementById("mainOverlay").classList.add("active"); }
         function closeSidebar() { document.getElementById("appSidebar").classList.remove("open"); if (!document.querySelector('.modal.active')) { document.getElementById("mainOverlay").classList.remove("active"); } }
 
-        function openModal(modalId) { closeSidebar(); document.getElementById(modalId).classList.add("active"); document.getElementById("mainOverlay").classList.add("active"); if(modalId === 'profileModal') renderTrophies(); if(modalId === 'socialModal') renderSocialFeed(); }
+        function openModal(modalId) { 
+            closeSidebar(); document.getElementById(modalId).classList.add("active"); document.getElementById("mainOverlay").classList.add("active"); 
+            if(modalId === 'profileModal') renderTrophies(); 
+            if(modalId === 'socialModal') renderSocialFeed();
+            if(modalId === 'leaderboardModal') renderLeaderboard();
+        }
         function closeModal(modalId) { document.getElementById(modalId).classList.remove("active"); document.getElementById("mainOverlay").classList.remove("active"); }
         document.getElementById("mainOverlay").onclick = function() { closeSidebar(); document.querySelectorAll('.modal').forEach(m => m.classList.remove('active')); this.classList.remove("active"); }
 
-        function handlePhotoUpload(event, variantId) {
+        function inviteFriends() {
+            const url = window.location.href;
+            const msg = `🍻 Ehi! Ho appena sbloccato un sacco di birre su BeerDex. Clicca qui per iscriverti, vediamo chi vince nella Classifica! 👇\n${url}`;
+            navigator.clipboard.writeText(msg).then(() => {
+                alert("Messaggio di invito copiato! Incollalo su WhatsApp o dove vuoi.");
+            });
+        }
+
+        function handlePhotoUpload(event, brand, variant) {
             event.stopPropagation();
             const file = event.target.files[0];
             if (!file) return;
@@ -301,13 +389,21 @@
                     const ctx = canvas.getContext('2d'); ctx.drawImage(img, 0, 0, width, height);
 
                     const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.6);
+                    const uniqueId = brand + '-' + variant;
                     
-                    db.ref('community_pokedex/' + variantId).set(compressedDataUrl)
+                    // Salva nel Pokedex PERSONALE
+                    db.ref('users/' + currentUser + '/pokedex/' + uniqueId).set(compressedDataUrl)
                         .then(() => {
-                            // Ricalcoliamo subito le statistiche per forzare lo sblocco visivo
-                            updateStats();
+                            // Salva nel Feed SOCIAL
+                            db.ref('posts').push({
+                                user: currentUser,
+                                brand: brand,
+                                variant: variant,
+                                photo: compressedDataUrl,
+                                time: new Date().getTime()
+                            });
                         })
-                        .catch((error) => alert("Errore nel caricamento. Assicurati di aver configurato il database di Firebase."));
+                        .catch((error) => alert("Errore connessione Firebase."));
                 }
                 img.src = e.target.result;
             }
@@ -318,15 +414,15 @@
             let listHTML = '';
             variantsArray.forEach(variant => {
                 let uniqueId = brand + '-' + variant;
-                let hasPhoto = pokedex[uniqueId] !== undefined;
+                let hasPhoto = myPokedex[uniqueId] !== undefined;
                 
                 listHTML += `
                 <div class="variant-item" onclick="event.stopPropagation()">
                     <span style="flex-grow: 1; font-weight: 500;">${variant}</span>
                     ${hasPhoto ? `
-                        <div class="unlocked-status"><span>✔ Sbloccato</span><img src="${pokedex[uniqueId]}" class="thumb-preview"></div>
+                        <div class="unlocked-status"><span>✔ Sbloccato</span><img src="${myPokedex[uniqueId]}" class="thumb-preview" onclick="alert('Hai già catturato questa birra!')"></div>
                     ` : `
-                        <label class="photo-btn">📷 Scatta<input type="file" accept="image/*" capture="environment" onchange="handlePhotoUpload(event, '${uniqueId}')"></label>
+                        <label class="photo-btn">📷 Scatta<input type="file" accept="image/*" capture="environment" onchange="handlePhotoUpload(event, '${brand}', '${variant}')"></label>
                     `}
                 </div>`;
             });
@@ -349,8 +445,6 @@
                 `;
                 container.appendChild(card);
             });
-            
-            // Controlla lo sblocco dei trofei all'avvio
             checkTrophiesVisually();
         }
 
@@ -358,33 +452,22 @@
             let totalBeers = 0; let totalDrunk = 0;
             beers.forEach((beer) => {
                 totalBeers += beer.variants.length;
-                beer.variants.forEach(variant => { if (pokedex[beer.brand + '-' + variant]) { totalDrunk++; } });
+                beer.variants.forEach(variant => { if (myPokedex[beer.brand + '-' + variant]) { totalDrunk++; } });
             });
             const percentage = totalBeers === 0 ? 0 : Math.round((totalDrunk / totalBeers) * 100);
             document.getElementById('progressBar').style.width = percentage + '%';
-            document.getElementById('progressText').innerText = `Scoperte dalla Community: ${totalDrunk} su ${totalBeers} (${percentage}%)`;
-            
+            document.getElementById('progressText').innerText = `Hai collezionato ${totalDrunk} su ${totalBeers} (${percentage}%)`;
             checkTrophiesVisually();
         }
 
         function checkTrophiesVisually() {
             beers.forEach((beer, index) => {
-                let brandTotal = beer.variants.length;
-                let brandDrunk = 0;
-
-                beer.variants.forEach(variant => {
-                    if (pokedex[beer.brand + '-' + variant]) { brandDrunk++; }
-                });
-
+                let brandTotal = beer.variants.length; let brandDrunk = 0;
+                beer.variants.forEach(variant => { if (myPokedex[beer.brand + '-' + variant]) { brandDrunk++; } });
                 const card = document.getElementById('card-' + index);
                 if (card) {
-                    if (brandDrunk === brandTotal && brandTotal > 0) {
-                        card.classList.add('completed');
-                        card.querySelector('.trophy').style.display = 'inline-block';
-                    } else {
-                        card.classList.remove('completed');
-                        card.querySelector('.trophy').style.display = 'none';
-                    }
+                    if (brandDrunk === brandTotal && brandTotal > 0) { card.classList.add('completed'); card.querySelector('.trophy').style.display = 'inline-block'; } 
+                    else { card.classList.remove('completed'); card.querySelector('.trophy').style.display = 'none'; }
                 }
             });
         }
@@ -393,7 +476,7 @@
             const grid = document.getElementById('trophyGrid'); grid.innerHTML = '';
             beers.forEach(beer => {
                 beer.variants.forEach(variant => {
-                    let uniqueId = beer.brand + '-' + variant; let photoUrl = pokedex[uniqueId]; let isUnlocked = photoUrl !== undefined;
+                    let uniqueId = beer.brand + '-' + variant; let photoUrl = myPokedex[uniqueId]; let isUnlocked = photoUrl !== undefined;
                     let trophyDiv = document.createElement('div'); trophyDiv.className = `trophy-card ${isUnlocked ? 'unlocked' : ''}`;
                     let imageContent = isUnlocked ? `<img src="${photoUrl}" alt="${variant}">` : `🔒`;
                     trophyDiv.innerHTML = `<div class="trophy-brand">${beer.brand}</div><div class="trophy-img-container">${imageContent}</div><div class="trophy-name">${variant}</div>`;
@@ -404,24 +487,51 @@
 
         function renderSocialFeed() {
             const feed = document.getElementById('socialFeed'); feed.innerHTML = '';
-            const unlockedKeys = Object.keys(pokedex);
-            if(unlockedKeys.length === 0) { feed.innerHTML = '<p style="text-align:center;">Nessuna foto trovata nel Cloud.</p>'; return; }
+            if(globalPosts.length === 0) { feed.innerHTML = '<p style="text-align:center; padding:20px;">Nessun post. Sii il primo a scattare una foto!</p>'; return; }
 
-            unlockedKeys.reverse().forEach(key => {
-                let splitIndex = key.indexOf('-'); let brand = key.substring(0, splitIndex); let variant = key.substring(splitIndex + 1);
-                let photoUrl = pokedex[key];
-                let post = document.createElement('div'); post.className = 'post-card';
-                post.innerHTML = `
-                    <div class="post-header"><div class="post-avatar">C</div><div><div class="post-user">Membro Community</div><div class="post-time">Recente</div></div></div>
-                    <img src="${photoUrl}" class="post-image" alt="Foto Birra">
-                    <div class="post-actions"><span class="action-icon" onclick="toggleLike(this)" style="color: #ccc;">🤍</span></div>
-                    <div class="post-caption">Qualcuno ha sbloccato la <strong>${brand} - ${variant}</strong>! 🍻</div>
+            // Ordine dal più recente al più vecchio
+            globalPosts.reverse().forEach(post => {
+                let letter = post.user.charAt(0).toUpperCase();
+                let card = document.createElement('div'); card.className = 'post-card';
+                card.innerHTML = `
+                    <div class="post-header"><div class="post-avatar">${letter}</div><div><div class="post-user">${post.user}</div><div class="post-time">Ha sbloccato una birra!</div></div></div>
+                    <img src="${post.photo}" class="post-image" alt="Foto Birra">
+                    <div class="post-caption"><strong>${post.user}</strong> ha trovato la <strong>${post.brand} - ${post.variant}</strong>! 🍻</div>
                 `;
-                feed.appendChild(post);
+                feed.appendChild(card);
             });
         }
 
-        function toggleLike(element) { if (element.style.color === 'rgb(204, 204, 204)' || element.style.color === 'ccc' || element.style.color === '#ccc') { element.style.color = '#e74c3c'; element.innerHTML = '❤️'; } else { element.style.color = '#ccc'; element.innerHTML = '🤍'; } }
+        function renderLeaderboard() {
+            const list = document.getElementById('leaderboardList'); list.innerHTML = '';
+            
+            // Creiamo un array di giocatori calcolando il loro punteggio (numero di chiavi nel pokedex)
+            let players = [];
+            for (let username in globalUsers) {
+                let userPokedex = globalUsers[username].pokedex || {};
+                let score = Object.keys(userPokedex).length;
+                if(score > 0) { players.push({ name: username, score: score }); }
+            }
+
+            // Ordina dal più alto al più basso
+            players.sort((a, b) => b.score - a.score);
+
+            if(players.length === 0) { list.innerHTML = '<p style="text-align:center;">Nessuno ha ancora sbloccato birre!</p>'; return; }
+
+            players.forEach((player, index) => {
+                let item = document.createElement('div');
+                item.className = 'leaderboard-item';
+                let medal = (index + 1);
+                if(index === 0) medal = '🥇'; else if(index === 1) medal = '🥈'; else if(index === 2) medal = '🥉';
+                
+                item.innerHTML = `
+                    <div class="rank">${medal}</div>
+                    <div class="lb-user">${player.name} ${player.name === currentUser ? '(Tu)' : ''}</div>
+                    <div class="lb-score">${player.score} 🏆</div>
+                `;
+                list.appendChild(item);
+            });
+        }
 
         function setFilter(region) { currentFilter = region; const buttons = document.querySelectorAll('.filters button'); buttons.forEach(btn => btn.classList.remove('active')); event.target.classList.add('active'); filterBeers(); if(window.innerWidth < 900) { closeSidebar(); } }
         function filterBeers() { const searchTerm = document.getElementById('searchBar').value.toLowerCase(); const filtered = beers.filter(beer => { const variantsText = beer.variants.join(' ').toLowerCase(); const matchSearch = beer.brand.toLowerCase().includes(searchTerm) || beer.desc.toLowerCase().includes(searchTerm) || variantsText.includes(searchTerm); const matchRegion = currentFilter === 'Tutte' || beer.region === currentFilter; return matchSearch && matchRegion; }); displayBeers(filtered); }
