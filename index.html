@@ -324,6 +324,7 @@
 
         // --- 5. DATABASE BIRRE ---
         const beers = [
+            // ITALIANE
             { brand: "Ichnusa", region: "Sud e Isole", desc: "L'iconica birra sarda, amatissima in tutta Italia.", variants: ["Classica", "Non Filtrata", "Cruda", "Ambra Limpidissima", "Radler"] },
             { brand: "Moretti", region: "Nord", desc: "Storico marchio nato in Friuli-Venezia Giulia.", variants: ["Ricetta Originale", "Baffo d'Oro", "La Rossa", "Filtrata a Freddo", "IPA", "Bianca", "Zero", "Lunga Maturazione"] },
             { brand: "Peroni", region: "Centro", desc: "Il colosso romano, celebre a livello internazionale.", variants: ["Classica", "Nastro Azzurro", "Nastro Azzurro 0.0", "Non Filtrata", "Cruda", "Gran Riserva Puro Malto", "Gran Riserva Doppio Malto", "Gran Riserva Rossa", "Gran Riserva Bianca", "Chill Lemon", "Capri"] },
@@ -333,12 +334,52 @@
             { brand: "Messina", region: "Sud e Isole", desc: "Storico marchio siciliano dai sapori del Mediterraneo.", variants: ["Ricetta Classica", "Cristalli di Sale", "Vivace"] },
             { brand: "Raffo", region: "Sud e Isole", desc: "La 'birra dei due mari', simbolo della città di Taranto.", variants: ["Classica", "Lavorazione Grezza"] },
             { brand: "Pedavena", region: "Nord", desc: "Antica tradizione bellunese (Veneto).", variants: ["Pils", "Lager", "Speciale", "Bock", "8 Gradi"] },
+            { brand: "Dreher", region: "Nord", desc: "Uno dei marchi storici più antichi, fondato a Trieste.", variants: ["Classica", "Radler Limone"] },
+            { brand: "Castello", region: "Nord", desc: "Erede dello storico stabilimento di Udine, friulana DOC.", variants: ["La Decisa", "L'Intensa", "La Forte", "Radler"] },
+            { brand: "Wuhrer", region: "Nord", desc: "Il più antico marchio di birra italiano (Brescia, 1829).", variants: ["La Classica"] },
+            { brand: "Baladin", region: "Nord", desc: "Pioniere della birra artigianale italiana (Piemonte).", variants: ["Isaac (Blanche)", "Wayan (Saison)", "Nora (Speziata)", "Super Bitter", "Leon", "Nazionale", "L'IPPA", "Rock'n'Roll"] },
+            { brand: "Del Borgo", region: "Centro", desc: "Famoso birrificio laziale, noto per le sue ricette creative.", variants: ["ReAle", "Duchessa", "My Antonia", "Lisa", "Cortigiana"] },
+            { brand: "Mastri Birrai Umbri", region: "Centro", desc: "Realtà umbra che esalta i cereali del territorio.", variants: ["Cotta 21 (Bionda)", "Cotta 37 (Rossa)", "Cotta 74 (Nera)", "Cotta 68 (IPA)", "Cotta 50 (Weiss)"] },
+            { brand: "Birrificio Italiano", region: "Nord", desc: "Storico birrificio artigianale lombardo.", variants: ["Tipopils", "Bibock", "Nigredo", "Vudù", "Amber Shock"] },
+            { brand: "Birrificio Lambrate", region: "Nord", desc: "Il birrificio simbolo di Milano e del fermento artigianale.", variants: ["Montestella", "Sant'Ambroeus", "Ghisa", "Porpora", "Quarantot"] },
+            { brand: "Crak Brewery", region: "Nord", desc: "Rivoluzionario birrificio veneto, re indiscusso delle IPA in Italia.", variants: ["Guerrilla (IPA)", "Mundaka", "Mansueto", "After Summer"] },
+            { brand: "Antoniana", region: "Nord", desc: "Birrificio agricolo padovano fortemente legato al territorio veneto.", variants: ["Marechiaro", "Stile Vienna", "Pasubio", "Altinate"] },
+            { brand: "Salento", region: "Sud e Isole", desc: "Eccellenza artigianale pugliese, nata a Leverano (Lecce).", variants: ["Agricola (Lager)", "Nuda e Cruda", "Beggia", "Taranta (IPA)"] },
+            { brand: "Flea", region: "Centro", desc: "Birre artigianali umbre brassate con acqua di sorgente.", variants: ["Costanza", "Bianca Lancia", "Federico II", "Bastola", "Violante"] },
+            { brand: "Semedorato", region: "Sud e Isole", desc: "Birra artigianale premium siciliana, nata a Caltanissetta.", variants: ["Bionda Premium", "Rossa Doppio Malto", "Non Filtrata"] },
+
+            // ESTERE
             { brand: "Augustiner", region: "Estero", desc: "Storico birrificio di Monaco di Baviera.", variants: ["Lagerbier Hell", "Edelstoff", "Maximator"] },
+            { brand: "Bavaria", region: "Estero", desc: "Marchio olandese noto per la linea 8.6.", variants: ["Premium Pilsner", "8.6 Original", "8.6 Red", "8.6 Gold", "8.6 Extreme"] },
             { brand: "Beck's", region: "Estero", desc: "Classica pilsner tedesca (Brema).", variants: ["Pilsner", "Blue (Analcolica)", "Lemon", "Green Lemon", "Unfiltered"] },
+            { brand: "Budweiser Budvar", region: "Estero", desc: "L'autentica lager ceca protetta.", variants: ["Original Lager", "Dark Lager", "Nealko"] },
+            { brand: "Carlsberg", region: "Estero", desc: "Colosso industriale danese.", variants: ["Pilsner", "Elephant", "Special Brew"] },
+            { brand: "Ceres", region: "Estero", desc: "Marchio danese diventato un cult in Italia per le strong ale.", variants: ["Strong Ale", "Red Erik", "Extreme Ten"] },
+            { brand: "Chimay", region: "Estero", desc: "Autentica birra trappista belga prodotta dai monaci.", variants: ["Première (Rossa)", "Cinq Cents (Tripel)", "Grande Réserve (Blu)"] },
+            { brand: "Chouffe", region: "Estero", desc: "La celebre birra artigianale belga dello gnomo.", variants: ["La Chouffe (Blonde)", "Mc Chouffe (Brune)", "Cherry Chouffe"] },
             { brand: "Corona", region: "Estero", desc: "La lager messicana famosa in tutto il mondo.", variants: ["Extra", "Cero"] },
+            { brand: "Delirium", region: "Estero", desc: "Famosissima Strong Ale belga.", variants: ["Tremens", "Nocturnum", "Red"] },
+            { brand: "Desperados", region: "Estero", desc: "Birra bionda aromatizzata alla tequila.", variants: ["Original", "Lime", "Mojito"] },
+            { brand: "Duvel", region: "Estero", desc: "La leggendaria Strong Gold Ale belga.", variants: ["Original Blond", "Triple Hop", "6.66"] },
+            { brand: "Erdinger", region: "Estero", desc: "Il birrificio di frumento più grande del mondo.", variants: ["Weißbier", "Dunkel", "Pikantus"] },
+            { brand: "Estrella Damm", region: "Estero", desc: "La bionda di Barcellona (Spagna).", variants: ["Estrella Damm", "Inedit", "Daura"] },
+            { brand: "Franziskaner", region: "Estero", desc: "Eccellenza tedesca di birre di frumento.", variants: ["Weissbier Naturtrüb", "Weissbier Dunkel"] },
+            { brand: "Grolsch", region: "Estero", desc: "Iconica lager olandese.", variants: ["Premium Pilsner", "Radler"] },
             { brand: "Guinness", region: "Estero", desc: "La regina delle Stout irlandesi.", variants: ["Draught", "Extra Stout", "Hop House 13", "0.0"] },
             { brand: "Heineken", region: "Estero", desc: "Il colosso olandese di Amsterdam.", variants: ["Original", "Silver", "0.0"] },
-            { brand: "Leffe", region: "Estero", desc: "La storica birra d'abbazia belga.", variants: ["Blonde", "Brune", "Rituel 9°", "Rouge", "Triple"] }
+            { brand: "Hoegaarden", region: "Estero", desc: "La regina delle birre bianche belghe (Witbier).", variants: ["Witbier", "Rosée"] },
+            { brand: "Kozel", region: "Estero", desc: "Famosissima birra ceca.", variants: ["Premium Lager", "Dark (Cerna)"] },
+            { brand: "Kronenbourg 1664", region: "Estero", desc: "Il marchio francese più venduto al mondo.", variants: ["Blanc", "Lager"] },
+            { brand: "Leffe", region: "Estero", desc: "La storica birra d'abbazia belga.", variants: ["Blonde", "Brune", "Rituel 9°", "Rouge", "Triple"] },
+            { brand: "Paulaner", region: "Estero", desc: "Grande protagonista dell'Oktoberfest.", variants: ["Hefe-Weißbier Naturtrüb", "Oktoberfest Bier", "Münchner Hell", "Salvator"] },
+            { brand: "Pilsner Urquell", region: "Estero", desc: "La madre di tutte le birre bionde.", variants: ["Original Lager"] },
+            { brand: "San Miguel", region: "Estero", desc: "Marchio spagnolo popolarissimo.", variants: ["Especial", "Selecta", "0,0"] },
+            { brand: "Stella Artois", region: "Estero", desc: "Premium lager belga.", variants: ["Premium Lager", "Unfiltered", "0.0"] },
+            { brand: "Super Bock", region: "Estero", desc: "La birra più famosa del Portogallo.", variants: ["Original", "Abadia", "Stout"] },
+            { brand: "Tennent's", region: "Estero", desc: "Storico marchio scozzese.", variants: ["Super", "Extra", "1885 Lager", "Scotch Ale"] },
+            { brand: "Tripel Karmeliet", region: "Estero", desc: "Straordinaria birra belga ai tre cereali.", variants: ["Tripel"] },
+            { brand: "Tuborg", region: "Estero", desc: "Lager danese leggera.", variants: ["Green", "Strong", "Red"] },
+            { brand: "Weihenstephaner", region: "Estero", desc: "Il birrificio più antico del mondo (1040).", variants: ["Hefe Weissbier", "Vitus", "Original Hell"] }
         ];
         beers.sort((a, b) => a.brand.localeCompare(b.brand));
 
