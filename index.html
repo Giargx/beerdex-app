@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BeerDex - Social & Cloud</title>
+    <title>BeerDex - Social, Cloud & Ultimate Collection</title>
     
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
@@ -185,46 +185,45 @@
 
     <script>
         // --- 1. CONFIGURAZIONE FIREBASE ---
-        // Sostituirai questi valori vuoti con quelli che ti darà Google Firebase!
+        // Ricorda di incollare le tue chiavi Firebase!
         const firebaseConfig = {
-              apiKey: "AIzaSyC6uxvnl8LUyUGqH_fZwG0AVqoKnK6HZEw",
+  apiKey: "AIzaSyC6uxvnl8LUyUGqH_fZwG0AVqoKnK6HZEw",
   authDomain: "beerdex-79231.firebaseapp.com",
+  databaseURL: "https://beerdex-79231-default-rtdb.europe-west1.firebasedatabase.app",
   projectId: "beerdex-79231",
   storageBucket: "beerdex-79231.firebasestorage.app",
   messagingSenderId: "192552381552",
   appId: "1:192552381552:web:bdcbbb0ff7fd6a365118b5"
-        };
-
-        // Inizializza Firebase
+};
         if (!firebase.apps.length) {
             firebase.initializeApp(firebaseConfig);
         }
         const db = firebase.database();
 
-        // --- 2. DATABASE BIRRE ---
+        // --- 2. DATABASE COMPLETO BIRRE (Senza "Birra" davanti) ---
         const beers = [
             // ITALIANE
             { brand: "Ichnusa", region: "Sud e Isole", desc: "L'iconica birra sarda, amatissima in tutta Italia.", variants: ["Classica", "Non Filtrata", "Cruda", "Ambra Limpidissima", "Radler"] },
-            { brand: "Birra Moretti", region: "Nord", desc: "Storico marchio nato in Friuli-Venezia Giulia (Udine).", variants: ["Ricetta Originale", "Baffo d'Oro", "La Rossa", "Filtrata a Freddo", "IPA", "Bianca", "Zero"] },
+            { brand: "Moretti", region: "Nord", desc: "Storico marchio nato in Friuli-Venezia Giulia (Udine).", variants: ["Ricetta Originale", "Baffo d'Oro", "La Rossa", "Filtrata a Freddo", "IPA", "Bianca", "Zero", "Lunga Maturazione"] },
             { brand: "Peroni", region: "Centro", desc: "Il colosso romano, celebre a livello internazionale.", variants: ["Classica", "Nastro Azzurro", "Nastro Azzurro 0.0", "Non Filtrata", "Cruda", "Gran Riserva Puro Malto", "Gran Riserva Doppio Malto", "Gran Riserva Rossa", "Gran Riserva Bianca", "Chill Lemon", "Capri"] },
             { brand: "Poretti", region: "Nord", desc: "Realtà lombarda che classifica le birre coi luppoli.", variants: ["3 Luppoli", "4 Luppoli Originale", "4 Luppoli Non Filtrata", "5 Luppoli Bock", "6 Luppoli Rossa", "7 Luppoli", "8 Luppoli", "Le 9 Luppoli (IPA)"] },
             { brand: "Menabrea", region: "Nord", desc: "Pluripremiato birrificio di Biella (Piemonte).", variants: ["Bionda 150°", "Ambrata", "Non Filtrata", "Strong", "Weiss", "Rossa"] },
             { brand: "Forst", region: "Nord", desc: "Birrificio indipendente del Trentino-Alto Adige.", variants: ["Kronen", "V.I.P. Pils", "1857", "Felsenkeller", "Sixtus (Doppelbock)", "0.0%"] },
-            { brand: "Birra Messina", region: "Sud e Isole", desc: "Storico marchio siciliano dai sapori del Mediterraneo.", variants: ["Ricetta Classica", "Cristalli di Sale", "Vivace"] },
+            { brand: "Messina", region: "Sud e Isole", desc: "Storico marchio siciliano dai sapori del Mediterraneo.", variants: ["Ricetta Classica", "Cristalli di Sale", "Vivace"] },
             { brand: "Raffo", region: "Sud e Isole", desc: "La 'birra dei due mari', simbolo della città di Taranto.", variants: ["Classica", "Lavorazione Grezza"] },
             { brand: "Pedavena", region: "Nord", desc: "Antica tradizione bellunese (Veneto).", variants: ["Pils", "Lager", "Speciale", "Bock", "8 Gradi"] },
             { brand: "Dreher", region: "Nord", desc: "Uno dei marchi storici più antichi, fondato a Trieste.", variants: ["Classica", "Radler Limone"] },
-            { brand: "Birra Castello", region: "Nord", desc: "Erede dello storico stabilimento di Udine, friulana DOC.", variants: ["La Decisa", "L'Intensa", "La Forte", "Radler"] },
+            { brand: "Castello", region: "Nord", desc: "Erede dello storico stabilimento di Udine, friulana DOC.", variants: ["La Decisa", "L'Intensa", "La Forte", "Radler"] },
             { brand: "Wuhrer", region: "Nord", desc: "Il più antico marchio di birra italiano (Brescia, 1829).", variants: ["La Classica"] },
             { brand: "Baladin", region: "Nord", desc: "Pioniere della birra artigianale italiana (Piemonte).", variants: ["Isaac (Blanche)", "Wayan (Saison)", "Nora (Speziata)", "Super Bitter", "Leon", "Nazionale", "L'IPPA", "Rock'n'Roll"] },
-            { brand: "Birra del Borgo", region: "Centro", desc: "Famoso birrificio laziale, noto per le sue ricette creative.", variants: ["ReAle", "Duchessa", "My Antonia", "Lisa", "Cortigiana"] },
+            { brand: "Del Borgo", region: "Centro", desc: "Famoso birrificio laziale, noto per le sue ricette creative.", variants: ["ReAle", "Duchessa", "My Antonia", "Lisa", "Cortigiana"] },
             { brand: "Mastri Birrai Umbri", region: "Centro", desc: "Realtà umbra che esalta i cereali del territorio.", variants: ["Cotta 21 (Bionda)", "Cotta 37 (Rossa)", "Cotta 74 (Nera)", "Cotta 68 (IPA)", "Cotta 50 (Weiss)"] },
             { brand: "Birrificio Italiano", region: "Nord", desc: "Storico birrificio artigianale lombardo.", variants: ["Tipopils", "Bibock", "Nigredo", "Vudù", "Amber Shock"] },
             { brand: "Birrificio Lambrate", region: "Nord", desc: "Il birrificio simbolo di Milano e del fermento artigianale.", variants: ["Montestella", "Sant'Ambroeus", "Ghisa", "Porpora", "Quarantot"] },
             { brand: "Crak Brewery", region: "Nord", desc: "Rivoluzionario birrificio veneto, re indiscusso delle IPA in Italia.", variants: ["Guerrilla (IPA)", "Mundaka", "Mansueto", "After Summer"] },
-            { brand: "Birra Antoniana", region: "Nord", desc: "Birrificio agricolo padovano fortemente legato al territorio veneto.", variants: ["Marechiaro", "Stile Vienna", "Pasubio", "Altinate"] },
-            { brand: "Birra Salento", region: "Sud e Isole", desc: "Eccellenza artigianale pugliese, nata a Leverano (Lecce).", variants: ["Agricola (Lager)", "Nuda e Cruda", "Beggia", "Taranta (IPA)"] },
-            { brand: "Birra Flea", region: "Centro", desc: "Birre artigianali umbre brassate con acqua di sorgente.", variants: ["Costanza", "Bianca Lancia", "Federico II", "Bastola", "Violante"] },
+            { brand: "Antoniana", region: "Nord", desc: "Birrificio agricolo padovano fortemente legato al territorio veneto.", variants: ["Marechiaro", "Stile Vienna", "Pasubio", "Altinate"] },
+            { brand: "Salento", region: "Sud e Isole", desc: "Eccellenza artigianale pugliese, nata a Leverano (Lecce).", variants: ["Agricola (Lager)", "Nuda e Cruda", "Beggia", "Taranta (IPA)"] },
+            { brand: "Flea", region: "Centro", desc: "Birre artigianali umbre brassate con acqua di sorgente.", variants: ["Costanza", "Bianca Lancia", "Federico II", "Bastola", "Violante"] },
             { brand: "Semedorato", region: "Sud e Isole", desc: "Birra artigianale premium siciliana, nata a Caltanissetta.", variants: ["Bionda Premium", "Rossa Doppio Malto", "Non Filtrata"] },
 
             // ESTERE
@@ -260,26 +259,24 @@
             { brand: "Tuborg", region: "Estero", desc: "Lager danese leggera.", variants: ["Green", "Strong", "Red"] },
             { brand: "Weihenstephaner", region: "Estero", desc: "Il birrificio più antico del mondo (1040).", variants: ["Hefe Weissbier", "Vitus", "Original Hell"] }
         ];
+        
+        // Ordina automaticamente in ordine alfabetico
         beers.sort((a, b) => a.brand.localeCompare(b.brand));
 
         let currentFilter = 'Tutte';
-        
-        // --- 3. GESTIONE DATI DAL CLOUD ---
         let pokedex = {};
 
-        // Invece di leggere dal computer, "ascoltiamo" in diretta il database Cloud
+        // Sincronizzazione Realtime in diretta dal Cloud
         db.ref('community_pokedex').on('value', (snapshot) => {
             pokedex = snapshot.val() || {};
             
-            // Ogni volta che qualcuno carica una foto, lo schermo si aggiorna per tutti!
+            // Aggiorna interfaccia e sblocchi
             updateStats();
             filterBeers(); 
             if(document.getElementById('profileModal').classList.contains('active')) renderTrophies();
             if(document.getElementById('socialModal').classList.contains('active')) renderSocialFeed();
         });
 
-
-        // --- LOGICA UI (Identica a prima) ---
         function openSidebar() { document.getElementById("appSidebar").classList.add("open"); document.getElementById("mainOverlay").classList.add("active"); }
         function closeSidebar() { document.getElementById("appSidebar").classList.remove("open"); if (!document.querySelector('.modal.active')) { document.getElementById("mainOverlay").classList.remove("active"); } }
 
@@ -305,10 +302,12 @@
 
                     const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.6);
                     
-                    // Invece di salvare su localStorage, INVIAMO LA FOTO AL CLOUD
                     db.ref('community_pokedex/' + variantId).set(compressedDataUrl)
-                        .then(() => alert("Foto caricata nel Cloud con successo!"))
-                        .catch((error) => alert("Errore nel caricamento: (Devi prima configurare Firebase)"));
+                        .then(() => {
+                            // Ricalcoliamo subito le statistiche per forzare lo sblocco visivo
+                            updateStats();
+                        })
+                        .catch((error) => alert("Errore nel caricamento. Assicurati di aver configurato il database di Firebase."));
                 }
                 img.src = e.target.result;
             }
@@ -350,20 +349,44 @@
                 `;
                 container.appendChild(card);
             });
-            updateStats();
+            
+            // Controlla lo sblocco dei trofei all'avvio
+            checkTrophiesVisually();
         }
 
         function updateStats() {
             let totalBeers = 0; let totalDrunk = 0;
-            beers.forEach((beer, index) => {
-                let brandTotal = beer.variants.length; let brandDrunk = 0; totalBeers += brandTotal;
-                beer.variants.forEach(variant => { if (pokedex[beer.brand + '-' + variant]) { totalDrunk++; brandDrunk++; } });
-                const card = document.getElementById('card-' + index);
-                if (card) { if (brandDrunk === brandTotal) { card.classList.add('completed'); card.querySelector('.trophy').style.display = 'inline-block'; } else { card.classList.remove('completed'); card.querySelector('.trophy').style.display = 'none'; } }
+            beers.forEach((beer) => {
+                totalBeers += beer.variants.length;
+                beer.variants.forEach(variant => { if (pokedex[beer.brand + '-' + variant]) { totalDrunk++; } });
             });
             const percentage = totalBeers === 0 ? 0 : Math.round((totalDrunk / totalBeers) * 100);
             document.getElementById('progressBar').style.width = percentage + '%';
             document.getElementById('progressText').innerText = `Scoperte dalla Community: ${totalDrunk} su ${totalBeers} (${percentage}%)`;
+            
+            checkTrophiesVisually();
+        }
+
+        function checkTrophiesVisually() {
+            beers.forEach((beer, index) => {
+                let brandTotal = beer.variants.length;
+                let brandDrunk = 0;
+
+                beer.variants.forEach(variant => {
+                    if (pokedex[beer.brand + '-' + variant]) { brandDrunk++; }
+                });
+
+                const card = document.getElementById('card-' + index);
+                if (card) {
+                    if (brandDrunk === brandTotal && brandTotal > 0) {
+                        card.classList.add('completed');
+                        card.querySelector('.trophy').style.display = 'inline-block';
+                    } else {
+                        card.classList.remove('completed');
+                        card.querySelector('.trophy').style.display = 'none';
+                    }
+                }
+            });
         }
 
         function renderTrophies() {
