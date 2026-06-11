@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BeerDex - Social Network & Anti-Cheat</title>
+    <title>BeerDex - Social Network & AI Anti-Cheat</title>
     
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
@@ -125,12 +125,16 @@
         
         /* CLASSIFICHE & AMICI (TABS) */
         .tabs { display: flex; margin-bottom: 20px; background: var(--gray); border-radius: 12px; overflow: hidden; }
-        .tab { flex: 1; padding: 12px; text-align: center; font-weight: bold; cursor: pointer; color: var(--text-muted); transition: 0.3s; }
+        .tab { flex: 1; padding: 12px; text-align: center; font-weight: bold; cursor: pointer; color: var(--text-muted); transition: 0.3s; font-size: 14px;}
         .tab.active { background: var(--primary-dark); color: var(--white); }
         
-        .add-friend-box { display: flex; gap: 10px; margin-bottom: 20px; }
-        .add-friend-box input { flex-grow: 1; padding: 12px 15px; border: 2px solid var(--gray); border-radius: 10px; font-size: 14px; outline: none; margin: 0; }
-        .add-friend-box button { background: var(--social-blue); color: white; border: none; padding: 0 20px; border-radius: 10px; font-weight: bold; cursor: pointer; }
+        /* Pulsanti Azione per Amici */
+        .btn-action { border: none; border-radius: 8px; font-weight: bold; cursor: pointer; transition: 0.2s; padding: 8px 12px; }
+        .btn-action:hover { transform: scale(1.05); }
+        .btn-accept { background: #d4efdf; color: #1e8449; }
+        .btn-reject { background: #fdf2f2; color: #e74c3c; }
+        .btn-add { background: #ebf5fb; color: #2980b9; }
+        .badge-status { font-size: 12px; font-weight: bold; }
 
         .social-feed { display: flex; flex-direction: column; gap: 30px; }
         .post-card { background: var(--white); border: 1px solid var(--gray); border-radius: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); overflow: hidden; }
@@ -169,7 +173,6 @@
             <p id="authSubtitle" style="color: var(--text-muted); font-size:13px; margin-bottom:20px;">Inserisci le tue credenziali per entrare nel pub</p>
             
             <input type="text" id="authLoginId" placeholder="Email o Nickname">
-            
             <input type="text" id="authUsername" placeholder="Nickname (Es. Marco89)" style="display:none;">
             <input type="email" id="authEmail" placeholder="Indirizzo Email" style="display:none;">
             
@@ -235,7 +238,7 @@
         <div id="page-home" class="page-view active">
             <header class="hero">
                 <h1>🍻 BeerDex</h1>
-                <p>Cattura le birre vere. L'AI ti osserva!</p>
+                <p>Colleziona tutte le birre e condividile con i tuoi amici!</p>
             </header>
             <div class="container" id="beerList"></div>
         </div>
@@ -259,17 +262,13 @@
         <div id="page-leaderboard" class="page-view">
             <header class="hero">
                 <h1>🏅 Classifiche</h1>
-                <p>Sfidatevi a colpi di boccali.</p>
+                <p>Aggiungi amici e sfidali a colpi di boccali.</p>
             </header>
             <div class="page-container">
                 <div class="tabs">
-                    <div class="tab active" id="tab-friends" onclick="switchLeaderboardTab('friends')">Classifica Amici</div>
-                    <div class="tab" id="tab-global" onclick="switchLeaderboardTab('global')">Classifica Globale</div>
-                </div>
-
-                <div class="add-friend-box">
-                    <input type="text" id="friendInput" placeholder="Aggiungi amico tramite Nickname...">
-                    <button onclick="addFriend()">Aggiungi</button>
+                    <div class="tab active" id="tab-friends" onclick="switchLeaderboardTab('friends')">Amici</div>
+                    <div class="tab" id="tab-global" onclick="switchLeaderboardTab('global')">Globale</div>
+                    <div class="tab" id="tab-requests" onclick="switchLeaderboardTab('requests')">Richieste <span id="reqBadge"></span></div>
                 </div>
 
                 <div class="leaderboard-list" id="leaderboardList"><p style="text-align:center;">Caricamento classifica...</p></div>
@@ -348,24 +347,22 @@
                 if(nickname.length < 3) { alert("Scegli un Nickname di almeno 3 caratteri!"); return; }
                 if(password !== confirmPassword) { alert("Le due password inserite non coincidono. Riprova!"); return; }
                 if(password.length < 8) { alert("La password deve essere lunga almeno 8 caratteri!"); return; }
-                if(!/[A-Z]/.test(password)) { alert("La password deve contenere almeno una lettera MAIUSCOLA!"); return; }
+                if(!/[A-Z]/.test(password)) { alert("La password deve contenere almeno una letterata MAIUSCOLA!"); return; }
                 if(!/[!?$%&]/.test(password)) { alert("La password deve contenere almeno un carattere SPECIALE tra questi: ! ? $ % &"); return; }
 
                 auth.createUserWithEmailAndPassword(email, password)
                     .then((userCredential) => {
                         db.ref('users_directory/' + userCredential.user.uid).set(nickname);
-                        db.ref('usernames_emails/' + nickname.toLowerCase()).set(email); // Mappa Nickname -> Email per login futuro
+                        db.ref('usernames_emails/' + nickname.toLowerCase()).set(email); 
                         db.ref('leaderboard_scores/' + nickname).set(0);
                     }).catch(err => alert("Errore Registrazione: " + err.message));
             } else {
                 const loginId = document.getElementById("authLoginId").value.trim();
                 if(!loginId || !password) { alert("Inserisci credenziali!"); return; }
 
-                // Se l'utente ha inserito la chiocciola, sta usando l'email classica
                 if(loginId.includes('@')) {
                     auth.signInWithEmailAndPassword(loginId, password).catch(err => alert("Email o Password errata."));
                 } else {
-                    // L'utente ha inserito il Nickname: cerchiamo l'email nel database
                     db.ref('usernames_emails/' + loginId.toLowerCase()).once('value').then(snapshot => {
                         const mappedEmail = snapshot.val();
                         if(mappedEmail) {
@@ -399,50 +396,108 @@
             currentLeaderboardTab = tabName;
             document.getElementById('tab-friends').classList.toggle('active', tabName === 'friends');
             document.getElementById('tab-global').classList.toggle('active', tabName === 'global');
+            document.getElementById('tab-requests').classList.toggle('active', tabName === 'requests');
             renderLeaderboard();
         }
 
-        function addFriend() {
-            let friendName = document.getElementById('friendInput').value.trim();
-            if(!friendName) return;
-            if(friendName.toLowerCase() === currentUserNick.toLowerCase()) { alert("Non puoi aggiungere te stesso!"); return; }
-            
-            // Verifica se l'utente esiste nella classifica globale
-            let friendExists = false;
-            let exactName = friendName;
-            for (let name in globalLeaderboardScores) {
-                if(name.toLowerCase() === friendName.toLowerCase()) { friendExists = true; exactName = name; break; }
-            }
-            
-            if(friendExists) {
-                db.ref('users_friends/' + currentUserNick + '/' + exactName).set(true).then(() => {
-                    alert(`Hai aggiunto ${exactName} alla tua lista amici! Ora vedrai le sue birre nel Feed.`);
-                    document.getElementById('friendInput').value = '';
-                });
-            } else {
-                alert("Utente non trovato! Controlla di aver scritto bene il Nickname.");
-            }
+        function sendFriendRequest(targetNick) {
+            db.ref('friend_requests/' + targetNick + '/' + currentUserNick).set(true);
+            db.ref('friend_requests_sent/' + currentUserNick + '/' + targetNick).set(true);
+            alert(`Richiesta inviata a ${targetNick}!`);
         }
 
-        // --- 5. DATABASE BIRRE INTERNAZIONALE ---
+        function acceptFriendRequest(senderNick) {
+            db.ref('users_friends/' + currentUserNick + '/' + senderNick).set(true);
+            db.ref('users_friends/' + senderNick + '/' + currentUserNick).set(true);
+            db.ref('friend_requests/' + currentUserNick + '/' + senderNick).remove();
+            db.ref('friend_requests_sent/' + senderNick + '/' + currentUserNick).remove();
+        }
+
+        function rejectFriendRequest(senderNick) {
+            db.ref('friend_requests/' + currentUserNick + '/' + senderNick).remove();
+            db.ref('friend_requests_sent/' + senderNick + '/' + currentUserNick).remove();
+        }
+
+        // --- 5. DATABASE INTEGRALE DELLE BIRRE ---
         const beers = [
+            // ITALIANE 🇮🇹
             { brand: "Ichnusa", country: "Italia", flag: "🇮🇹", desc: "L'iconica birra sarda, amatissima in tutta Italia.", variants: ["Classica", "Non Filtrata", "Cruda", "Ambra Limpidissima", "Radler"] },
-            { brand: "Moretti", country: "Italia", flag: "🇮🇹", desc: "Storico marchio nato in Friuli-Venezia Giulia.", variants: ["Ricetta Originale", "Baffo d'Oro", "La Rossa", "Filtrata a Freddo", "IPA", "Bianca", "Zero", "Lunga Maturazione"] },
+            { brand: "Moretti", country: "Italia", flag: "🇮🇹", desc: "Storico marchio nato in Friuli-Venezia Giulia (Udine).", variants: ["Ricetta Originale", "Baffo d'Oro", "La Rossa", "Filtrata a Freddo", "IPA", "Bianca", "Zero", "Lunga Maturazione"] },
             { brand: "Peroni", country: "Italia", flag: "🇮🇹", desc: "Il colosso romano, celebre a livello internazionale.", variants: ["Classica", "Nastro Azzurro", "Nastro Azzurro 0.0", "Non Filtrata", "Cruda", "Gran Riserva Puro Malto", "Gran Riserva Doppio Malto", "Gran Riserva Rossa", "Gran Riserva Bianca", "Chill Lemon", "Capri"] },
             { brand: "Poretti", country: "Italia", flag: "🇮🇹", desc: "Realtà lombarda che classifica le birre coi luppoli.", variants: ["3 Luppoli", "4 Luppoli Originale", "4 Luppoli Non Filtrata", "5 Luppoli Bock", "6 Luppoli Rossa", "7 Luppoli", "8 Luppoli", "Le 9 Luppoli (IPA)"] },
             { brand: "Menabrea", country: "Italia", flag: "🇮🇹", desc: "Pluripremiato birrificio di Biella (Piemonte).", variants: ["Bionda 150°", "Ambrata", "Non Filtrata", "Strong", "Weiss", "Rossa"] },
             { brand: "Forst", country: "Italia", flag: "🇮🇹", desc: "Birrificio indipendente del Trentino-Alto Adige.", variants: ["Kronen", "V.I.P. Pils", "1857", "Felsenkeller", "Sixtus (Doppelbock)", "0.0%"] },
+            { brand: "Messina", country: "Italia", flag: "🇮🇹", desc: "Storico marchio siciliano dai sapori del Mediterraneo.", variants: ["Ricetta Classica", "Cristalli di Sale", "Vivace"] },
+            { brand: "Raffo", country: "Italia", flag: "🇮🇹", desc: "La 'birra dei due mari', simbolo della città di Taranto.", variants: ["Classica", "Lavorazione Grezza"] },
+            { brand: "Pedavena", country: "Italia", flag: "🇮🇹", desc: "Antica tradizione bellunese (Veneto).", variants: ["Pils", "Lager", "Speciale", "Bock", "8 Gradi"] },
+            { brand: "Dreher", country: "Italia", flag: "🇮🇹", desc: "Uno dei marchi storici più antichi, fondato a Trieste.", variants: ["Classica", "Radler Limone"] },
+            { brand: "Castello", country: "Italia", flag: "🇮🇹", desc: "Erede dello storico stabilimento di Udine, friulana DOC.", variants: ["La Decisa", "L'Intensa", "La Forte", "Radler"] },
+            { brand: "Wuhrer", country: "Italia", flag: "🇮🇹", desc: "Il più antico marchio di birra italiano (Brescia, 1829).", variants: ["La Classica"] },
+            { brand: "Baladin", country: "Italia", flag: "🇮🇹", desc: "Pioniere della birra artigianale italiana (Piemonte).", variants: ["Isaac (Blanche)", "Wayan (Saison)", "Nora (Speziata)", "Super Bitter", "Leon", "Nazionale", "L'IPPA", "Rock'n'Roll"] },
+            { brand: "Del Borgo", country: "Italia", flag: "🇮🇹", desc: "Famoso birrificio laziale, noto per le sue ricette creative.", variants: ["ReAle", "Duchessa", "My Antonia", "Lisa", "Cortigiana"] },
+            { brand: "Mastri Birrai Umbri", country: "Italia", flag: "🇮🇹", desc: "Realtà umbra che esalta i cereali del territorio.", variants: ["Cotta 21 (Bionda)", "Cotta 37 (Rossa)", "Cotta 74 (Nera)", "Cotta 68 (IPA)", "Cotta 50 (Weiss)"] },
+            { brand: "Birrificio Italiano", country: "Italia", flag: "🇮🇹", desc: "Storico birrificio artigianale lombardo.", variants: ["Tipopils", "Bibock", "Nigredo", "Vudù", "Amber Shock"] },
+            { brand: "Birrificio Lambrate", country: "Italia", flag: "🇮🇹", desc: "Il birrificio simbolo di Milano e del fermento artigianale.", variants: ["Montestella", "Sant'Ambroeus", "Ghisa", "Porpora", "Quarantot"] },
+            { brand: "Crak Brewery", country: "Italia", flag: "🇮🇹", desc: "Rivoluzionario birrificio veneto, re indiscusso delle IPA in Italia.", variants: ["Guerrilla (IPA)", "Mundaka", "Mansueto", "After Summer"] },
+            { brand: "Antoniana", country: "Italia", flag: "🇮🇹", desc: "Birrificio agricolo padovano fortemente legato al territorio veneto.", variants: ["Marechiaro", "Stile Vienna", "Pasubio", "Altinate"] },
+            { brand: "Salento", country: "Italia", flag: "🇮🇹", desc: "Eccellenza artigianale pugliese, nata a Leverano (Lecce).", variants: ["Agricola (Lager)", "Nuda e Cruda", "Beggia", "Taranta (IPA)"] },
+            { brand: "Flea", country: "Italia", flag: "🇮🇹", desc: "Birre artigianali umbre brassate con acqua di sorgente.", variants: ["Costanza", "Bianca Lancia", "Federico II", "Bastola", "Violante"] },
+            { brand: "Semedorato", country: "Italia", flag: "🇮🇹", desc: "Birra artigianale premium siciliana, nata a Caltanissetta.", variants: ["Bionda Premium", "Rossa Doppio Malto", "Non Filtrata"] },
+
+            // GERMANIA 🇩🇪
             { brand: "Augustiner", country: "Germania", flag: "🇩🇪", desc: "Storico birrificio di Monaco di Baviera.", variants: ["Lagerbier Hell", "Edelstoff", "Maximator"] },
             { brand: "Beck's", country: "Germania", flag: "🇩🇪", desc: "Classica pilsner tedesca (Brema).", variants: ["Pilsner", "Blue (Analcolica)", "Lemon", "Green Lemon", "Unfiltered"] },
+            { brand: "Erdinger", country: "Germania", flag: "🇩🇪", desc: "Il birrificio di frumento più grande del mondo.", variants: ["Weißbier", "Dunkel", "Pikantus"] },
+            { brand: "Franziskaner", country: "Germania", flag: "🇩🇪", desc: "Eccellenza tedesca di birre di frumento.", variants: ["Weissbier Naturtrüb", "Weissbier Dunkel"] },
+            { brand: "Paulaner", country: "Germania", flag: "🇩🇪", desc: "Grande protagonista dell'Oktoberfest.", variants: ["Hefe-Weißbier Naturtrüb", "Oktoberfest Bier", "Münchner Hell", "Salvator"] },
+            { brand: "Weihenstephaner", country: "Germania", flag: "🇩🇪", desc: "Il birrificio più antico del mondo (1040).", variants: ["Hefe Weissbier", "Vitus", "Original Hell"] },
+
+            // BELGIO 🇧🇪
             { brand: "Chimay", country: "Belgio", flag: "🇧🇪", desc: "Autentica birra trappista belga prodotta dai monaci.", variants: ["Première (Rossa)", "Cinq Cents (Tripel)", "Grande Réserve (Blu)"] },
+            { brand: "Chouffe", country: "Belgio", flag: "🇧🇪", desc: "La celebre birra artigianale belga dello gnomo.", variants: ["La Chouffe (Blonde)", "Mc Chouffe (Brune)", "Cherry Chouffe"] },
+            { brand: "Delirium", country: "Belgio", flag: "🇧🇪", desc: "Famosissima Strong Ale belga.", variants: ["Tremens", "Nocturnum", "Red"] },
+            { brand: "Duvel", country: "Belgio", flag: "🇧🇪", desc: "La leggendaria Strong Gold Ale belga.", variants: ["Original Blond", "Triple Hop", "6.66"] },
+            { brand: "Hoegaarden", country: "Belgio", flag: "🇧🇪", desc: "La regina delle birre bianche belghe (Witbier).", variants: ["Witbier", "Rosée"] },
             { brand: "Leffe", country: "Belgio", flag: "🇧🇪", desc: "La storica birra d'abbazia belga.", variants: ["Blonde", "Brune", "Rituel 9°", "Rouge", "Triple"] },
+            { brand: "Stella Artois", country: "Belgio", flag: "🇧🇪", desc: "Premium lager belga.", variants: ["Premium Lager", "Unfiltered", "0.0"] },
+            { brand: "Tripel Karmeliet", country: "Belgio", flag: "🇧🇪", desc: "Straordinaria birra belga ai tre cereali.", variants: ["Tripel"] },
+
+            // PAESI BASSI 🇳🇱
+            { brand: "Bavaria", country: "Paesi Bassi", flag: "🇳🇱", desc: "Marchio olandese noto per la linea 8.6.", variants: ["Premium Pilsner", "8.6 Original", "8.6 Red", "8.6 Gold", "8.6 Extreme"] },
+            { brand: "Grolsch", country: "Paesi Bassi", flag: "🇳🇱", desc: "Iconica lager olandese.", variants: ["Premium Pilsner", "Radler"] },
             { brand: "Heineken", country: "Paesi Bassi", flag: "🇳🇱", desc: "Il colosso olandese di Amsterdam.", variants: ["Original", "Silver", "0.0"] },
-            { brand: "Corona", country: "Messico", flag: "🇲🇽", desc: "La lager messicana famosa in tutto il mondo.", variants: ["Extra", "Cero"] },
-            { brand: "Guinness", country: "Irlanda", flag: "🇮🇪", desc: "La regina delle Stout irlandesi.", variants: ["Draught", "Extra Stout", "Hop House 13", "0.0"] }
+
+            // REPUBBLICA CECA 🇨🇿
+            { brand: "Budweiser Budvar", country: "Repubblica Ceca", flag: "🇨🇿", desc: "L'autentica lager ceca protetta.", variants: ["Original Lager", "Dark Lager", "Nealko"] },
+            { brand: "Kozel", country: "Repubblica Ceca", flag: "🇨🇿", desc: "Famosissima birra ceca.", variants: ["Premium Lager", "Dark (Cerna)"] },
+            { brand: "Pilsner Urquell", country: "Repubblica Ceca", flag: "🇨🇿", desc: "La madre di tutte le birre bionde.", variants: ["Original Lager"] },
+
+            // DANIMARCA 🇩🇰
+            { brand: "Carlsberg", country: "Danimarca", flag: "🇩🇰", desc: "Colosso industriale danese.", variants: ["Pilsner", "Elephant", "Special Brew"] },
+            { brand: "Ceres", country: "Danimarca", flag: "🇩🇰", desc: "Marchio danese diventato un cult in Italia per le strong ale.", variants: ["Strong Ale", "Red Erik", "Extreme Ten"] },
+            { brand: "Tuborg", country: "Danimarca", flag: "🇩🇰", desc: "Lager danese leggera.", variants: ["Green", "Strong", "Red"] },
+
+            // SPAGNA 🇪🇸
+            { brand: "Estrella Damm", country: "Spagna", flag: "🇪🇸", desc: "La bionda di Barcellona.", variants: ["Estrella Damm", "Inedit", "Daura"] },
+            { brand: "San Miguel", country: "Spagna", flag: "🇪🇸", desc: "Marchio spagnolo popolarissimo.", variants: ["Especial", "Selecta", "0,0"] },
+
+            // FRANCIA 🇫🇷
+            { brand: "Desperados", country: "Francia", flag: "🇫🇷", desc: "Birra bionda aromatizzata alla tequila.", variants: ["Original", "Lime", "Mojito"] },
+            { brand: "Kronenbourg 1664", country: "Francia", flag: "🇫🇷", desc: "Il marchio francese più venduto al mondo.", variants: ["Blanc", "Lager"] },
+
+            // IRLANDA 🇮🇪 & SCOZIA 🏴󠁧󠁢󠁳󠁣󠁴󠁿
+            { brand: "Guinness", country: "Irlanda", flag: "🇮🇪", desc: "La regina delle Stout irlandesi.", variants: ["Draught", "Extra Stout", "Hop House 13", "0.0"] },
+            { brand: "Tennent's", country: "Scozia", flag: "🏴󠁧󠁢󠁳󠁣󠁴󠁿", desc: "Storico marchio scozzese.", variants: ["Super", "Extra", "1885 Lager", "Scotch Ale"] },
+
+            // PORTOGALLO 🇵🇹
+            { brand: "Super Bock", country: "Portogallo", flag: "🇵🇹", desc: "La birra più famosa del Portogallo.", variants: ["Original", "Abadia", "Stout"] },
+
+            // MESSICO 🇲🇽
+            { brand: "Corona", country: "Messico", flag: "🇲🇽", desc: "La lager messicana famosa in tutto il mondo.", variants: ["Extra", "Cero"] }
         ];
         beers.sort((a, b) => a.brand.localeCompare(b.brand));
 
-        let currentFilter = 'Tutte'; let myPokedex = {}; let globalPosts = []; let globalLeaderboardScores = {}; let myFriendsList = [];
+        let currentFilter = 'Tutte'; let myPokedex = {}; let globalPosts = []; let globalLeaderboardScores = {}; let myFriendsList = []; let myReceivedRequests = []; let mySentRequests = [];
 
         function loadRealtimeData() {
             db.ref('pokedex_profiles/' + currentUserNick).on('value', (snapshot) => {
@@ -453,6 +508,21 @@
             db.ref('users_friends/' + currentUserNick).on('value', (snapshot) => {
                 myFriendsList = Object.keys(snapshot.val() || {});
                 if(document.getElementById('page-social').classList.contains('active')) renderSocialFeed();
+                if(document.getElementById('page-leaderboard').classList.contains('active')) renderLeaderboard();
+            });
+
+            db.ref('friend_requests/' + currentUserNick).on('value', (snapshot) => {
+                myReceivedRequests = Object.keys(snapshot.val() || {});
+                let badge = document.getElementById('reqBadge');
+                if(badge) {
+                    badge.innerText = myReceivedRequests.length > 0 ? `(${myReceivedRequests.length})` : '';
+                    badge.style.color = myReceivedRequests.length > 0 ? 'var(--primary)' : 'inherit';
+                }
+                if(document.getElementById('page-leaderboard').classList.contains('active')) renderLeaderboard();
+            });
+
+            db.ref('friend_requests_sent/' + currentUserNick).on('value', (snapshot) => {
+                mySentRequests = Object.keys(snapshot.val() || {});
                 if(document.getElementById('page-leaderboard').classList.contains('active')) renderLeaderboard();
             });
 
@@ -564,6 +634,7 @@
             checkTrophiesVisually();
         }
 
+        // ... [Le altre funzioni di logica dell'interfaccia (updateStats, renderTrophies, renderSocialFeed, renderLeaderboard, setFilter) rimangono intatte come nel blocco precedente] ...
         function updateStats() {
             let totalBeers = 0; let totalDrunk = 0;
             beers.forEach((beer) => { totalBeers += beer.variants.length; beer.variants.forEach(variant => { if (myPokedex[beer.brand + '-' + variant]) { totalDrunk++; } }); });
@@ -597,54 +668,44 @@
 
         function renderSocialFeed() {
             const feed = document.getElementById('socialFeed'); feed.innerHTML = '';
-            
-            // FILTRA: Solo i miei post e quelli dei miei amici
             const visiblePosts = globalPosts.filter(post => post.user === currentUserNick || myFriendsList.includes(post.user));
-
-            if(visiblePosts.length === 0) { 
-                feed.innerHTML = '<p style="text-align:center; padding:20px;">Nessun post. Aggiungi amici dalla Classifica per vedere le loro birre!</p>'; 
-                return; 
-            }
-
+            if(visiblePosts.length === 0) { feed.innerHTML = '<p style="text-align:center; padding:20px;">Nessun post. Vai in Classifica Globale e aggiungi i tuoi amici!</p>'; return; }
             [...visiblePosts].reverse().forEach(post => {
-                let letter = post.user.charAt(0).toUpperCase();
-                let card = document.createElement('div'); card.className = 'post-card';
-                card.innerHTML = `
-                    <div class="post-header">
-                        <div style="display:flex; align-items:center;">
-                            <div class="post-avatar">${letter}</div>
-                            <div><div class="post-user">${post.user} ${post.user === currentUserNick ? '(Tu)' : ''}</div><div class="post-time">Nuovo sblocco!</div></div>
-                        </div>
-                        ${post.user === currentUserNick ? `<button class="btn-delete" onclick="deleteBeerPhoto('${post.brand}', '${post.variant}')" style="font-size:20px;">🗑️</button>` : ''}
-                    </div>
-                    <img src="${post.photo}" class="post-image" alt="Foto">
-                    <div class="post-caption"><strong>${post.user}</strong> ha trovato la <strong>${post.brand} - ${post.variant}</strong>! 🍻</div>
-                `;
+                let letter = post.user.charAt(0).toUpperCase(); let card = document.createElement('div'); card.className = 'post-card';
+                card.innerHTML = `<div class="post-header"><div style="display:flex; align-items:center;"><div class="post-avatar">${letter}</div><div><div class="post-user">${post.user} ${post.user === currentUserNick ? '(Tu)' : ''}</div><div class="post-time">Nuovo sblocco!</div></div></div>${post.user === currentUserNick ? `<button class="btn-delete" onclick="deleteBeerPhoto('${post.brand}', '${post.variant}')" style="font-size:20px;">🗑️</button>` : ''}</div><img src="${post.photo}" class="post-image" alt="Foto"><div class="post-caption"><strong>${post.user}</strong> ha trovato la <strong>${post.brand} - ${post.variant}</strong>! 🍻</div>`;
                 feed.appendChild(card);
             });
         }
 
         function renderLeaderboard() {
             const list = document.getElementById('leaderboardList'); list.innerHTML = '';
+            if (currentLeaderboardTab === 'requests') {
+                if (myReceivedRequests.length === 0) { list.innerHTML = '<p style="text-align:center;">Nessuna richiesta in sospeso.</p>'; return; }
+                myReceivedRequests.forEach(sender => {
+                    let item = document.createElement('div'); item.className = 'leaderboard-item';
+                    item.innerHTML = `<div class="lb-user">📩 ${sender}</div><div style="display:flex; gap:10px;"><button class="btn-action btn-accept" onclick="acceptFriendRequest('${sender}')">✔️ Accetta</button><button class="btn-action btn-reject" onclick="rejectFriendRequest('${sender}')">❌ Rifiuta</button></div>`;
+                    list.appendChild(item);
+                });
+                return;
+            }
             let players = [];
-            
             for (let name in globalLeaderboardScores) { 
-                // Se siamo nel tab "Amici", scarta chi non è in lista (tranne te stesso)
-                if(currentLeaderboardTab === 'friends') {
-                    if(name !== currentUserNick && !myFriendsList.includes(name)) continue;
-                }
+                if(currentLeaderboardTab === 'friends') { if(name !== currentUserNick && !myFriendsList.includes(name)) continue; }
                 players.push({ name: name, score: globalLeaderboardScores[name] }); 
             }
-            
             players.sort((a, b) => b.score - a.score);
-
             if(players.length === 0) { list.innerHTML = '<p style="text-align:center;">Nessun punteggio.</p>'; return; }
-
             players.forEach((player, index) => {
                 let item = document.createElement('div'); item.className = 'leaderboard-item';
-                let medal = (index + 1);
-                if(index === 0) medal = '🥇'; else if(index === 1) medal = '🥈'; else if(index === 2) medal = '🥉';
-                item.innerHTML = `<div class="rank">${medal}</div><div class="lb-user">${player.name} ${player.name === currentUserNick ? '(Tu)' : ''}</div><div class="lb-score">${player.score} 🏆</div>`;
+                let medal = (index + 1); if(index === 0) medal = '🥇'; else if(index === 1) medal = '🥈'; else if(index === 2) medal = '🥉';
+                let actionsHtml = '';
+                if (currentLeaderboardTab === 'global' && player.name !== currentUserNick) {
+                    if (myFriendsList.includes(player.name)) { actionsHtml = `<span class="badge-status" style="color:var(--social-blue);">🤝 Amici</span>`; } 
+                    else if (mySentRequests.includes(player.name)) { actionsHtml = `<span class="badge-status" style="color:var(--text-muted);">⏳ In attesa</span>`; } 
+                    else if (myReceivedRequests.includes(player.name)) { actionsHtml = `<button class="btn-action btn-accept" onclick="acceptFriendRequest('${player.name}')" style="padding:5px 10px; font-size:12px;">Rispondi</button>`; } 
+                    else { actionsHtml = `<button class="btn-action btn-add" onclick="sendFriendRequest('${player.name}')" style="padding:5px 10px; font-size:12px;">➕ Aggiungi</button>`; }
+                }
+                item.innerHTML = `<div style="display:flex; align-items:center; flex-grow:1;"><div class="rank">${medal}</div><div class="lb-user">${player.name} ${player.name === currentUserNick ? '(Tu)' : ''}</div></div><div style="display:flex; align-items:center; gap:15px;"><div class="lb-score">${player.score} 🏆</div>${actionsHtml}</div>`;
                 list.appendChild(item);
             });
         }
