@@ -1,10 +1,10 @@
 {
   "name": "BeerDex",
   "short_name": "BeerDex",
-  "description": "Scopri e colleziona birre",
-  "start_url": "/",
+  "description": "Scopri, scansiona con AI e colleziona tutte le birre del mondo con i tuoi amici.",
+  "start_url": "./index.html",
   "display": "standalone",
-  "background_color": "#ffffff",
+  "background_color": "#2c3e50",
   "theme_color": "#f39c12",
   "orientation": "portrait",
   "icons": [
