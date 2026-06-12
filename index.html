@@ -51,10 +51,11 @@
         
         .btn-home { background: linear-gradient(135deg, #e67e22, #d35400); }
         .btn-profile { background: linear-gradient(135deg, #2c3e50, #34495e); }
-        .btn-social { background: linear-gradient(135deg, #2980b9, #8e44ad); }
         .btn-map { background: linear-gradient(135deg, #16a085, #1abc9c); }
+        .btn-social { background: linear-gradient(135deg, #2980b9, #8e44ad); }
         .btn-leaderboard { background: linear-gradient(135deg, #27ae60, #1e8449); }
         .btn-friends { background: linear-gradient(135deg, #8e44ad, #9b59b6); }
+        .btn-settings { background: linear-gradient(135deg, #7f8c8d, #34495e); }
         .btn-logout { background: #e74c3c !important; text-align: center !important; display: block;}
         
         .beer-badge { display: none; font-size: 18px; animation: bounce 1s infinite; }
@@ -255,6 +256,8 @@
             <span class="beer-badge" id="sidebarBeerBadge">🍺</span>
         </button>
         
+        <button class="menu-btn btn-settings" onclick="navigateTo('page-settings')">⚙️ Impostazioni Profilo</button>
+
         <button class="menu-btn btn-logout" onclick="logoutUser()">🚪 Esci dal Pub</button>
 
         <div style="margin-bottom: 25px; margin-top: 15px;">
@@ -363,6 +366,21 @@
             </div>
         </div>
 
+        <div id="page-settings" class="page-view">
+            <header class="hero">
+                <h1>⚙️ Impostazioni Profilo</h1>
+                <p>Gestisci il tuo account e le tue preferenze.</p>
+            </header>
+            <div class="page-container">
+                <h3 style="margin-top:0;">Cambia Nickname</h3>
+                <p style="font-size:13px; color:var(--danger); font-weight:bold;">Attenzione: L'aggiornamento modificherà i tuoi post passati e aggiornerà le liste dei tuoi amici automaticamente.</p>
+                <input type="text" id="newNicknameInput" placeholder="Nuovo Nickname..." style="width:100%; padding:12px; border-radius:10px; border:2px solid var(--gray); margin-bottom:10px; box-sizing:border-box;">
+                <button class="btn-main" onclick="changeUserNickname()">Salva Nuovo Nickname</button>
+                <hr style="border:none; border-top:1px solid var(--gray); margin:30px 0;">
+                <h3 style="color:var(--text-muted); text-align:center;">Altre impostazioni in arrivo...</h3>
+            </div>
+        </div>
+
         <footer class="footer-legal">
             <p>🍺 <strong>BeerDex</strong> - Consuma responsabilmente. L'abuso di alcol è pericoloso per la salute.</p>
         </footer>
@@ -370,7 +388,8 @@
 
     <script>
         // --- COSTANTI E CONFIGURAZIONI ---
-        const ADMIN_USERNAME = "IlCapo"; // <-- Inserisci qui il tuo nickname da Proprietario per poter cancellare i post altrui
+        const ADMIN_EMAIL = "barcello.luca02@gmail.com"; 
+        let currentUserEmail = "";
 
         // --- INIZIALIZZAZIONE AI ---
         let aiModel = null;
@@ -395,7 +414,6 @@
         let markersGroup;
         function renderMap() {
             if(!map) {
-                // Inizializza mappa centrata sull'Italia
                 map = L.map('mapContainer').setView([41.9028, 12.4964], 5);
                 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '© OpenStreetMap' }).addTo(map);
                 markersGroup = L.layerGroup().addTo(map);
@@ -404,12 +422,11 @@
             
             let myPosts = globalPosts.filter(p => p.user === currentUserNick && p.lat && p.lng);
             myPosts.forEach(p => {
-                let iconUrl = '🍺'; 
                 L.marker([p.lat, p.lng]).addTo(markersGroup)
                  .bindPopup(`<b>${p.brand} - ${p.variant}</b><br><img src="${p.photo}" style="width:100px; border-radius:5px; margin-top:5px;">`);
             });
             
-            setTimeout(() => { map.invalidateSize(); }, 400); // Forza ridisegno quando la scheda diventa visibile
+            setTimeout(() => { map.invalidateSize(); }, 400); 
         }
 
         // --- SISTEMA LEGALE: AGE GATE ---
@@ -439,6 +456,7 @@
         function checkAuthentication() {
             auth.onAuthStateChanged(user => {
                 if (user) {
+                    currentUserEmail = user.email; // Salvataggio email per logiche admin
                     db.ref('users_directory/' + user.uid).once('value').then(snapshot => {
                         currentUserNick = snapshot.val() || user.email.split('@')[0];
                         document.getElementById("displayUsername").innerHTML = `${currentUserNick}<br><small style="font-size:10px;color:gray;">${user.email}</small>`;
@@ -518,6 +536,76 @@
             auth.signOut().then(() => { window.location.reload(); }); 
         }
 
+        // --- SISTEMA CAMBIO NICKNAME (MIGRAZIONE DATI) ---
+        function changeUserNickname() {
+            const newNick = document.getElementById("newNicknameInput").value.trim();
+            if(newNick.length < 3) { alert("Il nickname deve avere almeno 3 caratteri."); return; }
+            if(newNick.toLowerCase() === currentUserNick.toLowerCase()) { alert("È già il tuo nickname!"); return; }
+
+            db.ref('usernames_emails/' + newNick.toLowerCase()).once('value').then(snap => {
+                if(snap.exists()) { alert("Questo nickname è già in uso da un altro utente!"); return; }
+
+                const uid = auth.currentUser.uid;
+                let updates = {};
+
+                // 1. Directory e Mapping Email
+                updates['users_directory/' + uid] = newNick;
+                updates['usernames_emails/' + newNick.toLowerCase()] = currentUserEmail;
+                updates['usernames_emails/' + currentUserNick.toLowerCase()] = null;
+
+                // 2. Classifiche
+                updates['leaderboard_scores/' + newNick] = globalLeaderboardScores[currentUserNick] || 0;
+                updates['leaderboard_scores/' + currentUserNick] = null;
+
+                // 3. Pokedex Foto
+                if(Object.keys(myPokedex).length > 0) {
+                    updates['pokedex_profiles/' + newNick] = myPokedex;
+                    updates['pokedex_profiles/' + currentUserNick] = null;
+                }
+
+                // 4. Lista Amici Propria
+                if(myFriendsList.length > 0) {
+                    updates['users_friends/' + newNick] = Object.fromEntries(myFriendsList.map(f => [f, true]));
+                    updates['users_friends/' + currentUserNick] = null;
+                }
+
+                // 5. Lista Amici Bidirezionale (aggiornare i loro profili)
+                myFriendsList.forEach(f => {
+                    updates['users_friends/' + f + '/' + newNick] = true;
+                    updates['users_friends/' + f + '/' + currentUserNick] = null;
+                });
+
+                // 6. Feed Social
+                globalPosts.forEach(p => {
+                    if(p.user === currentUserNick) {
+                        updates['social_timeline/' + p.postId + '/user'] = newNick;
+                    }
+                });
+
+                // 7. Richieste Pendenti (Ricevute)
+                myReceivedRequests.forEach(sender => {
+                    updates['friend_requests/' + newNick + '/' + sender] = true;
+                    updates['friend_requests_sent/' + sender + '/' + newNick] = true;
+                    updates['friend_requests_sent/' + sender + '/' + currentUserNick] = null;
+                });
+                updates['friend_requests/' + currentUserNick] = null;
+
+                // 8. Richieste Pendenti (Inviate)
+                mySentRequests.forEach(target => {
+                    updates['friend_requests_sent/' + newNick + '/' + target] = true;
+                    updates['friend_requests/' + target + '/' + newNick] = true;
+                    updates['friend_requests/' + target + '/' + currentUserNick] = null;
+                });
+                updates['friend_requests_sent/' + currentUserNick] = null;
+
+                db.ref().update(updates).then(() => {
+                    alert("Nickname aggiornato con successo su tutta la piattaforma!");
+                    window.location.reload();
+                }).catch(err => alert("Errore durante l'aggiornamento: " + err.message));
+            });
+        }
+
+
         // --- SISTEMA NAVIGAZIONE ---
         let currentLeaderboardTab = 'friends';
         let currentFriendsTab = 'received';
@@ -525,7 +613,7 @@
         function navigateTo(pageId) {
             document.querySelectorAll('.page-view').forEach(p => p.classList.remove('active'));
             document.getElementById(pageId).classList.add('active');
-            localStorage.setItem('beerdex_currentPage', pageId); // Salva stato navigazione
+            localStorage.setItem('beerdex_currentPage', pageId); 
             
             closeSidebar();
             if(pageId === 'page-profile') renderTrophies(); 
@@ -776,7 +864,6 @@
             event.stopPropagation(); const file = event.target.files[0]; if (!file) return;
             if (!aiModel) { alert("L'AI si sta configurando, riprova tra poco!"); return; }
 
-            // Avvia la richiesta di geolocalizzazione (il browser chiederà "Mentre usi l'app")
             let currentLat = null; let currentLng = null;
             if(navigator.geolocation) {
                 navigator.geolocation.getCurrentPosition(
@@ -824,7 +911,6 @@
                                 db.ref('pokedex_profiles/' + currentUserNick + '/' + uniqueId).set(compressedDataUrl).then(() => {
                                     const newPostRef = db.ref('social_timeline').push();
                                     
-                                    // Aggiunge latitudine e longitudine se autorizzate
                                     let postData = { user: currentUserNick, brand: brand, variant: variant, photo: compressedDataUrl, time: new Date().getTime() };
                                     if(currentLat !== null && currentLng !== null) {
                                         postData.lat = currentLat; postData.lng = currentLng;
@@ -849,21 +935,17 @@
             reader.readAsDataURL(file);
         }
 
-        // Funzione unificata per cancellare un post/foto (Admin e Utente Standard)
         function deletePost(postId, postUser, brand, variant) {
             const uniqueId = brand + '-' + variant;
             if(!confirm(`Vuoi davvero eliminare lo sblocco di ${postUser} per ${brand} - ${variant}?`)) return;
 
-            // Rimuove la foto dal profilo di chi l'ha pubblicata
             db.ref('pokedex_profiles/' + postUser + '/' + uniqueId).remove().then(() => {
-                // Aggiorna lo score dell'utente
                 db.ref('pokedex_profiles/' + postUser).once('value').then(snap => {
                     let newScore = snap.exists() ? Object.keys(snap.val()).length : 0;
                     db.ref('leaderboard_scores/' + postUser).set(newScore);
                 });
             });
 
-            // Se l'abbiamo lanciato dalla lista Birre in Home e non abbiamo il postId esatto:
             if(!postId) {
                 db.ref('social_timeline').once('value').then(snapshot => {
                     snapshot.forEach(child => {
@@ -872,7 +954,6 @@
                     });
                 });
             } else {
-                // Se l'abbiamo lanciato dal Social Feed (sappiamo il postId)
                 db.ref('social_timeline/' + postId).remove();
             }
         }
@@ -944,14 +1025,13 @@
 
         function renderSocialFeed() {
             const feed = document.getElementById('socialFeed'); feed.innerHTML = '';
-            const isAdmin = currentUserNick === ADMIN_USERNAME;
+            const isAdmin = currentUserEmail === ADMIN_EMAIL;
             const visiblePosts = globalPosts.filter(post => post.user === currentUserNick || myFriendsList.includes(post.user) || isAdmin);
             
             if(visiblePosts.length === 0) { feed.innerHTML = '<p style="text-align:center; padding:20px;">Nessun post. Vai in Classifica Globale e aggiungi i tuoi amici!</p>'; return; }
             
             [...visiblePosts].reverse().forEach(post => {
                 let letter = post.user.charAt(0).toUpperCase(); let card = document.createElement('div'); card.className = 'post-card';
-                // Mostra il cestino se il post è mio OPPURE se sono l'Admin
                 let canDelete = (post.user === currentUserNick) || isAdmin;
                 
                 card.innerHTML = `<div class="post-header"><div style="display:flex; align-items:center;"><div class="post-avatar">${letter}</div><div><div class="post-user">${post.user} ${post.user === currentUserNick ? '(Tu)' : ''}</div><div class="post-time">Nuovo sblocco!</div></div></div>${canDelete ? `<button class="btn-delete" onclick="deletePost('${post.postId}', '${post.user}', '${post.brand}', '${post.variant}')" style="font-size:20px;" title="Elimina post e punti">🗑️</button>` : ''}</div><img src="${post.photo}" class="post-image" alt="Foto"><div class="post-caption"><strong>${post.user}</strong> ha trovato la <strong>${post.brand} - ${post.variant}</strong>! 🍻</div>`;
