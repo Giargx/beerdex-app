@@ -215,6 +215,9 @@
         .medal-badge-card.unlocked { opacity: 1; filter: none; box-shadow: 0 4px 10px rgba(241,196,15,0.2); }
         .medal-icon-container { font-size: 35px; margin-bottom: 5px; }
     </style>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#f39c12">
+<meta name="apple-mobile-web-app-capable" content="yes">
 </head>
 <body>
 
@@ -1284,5 +1287,10 @@
             });
         }
     </script>
+<script>
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('/sw.js');
+}
+</script>
 </body>
 </html>
