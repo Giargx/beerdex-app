@@ -548,6 +548,15 @@
             };
         }
 
+        // --- LOGICA GRADI EVOLUZIONE (RIPORTATA AL TOP) ---
+        function getUserRankTitle(score) {
+            if (score < 10) return "Novizio del Pub 🍺";
+            if (score < 50) return "Apprendista Bevitore 🎒";
+            if (score < 100) return "Esploratore di Luppoli 🧭";
+            if (score < 200) return "Sommelier del Bancone 🎓";
+            return "Maestro Birraio 👑";
+        }
+
         // --- COSTANTI E CONFIGURAZIONI ---
         const ADMIN_EMAIL = "barcello.luca02@gmail.com".toLowerCase(); 
         let currentUserEmail = "";
@@ -632,12 +641,10 @@
                     currentUserEmail = user.email.toLowerCase(); 
                     isAdminUser = (currentUserEmail === ADMIN_EMAIL); 
                     
-                    // Controllo e Riparazione automatica dei vecchi account orfani del nodo Directory
                     db.ref('users_directory/' + user.uid).once('value').then(snapshot => {
                         if(snapshot.exists()) {
                             currentUserNick = snapshot.val();
                         } else {
-                            // Se l'account non ha una chiave nickname registrata sul suo UID, la allineiamo al suo indirizzo mail
                             currentUserNick = user.email.split('@')[0];
                             db.ref('users_directory/' + user.uid).set(currentUserNick);
                         }
@@ -686,6 +693,7 @@
             }
         }
 
+        // ... Mantenimento totale delle funzioni esistenti del form login ...
         function toggleAuthMode() {
             isRegisterMode = !isRegisterMode;
             document.getElementById("authTitle").innerText = isRegisterMode ? "Crea Account 🍻" : "Accedi a BeerDex 🍻";
@@ -709,7 +717,7 @@
                 if(nickname.length < 3) { showCustomAlert("Scegli un Nickname di almeno 3 caratteri!"); return; }
                 if(password !== confirmPassword) { showCustomAlert("Le due password inserite non coincidono. Riprova!"); return; }
                 if(password.length < 8) { showCustomAlert("La password deve essere lunga almeno 8 caratteri!"); return; }
-                if(!/[A-Z]/.test(password)) { showCustomAlert("La password deve contenere almeno una letter MAIUSCOLA!"); return; }
+                if(!/[A-Z]/.test(password)) { showCustomAlert("La password deve contenere almeno una lettera MAIUSCOLA!"); return; }
                 if(!/\d/.test(password)) { showCustomAlert("La password deve contenere almeno un NUMERO!"); return; }
                 if(!/[!?$%&]/.test(password)) { showCustomAlert("La password deve contenere almeno un carattere SPECIALE tra questi: ! ? $ % &"); return; }
 
@@ -734,27 +742,29 @@
                 }
             }
         }
-        function navigateTo(pageId) {
-            document.querySelectorAll('.page-view').forEach(p => p.classList.remove('active'));
-            const targetPage = document.getElementById(pageId);
-            if(targetPage) { 
-                targetPage.classList.add('active'); 
-                localStorage.setItem('beerdex_currentPage', pageId); 
-            } else { 
-                document.getElementById('page-home').classList.add('active'); 
-            }
-            closeSidebar();
-            if(pageId === 'page-home') renderDashboard(); 
-            if(pageId === 'page-explore') displayBeers(beers);
-            if(pageId === 'page-profile') renderTrophies(); 
-            if(pageId === 'page-map') renderMap();
-            if(pageId === 'page-social') renderSocialFeed();
-            if(pageId === 'page-leaderboard') renderLeaderboard();
-            if(pageId === 'page-friends') renderFriendsManager();
-            window.scrollTo(0, 0);
+
+        function changeUserNickname() {
+            const newNick = document.getElementById("newNicknameInput").value.trim();
+            if(newNick.length < 3) { showCustomAlert("Il nickname deve avere almeno 3 caratteri."); return; }
+            if(newNick.toLowerCase() === currentUserNick.toLowerCase()) { showCustomAlert("È già il tuo nickname!"); return; }
+
+            db.ref('usernames_emails/' + newNick.toLowerCase()).once('value').then(snap => {
+                if(snap.exists()) { showCustomAlert("Questo nickname è già in uso da un altro utente!"); return; }
+                const uid = auth.currentUser.uid;
+                let updates = {};
+                updates['users_directory/' + uid] = newNick;
+                updates['usernames_emails/' + newNick.toLowerCase()] = currentUserEmail;
+                updates['usernames_emails/' + currentUserNick.toLowerCase()] = null;
+                updates['leaderboard_scores/' + newNick] = globalLeaderboardScores[currentUserNick] || 0;
+                updates['leaderboard_scores/' + currentUserNick] = null;
+                if(Object.keys(myPokedex).length > 0) { updates['pokedex_profiles/' + newNick] = myPokedex; updates['pokedex_profiles/' + currentUserNick] = null; }
+                if(myFriendsList.length > 0) { updates['users_friends/' + newNick] = Object.fromEntries(myFriendsList.map(f => [f, true])); updates['users_friends/' + currentUserNick] = null; }
+                myFriendsList.forEach(f => { updates['users_friends/' + f + '/' + newNick] = true; updates['users_friends/' + f + '/' + currentUserNick] = null; });
+                globalPosts.forEach(p => { if(p.user === currentUserNick) { updates['social_timeline/' + p.postId + '/user'] = newNick; } });
+
+                db.ref().update(updates).then(() => { showCustomAlert("Nickname aggiornato!", "Fatto", () => { window.location.reload(); }); });
+            });
         }
-        function openSidebar() { document.getElementById("appSidebar").classList.add("open"); document.getElementById("mainOverlay").classList.add("active"); }
-        function closeSidebar() { document.getElementById("appSidebar").classList.remove("open"); document.getElementById("mainOverlay").classList.remove("active"); }
 
         // --- DATABASE BIRRE ---
         const beers = [
@@ -813,6 +823,85 @@
         ];
         beers.sort((a, b) => a.brand.localeCompare(b.brand));
 
+        function handlePhotoUpload(event, brand, variant) {
+            event.stopPropagation(); const file = event.target.files[0]; if (!file) return;
+            let currentLat = null; let currentLng = null; let isShiny = false;
+            const targetBeer = beers.find(b => b.brand === brand);
+            if(navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition((position) => {
+                    currentLat = position.coords.latitude; currentLng = position.coords.longitude;
+                    if(targetBeer && countryCoordinates[targetBeer.country]) {
+                        const bounds = countryCoordinates[targetBeer.country];
+                        if(currentLat >= bounds.latMin && currentLat <= bounds.latMax && currentLng >= bounds.lngMin && currentLng <= bounds.lngMax) { isShiny = true; }
+                    }
+                    processPhoto();
+                }, () => { processPhoto(); });
+            } else { processPhoto(); }
+
+            function processPhoto() {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const img = new Image();
+                    img.onload = function() {
+                        const canvas = document.createElement('canvas'); const MAX_SIZE = 400;
+                        let width = img.width; let height = img.height;
+                        if (width > height) { if (width > MAX_SIZE) { height *= MAX_SIZE / width; width = MAX_SIZE; } } else { if (height > MAX_SIZE) { width *= MAX_SIZE / height; height = MAX_SIZE; } }
+                        canvas.width = width; canvas.height = height;
+                        const ctx = canvas.getContext('2d'); ctx.drawImage(img, 0, 0, width, height);
+                        const imgData = ctx.getImageData(0, 0, width, height); const data = imgData.data; let totalBrightness = 0;
+                        for (let i = 0; i < data.length; i += 4) { totalBrightness += (data[i] + data[i+1] + data[i+2]) / 3; }
+                        if ((totalBrightness / (data.length / 4)) < 20) { showCustomAlert("🚨 Immagine troppo scura! Riprova con più luce.", "Foto Respinta"); return; }
+                        document.getElementById('progressText').innerText = "🤖 Analisi Forma (AI) in corso...";
+
+                        aiModel.detect(canvas).then(predictions => {
+                            let isDrink = false; predictions.forEach(p => { if(p.class === 'bottle' || p.class === 'cup' || p.class === 'wine glass') isDrink = true; });
+                            if (!isDrink) { showCustomAlert("🚨 Non vedo bottiglie o bicchieri veri.", "AI Anti-Cheat"); updateStats(); return; }
+                            document.getElementById('progressText').innerText = "🔍 Lettura etichetta in corso...";
+                            Tesseract.recognize(canvas, 'ita+eng').then(({ data: { text } }) => {
+                                const extractedText = text.toLowerCase(); const brandWord = brand.toLowerCase().split(' ')[0];
+                                if (extractedText.includes(brandWord) || extractedText.replace(/\s/g, '').includes(brandWord)) {
+                                    const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.6);
+                                    const uniqueId = brand + '-' + variant;
+                                    const pokedexEntry = { photo: compressedDataUrl, isShiny: isShiny, brand: brand };
+                                    db.ref('pokedex_profiles/' + currentUserNick + '/' + uniqueId).set(pokedexEntry).then(() => {
+                                        const newPostRef = db.ref('social_timeline').push();
+                                        let postData = { user: currentUserNick, brand: brand, variant: variant, photo: compressedDataUrl, time: new Date().getTime(), isShiny: isShiny };
+                                        if(currentLat !== null && currentLng !== null) { postData.lat = currentLat; postData.lng = currentLng; }
+                                        newPostRef.set(postData).then(() => {
+                                            recalculateTotalScore(currentUserNick);
+                                            let msg = `Birra sbloccata con successo! (+${getBeerPoints(brand, isShiny)} Punti)`;
+                                            if(isShiny) msg += " ✨ SBLOCCO SHINY IN TRASFERTA COMPLETATO!";
+                                            showCustomAlert(msg, "✅ Conquistata!");
+                                        });
+                                    });
+                                } else {
+                                    showCustomAlert(`L'AI non riesce a leggere la scritta "${brand}" sull'etichetta.`, "AI Anti-Cheat");
+                                    updateStats();
+                                }
+                            });
+                        });
+                    };
+                    img.src = e.target.result;
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function deletePost(postId, postUser, brand, variant) {
+            const uniqueId = brand + '-' + variant;
+            showCustomConfirm(`Vuoi davvero eliminare lo sblocco di ${postUser} per ${brand} - ${variant}?`, "Conferma Eliminazione", () => {
+                db.ref('pokedex_profiles/' + postUser + '/' + uniqueId).remove().then(() => { recalculateTotalScore(postUser); });
+                if(!postId) {
+                    db.ref('social_timeline').once('value').then(snapshot => {
+                        snapshot.forEach(child => {
+                            let p = child.val();
+                            if(p.user === postUser && p.brand === brand && p.variant === variant) { db.ref('social_timeline/' + child.key).remove(); }
+                        });
+                    });
+                } else { db.ref('social_timeline/' + postId).remove(); }
+            });
+        }
+
         function generateVariantsHTML(brand, variantsArray) {
             let listHTML = '';
             variantsArray.forEach(variant => {
@@ -834,8 +923,6 @@
             });
             return listHTML;
         }
-
-        function toggleCard(cardElement) { cardElement.classList.toggle('active'); }
 
         function displayBeers(beerArray) {
             const container = document.getElementById('beerList'); if(!container) return;
@@ -1031,7 +1118,6 @@
                 if(activeView && activeView.id === 'page-friends') renderFriendsManager();
             });
 
-            // Ascoltatore globale della bacheca post della community (Con Error Handler)
             db.ref('social_timeline').limitToLast(100).on('value', (snapshot) => {
                 globalPosts = []; 
                 if(snapshot.exists()) {
@@ -1045,7 +1131,6 @@
                 showCustomAlert("Il server Firebase rifiuta l'accesso al Community Feed: " + error.message, "Errore Regole di Sicurezza");
             });
 
-            // Ascoltatore globale dei punteggi degli iscritti (Con Error Handler)
             db.ref('leaderboard_scores').on('value', (snapshot) => {
                 globalLeaderboardScores = snapshot.val() || {};
                 const activeView = document.querySelector('.page-view.active');
@@ -1129,13 +1214,12 @@
 
         displayBeers(beers);
 
-        // --- REGISTRAZIONE SERVICE WORKER CON SVUOTAMENTO CACHE AUTOMATICO AD OGNI NUOVO DEPLOY ---
+        // --- REGISTRAZIONE SERVICE WORKER ---
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
                 navigator.serviceWorker.register('/sw.js')
                     .then(reg => {
                         console.log('PWA BeerDex registrata con successo!', reg.scope);
-                        // Forza il service worker a controllare se ci sono file modificati su GitHub ad ogni avvio
                         reg.update(); 
                     })
                     .catch(err => console.error('Errore registrazione PWA:', err));
