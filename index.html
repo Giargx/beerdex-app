@@ -208,6 +208,9 @@
         .medal-icon-container { font-size: 35px; margin-bottom: 5px; }
         #mapContainer { height: 400px; width: 100%; border-radius: 16px; margin-top: 10px; z-index: 1;}
     </style>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#f39c12">
+<meta name="apple-mobile-web-app-capable" content="yes">
 </head>
 <body>
 
@@ -1276,5 +1279,10 @@
             });
         }
     </script>
+<script>
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('/sw.js');
+}
+</script>
 </body>
 </html>
