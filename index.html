@@ -44,7 +44,8 @@
         .close-sidebar { font-size: 24px; color: var(--text-muted); cursor: pointer; border: none; background: none; }
         .close-sidebar:hover { color: var(--dark); }
         
-        .sidebar-user { text-align: center; padding: 10px; background: var(--gray); border-radius: 12px; margin-bottom: 20px; font-weight: bold; color: var(--dark); font-size: 14px; word-break: break-all; }
+        .sidebar-user { text-align: center; padding: 10px; background: var(--gray); border-radius: 12px; margin-bottom: 20px; font-weight: bold; color: var(--dark); font-size: 14px; word-break: break-all; position: relative; }
+        .admin-badge { background-color: var(--danger); color: var(--white); padding: 2px 8px; border-radius: 4px; font-size: 10px; font-weight: bold; margin-left: 5px; vertical-align: middle;}
 
         .menu-btn { display: flex; justify-content: space-between; align-items: center; color: var(--white); border: none; padding: 14px 20px; font-size: 16px; font-weight: bold; border-radius: 12px; margin-bottom: 10px; cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.15); transition: 0.2s; width: 100%; text-align: left;}
         .menu-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 15px rgba(0,0,0,0.2); }
@@ -242,7 +243,7 @@
             <button class="close-sidebar" onclick="closeSidebar()">&times;</button>
         </div>
         
-        <div class="sidebar-user">👤 Utente:<br><span id="displayUsername" style="color:var(--accent);">Caricamento...</span></div>
+        <div class="sidebar-user" id="sidebarUserBox">👤 Utente:<br><span id="displayUsername" style="color:var(--accent);">Caricamento...</span></div>
         <div id="aiStatus">🤖 AI Anti-Cheat in caricamento...</div>
 
         <button class="menu-btn btn-home" onclick="navigateTo('page-home')">🏠 Esplora Birre</button>
@@ -385,11 +386,12 @@
             <p>🍺 <strong>BeerDex</strong> - Consuma responsabilmente. L'abuso di alcol è pericoloso per la salute.</p>
         </footer>
     </div>
-
     <script>
         // --- COSTANTI E CONFIGURAZIONI ---
-        const ADMIN_EMAIL = "barcello.luca02@gmail.com"; 
+        // Utilizziamo toLowerCase() per evitare problemi di case-sensitivity
+        const ADMIN_EMAIL = "barcello.luca02@gmail.com".toLowerCase(); 
         let currentUserEmail = "";
+        let isAdminUser = false; // Flag globale per capire se l'utente è l'admin
 
         // --- INIZIALIZZAZIONE AI ---
         let aiModel = null;
@@ -456,11 +458,18 @@
         function checkAuthentication() {
             auth.onAuthStateChanged(user => {
                 if (user) {
-                    currentUserEmail = user.email; // Salvataggio email per logiche admin
+                    currentUserEmail = user.email.toLowerCase(); 
+                    isAdminUser = (currentUserEmail === ADMIN_EMAIL); // Controllo permessi di amministratore
+                    
                     db.ref('users_directory/' + user.uid).once('value').then(snapshot => {
                         currentUserNick = snapshot.val() || user.email.split('@')[0];
-                        document.getElementById("displayUsername").innerHTML = `${currentUserNick}<br><small style="font-size:10px;color:gray;">${user.email}</small>`;
+                        
+                        // Costruiamo il badge ADMIN se sei tu
+                        let adminBadgeHtml = isAdminUser ? '<span class="admin-badge">ADMIN</span>' : '';
+                        
+                        document.getElementById("displayUsername").innerHTML = `${currentUserNick}${adminBadgeHtml}<br><small style="font-size:10px;color:gray;">${user.email}</small>`;
                         document.getElementById("authScreen").style.display = "none";
+                        
                         loadRealtimeData(); 
                         
                         // RECUPERO STATO PAGINA PRECEDENTE
@@ -548,41 +557,34 @@
                 const uid = auth.currentUser.uid;
                 let updates = {};
 
-                // 1. Directory e Mapping Email
                 updates['users_directory/' + uid] = newNick;
                 updates['usernames_emails/' + newNick.toLowerCase()] = currentUserEmail;
                 updates['usernames_emails/' + currentUserNick.toLowerCase()] = null;
 
-                // 2. Classifiche
                 updates['leaderboard_scores/' + newNick] = globalLeaderboardScores[currentUserNick] || 0;
                 updates['leaderboard_scores/' + currentUserNick] = null;
 
-                // 3. Pokedex Foto
                 if(Object.keys(myPokedex).length > 0) {
                     updates['pokedex_profiles/' + newNick] = myPokedex;
                     updates['pokedex_profiles/' + currentUserNick] = null;
                 }
 
-                // 4. Lista Amici Propria
                 if(myFriendsList.length > 0) {
                     updates['users_friends/' + newNick] = Object.fromEntries(myFriendsList.map(f => [f, true]));
                     updates['users_friends/' + currentUserNick] = null;
                 }
 
-                // 5. Lista Amici Bidirezionale (aggiornare i loro profili)
                 myFriendsList.forEach(f => {
                     updates['users_friends/' + f + '/' + newNick] = true;
                     updates['users_friends/' + f + '/' + currentUserNick] = null;
                 });
 
-                // 6. Feed Social
                 globalPosts.forEach(p => {
                     if(p.user === currentUserNick) {
                         updates['social_timeline/' + p.postId + '/user'] = newNick;
                     }
                 });
 
-                // 7. Richieste Pendenti (Ricevute)
                 myReceivedRequests.forEach(sender => {
                     updates['friend_requests/' + newNick + '/' + sender] = true;
                     updates['friend_requests_sent/' + sender + '/' + newNick] = true;
@@ -590,7 +592,6 @@
                 });
                 updates['friend_requests/' + currentUserNick] = null;
 
-                // 8. Richieste Pendenti (Inviate)
                 mySentRequests.forEach(target => {
                     updates['friend_requests_sent/' + newNick + '/' + target] = true;
                     updates['friend_requests/' + target + '/' + newNick] = true;
@@ -605,15 +606,20 @@
             });
         }
 
-
         // --- SISTEMA NAVIGAZIONE ---
         let currentLeaderboardTab = 'friends';
         let currentFriendsTab = 'received';
         
         function navigateTo(pageId) {
             document.querySelectorAll('.page-view').forEach(p => p.classList.remove('active'));
-            document.getElementById(pageId).classList.add('active');
-            localStorage.setItem('beerdex_currentPage', pageId); 
+            // Assicuriamoci che la pagina esista prima di aggiungere la classe 'active'
+            const targetPage = document.getElementById(pageId);
+            if(targetPage) {
+                targetPage.classList.add('active');
+                localStorage.setItem('beerdex_currentPage', pageId); 
+            } else {
+                document.getElementById('page-home').classList.add('active');
+            }
             
             closeSidebar();
             if(pageId === 'page-profile') renderTrophies(); 
@@ -1025,14 +1031,13 @@
 
         function renderSocialFeed() {
             const feed = document.getElementById('socialFeed'); feed.innerHTML = '';
-            const isAdmin = currentUserEmail === ADMIN_EMAIL;
-            const visiblePosts = globalPosts.filter(post => post.user === currentUserNick || myFriendsList.includes(post.user) || isAdmin);
+            const visiblePosts = globalPosts.filter(post => post.user === currentUserNick || myFriendsList.includes(post.user) || isAdminUser);
             
             if(visiblePosts.length === 0) { feed.innerHTML = '<p style="text-align:center; padding:20px;">Nessun post. Vai in Classifica Globale e aggiungi i tuoi amici!</p>'; return; }
             
             [...visiblePosts].reverse().forEach(post => {
                 let letter = post.user.charAt(0).toUpperCase(); let card = document.createElement('div'); card.className = 'post-card';
-                let canDelete = (post.user === currentUserNick) || isAdmin;
+                let canDelete = (post.user === currentUserNick) || isAdminUser;
                 
                 card.innerHTML = `<div class="post-header"><div style="display:flex; align-items:center;"><div class="post-avatar">${letter}</div><div><div class="post-user">${post.user} ${post.user === currentUserNick ? '(Tu)' : ''}</div><div class="post-time">Nuovo sblocco!</div></div></div>${canDelete ? `<button class="btn-delete" onclick="deletePost('${post.postId}', '${post.user}', '${post.brand}', '${post.variant}')" style="font-size:20px;" title="Elimina post e punti">🗑️</button>` : ''}</div><img src="${post.photo}" class="post-image" alt="Foto"><div class="post-caption"><strong>${post.user}</strong> ha trovato la <strong>${post.brand} - ${post.variant}</strong>! 🍻</div>`;
                 feed.appendChild(card);
