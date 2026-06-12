@@ -65,6 +65,8 @@
         .beer-badge { display: none; font-size: 18px; animation: bounce 1s infinite; }
         @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
 
+        #aiStatusMini { color: var(--text-muted); text-align: center; font-size: 11px; font-weight: 500; margin-top: auto; padding-top: 15px; border-top: 1px dashed var(--gray); }
+
         .progress-container { width: 100%; height: 10px; background: #e0e6ed; border-radius: 10px; margin: 15px auto 5px auto; overflow: hidden; }
         .progress-bar { height: 100%; background-color: var(--primary-dark); width: 0%; transition: width 0.8s cubic-bezier(0.25, 0.8, 0.25, 1); }
         .progress-text { font-size: 13px; font-weight: bold; color: var(--text-muted); text-align: center; margin-bottom: 20px; }
@@ -79,6 +81,11 @@
         .page-view { display: none; flex-grow: 1; animation: fadeIn 0.4s; }
         .page-view.active { display: block; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* FIX MAPPA FULL PAGE */
+        #page-map.active { display: flex !important; flex-direction: column; height: 100vh; margin: 0; padding: 0; overflow: hidden; }
+        #page-map .hero { margin-bottom: 0; padding-bottom: 30px; border-bottom-left-radius: 20px; border-bottom-right-radius: 20px; z-index: 10; position: relative; box-shadow: 0 5px 15px rgba(0,0,0,0.1); flex-shrink: 0; }
+        #mapContainer { flex-grow: 1; width: 100%; z-index: 1; background: #e0e6ed; }
 
         .menu-toggle { position: fixed; top: 20px; left: 20px; background: var(--dark); color: var(--white); border: none; padding: 10px 15px; border-radius: 10px; font-weight: bold; font-size: 16px; cursor: pointer; transition: 0.2s; z-index: 80; box-shadow: 0 4px 10px rgba(0,0,0,0.2);}
 
@@ -210,7 +217,6 @@
         .medal-badge-card { background: #fcf8e3; border: 2px solid var(--gold); border-radius: 12px; padding: 10px; display: flex; flex-direction: column; align-items: center; text-align: center; transition: 0.3s; opacity: 0.4; filter: grayscale(100%); }
         .medal-badge-card.unlocked { opacity: 1; filter: none; box-shadow: 0 4px 10px rgba(241,196,15,0.2); }
         .medal-icon-container { font-size: 35px; margin-bottom: 5px; }
-        #aiStatusMini { color: var(--text-muted); text-align: center; font-size: 11px; font-weight: 500; margin-top: auto; padding-top: 15px; border-top: 1px dashed var(--gray); }
     </style>
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#f39c12">
@@ -375,13 +381,11 @@
         </div>
 
         <div id="page-map" class="page-view">
-            <header class="hero">
+            <header class="hero" style="margin-bottom: 0; padding-bottom: 30px; border-bottom-left-radius: 20px; border-bottom-right-radius: 20px; z-index: 10; position: relative; box-shadow: 0 10px 20px rgba(0,0,0,0.1);">
                 <h1>🗺️ Mappa Sblocchi</h1>
                 <p>Esplora il mondo e traccia i pub in cui hai conquistato le tue birre.</p>
             </header>
-            <div class="page-container" style="padding: 15px;">
-                <div id="mapContainer"></div>
-            </div>
+            <div id="mapContainer"></div>
         </div>
 
         <div id="page-social" class="page-view">
@@ -412,6 +416,7 @@
                 </div>
                 
                 <div id="searchResultArea"></div>
+
                 <div class="list-container leaderboard-list" id="leaderboardList"><p style="text-align:center;">Caricamento classifica...</p></div>
             </div>
         </div>
@@ -571,7 +576,10 @@
             if(pageId === 'page-home') renderDashboard(); 
             if(pageId === 'page-explore') displayBeers(beers);
             if(pageId === 'page-profile') renderTrophies(); 
-            if(pageId === 'page-map') renderMap();
+            if(pageId === 'page-map') {
+                renderMap();
+                setTimeout(() => { if(map) map.invalidateSize(); }, 300); // FIX FORZATURA LEAFLET
+            }
             if(pageId === 'page-social') renderSocialFeed();
             if(pageId === 'page-leaderboard') renderLeaderboard();
             if(pageId === 'page-friends') renderFriendsManager();
@@ -865,13 +873,11 @@
             const now = new Date();
             const month = now.getMonth() + 1; 
             let activeEvent = null;
-
             if (month === 3) {
                 activeEvent = { id: "stpatrick", name: "🍀 San Patrizio", desc: "Mese di Marzo! Sblocca 2 varianti irlandesi o scozzesi per vincere la medaglia!" };
             } else if (month === 9 || month === 10) {
                 activeEvent = { id: "oktoberfest", name: "🥨 Oktoberfest", desc: "Periodo Oktoberfest! Sblocca 3 varianti tedesche tra Settembre e Ottobre!" };
             }
-
             const box = document.getElementById("dashEventBox");
             const txt = document.getElementById("dashEventText");
             if (box && txt) {
@@ -891,7 +897,6 @@
             const now = new Date();
             const month = now.getMonth() + 1;
             let currentYear = now.getFullYear();
-
             if (month === 3) { 
                 let count = userPosts.filter(p => {
                     let pDate = new Date(p.time);
@@ -914,7 +919,6 @@
             event.stopPropagation(); const file = event.target.files[0]; if (!file) return;
             let currentLat = null; let currentLng = null; let isShiny = false;
             const targetBeer = beers.find(b => b.brand === brand);
-
             if(navigator.geolocation) {
                 navigator.geolocation.getCurrentPosition((position) => {
                     currentLat = position.coords.latitude; currentLng = position.coords.longitude;
@@ -936,31 +940,25 @@
                         if (width > height) { if (width > MAX_SIZE) { height *= MAX_SIZE / width; width = MAX_SIZE; } } else { if (height > MAX_SIZE) { width *= MAX_SIZE / height; height = MAX_SIZE; } }
                         canvas.width = width; canvas.height = height;
                         const ctx = canvas.getContext('2d'); ctx.drawImage(img, 0, 0, width, height);
-
                         const imgData = ctx.getImageData(0, 0, width, height); const data = imgData.data; let totalBrightness = 0;
                         for (let i = 0; i < data.length; i += 4) { totalBrightness += (data[i] + data[i+1] + data[i+2]) / 3; }
                         if ((totalBrightness / (data.length / 4)) < 20) { showCustomAlert("🚨 Immagine troppo scura! Riprova con più luce.", "Foto Respinta"); return; }
-
                         document.getElementById('progressText').innerText = "🤖 Analisi Forma (AI) in corso...";
 
                         aiModel.detect(canvas).then(predictions => {
                             let isDrink = false; predictions.forEach(p => { if(p.class === 'bottle' || p.class === 'cup' || p.class === 'wine glass') isDrink = true; });
                             if (!isDrink) { showCustomAlert("🚨 Non vedo bottiglie o bicchieri veri.", "AI Anti-Cheat"); updateStats(); return; }
-
                             document.getElementById('progressText').innerText = "🔍 Lettura etichetta in corso...";
                             Tesseract.recognize(canvas, 'ita+eng').then(({ data: { text } }) => {
                                 const extractedText = text.toLowerCase(); const brandWord = brand.toLowerCase().split(' ')[0];
-                                
                                 if (extractedText.includes(brandWord) || extractedText.replace(/\s/g, '').includes(brandWord)) {
                                     const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.6);
                                     const uniqueId = brand + '-' + variant;
                                     const pokedexEntry = { photo: compressedDataUrl, isShiny: isShiny, brand: brand };
-                                    
                                     db.ref('pokedex_profiles/' + currentUserNick + '/' + uniqueId).set(pokedexEntry).then(() => {
                                         const newPostRef = db.ref('social_timeline').push();
                                         let postData = { user: currentUserNick, brand: brand, variant: variant, photo: compressedDataUrl, time: new Date().getTime(), isShiny: isShiny };
                                         if(currentLat !== null && currentLng !== null) { postData.lat = currentLat; postData.lng = currentLng; }
-                                        
                                         newPostRef.set(postData).then(() => {
                                             recalculateTotalScore(currentUserNick);
                                             let msg = `Birra sbloccata con successo! (+${getBeerPoints(brand, isShiny)} Punti)`;
@@ -986,7 +984,6 @@
                 let totalScore = 0;
                 let brandUnlockCounts = {};
                 beers.forEach(b => { brandUnlockCounts[b.brand] = 0; });
-
                 if(snap.exists()) {
                     const profileData = snap.val();
                     for(let uniqueId in profileData) {
@@ -997,11 +994,8 @@
                         if (brandUnlockCounts[bName] !== undefined) brandUnlockCounts[bName]++;
                     }
                 }
-
                 beers.forEach(beer => {
-                    if(brandUnlockCounts[beer.brand] === beer.variants.length && beer.variants.length > 0) {
-                        totalScore += 10; 
-                    }
+                    if(brandUnlockCounts[beer.brand] === beer.variants.length && beer.variants.length > 0) { totalScore += 10; }
                 });
                 db.ref('leaderboard_scores/' + username).set(totalScore);
             });
@@ -1054,7 +1048,6 @@
                 const card = document.createElement('div'); card.className = 'card'; card.id = 'card-' + realIndex; card.setAttribute('onclick', 'toggleCard(this)');
                 let rClass = `rarity-${beer.rarity}`;
                 let pointsTip = beer.rarity === 'comune' ? '1 PT' : (beer.rarity === 'media' ? '2 PT' : '5 PT');
-
                 card.innerHTML = `
                     <div class="toggle-icon">▼</div>
                     <span class="region">${beer.flag} ${beer.country}</span>
@@ -1071,9 +1064,7 @@
             let totalPoints = globalLeaderboardScores[currentUserNick] || 0;
             const progressEl = document.getElementById('progressText');
             if (progressEl) progressEl.innerText = `Punteggio: ${totalPoints} 🏆`;
-            
             updateUserBoxUI(totalPoints);
-
             if(document.getElementById('dashProgressText')) {
                 document.getElementById('dashProgressText').innerText = `${totalPoints} 🏆`;
                 let rankLabel = getUserRankTitle(totalPoints);
@@ -1096,7 +1087,6 @@
             const grid = document.getElementById('trophyGrid'); 
             const medalsGrid = document.getElementById('brandMedalsGrid');
             if(!grid || !medalsGrid) return;
-            
             grid.innerHTML = ''; medalsGrid.innerHTML = '';
             let brandUnlockCounts = {};
             beers.forEach(b => { brandUnlockCounts[b.brand] = 0; });
@@ -1107,7 +1097,6 @@
                     let entry = myPokedex ? myPokedex[uniqueId] : undefined; 
                     let isUnlocked = entry !== undefined;
                     if(isUnlocked) brandUnlockCounts[beer.brand]++;
-                    
                     let trophyDiv = document.createElement('div'); trophyDiv.className = `trophy-card ${isUnlocked ? 'unlocked' : ''}`;
                     let pUrl = isUnlocked ? (entry.photo || entry) : '';
                     let imageContent = isUnlocked ? `<img src="${pUrl}" alt="${variant}">` : `🔒`;
@@ -1133,8 +1122,7 @@
             const feed = document.getElementById('socialFeed'); if(!feed) return;
             feed.innerHTML = '';
             const visiblePosts = globalPosts.filter(post => post.user === currentUserNick || myFriendsList.includes(post.user) || isAdminUser);
-            if(visiblePosts.length === 0) { feed.innerHTML = '<p style="text-align:center; padding:20px;">Nessun post. Vai in Classifica Globale e aggiungi i tuoi amici!</p>'; return; }
-            
+            if(visiblePosts.length === 0) { feed.innerHTML = '<p style="text-align:center; padding:20px;">Nessun post.</p>'; return; }
             [...visiblePosts].reverse().forEach(post => {
                 let letter = post.user.charAt(0).toUpperCase(); let card = document.createElement('div'); card.className = 'post-card';
                 let canDelete = (post.user === currentUserNick) || isAdminUser;
@@ -1154,7 +1142,6 @@
             }
             players.sort((a, b) => b.score - a.score);
             if(players.length === 0) { list.innerHTML = '<p style="text-align:center;">Nessun punteggio.</p>'; return; }
-            
             players.forEach((player, index) => {
                 let item = document.createElement('div'); item.className = 'leaderboard-item';
                 let medal = (index + 1); if(index === 0) medal = '🥇'; else if(index === 1) medal = '🥈'; else if(index === 2) medal = '🥉';
@@ -1192,7 +1179,6 @@
         let myPokedex = {}; let globalPosts = []; let globalLeaderboardScores = {}; 
         let myFriendsList = []; let myReceivedRequests = []; let mySentRequests = []; let myRejectedRequests = [];
 
-        // --- APERTURA ASINCRONA DEL DATABASE ---
         function loadRealtimeData() {
             db.ref('pokedex_profiles/' + currentUserNick).on('value', (snapshot) => {
                 myPokedex = snapshot.val() || {}; 
@@ -1336,7 +1322,10 @@
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
                 navigator.serviceWorker.register('/sw.js')
-                    .then(reg => console.log('PWA BeerDex registrata con successo!', reg.scope))
+                    .then(reg => {
+                        console.log('PWA BeerDex registrata con successo!', reg.scope);
+                        reg.update(); 
+                    })
                     .catch(err => console.error('Errore registrazione PWA:', err));
             });
         }
