@@ -65,6 +65,8 @@
         .beer-badge { display: none; font-size: 18px; animation: bounce 1s infinite; }
         @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
 
+        #aiStatus { background: #e0e6ed; color: #555; text-align: center; padding: 10px; border-radius: 10px; font-size: 12px; font-weight: bold; margin-bottom: 20px; transition: 0.3s; }
+        #aiStatus.ready { background: #d4efdf; color: #1e8449; }
         #aiStatusMini { color: var(--text-muted); text-align: center; font-size: 11px; font-weight: 500; margin-top: auto; padding-top: 15px; border-top: 1px dashed var(--gray); }
 
         .progress-container { width: 100%; height: 10px; background: #e0e6ed; border-radius: 10px; margin: 15px auto 5px auto; overflow: hidden; }
@@ -471,7 +473,7 @@
                         <li>🎒 <strong>Apprendista Bevitore:</strong> Da 10 a 49 punti. Inizi a conoscere gli stili.</li>
                         <li>🧭 <strong>Esploratore di Luppoli:</strong> Da 50 a 99 punti. Cerchi marchi sempre nuovi.</li>
                         <li>🎓 <strong>Sommelier del Bancone:</strong> Da 100 a 199 punti. Una guida per i tuoi amici.</li>
-                        <li>👑 <strong>Maestro Birraio:</strong> Da 200 punti in su. Hall of fame dei collezionisti.</li>
+                        <li>👑 <strong>Maestro Birraio:</strong> Da 200 punti in su. Hall of fame dei collezienisti.</li>
                     </ul>
                 </div>
 
@@ -505,7 +507,7 @@
 
                 <div class="rules-section" style="background:#fffcf0; padding:20px; border-radius:12px; border-left:4px solid var(--primary-dark);">
                     <h3>🛡️ Politica del Consumo Responsabile ed Etica di Gioco</h3>
-                    <p style="margin:0; line-height:1.5; font-size:14px; color:var(--dark);"><strong>BeerDex non assegna premi basati sulla quantità totale di alcol consumata</strong>. Riteniamo che incentivare il consumo quantitativo promuova comportamenti dannosi. La nostra architettura valorizza esclusivamente il completismo botanico, la rarità, la territorialità e la scoperta geografica. Degusta responsabilmente: l'abuso di alcol è pericoloso.</p>
+                    <p style="margin:0; line-height:1.5; font-size:14px; color:var(--dark);"><strong>BeerDex non assegna premi basati sulla quantità totale di alcol consumata</strong>. Riteniamo che incentive il consumo quantitativo promuova comportamenti dannosi. La nostra architettura valorizza esclusivamente il completismo botanico, la rarità, la territorialità e la scoperta geografica. Degusta responsabilmente: l'abuso di alcol è pericoloso.</p>
                 </div>
             </div>
         </div>
@@ -563,7 +565,14 @@
 
         // --- INIZIALIZZAZIONE AI ---
         let aiModel = null;
-        cocoSsd.load().then(model => { aiModel = model; });
+        cocoSsd.load().then(model => { 
+            aiModel = model; 
+            const s = document.getElementById("aiStatus");
+            if(s) {
+                s.innerText = "✅ AI Anti-Cheat Pronta";
+                s.classList.add("ready");
+            }
+        });
 
         // --- CONFIGURAZIONE FIREBASE ---
         const firebaseConfig = {
@@ -609,7 +618,7 @@
         let markersGroup;
         function renderMap() {
             const container = document.getElementById('mapContainer');
-            if(!container) return; // Protezione dal crash se la sezione non è nel DOM
+            if(!container) return; 
             
             if(!map) {
                 map = L.map('mapContainer').setView([41.9028, 12.4964], 5);
@@ -650,7 +659,6 @@
                         
                         loadRealtimeData(); 
                         
-                        // La navigazione si attiva SOLO a utente scaricato
                         const lastPage = localStorage.getItem('beerdex_currentPage') || 'page-home';
                         navigateTo(lastPage);
                     });
@@ -659,6 +667,7 @@
                 }
             });
         }
+        checkAgeGate();
 
         function updateUserBoxUI(score) {
             let roleText = isAdminUser ? "👑 ADMIN" : "👤 UTENTE";
@@ -773,6 +782,7 @@
             }
             closeSidebar();
             if(pageId === 'page-home') renderDashboard(); 
+            if(pageId === 'page-explore') displayBeers(beers);
             if(pageId === 'page-profile') renderTrophies(); 
             if(pageId === 'page-map') renderMap();
             if(pageId === 'page-social') renderSocialFeed();
@@ -839,9 +849,15 @@
             { brand: "Salento", country: "Italia", flag: "🇮🇹", rarity: "rara", desc: "Eccellenza artigianale pugliese, nata a Leverano (Lecce).", variants: ["Agricola (Lager)", "Nuda e Cruda", "Beggia", "Taranta (IPA)"] },
             { brand: "Semedorato", country: "Italia", flag: "🇮🇹", rarity: "rara", desc: "Birra artigianale premium siciliana.", variants: ["Bionda Premium", "Rossa Doppio Malto", "Non Filtrata"] },
             { brand: "Tripel Karmeliet", country: "Belgio", flag: "🇧🇪", rarity: "rara", desc: "Straordinaria birra belga ai tre cereali.", variants: ["Tripel"] },
-            { brand: "Weihenstephaner", country: "Germania", flag: "🇩🇪", rarity: "rara", desc: "Il birrificio più antico del mondo (1040).", variants: ["Hefe Weissbier", "Vitus", "Original Hell"] }
+            { brand: "Weihenstephaner", country: "Germania", flag: "🇩🇪", rarity: "rara", desc: "Il più antico marchio di birra italiano (1040).", variants: ["Hefe Weissbier", "Vitus", "Original Hell"] }
         ];
         beers.sort((a, b) => a.brand.localeCompare(b.brand));
+
+        function getBeerPoints(brandName, isShiny) {
+            const beer = beers.find(b => b.brand === brandName); if(!beer) return 1;
+            let base = 1; if(beer.rarity === "media") base = 2; if(beer.rarity === "rara") base = 5;
+            return isShiny ? base * 2 : base;
+        }
 
         // --- SISTEMA EVENTI CALENDARIO ---
         function checkTimedEvents() {
@@ -1008,7 +1024,8 @@
         function generateVariantsHTML(brand, variantsArray) {
             let listHTML = '';
             variantsArray.forEach(variant => {
-                let uniqueId = brand + '-' + variant; let hasPhoto = myPokedex[uniqueId] !== undefined;
+                let uniqueId = brand + '-' + variant; 
+                let hasPhoto = myPokedex && myPokedex[uniqueId] !== undefined;
                 listHTML += `
                 <div class="variant-item" onclick="event.stopPropagation()">
                     <span style="flex-grow: 1; font-weight: 500;">${variant}</span>
@@ -1059,7 +1076,8 @@
             if(document.getElementById('dashProgressText')) {
                 document.getElementById('dashProgressText').innerText = `${totalPoints} 🏆`;
                 let rankLabel = getUserRankTitle(totalPoints);
-                document.getElementById('dashRankTitleBox').innerHTML = `<span class="user-rank-title" style="font-size:14px; padding:6px 12px;">${rankLabel}</span>`;
+                const boxRank = document.getElementById('dashRankTitleBox');
+                if(boxRank) boxRank.innerHTML = `<span class="user-rank-title" style="font-size:14px; padding:6px 12px;">${rankLabel}</span>`;
             }
             checkTrophiesVisually();
         }
@@ -1067,7 +1085,7 @@
         function checkTrophiesVisually() {
             beers.forEach((beer, index) => {
                 let brandTotal = beer.variants.length; let brandDrunk = 0;
-                beer.variants.forEach(variant => { if (myPokedex[beer.brand + '-' + variant]) { brandDrunk++; } });
+                beer.variants.forEach(variant => { if (myPokedex && myPokedex[beer.brand + '-' + variant]) { brandDrunk++; } });
                 const card = document.getElementById('card-' + index);
                 if (card) { if (brandDrunk === brandTotal && brandTotal > 0) { card.classList.add('completed'); card.querySelector('.trophy').style.display = 'inline-block'; } else { card.classList.remove('completed'); card.querySelector('.trophy').style.display = 'none'; } }
             });
@@ -1084,7 +1102,9 @@
 
             beers.forEach(beer => {
                 beer.variants.forEach(variant => {
-                    let uniqueId = beer.brand + '-' + variant; let entry = myPokedex[uniqueId]; let isUnlocked = entry !== undefined;
+                    let uniqueId = beer.brand + '-' + variant; 
+                    let entry = myPokedex ? myPokedex[uniqueId] : undefined; 
+                    let isUnlocked = entry !== undefined;
                     if(isUnlocked) brandUnlockCounts[beer.brand]++;
                     
                     let trophyDiv = document.createElement('div'); trophyDiv.className = `trophy-card ${isUnlocked ? 'unlocked' : ''}`;
@@ -1140,7 +1160,7 @@
                     if (myFriendsList.includes(player.name)) { actionsHtml = `<span class="badge-status" style="color:var(--social-blue);">🤝 Amici</span>`; } 
                     else if (mySentRequests.includes(player.name)) { actionsHtml = `<span class="badge-status" style="color:var(--text-muted);">⏳ In attesa</span>`; } 
                     else if (myReceivedRequests.includes(player.name)) { actionsHtml = `<button class="btn-action btn-accept" onclick="navigateTo('page-friends')">Rispondi</button>`; } 
-                    else { actionsHtml = `<button class="btn-action btn-add" onclick="sendFriendRequestFromSearch('${player.name}')" style="padding:5px 10px; font-size:12px;">➕ Aggiungi</button>`; }
+                    else { actionsHtml = `<button class="btn-action btn-add" onclick="sendFriendRequestFromSearch('${player.name}')">➕ Aggiungi</button>`; }
                 }
                 let rankLabel = getUserRankTitle(player.score);
                 item.innerHTML = `<div style="display:flex; align-items:center; flex-grow:1;"><div class="rank">${medal}</div><div class="lb-user">${player.name} ${player.name === currentUserNick ? '(Tu)' : ''}<br><small style="font-size:11px;color:var(--text-muted);font-weight:normal;">${rankLabel}</small></div></div><div style="display:flex; align-items:center; gap:15px;"><div class="lb-score">${player.score} 🏆</div>${actionsHtml}</div>`;
@@ -1172,15 +1192,20 @@
 
         function loadRealtimeData() {
             db.ref('pokedex_profiles/' + currentUserNick).on('value', (snapshot) => {
-                myPokedex = snapshot.val() || {}; updateStats(); filterBeers();
-                if(document.getElementById('page-profile').classList.contains('active')) renderTrophies();
+                myPokedex = snapshot.val() || {}; 
+                updateStats(); 
+                filterBeers();
+                const activeView = document.querySelector('.page-view.active');
+                if(activeView && activeView.id === 'page-profile') renderTrophies();
+                if(activeView && activeView.id === 'page-explore') displayBeers(beers);
             });
 
             db.ref('users_friends/' + currentUserNick).on('value', (snapshot) => {
                 myFriendsList = Object.keys(snapshot.val() || {});
-                if(document.getElementById('page-social').classList.contains('active')) renderSocialFeed();
-                if(document.getElementById('page-leaderboard').classList.contains('active')) renderLeaderboard();
-                if(document.getElementById('page-friends').classList.contains('active')) renderFriendsManager();
+                const activeView = document.querySelector('.page-view.active');
+                if(activeView && activeView.id === 'page-social') renderSocialFeed();
+                if(activeView && activeView.id === 'page-leaderboard') renderLeaderboard();
+                if(activeView && activeView.id === 'page-friends') renderFriendsManager();
             });
 
             db.ref('friend_requests/' + currentUserNick).on('value', (snapshot) => {
@@ -1195,35 +1220,39 @@
                     if (sidebarBadge) sidebarBadge.style.display = 'none'; 
                     if (tabBadge) tabBadge.style.display = 'none';
                 }
-                if(document.getElementById('page-leaderboard').classList.contains('active')) renderLeaderboard();
-                if(document.getElementById('page-friends').classList.contains('active')) renderFriendsManager();
+                const activeView = document.querySelector('.page-view.active');
+                if(activeView && activeView.id === 'page-leaderboard') renderLeaderboard();
+                if(activeView && activeView.id === 'page-friends') renderFriendsManager();
             });
 
             db.ref('friend_requests_sent/' + currentUserNick).on('value', (snapshot) => {
                 mySentRequests = Object.keys(snapshot.val() || {});
-                if(document.getElementById('page-leaderboard').classList.contains('active')) renderLeaderboard();
-                if(document.getElementById('page-friends').classList.contains('active')) renderFriendsManager();
+                const activeView = document.querySelector('.page-view.active');
+                if(activeView && activeView.id === 'page-leaderboard') renderLeaderboard();
+                if(activeView && activeView.id === 'page-friends') renderFriendsManager();
             });
 
             db.ref('friend_requests_rejected/' + currentUserNick).on('value', (snapshot) => {
                 myRejectedRequests = Object.keys(snapshot.val() || {});
-                if(document.getElementById('page-friends').classList.contains('active')) renderFriendsManager();
+                const activeView = document.querySelector('.page-view.active');
+                if(activeView && activeView.id === 'page-friends') renderFriendsManager();
             });
 
             db.ref('social_timeline').limitToLast(100).on('value', (snapshot) => {
                 globalPosts = []; snapshot.forEach(child => { let p = child.val(); p.postId = child.key; globalPosts.push(p); });
-                if(document.getElementById('page-home').classList.contains('active')) renderDashboard();
-                if(document.getElementById('page-social').classList.contains('active')) renderSocialFeed();
-                if(document.getElementById('page-map').classList.contains('active')) renderMap();
+                const activeView = document.querySelector('.page-view.active');
+                if(activeView && activeView.id === 'page-home') renderDashboard();
+                if(activeView && activeView.id === 'page-social') renderSocialFeed();
+                if(activeView && activeView.id === 'page-map') renderMap();
             });
 
             db.ref('leaderboard_scores').on('value', (snapshot) => {
                 globalLeaderboardScores = snapshot.val() || {};
-                if(document.getElementById('page-leaderboard').classList.contains('active')) renderLeaderboard();
+                const activeView = document.querySelector('.page-view.active');
+                if(activeView && activeView.id === 'page-leaderboard') renderLeaderboard();
             });
         }
 
-        // --- SISTEMA RICERCA CON AUTOCOMPLETAMENTO ---
         function showSuggestions() {
             const val = document.getElementById('friendInput').value.trim().toLowerCase();
             const box = document.getElementById('suggestionsBox');
@@ -1246,66 +1275,14 @@
             }
         });
 
-        function searchUser() {
-            let friendName = document.getElementById('friendInput').value.trim();
-            let resultArea = document.getElementById('searchResultArea'); if(!resultArea) return;
-            resultArea.innerHTML = '';
-
-            if(!friendName) return;
-            if(friendName.toLowerCase() === currentUserNick.toLowerCase()) { 
-                resultArea.innerHTML = '<p style="color:var(--danger); text-align:center; font-size:14px; font-weight:bold;">Non puoi cercare te stesso!</p>'; return; 
-            }
-            let exactName = null;
-            for (let name in globalLeaderboardScores) { if(name.toLowerCase() === friendName.toLowerCase()) { exactName = name; break; } }
-            if(exactName) {
-                let actionsHtml = '';
-                if (myFriendsList.includes(exactName)) { actionsHtml = `<span class="badge-status" style="color:var(--social-blue);">🤝 Già Amici</span>`; } 
-                else if (mySentRequests.includes(exactName)) { actionsHtml = `<span class="badge-status" style="color:var(--text-muted);">⏳ In attesa</span>`; } 
-                else if (myReceivedRequests.includes(exactName)) { actionsHtml = `<button class="btn-action btn-accept" onclick="navigateTo('page-friends')">Rispondi</button>`; } 
-                else { actionsHtml = `<button class="btn-action btn-add" onclick="sendFriendRequestFromSearch('${exactName}')">➕ Aggiungi</button>`; }
-                resultArea.innerHTML = `<div class="search-result-card"><div style="font-weight: bold; font-size:18px; color:var(--dark);">👤 ${exactName}</div><div>${actionsHtml}</div></div>`;
-            } else { resultArea.innerHTML = '<p style="color:var(--danger); text-align:center; font-size:14px; font-weight:bold;">Utente non trovato.</p>'; }
+        // --- REGISTRAZIONE SERVICE WORKER PER PWA ---
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js')
+                    .then(reg => console.log(' PWA BeerDex registrata con successo!', reg.scope))
+                    .catch(err => console.error(' Errore registrazione PWA:', err));
+            });
         }
-
-        function sendFriendRequestFromSearch(targetNick) { sendFriendRequest(targetNick); setTimeout(searchUser, 300); }
-        function sendFriendRequest(targetNick) { db.ref('friend_requests/' + targetNick + '/' + currentUserNick).set(true); db.ref('friend_requests_sent/' + currentUserNick + '/' + targetNick).set(true); }
-        function acceptFriendRequest(senderNick) { db.ref('users_friends/' + currentUserNick + '/' + senderNick).set(true); db.ref('users_friends/' + senderNick + '/' + currentUserNick).set(true); db.ref('friend_requests/' + currentUserNick + '/' + senderNick).remove(); db.ref('friend_requests_sent/' + senderNick + '/' + currentUserNick).remove(); db.ref('friend_requests_rejected/' + currentUserNick + '/' + senderNick).remove(); }
-        function rejectFriendRequest(senderNick) { db.ref('friend_requests/' + currentUserNick + '/' + senderNick).remove(); db.ref('friend_requests_sent/' + senderNick + '/' + currentUserNick).remove(); db.ref('friend_requests_rejected/' + currentUserNick + '/' + senderNick).set(true); }
-        function cancelSentRequest(targetNick) { db.ref('friend_requests/' + targetNick + '/' + currentUserNick).remove(); db.ref('friend_requests_sent/' + currentUserNick + '/' + targetNick).remove(); }
-        function removeFriend(friendNick) { showCustomConfirm(`Vuoi davvero rimuovere ${friendNick}?`, "Rimuovi Amico", () => { db.ref('users_friends/' + currentUserNick + '/' + friendNick).remove(); db.ref('users_friends/' + friendNick + '/' + currentUserNick).remove(); }); }
-        function restoreRejectedRequest(senderNick) { db.ref('friend_requests_rejected/' + currentUserNick + '/' + senderNick).remove(); acceptFriendRequest(senderNick); }
-
-        function renderFriendsManager() {
-            const list = document.getElementById('friendsManagerList'); if(!list) return;
-            list.innerHTML = '';
-            if (currentFriendsTab === 'received') {
-                if (myReceivedRequests.length === 0) { list.innerHTML = '<p style="text-align:center;">Nessuna richiesta.</p>'; return; }
-                myReceivedRequests.forEach(sender => { let item = document.createElement('div'); item.className = 'list-item'; item.innerHTML = `<div class="lb-user">📩 ${sender}</div><div style="display:flex; gap:10px;"><button class="btn-action btn-accept" onclick="acceptFriendRequest('${sender}')">✔️ Accetta</button><button class="btn-action btn-reject" onclick="rejectFriendRequest('${sender}')">❌ Rifiuta</button></div>`; list.appendChild(item); });
-            } else if (currentFriendsTab === 'sent') {
-                if (mySentRequests.length === 0) { list.innerHTML = '<p style="text-align:center;">Nessuna richiesta inviata.</p>'; return; }
-                mySentRequests.forEach(target => { let item = document.createElement('div'); item.className = 'list-item'; item.innerHTML = `<div class="lb-user">📤 ${target}</div><button class="btn-action btn-cancel" onclick="cancelSentRequest('${target}')">Annulla</button>`; list.appendChild(item); });
-            } else if (currentFriendsTab === 'accepted') {
-                if (myFriendsList.length === 0) { list.innerHTML = '<p style="text-align:center;">Nessun amico.</p>'; return; }
-                myFriendsList.forEach(friend => { let item = document.createElement('div'); item.className = 'list-item'; item.innerHTML = `<div class="lb-user">🤝 ${friend}</div><button class="btn-action btn-reject" onclick="removeFriend('${friend}')">Rimuovi</button>`; list.appendChild(item); });
-            } else if (currentFriendsTab === 'rejected') {
-                if (myRejectedRequests.length === 0) { list.innerHTML = '<p style="text-align:center;">Nessun utente rifiutato.</p>'; return; }
-                myRejectedRequests.forEach(sender => { let item = document.createElement('div'); item.className = 'list-item'; item.innerHTML = `<div class="lb-user">❌ ${sender}</div><button class="btn-action btn-accept" onclick="restoreRejectedRequest('${sender}')">Sblocca</button>`; list.appendChild(item); });
-            }
-        }
-
-        let currentFilter = 'Tutte'; 
-        function setFilter(country) { currentFilter = country; filterBeers(); navigateTo('page-explore'); }
-        function filterBeers() { const searchInput = document.getElementById('searchBar'); const searchTerm = searchInput ? searchInput.value.toLowerCase() : ''; const filtered = beers.filter(beer => { const variantsText = beer.variants.join(' ').toLowerCase(); const matchSearch = beer.brand.toLowerCase().includes(searchTerm) || beer.desc.toLowerCase().includes(searchTerm) || variantsText.includes(searchTerm); const matchRegion = currentFilter === 'Tutte' || beer.country === currentFilter; return matchSearch && matchRegion; }); displayBeers(filtered); }
-
-        displayBeers(beers);
-// --- REGISTRAZIONE SERVICE WORKER PER PWA ---
-if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-        navigator.serviceWorker.register('/sw.js')
-            .then(reg => console.log('✅ PWA BeerDex registrata con successo!', reg.scope))
-            .catch(err => console.error('❌ Errore registrazione PWA:', err));
-    });
-}
     </script>
 </body>
 </html>
