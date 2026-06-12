@@ -65,8 +65,6 @@
         .beer-badge { display: none; font-size: 18px; animation: bounce 1s infinite; }
         @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
 
-        #aiStatusMini { color: var(--text-muted); text-align: center; font-size: 11px; font-weight: 500; margin-top: auto; padding-top: 15px; border-top: 1px dashed var(--gray); }
-
         .progress-container { width: 100%; height: 10px; background: #e0e6ed; border-radius: 10px; margin: 15px auto 5px auto; overflow: hidden; }
         .progress-bar { height: 100%; background-color: var(--primary-dark); width: 0%; transition: width 0.8s cubic-bezier(0.25, 0.8, 0.25, 1); }
         .progress-text { font-size: 13px; font-weight: bold; color: var(--text-muted); text-align: center; margin-bottom: 20px; }
@@ -208,9 +206,9 @@
         .medal-icon-container { font-size: 35px; margin-bottom: 5px; }
         #mapContainer { height: 400px; width: 100%; border-radius: 16px; margin-top: 10px; z-index: 1;}
     </style>
-<link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#f39c12">
-<meta name="apple-mobile-web-app-capable" content="yes">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#f39c12">
+    <meta name="apple-mobile-web-app-capable" content="yes">
 </head>
 <body>
 
@@ -593,7 +591,7 @@
             "Messico": { latMin: 14.3, latMax: 32.8, lngMin: -118.4, lngMax: -86.7 }
         };
 
-        // --- MAPPA LEAFLET (SAFE INITIALIZATION) ---
+        // --- MAPPA LEAFLET ---
         let map;
         let markersGroup;
         function renderMap() {
@@ -636,10 +634,6 @@
                     
                     db.ref('users_directory/' + user.uid).once('value').then(snapshot => {
                         currentUserNick = snapshot.val() || user.email.split('@')[0];
-                        
-                        // Creazione Nodi Base per evitare blocchi delle Regole di Sicurezza
-                        db.ref('users_friends/' + currentUserNick).keepSynced(true);
-                        db.ref('friend_requests/' + currentUserNick).keepSynced(true);
                         
                         updateUserBoxUI(0); 
                         document.getElementById("authScreen").style.display = "none";
@@ -708,7 +702,7 @@
                 if(password.length < 8) { showCustomAlert("La password deve essere lunga almeno 8 caratteri!"); return; }
                 if(!/[A-Z]/.test(password)) { showCustomAlert("La password deve contenere almeno una lettera MAIUSCOLA!"); return; }
                 if(!/\d/.test(password)) { showCustomAlert("La password deve contenere almeno un NUMERO!"); return; }
-                if(!/[Credentials]/.test(password)) { showCustomAlert("La password deve contenere almeno un carattere SPECIALE tra questi: ! ? $ % &"); return; }
+                if(!/[!?$%&]/.test(password)) { showCustomAlert("La password deve contenere almeno un carattere SPECIALE tra questi: ! ? $ % &"); return; }
 
                 auth.createUserWithEmailAndPassword(email, password)
                     .then((userCredential) => {
@@ -799,7 +793,7 @@
             { brand: "Birrificio Lambrate", country: "Italia", flag: "🇮🇹", rarity: "rara", desc: "Il birrificio simbolo di Milano e del fermento artigianale.", variants: ["Montestella", "Sant'Ambroeus", "Ghisa", "Porpora", "Quarantot"] },
             { brand: "Chimay", country: "Belgio", flag: "🇧🇪", rarity: "rara", desc: "Autentica birra trappista belga prodotta dai monaci.", variants: ["Première (Rossa)", "Cinq Cents (Tripel)", "Grande Réserve (Blu)"] },
             { brand: "Chouffe", country: "Belgio", flag: "🇧🇪", rarity: "rara", desc: "La celebre birra artigianale belga dello gnomo.", variants: ["La Chouffe (Blonde)", "Mc Chouffe (Brune)", "Cherry Chouffe"] },
-            { brand: "Crak Brewery", country: "Italia", flag: "🇮🇹", rarity: "rara", desc: "Rivoluzionario birrificio veneto, re indiscusso delle IPA.", variants: ["Guerrilla (IPA)", "Mundaka", "Mansueto", "After Summer"] },
+            { brand: "Crak Brewery", country: "Italia", flag: "🇮🇹", rarity: "rara", desc: "Rivoluzionario birrificio veneto, re indisco delle IPA.", variants: ["Guerrilla (IPA)", "Mundaka", "Mansueto", "After Summer"] },
             { brand: "Del Borgo", country: "Italia", flag: "🇮🇹", rarity: "rara", desc: "Famoso birrificio laziale, noto per le sue ricette creative.", variants: ["ReAle", "Duchessa", "My Antonia", "Lisa", "Cortigiana"] },
             { brand: "Delirium", country: "Belgio", flag: "🇧🇪", rarity: "rara", desc: "Famosissima Strong Ale belga.", variants: ["Tremens", "Nocturnum", "Red"] },
             { brand: "Duvel", country: "Belgio", flag: "🇧🇪", rarity: "rara", desc: "La leggendaria Strong Gold Ale belga.", variants: ["Original Blond", "Triple Hop", "6.66"] },
@@ -1034,6 +1028,7 @@
             });
         }
 
+        // --- SISTEMA RENDER TROFEI E MEDAGLIE ---
         function renderTrophies() {
             const grid = document.getElementById('trophyGrid'); 
             const medalsGrid = document.getElementById('brandMedalsGrid');
@@ -1130,6 +1125,7 @@
         let myPokedex = {}; let globalPosts = []; let globalLeaderboardScores = {}; 
         let myFriendsList = []; let myReceivedRequests = []; let mySentRequests = []; let myRejectedRequests = [];
 
+        // --- APERTURA ASINCRONA COMPATIBILE CON LE REGOLE DI SICUREZZA ---
         function loadRealtimeData() {
             db.ref('pokedex_profiles/' + currentUserNick).on('value', (snapshot) => {
                 myPokedex = snapshot.val() || {}; 
@@ -1178,6 +1174,7 @@
                 if(activeView && activeView.id === 'page-friends') renderFriendsManager();
             });
 
+            // Recupera e sincronizza la timeline globale in modalità di ascolto continuo e sicuro
             db.ref('social_timeline').limitToLast(100).on('value', (snapshot) => {
                 globalPosts = []; 
                 if(snapshot.exists()) {
@@ -1270,7 +1267,7 @@
 
         displayBeers(beers);
 
-        // --- REGISTRAZIONE SERVICE WORKER PER PWA ---
+        // --- REGISTRAZIONE SERVICE WORKER ---
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
                 navigator.serviceWorker.register('/sw.js')
@@ -1279,10 +1276,5 @@
             });
         }
     </script>
-<script>
-if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('/sw.js');
-}
-</script>
 </body>
 </html>
