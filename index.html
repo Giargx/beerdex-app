@@ -323,7 +323,7 @@
 
     <div class="main-content">
         
-        <div id="page-home" class="page-view active">
+        <div id="page-home" class="page-view">
             <header class="hero">
                 <h1>Il tuo Passaporto 🍻</h1>
                 <p>Bentornato nel pub, <span id="dashWelcomeName" style="font-weight:bold;">Utente</span>!</p>
@@ -614,7 +614,11 @@
 
         // --- AGE GATE & AUTH ---
         function checkAgeGate() {
-            if(localStorage.getItem('beerdex_18plus') === 'yes') { checkAuthentication(); } else { document.getElementById('ageGateModal').style.display = 'flex'; }
+            if(localStorage.getItem('beerdex_18plus') === 'yes') { 
+                checkAuthentication(); 
+            } else { 
+                document.getElementById('ageGateModal').style.display = 'flex'; 
+            }
         }
         function confirmAge() { localStorage.setItem('beerdex_18plus', 'yes'); document.getElementById('ageGateModal').style.display = 'none'; checkAuthentication(); }
         function rejectAge() { window.location.href = "https://www.google.com"; }
@@ -627,15 +631,20 @@
                     
                     db.ref('users_directory/' + user.uid).once('value').then(snapshot => {
                         currentUserNick = snapshot.val() || user.email.split('@')[0];
-                        updateUserBoxUI(0); // Verrà aggiornato dinamicamente non appena caricano i punteggi reali
+                        updateUserBoxUI(0); 
                         document.getElementById("authScreen").style.display = "none";
+                        
                         loadRealtimeData(); 
+                        
                         const lastPage = localStorage.getItem('beerdex_currentPage') || 'page-home';
                         navigateTo(lastPage);
                     });
-                } else { document.getElementById("authScreen").style.display = "flex"; }
+                } else { 
+                    document.getElementById("authScreen").style.display = "flex"; 
+                }
             });
         }
+        // Avvia l'Age gate all'apertura del file
         checkAgeGate();
 
         function updateUserBoxUI(score) {
@@ -644,13 +653,16 @@
             let settingsHtml = `<span class="settings-icon" onclick="navigateTo('page-settings')" title="Impostazioni Profilo">⚙️</span>`;
             let rankTitle = getUserRankTitle(score);
             
-            document.getElementById("sidebarUserBox").innerHTML = `
-                ${settingsHtml}
-                <div style="font-size:11px; letter-spacing:1px; color:${roleColor}; margin-bottom:3px;">${roleText}</div>
-                <div style="font-size:18px; color:var(--primary-dark); font-weight:bold;">${currentUserNick}</div>
-                <div class="user-rank-title">${rankTitle}</div>
-                <div style="font-size:11px; color:gray; margin-top:6px; font-weight:normal;">${currentUserEmail}</div>
-            `;
+            const box = document.getElementById("sidebarUserBox");
+            if (box) {
+                box.innerHTML = `
+                    ${settingsHtml}
+                    <div style="font-size:11px; letter-spacing:1px; color:${roleColor}; margin-bottom:3px;">${roleText}</div>
+                    <div style="font-size:18px; color:var(--primary-dark); font-weight:bold;">${currentUserNick}</div>
+                    <div class="user-rank-title">${rankTitle}</div>
+                    <div style="font-size:11px; color:gray; margin-top:6px; font-weight:normal;">${currentUserEmail}</div>
+                `;
+            }
         }
 
         function resetPassword() {
@@ -740,7 +752,12 @@
         function navigateTo(pageId) {
             document.querySelectorAll('.page-view').forEach(p => p.classList.remove('active'));
             const targetPage = document.getElementById(pageId);
-            if(targetPage) { targetPage.classList.add('active'); localStorage.setItem('beerdex_currentPage', pageId); } else { document.getElementById('page-home').classList.add('active'); }
+            if(targetPage) { 
+                targetPage.classList.add('active'); 
+                localStorage.setItem('beerdex_currentPage', pageId); 
+            } else { 
+                document.getElementById('page-home').classList.add('active'); 
+            }
             closeSidebar();
             if(pageId === 'page-home') renderDashboard(); 
             if(pageId === 'page-profile') renderTrophies(); 
@@ -791,7 +808,7 @@
             { brand: "Paulaner", country: "Germania", flag: "🇩🇪", rarity: "media", desc: "Grande protagonista dell'Oktoberfest.", variants: ["Hefe-Weißbier Naturtrüb", "Oktoberfest Bier", "Münchner Hell", "Salvator"] },
             { brand: "Pedavena", country: "Italia", flag: "🇮🇹", rarity: "media", desc: "Antica tradizione bellunese (Veneto).", variants: ["Pils", "Lager", "Speciale", "Bock", "8 Gradi"] },
             { brand: "Pilsner Urquell", country: "Repubblica Ceca", flag: "🇨🇿", rarity: "media", desc: "La madre di tutte le birre bionde.", variants: ["Original Lager"] },
-            { brand: "Raffo", country: "Italia", flag: "🇮🇹", rarity: "media", desc: "La 'birra dei due mari', simbolo della città di Taranto.", variants: ["Classica", "Lavorazione Grezza"] },
+            { brand: "Raffo", country: "Italia", flag: "🇮🇹", desc: "La 'birra dei due mari', simbolo della città di Taranto.", variants: ["Classica", "Lavorazione Grezza"] },
             { brand: "Super Bock", country: "Portogallo", flag: "🇵🇹", rarity: "media", desc: "La birra più famosa del Portogallo.", variants: ["Original", "Abadia", "Stout"] },
             { brand: "Tennent's", country: "Scozia", flag: "🏴󠁧󠁢󠁳󠁣󠁴󠁿", rarity: "media", desc: "Storico marchio scozzese.", variants: ["Super", "Extra", "1885 Lager", "Scotch Ale"] },
             { brand: "Baladin", country: "Italia", flag: "🇮🇹", rarity: "rara", desc: "Pioniere della birra artigianale italiana (Piemonte).", variants: ["Isaac (Blanche)", "Wayan (Saison)", "Nora (Speziata)", "Super Bitter", "Leon", "Nazionale", "L'IPPA", "Rock'n'Roll"] },
@@ -819,10 +836,10 @@
             return isShiny ? base * 2 : base;
         }
 
-        // --- SISTEMA EVENTI CALENDARIO REALE ---
+        // --- SISTEMA EVENTI CALENDARIO ---
         function checkTimedEvents() {
             const now = new Date();
-            const month = now.getMonth() + 1; // Gennaio = 1, Giugno = 6
+            const month = now.getMonth() + 1; 
             let activeEvent = null;
 
             if (month === 3) {
@@ -833,39 +850,38 @@
 
             const box = document.getElementById("dashEventBox");
             const txt = document.getElementById("dashEventText");
-            if (activeEvent) {
-                box.style.display = "flex";
-                txt.innerHTML = `<strong>${activeEvent.name} ATTIVO!</strong><br>${activeEvent.desc}`;
-            } else {
-                box.style.display = "flex";
-                txt.innerHTML = `<strong>Nessun evento attivo</strong><br>Prossimi appuntamenti: San Patrizio (Marzo) e Oktoberfest (Settembre/Ottobre).`;
+            if (box && txt) {
+                if (activeEvent) {
+                    box.style.display = "flex";
+                    txt.innerHTML = `<strong>${activeEvent.name} ATTIVO!</strong><br>${activeEvent.desc}`;
+                } else {
+                    box.style.display = "flex";
+                    txt.innerHTML = `<strong>Nessun evento attivo</strong><br>Prossimi appuntamenti: San Patrizio (Marzo) e Oktoberfest (Settembre/Ottobre).`;
+                }
             }
             return activeEvent;
         }
 
         function checkAndUnlockEventBadges(username, userPosts) {
+            if (!userPosts || userPosts.length === 0) return;
             const now = new Date();
             const month = now.getMonth() + 1;
-            
-            // Filtriamo i post fatti quest'anno nel mese corretto
             let currentYear = now.getFullYear();
 
-            if (month === 3) { // San Patrizio
+            if (month === 3) { 
                 let count = userPosts.filter(p => {
                     let pDate = new Date(p.time);
                     let targetBeer = beers.find(b => b.brand === p.brand);
                     return pDate.getFullYear() === currentYear && pDate.getMonth() + 1 === 3 && targetBeer && (targetBeer.country === "Irlanda" || targetBeer.country === "Scozia");
                 }).length;
-
                 if (count >= 2) db.ref(`user_event_badges/${username}/stpatrick`).set(true);
             } 
-            else if (month === 9 || month === 10) { // Oktoberfest
+            else if (month === 9 || month === 10) { 
                 let count = userPosts.filter(p => {
                     let pDate = new Date(p.time);
                     let targetBeer = beers.find(b => b.brand === p.brand);
                     return pDate.getFullYear() === currentYear && (pDate.getMonth() + 1 === 9 || pDate.getMonth() + 1 === 10) && targetBeer && targetBeer.country === "Germania";
                 }).length;
-
                 if (count >= 3) db.ref(`user_event_badges/${username}/oktoberfest`).set(true);
             }
         }
@@ -929,7 +945,7 @@
                                         });
                                     });
                                 } else {
-                                    showCustomAlert(`L'AI non riesce a leggere la scritta "${brand}" sull'etichetta.`, "AI Anti-Cheat");
+                                    showCustomAlert(`L'AI non riesce a leggere la scritta "${brand}" sull'etichetta. Metti a fuoco l'adesivo.`, "AI Anti-Cheat");
                                     updateStats();
                                 }
                             });
@@ -963,7 +979,6 @@
                         totalScore += 10; 
                     }
                 });
-
                 db.ref('leaderboard_scores/' + username).set(totalScore);
             });
         }
@@ -1007,7 +1022,8 @@
         function toggleCard(cardElement) { cardElement.classList.toggle('active'); }
 
         function displayBeers(beerArray) {
-            const container = document.getElementById('beerList'); container.innerHTML = '';
+            const container = document.getElementById('beerList'); if(!container) return;
+            container.innerHTML = '';
             beerArray.forEach((beer, index) => {
                 let realIndex = beers.findIndex(b => b.brand === beer.brand);
                 const card = document.createElement('div'); card.className = 'card'; card.id = 'card-' + realIndex; card.setAttribute('onclick', 'toggleCard(this)');
@@ -1028,7 +1044,8 @@
 
         function updateStats() {
             let totalPoints = globalLeaderboardScores[currentUserNick] || 0;
-            document.getElementById('progressText').innerText = `Punteggio: ${totalPoints} 🏆`;
+            const progressEl = document.getElementById('progressText');
+            if (progressEl) progressEl.innerText = `Punteggio: ${totalPoints} 🏆`;
             
             updateUserBoxUI(totalPoints);
 
@@ -1050,13 +1067,14 @@
         }
 
         function renderTrophies() {
-            const grid = document.getElementById('trophyGrid'); grid.innerHTML = '';
-            const medalsGrid = document.getElementById('brandMedalsGrid'); medalsGrid.innerHTML = '';
+            const grid = document.getElementById('trophyGrid'); 
+            const medalsGrid = document.getElementById('brandMedalsGrid');
+            if(!grid || !medalsGrid) return;
             
+            grid.innerHTML = ''; medalsGrid.innerHTML = '';
             let brandUnlockCounts = {};
             beers.forEach(b => { brandUnlockCounts[b.brand] = 0; });
 
-            // Rendering singole varianti
             beers.forEach(beer => {
                 beer.variants.forEach(variant => {
                     let uniqueId = beer.brand + '-' + variant; let entry = myPokedex[uniqueId]; let isUnlocked = entry !== undefined;
@@ -1071,7 +1089,6 @@
                 });
             });
 
-            // Rendering medaglie Maestri Brand
             beers.forEach(beer => {
                 let isCompleted = brandUnlockCounts[beer.brand] === beer.variants.length && beer.variants.length > 0;
                 let medalCard = document.createElement('div');
@@ -1085,7 +1102,8 @@
         }
 
         function renderSocialFeed() {
-            const feed = document.getElementById('socialFeed'); feed.innerHTML = '';
+            const feed = document.getElementById('socialFeed'); if(!feed) return;
+            feed.innerHTML = '';
             const visiblePosts = globalPosts.filter(post => post.user === currentUserNick || myFriendsList.includes(post.user) || isAdminUser);
             if(visiblePosts.length === 0) { feed.innerHTML = '<p style="text-align:center; padding:20px;">Nessun post.</p>'; return; }
             [...visiblePosts].reverse().forEach(post => {
@@ -1098,7 +1116,8 @@
         }
 
         function renderLeaderboard() {
-            const list = document.getElementById('leaderboardList'); list.innerHTML = '';
+            const list = document.getElementById('leaderboardList'); if(!list) return;
+            list.innerHTML = '';
             let players = [];
             for (let name in globalLeaderboardScores) { 
                 if(currentLeaderboardTab === 'friends') { if(name !== currentUserNick && !myFriendsList.includes(name)) continue; }
@@ -1124,11 +1143,13 @@
 
         function renderDashboard() {
             checkTimedEvents();
-            document.getElementById('dashWelcomeName').innerText = currentUserNick;
-            const dashLastBeer = document.getElementById('dashLastBeer');
-            let myPosts = globalPosts.filter(p => p.user === currentUserNick);
+            const welcomeEl = document.getElementById('dashWelcomeName');
+            if (welcomeEl) welcomeEl.innerText = currentUserNick;
             
-            // Logica eventi real-time ad ogni sblocco
+            const dashLastBeer = document.getElementById('dashLastBeer');
+            if (!dashLastBeer) return;
+            
+            let myPosts = globalPosts.filter(p => p.user === currentUserNick);
             checkAndUnlockEventBadges(currentUserNick, myPosts);
 
             if(myPosts.length > 0) {
@@ -1141,7 +1162,7 @@
 
         let currentFilter = 'Tutte'; 
         function setFilter(country) { currentFilter = country; filterBeers(); navigateTo('page-explore'); }
-        function filterBeers() { const searchTerm = document.getElementById('searchBar').value.toLowerCase(); const filtered = beers.filter(beer => { const variantsText = beer.variants.join(' ').toLowerCase(); const matchSearch = beer.brand.toLowerCase().includes(searchTerm) || beer.desc.toLowerCase().includes(searchTerm) || variantsText.includes(searchTerm); const matchRegion = currentFilter === 'Tutte' || beer.country === currentFilter; return matchSearch && matchRegion; }); displayBeers(filtered); }
+        function filterBeers() { const searchInput = document.getElementById('searchBar'); const searchTerm = searchInput ? searchInput.value.toLowerCase() : ''; const filtered = beers.filter(beer => { const variantsText = beer.variants.join(' ').toLowerCase(); const matchSearch = beer.brand.toLowerCase().includes(searchTerm) || beer.desc.toLowerCase().includes(searchTerm) || variantsText.includes(searchTerm); const matchRegion = currentFilter === 'Tutte' || beer.country === currentFilter; return matchSearch && matchRegion; }); displayBeers(filtered); }
 
         displayBeers(beers);
     </script>
