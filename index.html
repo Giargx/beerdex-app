@@ -632,8 +632,15 @@
                     currentUserEmail = user.email.toLowerCase(); 
                     isAdminUser = (currentUserEmail === ADMIN_EMAIL); 
                     
+                    // Controllo e Riparazione automatica dei vecchi account orfani del nodo Directory
                     db.ref('users_directory/' + user.uid).once('value').then(snapshot => {
-                        currentUserNick = snapshot.val() || user.email.split('@')[0];
+                        if(snapshot.exists()) {
+                            currentUserNick = snapshot.val();
+                        } else {
+                            // Se l'account non ha una chiave nickname registrata sul suo UID, la allineiamo al suo indirizzo mail
+                            currentUserNick = user.email.split('@')[0];
+                            db.ref('users_directory/' + user.uid).set(currentUserNick);
+                        }
                         
                         updateUserBoxUI(0); 
                         document.getElementById("authScreen").style.display = "none";
@@ -642,6 +649,8 @@
                         
                         const lastPage = localStorage.getItem('beerdex_currentPage') || 'page-home';
                         navigateTo(lastPage);
+                    }).catch(err => {
+                        showCustomAlert("Errore di caricamento del profilo di sicurezza: " + err.message, "Falla Rete/Permessi");
                     });
                 } else { 
                     document.getElementById("authScreen").style.display = "flex"; 
@@ -700,7 +709,7 @@
                 if(nickname.length < 3) { showCustomAlert("Scegli un Nickname di almeno 3 caratteri!"); return; }
                 if(password !== confirmPassword) { showCustomAlert("Le due password inserite non coincidono. Riprova!"); return; }
                 if(password.length < 8) { showCustomAlert("La password deve essere lunga almeno 8 caratteri!"); return; }
-                if(!/[A-Z]/.test(password)) { showCustomAlert("La password deve contenere almeno una lettera MAIUSCOLA!"); return; }
+                if(!/[A-Z]/.test(password)) { showCustomAlert("La password deve contenere almeno una letter MAIUSCOLA!"); return; }
                 if(!/\d/.test(password)) { showCustomAlert("La password deve contenere almeno un NUMERO!"); return; }
                 if(!/[!?$%&]/.test(password)) { showCustomAlert("La password deve contenere almeno un carattere SPECIALE tra questi: ! ? $ % &"); return; }
 
@@ -747,9 +756,6 @@
         function openSidebar() { document.getElementById("appSidebar").classList.add("open"); document.getElementById("mainOverlay").classList.add("active"); }
         function closeSidebar() { document.getElementById("appSidebar").classList.remove("open"); document.getElementById("mainOverlay").classList.remove("active"); }
 
-        function switchLeaderboardTab(tabName) { currentLeaderboardTab = tabName; document.getElementById('tab-friends').classList.toggle('active', tabName === 'friends'); document.getElementById('tab-global').classList.toggle('active', tabName === 'global'); renderLeaderboard(); }
-        function switchFriendsTab(tabName) { currentFriendsTab = tabName; document.getElementById('tab-req-received').classList.toggle('active', tabName === 'received'); document.getElementById('tab-req-sent').classList.toggle('active', tabName === 'sent'); document.getElementById('tab-req-accepted').classList.toggle('active', tabName === 'accepted'); document.getElementById('tab-req-rejected').classList.toggle('active', tabName === 'rejected'); renderFriendsManager(); }
-
         // --- DATABASE BIRRE ---
         const beers = [
             { brand: "Beck's", country: "Germania", flag: "🇩🇪", rarity: "comune", desc: "Classica pilsner tedesca (Brema).", variants: ["Pilsner", "Blue (Analcolica)", "Lemon", "Green Lemon", "Unfiltered"] },
@@ -793,7 +799,7 @@
             { brand: "Birrificio Lambrate", country: "Italia", flag: "🇮🇹", rarity: "rara", desc: "Il birrificio simbolo di Milano e del fermento artigianale.", variants: ["Montestella", "Sant'Ambroeus", "Ghisa", "Porpora", "Quarantot"] },
             { brand: "Chimay", country: "Belgio", flag: "🇧🇪", rarity: "rara", desc: "Autentica birra trappista belga prodotta dai monaci.", variants: ["Première (Rossa)", "Cinq Cents (Tripel)", "Grande Réserve (Blu)"] },
             { brand: "Chouffe", country: "Belgio", flag: "🇧🇪", rarity: "rara", desc: "La celebre birra artigianale belga dello gnomo.", variants: ["La Chouffe (Blonde)", "Mc Chouffe (Brune)", "Cherry Chouffe"] },
-            { brand: "Crak Brewery", country: "Italia", flag: "🇮🇹", rarity: "rara", desc: "Rivoluzionario birrificio veneto, re indisco delle IPA.", variants: ["Guerrilla (IPA)", "Mundaka", "Mansueto", "After Summer"] },
+            { brand: "Crak Brewery", country: "Italia", flag: "🇮🇹", rarity: "rara", desc: "Rivoluzionario birrificio veneto, re indiscusso delle IPA.", variants: ["Guerrilla (IPA)", "Mundaka", "Mansueto", "After Summer"] },
             { brand: "Del Borgo", country: "Italia", flag: "🇮🇹", rarity: "rara", desc: "Famoso birrificio laziale, noto per le sue ricette creative.", variants: ["ReAle", "Duchessa", "My Antonia", "Lisa", "Cortigiana"] },
             { brand: "Delirium", country: "Belgio", flag: "🇧🇪", rarity: "rara", desc: "Famosissima Strong Ale belga.", variants: ["Tremens", "Nocturnum", "Red"] },
             { brand: "Duvel", country: "Belgio", flag: "🇧🇪", rarity: "rara", desc: "La leggendaria Strong Gold Ale belga.", variants: ["Original Blond", "Triple Hop", "6.66"] },
@@ -806,160 +812,6 @@
             { brand: "Weihenstephaner", country: "Germania", flag: "🇩🇪", rarity: "rara", desc: "Il più antico marchio di birra italiano (1040).", variants: ["Hefe Weissbier", "Vitus", "Original Hell"] }
         ];
         beers.sort((a, b) => a.brand.localeCompare(b.brand));
-
-        function getBeerPoints(brandName, isShiny) {
-            const beer = beers.find(b => b.brand === brandName); if(!beer) return 1;
-            let base = 1; if(beer.rarity === "media") base = 2; if(beer.rarity === "rara") base = 5;
-            return isShiny ? base * 2 : base;
-        }
-
-        // --- SISTEMA EVENTI CALENDARIO ---
-        function checkTimedEvents() {
-            const now = new Date();
-            const month = now.getMonth() + 1; 
-            let activeEvent = null;
-            if (month === 3) {
-                activeEvent = { id: "stpatrick", name: "🍀 San Patrizio", desc: "Mese di Marzo! Sblocca 2 varianti irlandesi o scozzesi per vincere la medaglia!" };
-            } else if (month === 9 || month === 10) {
-                activeEvent = { id: "oktoberfest", name: "🥨 Oktoberfest", desc: "Periodo Oktoberfest! Sblocca 3 varianti tedesche tra Settembre e Ottobre!" };
-            }
-            const box = document.getElementById("dashEventBox");
-            const txt = document.getElementById("dashEventText");
-            if (box && txt) {
-                if (activeEvent) {
-                    box.style.display = "flex";
-                    txt.innerHTML = `<strong>${activeEvent.name} ATTIVO!</strong><br>${activeEvent.desc}`;
-                } else {
-                    box.style.display = "flex";
-                    txt.innerHTML = `<strong>Nessun evento attivo</strong><br>Prossimi appuntamenti: San Patrizio (Marzo) e Oktoberfest (Settembre/Ottobre).`;
-                }
-            }
-            return activeEvent;
-        }
-
-        function checkAndUnlockEventBadges(username, userPosts) {
-            if (!userPosts || userPosts.length === 0) return;
-            const now = new Date();
-            const month = now.getMonth() + 1;
-            let currentYear = now.getFullYear();
-            if (month === 3) { 
-                let count = userPosts.filter(p => {
-                    let pDate = new Date(p.time);
-                    let targetBeer = beers.find(b => b.brand === p.brand);
-                    return pDate.getFullYear() === currentYear && pDate.getMonth() + 1 === 3 && targetBeer && (targetBeer.country === "Irlanda" || targetBeer.country === "Scozia");
-                }).length;
-                if (count >= 2) db.ref(`user_event_badges/${username}/stpatrick`).set(true);
-            } 
-            else if (month === 9 || month === 10) { 
-                let count = userPosts.filter(p => {
-                    let pDate = new Date(p.time);
-                    let targetBeer = beers.find(b => b.brand === p.brand);
-                    return pDate.getFullYear() === currentYear && (pDate.getMonth() + 1 === 9 || pDate.getMonth() + 1 === 10) && targetBeer && targetBeer.country === "Germania";
-                }).length;
-                if (count >= 3) db.ref(`user_event_badges/${username}/oktoberfest`).set(true);
-            }
-        }
-
-        function handlePhotoUpload(event, brand, variant) {
-            event.stopPropagation(); const file = event.target.files[0]; if (!file) return;
-            let currentLat = null; let currentLng = null; let isShiny = false;
-            const targetBeer = beers.find(b => b.brand === brand);
-            if(navigator.geolocation) {
-                navigator.geolocation.getCurrentPosition((position) => {
-                    currentLat = position.coords.latitude; currentLng = position.coords.longitude;
-                    if(targetBeer && countryCoordinates[targetBeer.country]) {
-                        const bounds = countryCoordinates[targetBeer.country];
-                        if(currentLat >= bounds.latMin && currentLat <= bounds.latMax && currentLng >= bounds.lngMin && currentLng <= bounds.lngMax) { isShiny = true; }
-                    }
-                    processPhoto();
-                }, () => { processPhoto(); });
-            } else { processPhoto(); }
-
-            function processPhoto() {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    const img = new Image();
-                    img.onload = function() {
-                        const canvas = document.createElement('canvas'); const MAX_SIZE = 400;
-                        let width = img.width; let height = img.height;
-                        if (width > height) { if (width > MAX_SIZE) { height *= MAX_SIZE / width; width = MAX_SIZE; } } else { if (height > MAX_SIZE) { width *= MAX_SIZE / height; height = MAX_SIZE; } }
-                        canvas.width = width; canvas.height = height;
-                        const ctx = canvas.getContext('2d'); ctx.drawImage(img, 0, 0, width, height);
-                        const imgData = ctx.getImageData(0, 0, width, height); const data = imgData.data; let totalBrightness = 0;
-                        for (let i = 0; i < data.length; i += 4) { totalBrightness += (data[i] + data[i+1] + data[i+2]) / 3; }
-                        if ((totalBrightness / (data.length / 4)) < 20) { showCustomAlert("🚨 Immagine troppo scura! Riprova con più luce.", "Foto Respinta"); return; }
-                        document.getElementById('progressText').innerText = "🤖 Analisi Forma (AI) in corso...";
-
-                        aiModel.detect(canvas).then(predictions => {
-                            let isDrink = false; predictions.forEach(p => { if(p.class === 'bottle' || p.class === 'cup' || p.class === 'wine glass') isDrink = true; });
-                            if (!isDrink) { showCustomAlert("🚨 Non vedo bottiglie o bicchieri veri.", "AI Anti-Cheat"); updateStats(); return; }
-                            document.getElementById('progressText').innerText = "🔍 Lettura etichetta in corso...";
-                            Tesseract.recognize(canvas, 'ita+eng').then(({ data: { text } }) => {
-                                const extractedText = text.toLowerCase(); const brandWord = brand.toLowerCase().split(' ')[0];
-                                if (extractedText.includes(brandWord) || extractedText.replace(/\s/g, '').includes(brandWord)) {
-                                    const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.6);
-                                    const uniqueId = brand + '-' + variant;
-                                    const pokedexEntry = { photo: compressedDataUrl, isShiny: isShiny, brand: brand };
-                                    db.ref('pokedex_profiles/' + currentUserNick + '/' + uniqueId).set(pokedexEntry).then(() => {
-                                        const newPostRef = db.ref('social_timeline').push();
-                                        let postData = { user: currentUserNick, brand: brand, variant: variant, photo: compressedDataUrl, time: new Date().getTime(), isShiny: isShiny };
-                                        if(currentLat !== null && currentLng !== null) { postData.lat = currentLat; postData.lng = currentLng; }
-                                        newPostRef.set(postData).then(() => {
-                                            recalculateTotalScore(currentUserNick);
-                                            let msg = `Birra sbloccata con successo! (+${getBeerPoints(brand, isShiny)} Punti)`;
-                                            if(isShiny) msg += " ✨ SBLOCCO SHINY IN TRASFERTA COMPLETATO!";
-                                            showCustomAlert(msg, "✅ Conquistata!");
-                                        });
-                                    });
-                                } else {
-                                    showCustomAlert(`L'AI non riesce a leggere la scritta "${brand}" sull'etichetta.`, "AI Anti-Cheat");
-                                    updateStats();
-                                }
-                            });
-                        });
-                    };
-                    img.src = e.target.result;
-                };
-                reader.readAsDataURL(file);
-            }
-        }
-
-        function recalculateTotalScore(username) {
-            db.ref('pokedex_profiles/' + username).once('value').then(snap => {
-                let totalScore = 0;
-                let brandUnlockCounts = {};
-                beers.forEach(b => { brandUnlockCounts[b.brand] = 0; });
-                if(snap.exists()) {
-                    const profileData = snap.val();
-                    for(let uniqueId in profileData) {
-                        const entry = profileData[uniqueId];
-                        let bName = entry.brand || uniqueId.split('-')[0];
-                        let isShiny = entry.isShiny || false;
-                        totalScore += getBeerPoints(bName, isShiny);
-                        if (brandUnlockCounts[bName] !== undefined) brandUnlockCounts[bName]++;
-                    }
-                }
-                beers.forEach(beer => {
-                    if(brandUnlockCounts[beer.brand] === beer.variants.length && beer.variants.length > 0) { totalScore += 10; }
-                });
-                db.ref('leaderboard_scores/' + username).set(totalScore);
-            });
-        }
-
-        function deletePost(postId, postUser, brand, variant) {
-            const uniqueId = brand + '-' + variant;
-            showCustomConfirm(`Vuoi davvero eliminare lo sblocco di ${postUser} per ${brand} - ${variant}?`, "Conferma Eliminazione", () => {
-                db.ref('pokedex_profiles/' + postUser + '/' + uniqueId).remove().then(() => { recalculateTotalScore(postUser); });
-                if(!postId) {
-                    db.ref('social_timeline').once('value').then(snapshot => {
-                        snapshot.forEach(child => {
-                            let p = child.val();
-                            if(p.user === postUser && p.brand === brand && p.variant === variant) { db.ref('social_timeline/' + child.key).remove(); }
-                        });
-                    });
-                } else { db.ref('social_timeline/' + postId).remove(); }
-            });
-        }
 
         function generateVariantsHTML(brand, variantsArray) {
             let listHTML = '';
@@ -1028,7 +880,6 @@
             });
         }
 
-        // --- SISTEMA RENDER TROFEI E MEDAGLIE ---
         function renderTrophies() {
             const grid = document.getElementById('trophyGrid'); 
             const medalsGrid = document.getElementById('brandMedalsGrid');
@@ -1125,7 +976,7 @@
         let myPokedex = {}; let globalPosts = []; let globalLeaderboardScores = {}; 
         let myFriendsList = []; let myReceivedRequests = []; let mySentRequests = []; let myRejectedRequests = [];
 
-        // --- APERTURA ASINCRONA COMPATIBILE CON LE REGOLE DI SICUREZZA ---
+        // --- APERTURA ASINCRONA DEL DATABASE CON ERROR CATCHING ATTIVO ---
         function loadRealtimeData() {
             db.ref('pokedex_profiles/' + currentUserNick).on('value', (snapshot) => {
                 myPokedex = snapshot.val() || {}; 
@@ -1134,6 +985,8 @@
                 const activeView = document.querySelector('.page-view.active');
                 if(activeView && activeView.id === 'page-profile') renderTrophies();
                 if(activeView && activeView.id === 'page-explore') displayBeers(beers);
+            }, (error) => {
+                showCustomAlert("Errore di sicurezza o lettura sul Pokedex personale: " + error.message, "Blocco Regole Firebase");
             });
 
             db.ref('users_friends/' + currentUserNick).on('value', (snapshot) => {
@@ -1142,6 +995,8 @@
                 if(activeView && activeView.id === 'page-social') renderSocialFeed();
                 if(activeView && activeView.id === 'page-leaderboard') renderLeaderboard();
                 if(activeView && activeView.id === 'page-friends') renderFriendsManager();
+            }, (error) => {
+                console.log("Nodo amici vuoto o protetto.");
             });
 
             db.ref('friend_requests/' + currentUserNick).on('value', (snapshot) => {
@@ -1159,6 +1014,8 @@
                 const activeView = document.querySelector('.page-view.active');
                 if(activeView && activeView.id === 'page-leaderboard') renderLeaderboard();
                 if(activeView && activeView.id === 'page-friends') renderFriendsManager();
+            }, (error) => {
+                console.log("Nessuna richiesta ricevuta rilevata.");
             });
 
             db.ref('friend_requests_sent/' + currentUserNick).on('value', (snapshot) => {
@@ -1174,7 +1031,7 @@
                 if(activeView && activeView.id === 'page-friends') renderFriendsManager();
             });
 
-            // Recupera e sincronizza la timeline globale in modalità di ascolto continuo e sicuro
+            // Ascoltatore globale della bacheca post della community (Con Error Handler)
             db.ref('social_timeline').limitToLast(100).on('value', (snapshot) => {
                 globalPosts = []; 
                 if(snapshot.exists()) {
@@ -1184,12 +1041,17 @@
                 if(activeView && activeView.id === 'page-home') renderDashboard();
                 if(activeView && activeView.id === 'page-social') renderSocialFeed();
                 if(activeView && activeView.id === 'page-map') renderMap();
+            }, (error) => {
+                showCustomAlert("Il server Firebase rifiuta l'accesso al Community Feed: " + error.message, "Errore Regole di Sicurezza");
             });
 
+            // Ascoltatore globale dei punteggi degli iscritti (Con Error Handler)
             db.ref('leaderboard_scores').on('value', (snapshot) => {
                 globalLeaderboardScores = snapshot.val() || {};
                 const activeView = document.querySelector('.page-view.active');
                 if(activeView && activeView.id === 'page-leaderboard') renderLeaderboard();
+            }, (error) => {
+                showCustomAlert("Il server Firebase blocca la lettura delle Classifiche: " + error.message, "Errore Regole di Sicurezza");
             });
         }
 
@@ -1267,11 +1129,15 @@
 
         displayBeers(beers);
 
-        // --- REGISTRAZIONE SERVICE WORKER ---
+        // --- REGISTRAZIONE SERVICE WORKER CON SVUOTAMENTO CACHE AUTOMATICO AD OGNI NUOVO DEPLOY ---
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
                 navigator.serviceWorker.register('/sw.js')
-                    .then(reg => console.log('PWA BeerDex registrata con successo!', reg.scope))
+                    .then(reg => {
+                        console.log('PWA BeerDex registrata con successo!', reg.scope);
+                        // Forza il service worker a controllare se ci sono file modificati su GitHub ad ogni avvio
+                        reg.update(); 
+                    })
                     .catch(err => console.error('Errore registrazione PWA:', err));
             });
         }
