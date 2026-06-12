@@ -44,8 +44,9 @@
         .close-sidebar { font-size: 24px; color: var(--text-muted); cursor: pointer; border: none; background: none; }
         .close-sidebar:hover { color: var(--dark); }
         
-        .sidebar-user { text-align: center; padding: 10px; background: var(--gray); border-radius: 12px; margin-bottom: 20px; font-weight: bold; color: var(--dark); font-size: 14px; word-break: break-all; position: relative; }
-        .admin-badge { background-color: var(--danger); color: var(--white); padding: 2px 8px; border-radius: 4px; font-size: 10px; font-weight: bold; margin-left: 5px; vertical-align: middle;}
+        .sidebar-user { text-align: center; padding: 15px; background: var(--gray); border-radius: 12px; margin-bottom: 20px; font-weight: bold; color: var(--dark); word-break: break-all; position: relative; box-shadow: inset 0 2px 5px rgba(0,0,0,0.05);}
+        .settings-icon { position: absolute; right: 12px; top: 12px; cursor: pointer; font-size: 20px; transition: transform 0.3s; color: var(--text-muted); }
+        .settings-icon:hover { transform: rotate(45deg); color: var(--dark); }
 
         .menu-btn { display: flex; justify-content: space-between; align-items: center; color: var(--white); border: none; padding: 14px 20px; font-size: 16px; font-weight: bold; border-radius: 12px; margin-bottom: 10px; cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.15); transition: 0.2s; width: 100%; text-align: left;}
         .menu-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 15px rgba(0,0,0,0.2); }
@@ -56,7 +57,6 @@
         .btn-social { background: linear-gradient(135deg, #2980b9, #8e44ad); }
         .btn-leaderboard { background: linear-gradient(135deg, #27ae60, #1e8449); }
         .btn-friends { background: linear-gradient(135deg, #8e44ad, #9b59b6); }
-        .btn-settings { background: linear-gradient(135deg, #7f8c8d, #34495e); }
         .btn-logout { background: #e74c3c !important; text-align: center !important; display: block;}
         
         .beer-badge { display: none; font-size: 18px; animation: bounce 1s infinite; }
@@ -117,9 +117,9 @@
 
         .footer-legal { background-color: var(--white); padding: 30px 20px; text-align: center; border-top: 1px solid var(--gray); margin-top: auto; color: var(--text-muted); font-size: 12px; line-height: 1.6; }
         
-        /* AGE GATE E AUTH MODAL */
+        /* AGE GATE, AUTH MODAL E CUSTOM ALERT */
         .auth-modal { display: flex; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 1000; align-items: center; justify-content: center; backdrop-filter: blur(8px); }
-        .auth-container { background: var(--white); padding: 35px; border-radius: 24px; width: 90%; max-width: 400px; text-align: center; box-shadow: 0 15px 35px rgba(0,0,0,0.3); animation: slideUp 0.3s ease-out; }
+        .auth-container { background: var(--white); padding: 35px; border-radius: 24px; width: 90%; max-width: 400px; text-align: center; box-shadow: 0 15px 35px rgba(0,0,0,0.3); animation: slideUp 0.3s ease-out; position: relative;}
         .auth-container h2 { color: var(--dark); margin-top: 0; margin-bottom: 10px; }
         .auth-container input { width: 100%; padding: 12px; margin: 8px 0; border: 2px solid var(--gray); border-radius: 10px; font-size: 15px; box-sizing: border-box; outline: none; transition: 0.3s; }
         .auth-container input:focus { border-color: var(--primary-dark); }
@@ -197,6 +197,15 @@
 
     <div class="overlay" id="mainOverlay" onclick="closeSidebar()"></div>
 
+    <div id="customModalOverlay" class="auth-modal" style="display:none; z-index: 2000;">
+        <div class="auth-container" style="max-width: 350px;">
+            <h3 id="customModalTitle" style="margin-top:0; color:var(--dark); font-size:22px;">Avviso</h3>
+            <p id="customModalText" style="color:var(--text-muted); font-size:15px; margin-bottom:25px; line-height:1.5;"></p>
+            <div id="customModalButtons" style="display:flex; gap:10px; justify-content:center;">
+                </div>
+        </div>
+    </div>
+
     <div id="ageGateModal" class="auth-modal" style="display:none;">
         <div class="auth-container">
             <h1 style="font-size: 40px; margin: 0;">🔞</h1>
@@ -243,7 +252,10 @@
             <button class="close-sidebar" onclick="closeSidebar()">&times;</button>
         </div>
         
-        <div class="sidebar-user" id="sidebarUserBox">👤 Utente:<br><span id="displayUsername" style="color:var(--accent);">Caricamento...</span></div>
+        <div class="sidebar-user" id="sidebarUserBox">
+            Caricamento...
+        </div>
+        
         <div id="aiStatus">🤖 AI Anti-Cheat in caricamento...</div>
 
         <button class="menu-btn btn-home" onclick="navigateTo('page-home')">🏠 Esplora Birre</button>
@@ -256,8 +268,6 @@
             <span>🤝 Gestione Amici</span>
             <span class="beer-badge" id="sidebarBeerBadge">🍺</span>
         </button>
-        
-        <button class="menu-btn btn-settings" onclick="navigateTo('page-settings')">⚙️ Impostazioni Profilo</button>
 
         <button class="menu-btn btn-logout" onclick="logoutUser()">🚪 Esci dal Pub</button>
 
@@ -387,11 +397,40 @@
         </footer>
     </div>
     <script>
+        // --- FUNZIONI AVVISI CUSTOM (SOSTITUISCONO ALERT E CONFIRM) ---
+        function showCustomAlert(message, title="🍻 Avviso", callback=null) {
+            document.getElementById('customModalTitle').innerText = title;
+            document.getElementById('customModalText').innerText = message;
+            const btnHtml = `<button class="btn-main" id="customAlertBtn" style="margin-top:0;">OK</button>`;
+            document.getElementById('customModalButtons').innerHTML = btnHtml;
+            document.getElementById('customModalOverlay').style.display = 'flex';
+            document.getElementById('customAlertBtn').onclick = () => {
+                document.getElementById('customModalOverlay').style.display = 'none';
+                if(callback) callback();
+            };
+        }
+
+        function showCustomConfirm(message, title, onConfirm) {
+            document.getElementById('customModalTitle').innerText = title;
+            document.getElementById('customModalText').innerText = message;
+            const btnHtml = `
+                <button class="btn-secondary" id="customCancelBtn" style="margin-top:0; width:50%;">Annulla</button>
+                <button class="btn-main" id="customConfirmBtn" style="margin-top:0; width:50%; background:var(--danger);">Conferma</button>
+            `;
+            document.getElementById('customModalButtons').innerHTML = btnHtml;
+            document.getElementById('customModalOverlay').style.display = 'flex';
+            document.getElementById('customCancelBtn').onclick = () => document.getElementById('customModalOverlay').style.display = 'none';
+            document.getElementById('customConfirmBtn').onclick = () => {
+                document.getElementById('customModalOverlay').style.display = 'none';
+                onConfirm();
+            };
+        }
+
+
         // --- COSTANTI E CONFIGURAZIONI ---
-        // Utilizziamo toLowerCase() per evitare problemi di case-sensitivity
         const ADMIN_EMAIL = "barcello.luca02@gmail.com".toLowerCase(); 
         let currentUserEmail = "";
-        let isAdminUser = false; // Flag globale per capire se l'utente è l'admin
+        let isAdminUser = false; 
 
         // --- INIZIALIZZAZIONE AI ---
         let aiModel = null;
@@ -459,20 +498,26 @@
             auth.onAuthStateChanged(user => {
                 if (user) {
                     currentUserEmail = user.email.toLowerCase(); 
-                    isAdminUser = (currentUserEmail === ADMIN_EMAIL); // Controllo permessi di amministratore
+                    isAdminUser = (currentUserEmail === ADMIN_EMAIL); 
                     
                     db.ref('users_directory/' + user.uid).once('value').then(snapshot => {
                         currentUserNick = snapshot.val() || user.email.split('@')[0];
                         
-                        // Costruiamo il badge ADMIN se sei tu
-                        let adminBadgeHtml = isAdminUser ? '<span class="admin-badge">ADMIN</span>' : '';
+                        // Creazione dinamica del Box Utente/Admin + Rotellina
+                        let roleText = isAdminUser ? "👑 ADMIN" : "👤 UTENTE";
+                        let roleColor = isAdminUser ? "var(--danger)" : "var(--text-muted)";
+                        let settingsHtml = `<span class="settings-icon" onclick="navigateTo('page-settings')" title="Impostazioni Profilo">⚙️</span>`;
                         
-                        document.getElementById("displayUsername").innerHTML = `${currentUserNick}${adminBadgeHtml}<br><small style="font-size:10px;color:gray;">${user.email}</small>`;
+                        document.getElementById("sidebarUserBox").innerHTML = `
+                            ${settingsHtml}
+                            <div style="font-size:11px; letter-spacing:1px; color:${roleColor}; margin-bottom:5px;">${roleText}</div>
+                            <div style="font-size:18px; color:var(--primary-dark);">${currentUserNick}</div>
+                            <div style="font-size:11px; color:gray; margin-top:4px; font-weight:normal;">${user.email}</div>
+                        `;
+
                         document.getElementById("authScreen").style.display = "none";
                         
                         loadRealtimeData(); 
-                        
-                        // RECUPERO STATO PAGINA PRECEDENTE
                         const lastPage = localStorage.getItem('beerdex_currentPage') || 'page-home';
                         navigateTo(lastPage);
                     });
@@ -484,18 +529,20 @@
         checkAgeGate();
 
         function resetPassword() {
+            // Unico prompt nativo rimasto perché richiede input di testo, ma potremmo creare anche per lui un modale custom in futuro.
             const email = prompt("Inserisci l'indirizzo Email collegato al tuo account per ripristinare la password:");
             if(email) {
                 auth.sendPasswordResetEmail(email.trim()).then(() => {
-                    alert("Email di ripristino inviata con successo! Controlla la tua casella di posta (anche in Spam).");
-                }).catch(err => alert("Errore durante l'invio dell'email: " + err.message));
+                    showCustomAlert("Email di ripristino inviata con successo! Controlla la tua casella di posta (anche in Spam).", "Controlla l'email");
+                }).catch(err => showCustomAlert("Errore durante l'invio dell'email: " + err.message, "Errore"));
             }
         }
 
         function toggleAuthMode() {
             isRegisterMode = !isRegisterMode;
             document.getElementById("authTitle").innerText = isRegisterMode ? "Crea Account 🍻" : "Accedi a BeerDex 🍻";
-            document.getElementById("authSubtitle").innerText = isRegisterMode ? "Scegli una password forte (8 caratteri, 1 Maiuscola, 1 Speciale tra !?$%&)" : "Inserisci Email o Nickname per accedere";
+            // Aggiornato testo: richiede anche il NUMERO
+            document.getElementById("authSubtitle").innerText = isRegisterMode ? "Scegli una password forte (8 caratteri, 1 Maiuscola, 1 Numero, 1 Speciale tra !?$%&)" : "Inserisci Email o Nickname per accedere";
             document.getElementById("authLoginId").style.display = isRegisterMode ? "none" : "block";
             document.getElementById("authUsername").style.display = isRegisterMode ? "block" : "none";
             document.getElementById("authEmail").style.display = isRegisterMode ? "block" : "none";
@@ -512,30 +559,31 @@
                 const confirmPassword = document.getElementById("authConfirmPassword").value;
                 const nickname = document.getElementById("authUsername").value.trim();
 
-                if(!email || !password || !nickname) { alert("Compila tutti i campi!"); return; }
-                if(nickname.length < 3) { alert("Scegli un Nickname di almeno 3 caratteri!"); return; }
-                if(password !== confirmPassword) { alert("Le due password inserite non coincidono. Riprova!"); return; }
-                if(password.length < 8) { alert("La password deve essere lunga almeno 8 caratteri!"); return; }
-                if(!/[A-Z]/.test(password)) { alert("La password deve contenere almeno una lettera MAIUSCOLA!"); return; }
-                if(!/[!?$%&]/.test(password)) { alert("La password deve contenere almeno un carattere SPECIALE tra questi: ! ? $ % &"); return; }
+                if(!email || !password || !nickname) { showCustomAlert("Compila tutti i campi!"); return; }
+                if(nickname.length < 3) { showCustomAlert("Scegli un Nickname di almeno 3 caratteri!"); return; }
+                if(password !== confirmPassword) { showCustomAlert("Le due password inserite non coincidono. Riprova!"); return; }
+                if(password.length < 8) { showCustomAlert("La password deve essere lunga almeno 8 caratteri!"); return; }
+                if(!/[A-Z]/.test(password)) { showCustomAlert("La password deve contenere almeno una lettera MAIUSCOLA!"); return; }
+                if(!/\d/.test(password)) { showCustomAlert("La password deve contenere almeno un NUMERO!"); return; }
+                if(!/[!?$%&]/.test(password)) { showCustomAlert("La password deve contenere almeno un carattere SPECIALE tra questi: ! ? $ % &"); return; }
 
                 auth.createUserWithEmailAndPassword(email, password)
                     .then((userCredential) => {
                         db.ref('users_directory/' + userCredential.user.uid).set(nickname);
                         db.ref('usernames_emails/' + nickname.toLowerCase()).set(email); 
                         db.ref('leaderboard_scores/' + nickname).set(0);
-                    }).catch(err => alert("Errore Registrazione: " + err.message));
+                    }).catch(err => showCustomAlert("Errore Registrazione: " + err.message, "Errore"));
             } else {
                 const loginId = document.getElementById("authLoginId").value.trim();
-                if(!loginId || !password) { alert("Inserisci credenziali!"); return; }
+                if(!loginId || !password) { showCustomAlert("Inserisci credenziali!"); return; }
                 if(loginId.includes('@')) {
-                    auth.signInWithEmailAndPassword(loginId, password).catch(err => alert("Email o Password errata."));
+                    auth.signInWithEmailAndPassword(loginId, password).catch(err => showCustomAlert("Email o Password errata.", "Login Fallito"));
                 } else {
                     db.ref('usernames_emails/' + loginId.toLowerCase()).once('value').then(snapshot => {
                         const mappedEmail = snapshot.val();
                         if(mappedEmail) {
-                            auth.signInWithEmailAndPassword(mappedEmail, password).catch(err => alert("Password errata per questo Nickname."));
-                        } else { alert("Nickname non trovato nei nostri archivi."); }
+                            auth.signInWithEmailAndPassword(mappedEmail, password).catch(err => showCustomAlert("Password errata per questo Nickname.", "Login Fallito"));
+                        } else { showCustomAlert("Nickname non trovato nei nostri archivi.", "Login Fallito"); }
                     });
                 }
             }
@@ -545,14 +593,14 @@
             auth.signOut().then(() => { window.location.reload(); }); 
         }
 
-        // --- SISTEMA CAMBIO NICKNAME (MIGRAZIONE DATI) ---
+        // --- SISTEMA CAMBIO NICKNAME ---
         function changeUserNickname() {
             const newNick = document.getElementById("newNicknameInput").value.trim();
-            if(newNick.length < 3) { alert("Il nickname deve avere almeno 3 caratteri."); return; }
-            if(newNick.toLowerCase() === currentUserNick.toLowerCase()) { alert("È già il tuo nickname!"); return; }
+            if(newNick.length < 3) { showCustomAlert("Il nickname deve avere almeno 3 caratteri."); return; }
+            if(newNick.toLowerCase() === currentUserNick.toLowerCase()) { showCustomAlert("È già il tuo nickname!"); return; }
 
             db.ref('usernames_emails/' + newNick.toLowerCase()).once('value').then(snap => {
-                if(snap.exists()) { alert("Questo nickname è già in uso da un altro utente!"); return; }
+                if(snap.exists()) { showCustomAlert("Questo nickname è già in uso da un altro utente!"); return; }
 
                 const uid = auth.currentUser.uid;
                 let updates = {};
@@ -600,9 +648,10 @@
                 updates['friend_requests_sent/' + currentUserNick] = null;
 
                 db.ref().update(updates).then(() => {
-                    alert("Nickname aggiornato con successo su tutta la piattaforma!");
-                    window.location.reload();
-                }).catch(err => alert("Errore durante l'aggiornamento: " + err.message));
+                    showCustomAlert("Nickname aggiornato con successo su tutta la piattaforma!", "Fatto", () => {
+                        window.location.reload();
+                    });
+                }).catch(err => showCustomAlert("Errore durante l'aggiornamento: " + err.message, "Errore"));
             });
         }
 
@@ -612,7 +661,6 @@
         
         function navigateTo(pageId) {
             document.querySelectorAll('.page-view').forEach(p => p.classList.remove('active'));
-            // Assicuriamoci che la pagina esista prima di aggiungere la classe 'active'
             const targetPage = document.getElementById(pageId);
             if(targetPage) {
                 targetPage.classList.add('active');
@@ -739,7 +787,6 @@
             }
         });
 
-        // --- RICERCA MANUALE E TASTO AGGIUNGI ---
         function searchUser() {
             let friendName = document.getElementById('friendInput').value.trim();
             let resultArea = document.getElementById('searchResultArea');
@@ -788,7 +835,14 @@
         function acceptFriendRequest(senderNick) { db.ref('users_friends/' + currentUserNick + '/' + senderNick).set(true); db.ref('users_friends/' + senderNick + '/' + currentUserNick).set(true); db.ref('friend_requests/' + currentUserNick + '/' + senderNick).remove(); db.ref('friend_requests_sent/' + senderNick + '/' + currentUserNick).remove(); db.ref('friend_requests_rejected/' + currentUserNick + '/' + senderNick).remove(); }
         function rejectFriendRequest(senderNick) { db.ref('friend_requests/' + currentUserNick + '/' + senderNick).remove(); db.ref('friend_requests_sent/' + senderNick + '/' + currentUserNick).remove(); db.ref('friend_requests_rejected/' + currentUserNick + '/' + senderNick).set(true); }
         function cancelSentRequest(targetNick) { db.ref('friend_requests/' + targetNick + '/' + currentUserNick).remove(); db.ref('friend_requests_sent/' + currentUserNick + '/' + targetNick).remove(); }
-        function removeFriend(friendNick) { if(confirm(`Vuoi davvero rimuovere ${friendNick} dai tuoi amici?`)) { db.ref('users_friends/' + currentUserNick + '/' + friendNick).remove(); db.ref('users_friends/' + friendNick + '/' + currentUserNick).remove(); } }
+        
+        function removeFriend(friendNick) { 
+            showCustomConfirm(`Vuoi davvero rimuovere ${friendNick} dai tuoi amici?`, "Rimuovi Amico", () => {
+                db.ref('users_friends/' + currentUserNick + '/' + friendNick).remove(); 
+                db.ref('users_friends/' + friendNick + '/' + currentUserNick).remove();
+            });
+        }
+        
         function restoreRejectedRequest(senderNick) { db.ref('friend_requests_rejected/' + currentUserNick + '/' + senderNick).remove(); acceptFriendRequest(senderNick); }
 
         function renderFriendsManager() {
@@ -868,7 +922,7 @@
 
         function handlePhotoUpload(event, brand, variant) {
             event.stopPropagation(); const file = event.target.files[0]; if (!file) return;
-            if (!aiModel) { alert("L'AI si sta configurando, riprova tra poco!"); return; }
+            if (!aiModel) { showCustomAlert("L'AI si sta configurando, riprova tra poco!", "Attendi"); return; }
 
             let currentLat = null; let currentLng = null;
             if(navigator.geolocation) {
@@ -890,14 +944,14 @@
 
                     const imgData = ctx.getImageData(0, 0, width, height); const data = imgData.data; let totalBrightness = 0;
                     for (let i = 0; i < data.length; i += 4) { totalBrightness += (data[i] + data[i+1] + data[i+2]) / 3; }
-                    if ((totalBrightness / (data.length / 4)) < 20) { alert("🚨 FOTO RESPINTA: Immagine troppo scura!"); return; }
+                    if ((totalBrightness / (data.length / 4)) < 20) { showCustomAlert("🚨 Immagine troppo scura! Riprova con più luce.", "Foto Respinta"); return; }
 
                     document.getElementById('progressText').innerText = "🤖 Analisi Forma (AI) in corso...";
 
                     aiModel.detect(canvas).then(predictions => {
                         let isDrink = false; predictions.forEach(p => { if(p.class === 'bottle' || p.class === 'cup' || p.class === 'wine glass') isDrink = true; });
 
-                        if (!isDrink) { alert("🚨 AI ANTI-CHEAT: Foto respinta! Non vedo bottiglie o bicchieri veri."); updateStats(); return; }
+                        if (!isDrink) { showCustomAlert("🚨 Non vedo bottiglie o bicchieri veri.", "AI Anti-Cheat"); updateStats(); return; }
 
                         document.getElementById('progressText').innerText = "🔍 Lettura etichetta in corso...";
                         
@@ -925,12 +979,14 @@
                                     newPostRef.set(postData).then(() => {
                                         let currentScore = Object.keys(myPokedex).length;
                                         db.ref('leaderboard_scores/' + currentUserNick).set(currentScore);
-                                        alert("✅ Birra catturata, verificata e letta con successo!");
-                                        if(postData.lat) alert("📍 Posizione registrata sulla Mappa Sblocchi!");
+                                        
+                                        let msg = "Birra catturata, verificata e letta con successo!";
+                                        if(postData.lat) msg += " 📍 Posizione registrata sulla Mappa Sblocchi!";
+                                        showCustomAlert(msg, "✅ Ottimo lavoro!");
                                     });
                                 });
                             } else {
-                                alert(`🚨 FOTO RESPINTA: L'AI non riesce a leggere la scritta "${brand}" sull'etichetta. Metti a fuoco meglio!`);
+                                showCustomAlert(`L'AI non riesce a leggere la scritta "${brand}" sull'etichetta. Metti a fuoco meglio!`, "AI Anti-Cheat");
                                 updateStats();
                             }
                         });
@@ -943,25 +999,26 @@
 
         function deletePost(postId, postUser, brand, variant) {
             const uniqueId = brand + '-' + variant;
-            if(!confirm(`Vuoi davvero eliminare lo sblocco di ${postUser} per ${brand} - ${variant}?`)) return;
-
-            db.ref('pokedex_profiles/' + postUser + '/' + uniqueId).remove().then(() => {
-                db.ref('pokedex_profiles/' + postUser).once('value').then(snap => {
-                    let newScore = snap.exists() ? Object.keys(snap.val()).length : 0;
-                    db.ref('leaderboard_scores/' + postUser).set(newScore);
-                });
-            });
-
-            if(!postId) {
-                db.ref('social_timeline').once('value').then(snapshot => {
-                    snapshot.forEach(child => {
-                        let p = child.val();
-                        if(p.user === postUser && p.brand === brand && p.variant === variant) { db.ref('social_timeline/' + child.key).remove(); }
+            
+            showCustomConfirm(`Vuoi davvero eliminare lo sblocco di ${postUser} per ${brand} - ${variant}?`, "Conferma Eliminazione", () => {
+                db.ref('pokedex_profiles/' + postUser + '/' + uniqueId).remove().then(() => {
+                    db.ref('pokedex_profiles/' + postUser).once('value').then(snap => {
+                        let newScore = snap.exists() ? Object.keys(snap.val()).length : 0;
+                        db.ref('leaderboard_scores/' + postUser).set(newScore);
                     });
                 });
-            } else {
-                db.ref('social_timeline/' + postId).remove();
-            }
+
+                if(!postId) {
+                    db.ref('social_timeline').once('value').then(snapshot => {
+                        snapshot.forEach(child => {
+                            let p = child.val();
+                            if(p.user === postUser && p.brand === brand && p.variant === variant) { db.ref('social_timeline/' + child.key).remove(); }
+                        });
+                    });
+                } else {
+                    db.ref('social_timeline/' + postId).remove();
+                }
+            });
         }
 
         function generateVariantsHTML(brand, variantsArray) {
