@@ -124,7 +124,7 @@
 
         .footer-legal { background-color: var(--white); padding: 30px 20px; text-align: center; border-top: 1px solid var(--gray); margin-top: auto; color: var(--text-muted); font-size: 12px; line-height: 1.6; }
         
-        /* DASHBOARD & EVENTI */
+        /* DASHBOARD */
         .dashboard-stats { background: var(--white); padding: 25px; border-radius: 16px; border: 2px solid var(--primary); box-shadow: 0 5px 15px rgba(241,196,15,0.1); text-align: center; margin-bottom: 25px;}
         .dashboard-event { background: #ebf5fb; border: 2px solid var(--social-blue); padding: 20px; border-radius: 16px; margin-bottom: 25px; display: flex; align-items: center; gap: 15px; text-align: left; }
         .dash-last-card { display: flex; align-items: center; background: var(--white); border-radius: 16px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.05); border: 1px solid var(--gray);}
@@ -209,7 +209,6 @@
         .trophy-name { font-size: 12px; font-weight: bold; line-height: 1.2; color: var(--dark); }
         .trophy-brand { font-size: 10px; color: var(--text-muted); text-transform: uppercase; margin-bottom: 4px;}
 
-        /* Medaglie Stile Badge */
         .medal-badge-card { background: #fcf8e3; border: 2px solid var(--gold); border-radius: 12px; padding: 10px; display: flex; flex-direction: column; align-items: center; text-align: center; transition: 0.3s; opacity: 0.4; filter: grayscale(100%); }
         .medal-badge-card.unlocked { opacity: 1; filter: none; box-shadow: 0 4px 10px rgba(241,196,15,0.2); }
         .medal-icon-container { font-size: 35px; margin-bottom: 5px; }
@@ -273,7 +272,7 @@
             <button class="close-sidebar" onclick="closeSidebar()">&times;</button>
         </div>
         
-        <div class="sidebar-user" id="sidebarUserBox">Caricamento...</div>
+        <div class="sidebar-user" id="sidebarUserBox">Connessione...</div>
         
         <div id="aiStatus">🤖 AI Anti-Cheat in caricamento...</div>
 
@@ -294,7 +293,7 @@
         <button class="menu-btn btn-logout" onclick="logoutUser()">🚪 Esci dal Pub</button>
 
         <div style="margin-bottom: 25px; margin-top: 15px;">
-            <div class="progress-text" id="progressText">Punteggio: 0🏆</div>
+            <div class="progress-text" id="progressText">Punteggio: -- 🏆</div>
             <div class="progress-container"><div class="progress-bar" id="progressBar"></div></div>
         </div>
         
@@ -333,7 +332,7 @@
                     <div style="font-size: 30px;">📅</div>
                     <div>
                         <h4 style="margin:0 0 4px 0; color:var(--dark);">Evento a Tempo Limitato</h4>
-                        <p id="dashEventText" style="margin:0; font-size:13px; color:var(--text-muted);">Nessun evento attivo al momento.</p>
+                        <p id="dashEventText" style="margin:0; font-size:13px; color:var(--text-muted);">Calcolo calendario in corso...</p>
                     </div>
                 </div>
 
@@ -505,7 +504,7 @@
                 </div>
 
                 <div class="rules-section" style="background:#fffcf0; padding:20px; border-radius:12px; border-left:4px solid var(--primary-dark);">
-                    <h3 style="color:var(--primary-dark); margin:0 0 8px 0;">🛡️ Politica del Consumo Responsabile ed Etica di Gioco</h3>
+                    <h3>🛡️ Politica del Consumo Responsabile ed Etica di Gioco</h3>
                     <p style="margin:0; line-height:1.5; font-size:14px; color:var(--dark);"><strong>BeerDex non assegna premi basati sulla quantità totale di alcol consumata</strong>. Riteniamo che incentivare il consumo quantitativo promuova comportamenti dannosi. La nostra architettura valorizza esclusivamente il completismo botanico, la rarità, la territorialità e la scoperta geografica. Degusta responsabilmente: l'abuso di alcol è pericoloso.</p>
                 </div>
             </div>
@@ -518,29 +517,41 @@
     <script>
         // --- FUNZIONI AVVISI CUSTOM ---
         function showCustomAlert(message, title="🍻 Avviso", callback=null) {
-            document.getElementById('customModalTitle').innerText = title;
-            document.getElementById('customModalText').innerText = message;
-            const btnHtml = `<button class="btn-main" id="customAlertBtn" style="margin-top:0;">OK</button>`;
-            document.getElementById('customModalButtons').innerHTML = btnHtml;
-            document.getElementById('customModalOverlay').style.display = 'flex';
+            const titleEl = document.getElementById('customModalTitle');
+            const textEl = document.getElementById('customModalText');
+            const btnsEl = document.getElementById('customModalButtons');
+            const overlayEl = document.getElementById('customModalOverlay');
+            
+            if(!titleEl || !textEl || !btnsEl || !overlayEl) return;
+            
+            titleEl.innerText = title;
+            textEl.innerText = message;
+            btnsEl.innerHTML = `<button class="btn-main" id="customAlertBtn" style="margin-top:0;">OK</button>`;
+            overlayEl.style.display = 'flex';
             document.getElementById('customAlertBtn').onclick = () => {
-                document.getElementById('customModalOverlay').style.display = 'none';
+                overlayEl.style.display = 'none';
                 if(callback) callback();
             };
         }
 
         function showCustomConfirm(message, title, onConfirm) {
-            document.getElementById('customModalTitle').innerText = title;
-            document.getElementById('customModalText').innerText = message;
-            const btnHtml = `
+            const titleEl = document.getElementById('customModalTitle');
+            const textEl = document.getElementById('customModalText');
+            const btnsEl = document.getElementById('customModalButtons');
+            const overlayEl = document.getElementById('customModalOverlay');
+            
+            if(!titleEl || !textEl || !btnsEl || !overlayEl) return;
+            
+            titleEl.innerText = title;
+            textEl.innerText = message;
+            btnsEl.innerHTML = `
                 <button class="btn-secondary" id="customCancelBtn" style="margin-top:0; width:50%;">Annulla</button>
                 <button class="btn-main" id="customConfirmBtn" style="margin-top:0; width:50%; background:var(--danger);">Conferma</button>
             `;
-            document.getElementById('customModalButtons').innerHTML = btnHtml;
-            document.getElementById('customModalOverlay').style.display = 'flex';
-            document.getElementById('customCancelBtn').onclick = () => document.getElementById('customModalOverlay').style.display = 'none';
+            overlayEl.style.display = 'flex';
+            document.getElementById('customCancelBtn').onclick = () => overlayEl.style.display = 'none';
             document.getElementById('customConfirmBtn').onclick = () => {
-                document.getElementById('customModalOverlay').style.display = 'none';
+                overlayEl.style.display = 'none';
                 onConfirm();
             };
         }
@@ -593,10 +604,13 @@
             return "Maestro Birraio 👑";
         }
 
-        // --- MAPPA LEAFLET ---
+        // --- MAPPA LEAFLET (SAFE INITIALIZATION) ---
         let map;
         let markersGroup;
         function renderMap() {
+            const container = document.getElementById('mapContainer');
+            if(!container) return; // Protezione dal crash se la sezione non è nel DOM
+            
             if(!map) {
                 map = L.map('mapContainer').setView([41.9028, 12.4964], 5);
                 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '© OpenStreetMap' }).addTo(map);
@@ -612,7 +626,7 @@
             setTimeout(() => { map.invalidateSize(); }, 400); 
         }
 
-        // --- AGE GATE & AUTH ---
+        // --- AGE GATE & AUTH (SICURO AL RICARICO) ---
         function checkAgeGate() {
             if(localStorage.getItem('beerdex_18plus') === 'yes') { 
                 checkAuthentication(); 
@@ -636,6 +650,7 @@
                         
                         loadRealtimeData(); 
                         
+                        // La navigazione si attiva SOLO a utente scaricato
                         const lastPage = localStorage.getItem('beerdex_currentPage') || 'page-home';
                         navigateTo(lastPage);
                     });
@@ -644,8 +659,6 @@
                 }
             });
         }
-        // Avvia l'Age gate all'apertura del file
-        checkAgeGate();
 
         function updateUserBoxUI(score) {
             let roleText = isAdminUser ? "👑 ADMIN" : "👤 UTENTE";
@@ -830,12 +843,6 @@
         ];
         beers.sort((a, b) => a.brand.localeCompare(b.brand));
 
-        function getBeerPoints(brandName, isShiny) {
-            const beer = beers.find(b => b.brand === brandName); if(!beer) return 1;
-            let base = 1; if(beer.rarity === "media") base = 2; if(beer.rarity === "rara") base = 5;
-            return isShiny ? base * 2 : base;
-        }
-
         // --- SISTEMA EVENTI CALENDARIO ---
         function checkTimedEvents() {
             const now = new Date();
@@ -945,7 +952,7 @@
                                         });
                                     });
                                 } else {
-                                    showCustomAlert(`L'AI non riesce a leggere la scritta "${brand}" sull'etichetta. Metti a fuoco l'adesivo.`, "AI Anti-Cheat");
+                                    showCustomAlert(`L'AI non riesce a leggere la scritta "${brand}" sull'etichetta.`, "AI Anti-Cheat");
                                     updateStats();
                                 }
                             });
@@ -1158,6 +1165,132 @@
                 let shinyBadge = lastPost.isShiny ? '<span style="color:var(--primary-dark); font-weight:bold;">✨ SHINY (x2 Punti)</span>' : '';
                 dashLastBeer.innerHTML = `<div class="dash-last-card"><img src="${lastPost.photo}" class="dash-last-img"><div class="dash-last-info"><h4 style="margin: 0 0 5px 0; color: var(--dark); font-size: 18px;">${lastPost.brand}</h4><div style="color: var(--primary-dark); font-weight: bold; font-size: 14px; margin-bottom: 5px;">${lastPost.variant} ${shinyBadge}</div><div style="font-size: 12px; color: var(--text-muted);">Sbloccata il: ${dateStr}</div></div></div>`;
             } else { dashLastBeer.innerHTML = `<div class="dash-empty">Nessuna birra sbloccata!<br>Inizia la tua avventura! 🧭</div>`; }
+        }
+
+        let myPokedex = {}; let globalPosts = []; let globalLeaderboardScores = {}; 
+        let myFriendsList = []; let myReceivedRequests = []; let mySentRequests = []; let myRejectedRequests = [];
+
+        function loadRealtimeData() {
+            db.ref('pokedex_profiles/' + currentUserNick).on('value', (snapshot) => {
+                myPokedex = snapshot.val() || {}; updateStats(); filterBeers();
+                if(document.getElementById('page-profile').classList.contains('active')) renderTrophies();
+            });
+
+            db.ref('users_friends/' + currentUserNick).on('value', (snapshot) => {
+                myFriendsList = Object.keys(snapshot.val() || {});
+                if(document.getElementById('page-social').classList.contains('active')) renderSocialFeed();
+                if(document.getElementById('page-leaderboard').classList.contains('active')) renderLeaderboard();
+                if(document.getElementById('page-friends').classList.contains('active')) renderFriendsManager();
+            });
+
+            db.ref('friend_requests/' + currentUserNick).on('value', (snapshot) => {
+                myReceivedRequests = Object.keys(snapshot.val() || {});
+                const sidebarBadge = document.getElementById('sidebarBeerBadge');
+                const tabBadge = document.getElementById('tabBeerBadge');
+                
+                if(myReceivedRequests.length > 0) {
+                    if (sidebarBadge) sidebarBadge.style.display = 'inline-block'; 
+                    if (tabBadge) tabBadge.style.display = 'inline-block';
+                } else {
+                    if (sidebarBadge) sidebarBadge.style.display = 'none'; 
+                    if (tabBadge) tabBadge.style.display = 'none';
+                }
+                if(document.getElementById('page-leaderboard').classList.contains('active')) renderLeaderboard();
+                if(document.getElementById('page-friends').classList.contains('active')) renderFriendsManager();
+            });
+
+            db.ref('friend_requests_sent/' + currentUserNick).on('value', (snapshot) => {
+                mySentRequests = Object.keys(snapshot.val() || {});
+                if(document.getElementById('page-leaderboard').classList.contains('active')) renderLeaderboard();
+                if(document.getElementById('page-friends').classList.contains('active')) renderFriendsManager();
+            });
+
+            db.ref('friend_requests_rejected/' + currentUserNick).on('value', (snapshot) => {
+                myRejectedRequests = Object.keys(snapshot.val() || {});
+                if(document.getElementById('page-friends').classList.contains('active')) renderFriendsManager();
+            });
+
+            db.ref('social_timeline').limitToLast(100).on('value', (snapshot) => {
+                globalPosts = []; snapshot.forEach(child => { let p = child.val(); p.postId = child.key; globalPosts.push(p); });
+                if(document.getElementById('page-home').classList.contains('active')) renderDashboard();
+                if(document.getElementById('page-social').classList.contains('active')) renderSocialFeed();
+                if(document.getElementById('page-map').classList.contains('active')) renderMap();
+            });
+
+            db.ref('leaderboard_scores').on('value', (snapshot) => {
+                globalLeaderboardScores = snapshot.val() || {};
+                if(document.getElementById('page-leaderboard').classList.contains('active')) renderLeaderboard();
+            });
+        }
+
+        // --- SISTEMA RICERCA CON AUTOCOMPLETAMENTO ---
+        function showSuggestions() {
+            const val = document.getElementById('friendInput').value.trim().toLowerCase();
+            const box = document.getElementById('suggestionsBox');
+            if(!box) return;
+            box.innerHTML = '';
+            if(val.length === 0) { box.style.display = 'none'; return; }
+            let matches = Object.keys(globalLeaderboardScores).filter(name => name.toLowerCase().includes(val) && name.toLowerCase() !== currentUserNick.toLowerCase());
+            if(matches.length === 0) { box.style.display = 'none'; return; }
+            matches.slice(0, 5).forEach(match => {
+                let div = document.createElement('div'); div.className = 'suggestion-item'; div.innerText = match;
+                div.onclick = function() { document.getElementById('friendInput').value = match; box.style.display = 'none'; searchUser(); };
+                box.appendChild(div);
+            });
+            box.style.display = 'block';
+        }
+
+        document.addEventListener('click', function(e) {
+            if(!e.target.closest('.add-friend-wrapper')) {
+                const box = document.getElementById('suggestionsBox'); if(box) box.style.display = 'none';
+            }
+        });
+
+        function searchUser() {
+            let friendName = document.getElementById('friendInput').value.trim();
+            let resultArea = document.getElementById('searchResultArea'); if(!resultArea) return;
+            resultArea.innerHTML = '';
+
+            if(!friendName) return;
+            if(friendName.toLowerCase() === currentUserNick.toLowerCase()) { 
+                resultArea.innerHTML = '<p style="color:var(--danger); text-align:center; font-size:14px; font-weight:bold;">Non puoi cercare te stesso!</p>'; return; 
+            }
+            let exactName = null;
+            for (let name in globalLeaderboardScores) { if(name.toLowerCase() === friendName.toLowerCase()) { exactName = name; break; } }
+            if(exactName) {
+                let actionsHtml = '';
+                if (myFriendsList.includes(exactName)) { actionsHtml = `<span class="badge-status" style="color:var(--social-blue);">🤝 Già Amici</span>`; } 
+                else if (mySentRequests.includes(exactName)) { actionsHtml = `<span class="badge-status" style="color:var(--text-muted);">⏳ In attesa</span>`; } 
+                else if (myReceivedRequests.includes(exactName)) { actionsHtml = `<button class="btn-action btn-accept" onclick="navigateTo('page-friends')">Rispondi</button>`; } 
+                else { actionsHtml = `<button class="btn-action btn-add" onclick="sendFriendRequestFromSearch('${exactName}')">➕ Aggiungi</button>`; }
+                resultArea.innerHTML = `<div class="search-result-card"><div style="font-weight: bold; font-size:18px; color:var(--dark);">👤 ${exactName}</div><div>${actionsHtml}</div></div>`;
+            } else { resultArea.innerHTML = '<p style="color:var(--danger); text-align:center; font-size:14px; font-weight:bold;">Utente non trovato.</p>'; }
+        }
+
+        function sendFriendRequestFromSearch(targetNick) { sendFriendRequest(targetNick); setTimeout(searchUser, 300); }
+        function sendFriendRequest(targetNick) { db.ref('friend_requests/' + targetNick + '/' + currentUserNick).set(true); db.ref('friend_requests_sent/' + currentUserNick + '/' + targetNick).set(true); }
+        function acceptFriendRequest(senderNick) { db.ref('users_friends/' + currentUserNick + '/' + senderNick).set(true); db.ref('users_friends/' + senderNick + '/' + currentUserNick).set(true); db.ref('friend_requests/' + currentUserNick + '/' + senderNick).remove(); db.ref('friend_requests_sent/' + senderNick + '/' + currentUserNick).remove(); db.ref('friend_requests_rejected/' + currentUserNick + '/' + senderNick).remove(); }
+        function rejectFriendRequest(senderNick) { db.ref('friend_requests/' + currentUserNick + '/' + senderNick).remove(); db.ref('friend_requests_sent/' + senderNick + '/' + currentUserNick).remove(); db.ref('friend_requests_rejected/' + currentUserNick + '/' + senderNick).set(true); }
+        function cancelSentRequest(targetNick) { db.ref('friend_requests/' + targetNick + '/' + currentUserNick).remove(); db.ref('friend_requests_sent/' + currentUserNick + '/' + targetNick).remove(); }
+        function removeFriend(friendNick) { showCustomConfirm(`Vuoi davvero rimuovere ${friendNick}?`, "Rimuovi Amico", () => { db.ref('users_friends/' + currentUserNick + '/' + friendNick).remove(); db.ref('users_friends/' + friendNick + '/' + currentUserNick).remove(); }); }
+        function restoreRejectedRequest(senderNick) { db.ref('friend_requests_rejected/' + currentUserNick + '/' + senderNick).remove(); acceptFriendRequest(senderNick); }
+
+        function renderFriendsManager() {
+            const list = document.getElementById('friendsManagerList'); if(!list) return;
+            list.innerHTML = '';
+            if (currentFriendsTab === 'received') {
+                if (myReceivedRequests.length === 0) { list.innerHTML = '<p style="text-align:center;">Nessuna richiesta.</p>'; return; }
+                myReceivedRequests.forEach(sender => { let item = document.createElement('div'); item.className = 'list-item'; item.innerHTML = `<div class="lb-user">📩 ${sender}</div><div style="display:flex; gap:10px;"><button class="btn-action btn-accept" onclick="acceptFriendRequest('${sender}')">✔️ Accetta</button><button class="btn-action btn-reject" onclick="rejectFriendRequest('${sender}')">❌ Rifiuta</button></div>`; list.appendChild(item); });
+            } else if (currentFriendsTab === 'sent') {
+                if (mySentRequests.length === 0) { list.innerHTML = '<p style="text-align:center;">Nessuna richiesta inviata.</p>'; return; }
+                mySentRequests.forEach(target => { let item = document.createElement('div'); item.className = 'list-item'; item.innerHTML = `<div class="lb-user">📤 ${target}</div><button class="btn-action btn-cancel" onclick="cancelSentRequest('${target}')">Annulla</button>`; list.appendChild(item); });
+            } else if (currentFriendsTab === 'accepted') {
+                if (myFriendsList.length === 0) { list.innerHTML = '<p style="text-align:center;">Nessun amico.</p>'; return; }
+                myFriendsList.forEach(friend => { let item = document.createElement('div'); item.className = 'list-item'; item.innerHTML = `<div class="lb-user">🤝 ${friend}</div><button class="btn-action btn-reject" onclick="removeFriend('${friend}')">Rimuovi</button>`; list.appendChild(item); });
+            } else if (currentFriendsTab === 'rejected') {
+                if (myRejectedRequests.length === 0) { list.innerHTML = '<p style="text-align:center;">Nessun utente rifiutato.</p>'; return; }
+                myRejectedRequests.forEach(sender => { let item = document.createElement('div'); item.className = 'list-item'; item.innerHTML = `<div class="lb-user">❌ ${sender}</div><button class="btn-action btn-accept" onclick="restoreRejectedRequest('${sender}')">Sblocca</button>`; list.appendChild(item); });
+            }
         }
 
         let currentFilter = 'Tutte'; 
