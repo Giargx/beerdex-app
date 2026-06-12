@@ -65,8 +65,6 @@
         .beer-badge { display: none; font-size: 18px; animation: bounce 1s infinite; }
         @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
 
-        #aiStatus { background: #e0e6ed; color: #555; text-align: center; padding: 10px; border-radius: 10px; font-size: 12px; font-weight: bold; margin-bottom: 20px; transition: 0.3s; }
-        #aiStatus.ready { background: #d4efdf; color: #1e8449; }
         #aiStatusMini { color: var(--text-muted); text-align: center; font-size: 11px; font-weight: 500; margin-top: auto; padding-top: 15px; border-top: 1px dashed var(--gray); }
 
         .progress-container { width: 100%; height: 10px; background: #e0e6ed; border-radius: 10px; margin: 15px auto 5px auto; overflow: hidden; }
@@ -197,12 +195,6 @@
         .post-image { width: 100%; max-height: 400px; object-fit: contain; background: #000; display: block; border-bottom: 1px solid var(--gray); }
         .post-caption { padding: 15px; font-size: 14px; line-height: 1.5; color: var(--dark); border-top: 1px solid var(--gray);}
 
-        .rules-section { margin-bottom: 25px; border-bottom: 1px solid var(--gray); padding-bottom: 20px; }
-        .rules-section:last-child { border-bottom: none; }
-        .rules-section h3 { color: var(--accent); margin-top: 0; }
-        .rules-section ul { padding-left: 20px; }
-        .rules-section li { margin-bottom: 8px; line-height: 1.4; }
-
         .trophy-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 15px; text-align: center; margin-bottom: 30px;}
         .trophy-card { background: var(--light); padding: 12px 8px; border-radius: 12px; display: flex; flex-direction: column; align-items: center; transition: 0.2s; position: relative;}
         .trophy-img-container { width: 70px; height: 70px; border-radius: 50%; overflow: hidden; background: #e0e6ed; display: flex; align-items: center; justify-content: center; font-size: 30px; border: 3px solid #ccc; margin-bottom: 10px; transition: 0.3s; }
@@ -214,10 +206,8 @@
         .medal-badge-card { background: #fcf8e3; border: 2px solid var(--gold); border-radius: 12px; padding: 10px; display: flex; flex-direction: column; align-items: center; text-align: center; transition: 0.3s; opacity: 0.4; filter: grayscale(100%); }
         .medal-badge-card.unlocked { opacity: 1; filter: none; box-shadow: 0 4px 10px rgba(241,196,15,0.2); }
         .medal-icon-container { font-size: 35px; margin-bottom: 5px; }
+        #mapContainer { height: 400px; width: 100%; border-radius: 16px; margin-top: 10px; z-index: 1;}
     </style>
-<link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#f39c12">
-<meta name="apple-mobile-web-app-capable" content="yes">
 </head>
 <body>
 
@@ -278,8 +268,6 @@
         </div>
         
         <div class="sidebar-user" id="sidebarUserBox">Connessione...</div>
-        
-        <div id="aiStatus">🤖 AI Anti-Cheat in caricamento...</div>
 
         <button class="menu-btn btn-home" onclick="navigateTo('page-home')">🏠 Dashboard</button>
         <button class="menu-btn btn-explore" onclick="navigateTo('page-explore')">🔍 Esplora Birre</button>
@@ -337,7 +325,7 @@
                     <div style="font-size: 30px;">📅</div>
                     <div>
                         <h4 style="margin:0 0 4px 0; color:var(--dark);">Evento a Tempo Limitato</h4>
-                        <p id="dashEventText" style="margin:0; font-size:13px; color:var(--text-muted);">Calcolo calendario in corso...</p>
+                        <p id="dashEventText" style="margin:0; font-size:13px; color:var(--text-muted);">Calcolo calendario...</p>
                     </div>
                 </div>
 
@@ -476,7 +464,7 @@
                         <li>🎒 <strong>Apprendista Bevitore:</strong> Da 10 a 49 punti. Inizi a conoscere gli stili.</li>
                         <li>🧭 <strong>Esploratore di Luppoli:</strong> Da 50 a 99 punti. Cerchi marchi sempre nuovi.</li>
                         <li>🎓 <strong>Sommelier del Bancone:</strong> Da 100 a 199 punti. Una guida per i tuoi amici.</li>
-                        <li>👑 <strong>Maestro Birraio:</strong> Da 200 punti in su. Hall of fame dei collezienisti.</li>
+                        <li>👑 <strong>Maestro Birraio:</strong> Da 200 punti in su. Hall of fame dei collezionisti.</li>
                     </ul>
                 </div>
 
@@ -510,7 +498,7 @@
 
                 <div class="rules-section" style="background:#fffcf0; padding:20px; border-radius:12px; border-left:4px solid var(--primary-dark);">
                     <h3>🛡️ Politica del Consumo Responsabile ed Etica di Gioco</h3>
-                    <p style="margin:0; line-height:1.5; font-size:14px; color:var(--dark);"><strong>BeerDex non assegna premi basati sulla quantità totale di alcol consumata</strong>. Riteniamo che incentive il consumo quantitativo promuova comportamenti dannosi. La nostra architettura valorizza esclusivamente il completismo botanico, la rarità, la territorialità e la scoperta geografica. Degusta responsabilmente: l'abuso di alcol è pericoloso.</p>
+                    <p style="margin:0; line-height:1.5; font-size:14px; color:var(--dark);"><strong>BeerDex non assegna premi basati sulla quantità totale di alcol consumata</strong>. Riteniamo che incentivare il consumo quantitativo promuova comportamenti dannosi. La nostra architettura valorizza esclusivamente il completismo botanico, la rarità, la territorialità e la scoperta geografica. Degusta responsabilmente: l'abuso di alcol è pericoloso.</p>
                 </div>
             </div>
         </div>
@@ -526,7 +514,6 @@
             const textEl = document.getElementById('customModalText');
             const btnsEl = document.getElementById('customModalButtons');
             const overlayEl = document.getElementById('customModalOverlay');
-            
             if(!titleEl || !textEl || !btnsEl || !overlayEl) return;
             
             titleEl.innerText = title;
@@ -544,7 +531,6 @@
             const textEl = document.getElementById('customModalText');
             const btnsEl = document.getElementById('customModalButtons');
             const overlayEl = document.getElementById('customModalOverlay');
-            
             if(!titleEl || !textEl || !btnsEl || !overlayEl) return;
             
             titleEl.innerText = title;
@@ -566,15 +552,12 @@
         let currentUserEmail = "";
         let isAdminUser = false; 
 
-        // --- INIZIALIZZAZIONE AI ---
+        // --- INIZIALIZZAZIONE AI MINI FINALE ---
         let aiModel = null;
         cocoSsd.load().then(model => { 
             aiModel = model; 
-            const s = document.getElementById("aiStatus");
-            if(s) {
-                s.innerText = "✅ AI Anti-Cheat Pronta";
-                s.classList.add("ready");
-            }
+            const miniStatus = document.getElementById("aiStatusMini");
+            if(miniStatus) miniStatus.innerText = "🤖 AI Anti-Cheat: Pronto e Attivo";
         });
 
         // --- CONFIGURAZIONE FIREBASE ---
@@ -607,15 +590,6 @@
             "Messico": { latMin: 14.3, latMax: 32.8, lngMin: -118.4, lngMax: -86.7 }
         };
 
-        // --- LOGICA GRADI EVOLUZIONE ---
-        function getUserRankTitle(score) {
-            if (score < 10) return "Novizio del Pub 🍺";
-            if (score < 50) return "Apprendista Bevitore 🎒";
-            if (score < 100) return "Esploratore di Luppoli 🧭";
-            if (score < 200) return "Sommelier del Bancone 🎓";
-            return "Maestro Birraio 👑";
-        }
-
         // --- MAPPA LEAFLET (SAFE INITIALIZATION) ---
         let map;
         let markersGroup;
@@ -630,15 +604,17 @@
             }
             markersGroup.clearLayers();
             
-            let myPosts = globalPosts.filter(p => p.user === currentUserNick && p.lat && p.lng);
-            myPosts.forEach(p => {
-                L.marker([p.lat, p.lng]).addTo(markersGroup)
-                 .bindPopup(`<b>${p.brand} - ${p.variant}</b><br><small>${p.isShiny ? '✨ Sblocco Shiny (In Trasferta!)' : ''}</small><br><img src="${p.photo}" style="width:100px; border-radius:5px; margin-top:5px;">`);
-            });
+            if(globalPosts && globalPosts.length > 0) {
+                let myPosts = globalPosts.filter(p => p.user === currentUserNick && p.lat && p.lng);
+                myPosts.forEach(p => {
+                    L.marker([p.lat, p.lng]).addTo(markersGroup)
+                     .bindPopup(`<b>${p.brand} - ${p.variant}</b><br><small>${p.isShiny ? '✨ Sblocco Shiny (In Trasferta!)' : ''}</small><br><img src="${p.photo}" style="width:100px; border-radius:5px; margin-top:5px;">`);
+                });
+            }
             setTimeout(() => { map.invalidateSize(); }, 400); 
         }
 
-        // --- AGE GATE & AUTH (SICURO AL RICARICO) ---
+        // --- AGE GATE & AUTH ---
         function checkAgeGate() {
             if(localStorage.getItem('beerdex_18plus') === 'yes') { 
                 checkAuthentication(); 
@@ -657,6 +633,11 @@
                     
                     db.ref('users_directory/' + user.uid).once('value').then(snapshot => {
                         currentUserNick = snapshot.val() || user.email.split('@')[0];
+                        
+                        // Creazione Nodi Base per evitare blocchi delle Regole di Sicurezza
+                        db.ref('users_friends/' + currentUserNick).keepSynced(true);
+                        db.ref('friend_requests/' + currentUserNick).keepSynced(true);
+                        
                         updateUserBoxUI(0); 
                         document.getElementById("authScreen").style.display = "none";
                         
@@ -724,7 +705,7 @@
                 if(password.length < 8) { showCustomAlert("La password deve essere lunga almeno 8 caratteri!"); return; }
                 if(!/[A-Z]/.test(password)) { showCustomAlert("La password deve contenere almeno una lettera MAIUSCOLA!"); return; }
                 if(!/\d/.test(password)) { showCustomAlert("La password deve contenere almeno un NUMERO!"); return; }
-                if(!/[!?$%&]/.test(password)) { showCustomAlert("La password deve contenere almeno un carattere SPECIALE tra questi: ! ? $ % &"); return; }
+                if(!/[Credentials]/.test(password)) { showCustomAlert("La password deve contenere almeno un carattere SPECIALE tra questi: ! ? $ % &"); return; }
 
                 auth.createUserWithEmailAndPassword(email, password)
                     .then((userCredential) => {
@@ -747,33 +728,6 @@
                 }
             }
         }
-        function logoutUser() { localStorage.removeItem('beerdex_currentPage'); auth.signOut().then(() => { window.location.reload(); }); }
-
-        function changeUserNickname() {
-            const newNick = document.getElementById("newNicknameInput").value.trim();
-            if(newNick.length < 3) { showCustomAlert("Il nickname deve avere almeno 3 caratteri."); return; }
-            if(newNick.toLowerCase() === currentUserNick.toLowerCase()) { showCustomAlert("È già il tuo nickname!"); return; }
-
-            db.ref('usernames_emails/' + newNick.toLowerCase()).once('value').then(snap => {
-                if(snap.exists()) { showCustomAlert("Questo nickname è già in uso da un altro utente!"); return; }
-                const uid = auth.currentUser.uid;
-                let updates = {};
-                updates['users_directory/' + uid] = newNick;
-                updates['usernames_emails/' + newNick.toLowerCase()] = currentUserEmail;
-                updates['usernames_emails/' + currentUserNick.toLowerCase()] = null;
-                updates['leaderboard_scores/' + newNick] = globalLeaderboardScores[currentUserNick] || 0;
-                updates['leaderboard_scores/' + currentUserNick] = null;
-                if(Object.keys(myPokedex).length > 0) { updates['pokedex_profiles/' + newNick] = myPokedex; updates['pokedex_profiles/' + currentUserNick] = null; }
-                if(myFriendsList.length > 0) { updates['users_friends/' + newNick] = Object.fromEntries(myFriendsList.map(f => [f, true])); updates['users_friends/' + currentUserNick] = null; }
-                myFriendsList.forEach(f => { updates['users_friends/' + f + '/' + newNick] = true; updates['users_friends/' + f + '/' + currentUserNick] = null; });
-                globalPosts.forEach(p => { if(p.user === currentUserNick) { updates['social_timeline/' + p.postId + '/user'] = newNick; } });
-
-                db.ref().update(updates).then(() => { showCustomAlert("Nickname aggiornato!", "Fatto", () => { window.location.reload(); }); });
-            });
-        }
-
-        // --- NAVIGAZIONE ---
-        let currentLeaderboardTab = 'friends'; let currentFriendsTab = 'received';
         function navigateTo(pageId) {
             document.querySelectorAll('.page-view').forEach(p => p.classList.remove('active'));
             const targetPage = document.getElementById(pageId);
@@ -867,13 +821,11 @@
             const now = new Date();
             const month = now.getMonth() + 1; 
             let activeEvent = null;
-
             if (month === 3) {
                 activeEvent = { id: "stpatrick", name: "🍀 San Patrizio", desc: "Mese di Marzo! Sblocca 2 varianti irlandesi o scozzesi per vincere la medaglia!" };
             } else if (month === 9 || month === 10) {
                 activeEvent = { id: "oktoberfest", name: "🥨 Oktoberfest", desc: "Periodo Oktoberfest! Sblocca 3 varianti tedesche tra Settembre e Ottobre!" };
             }
-
             const box = document.getElementById("dashEventBox");
             const txt = document.getElementById("dashEventText");
             if (box && txt) {
@@ -893,7 +845,6 @@
             const now = new Date();
             const month = now.getMonth() + 1;
             let currentYear = now.getFullYear();
-
             if (month === 3) { 
                 let count = userPosts.filter(p => {
                     let pDate = new Date(p.time);
@@ -916,7 +867,6 @@
             event.stopPropagation(); const file = event.target.files[0]; if (!file) return;
             let currentLat = null; let currentLng = null; let isShiny = false;
             const targetBeer = beers.find(b => b.brand === brand);
-
             if(navigator.geolocation) {
                 navigator.geolocation.getCurrentPosition((position) => {
                     currentLat = position.coords.latitude; currentLng = position.coords.longitude;
@@ -938,31 +888,25 @@
                         if (width > height) { if (width > MAX_SIZE) { height *= MAX_SIZE / width; width = MAX_SIZE; } } else { if (height > MAX_SIZE) { width *= MAX_SIZE / height; height = MAX_SIZE; } }
                         canvas.width = width; canvas.height = height;
                         const ctx = canvas.getContext('2d'); ctx.drawImage(img, 0, 0, width, height);
-
                         const imgData = ctx.getImageData(0, 0, width, height); const data = imgData.data; let totalBrightness = 0;
                         for (let i = 0; i < data.length; i += 4) { totalBrightness += (data[i] + data[i+1] + data[i+2]) / 3; }
                         if ((totalBrightness / (data.length / 4)) < 20) { showCustomAlert("🚨 Immagine troppo scura! Riprova con più luce.", "Foto Respinta"); return; }
-
                         document.getElementById('progressText').innerText = "🤖 Analisi Forma (AI) in corso...";
 
                         aiModel.detect(canvas).then(predictions => {
                             let isDrink = false; predictions.forEach(p => { if(p.class === 'bottle' || p.class === 'cup' || p.class === 'wine glass') isDrink = true; });
                             if (!isDrink) { showCustomAlert("🚨 Non vedo bottiglie o bicchieri veri.", "AI Anti-Cheat"); updateStats(); return; }
-
                             document.getElementById('progressText').innerText = "🔍 Lettura etichetta in corso...";
                             Tesseract.recognize(canvas, 'ita+eng').then(({ data: { text } }) => {
                                 const extractedText = text.toLowerCase(); const brandWord = brand.toLowerCase().split(' ')[0];
-                                
                                 if (extractedText.includes(brandWord) || extractedText.replace(/\s/g, '').includes(brandWord)) {
                                     const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.6);
                                     const uniqueId = brand + '-' + variant;
                                     const pokedexEntry = { photo: compressedDataUrl, isShiny: isShiny, brand: brand };
-                                    
                                     db.ref('pokedex_profiles/' + currentUserNick + '/' + uniqueId).set(pokedexEntry).then(() => {
                                         const newPostRef = db.ref('social_timeline').push();
                                         let postData = { user: currentUserNick, brand: brand, variant: variant, photo: compressedDataUrl, time: new Date().getTime(), isShiny: isShiny };
                                         if(currentLat !== null && currentLng !== null) { postData.lat = currentLat; postData.lng = currentLng; }
-                                        
                                         newPostRef.set(postData).then(() => {
                                             recalculateTotalScore(currentUserNick);
                                             let msg = `Birra sbloccata con successo! (+${getBeerPoints(brand, isShiny)} Punti)`;
@@ -988,7 +932,6 @@
                 let totalScore = 0;
                 let brandUnlockCounts = {};
                 beers.forEach(b => { brandUnlockCounts[b.brand] = 0; });
-
                 if(snap.exists()) {
                     const profileData = snap.val();
                     for(let uniqueId in profileData) {
@@ -999,11 +942,8 @@
                         if (brandUnlockCounts[bName] !== undefined) brandUnlockCounts[bName]++;
                     }
                 }
-
                 beers.forEach(beer => {
-                    if(brandUnlockCounts[beer.brand] === beer.variants.length && beer.variants.length > 0) {
-                        totalScore += 10; 
-                    }
+                    if(brandUnlockCounts[beer.brand] === beer.variants.length && beer.variants.length > 0) { totalScore += 10; }
                 });
                 db.ref('leaderboard_scores/' + username).set(totalScore);
             });
@@ -1056,7 +996,6 @@
                 const card = document.createElement('div'); card.className = 'card'; card.id = 'card-' + realIndex; card.setAttribute('onclick', 'toggleCard(this)');
                 let rClass = `rarity-${beer.rarity}`;
                 let pointsTip = beer.rarity === 'comune' ? '1 PT' : (beer.rarity === 'media' ? '2 PT' : '5 PT');
-
                 card.innerHTML = `
                     <div class="toggle-icon">▼</div>
                     <span class="region">${beer.flag} ${beer.country}</span>
@@ -1073,9 +1012,7 @@
             let totalPoints = globalLeaderboardScores[currentUserNick] || 0;
             const progressEl = document.getElementById('progressText');
             if (progressEl) progressEl.innerText = `Punteggio: ${totalPoints} 🏆`;
-            
             updateUserBoxUI(totalPoints);
-
             if(document.getElementById('dashProgressText')) {
                 document.getElementById('dashProgressText').innerText = `${totalPoints} 🏆`;
                 let rankLabel = getUserRankTitle(totalPoints);
@@ -1098,7 +1035,6 @@
             const grid = document.getElementById('trophyGrid'); 
             const medalsGrid = document.getElementById('brandMedalsGrid');
             if(!grid || !medalsGrid) return;
-            
             grid.innerHTML = ''; medalsGrid.innerHTML = '';
             let brandUnlockCounts = {};
             beers.forEach(b => { brandUnlockCounts[b.brand] = 0; });
@@ -1109,7 +1045,6 @@
                     let entry = myPokedex ? myPokedex[uniqueId] : undefined; 
                     let isUnlocked = entry !== undefined;
                     if(isUnlocked) brandUnlockCounts[beer.brand]++;
-                    
                     let trophyDiv = document.createElement('div'); trophyDiv.className = `trophy-card ${isUnlocked ? 'unlocked' : ''}`;
                     let pUrl = isUnlocked ? (entry.photo || entry) : '';
                     let imageContent = isUnlocked ? `<img src="${pUrl}" alt="${variant}">` : `🔒`;
@@ -1175,7 +1110,6 @@
             checkTimedEvents();
             const welcomeEl = document.getElementById('dashWelcomeName');
             if (welcomeEl) welcomeEl.innerText = currentUserNick;
-            
             const dashLastBeer = document.getElementById('dashLastBeer');
             if (!dashLastBeer) return;
             
@@ -1204,7 +1138,7 @@
             });
 
             db.ref('users_friends/' + currentUserNick).on('value', (snapshot) => {
-                myFriendsList = Object.keys(snapshot.val() || {});
+                myFriendsList = snapshot.exists() ? Object.keys(snapshot.val()) : [];
                 const activeView = document.querySelector('.page-view.active');
                 if(activeView && activeView.id === 'page-social') renderSocialFeed();
                 if(activeView && activeView.id === 'page-leaderboard') renderLeaderboard();
@@ -1212,7 +1146,7 @@
             });
 
             db.ref('friend_requests/' + currentUserNick).on('value', (snapshot) => {
-                myReceivedRequests = Object.keys(snapshot.val() || {});
+                myReceivedRequests = snapshot.exists() ? Object.keys(snapshot.val()) : [];
                 const sidebarBadge = document.getElementById('sidebarBeerBadge');
                 const tabBadge = document.getElementById('tabBeerBadge');
                 
@@ -1229,20 +1163,23 @@
             });
 
             db.ref('friend_requests_sent/' + currentUserNick).on('value', (snapshot) => {
-                mySentRequests = Object.keys(snapshot.val() || {});
+                mySentRequests = snapshot.exists() ? Object.keys(snapshot.val()) : [];
                 const activeView = document.querySelector('.page-view.active');
                 if(activeView && activeView.id === 'page-leaderboard') renderLeaderboard();
                 if(activeView && activeView.id === 'page-friends') renderFriendsManager();
             });
 
             db.ref('friend_requests_rejected/' + currentUserNick).on('value', (snapshot) => {
-                myRejectedRequests = Object.keys(snapshot.val() || {});
+                myRejectedRequests = snapshot.exists() ? Object.keys(snapshot.val()) : [];
                 const activeView = document.querySelector('.page-view.active');
                 if(activeView && activeView.id === 'page-friends') renderFriendsManager();
             });
 
             db.ref('social_timeline').limitToLast(100).on('value', (snapshot) => {
-                globalPosts = []; snapshot.forEach(child => { let p = child.val(); p.postId = child.key; globalPosts.push(p); });
+                globalPosts = []; 
+                if(snapshot.exists()) {
+                    snapshot.forEach(child => { let p = child.val(); p.postId = child.key; globalPosts.push(p); });
+                }
                 const activeView = document.querySelector('.page-view.active');
                 if(activeView && activeView.id === 'page-home') renderDashboard();
                 if(activeView && activeView.id === 'page-social') renderSocialFeed();
@@ -1278,19 +1215,66 @@
             }
         });
 
+        function searchUser() {
+            let friendName = document.getElementById('friendInput').value.trim();
+            let resultArea = document.getElementById('searchResultArea'); if(!resultArea) return;
+            resultArea.innerHTML = '';
+            if(!friendName) return;
+            if(friendName.toLowerCase() === currentUserNick.toLowerCase()) { 
+                resultArea.innerHTML = '<p style="color:var(--danger); text-align:center; font-size:14px; font-weight:bold;">Non puoi cercare te stesso!</p>'; return; 
+            }
+            let exactName = null;
+            for (let name in globalLeaderboardScores) { if(name.toLowerCase() === friendName.toLowerCase()) { exactName = name; break; } }
+            if(exactName) {
+                let actionsHtml = '';
+                if (myFriendsList.includes(exactName)) { actionsHtml = `<span class="badge-status" style="color:var(--social-blue);">🤝 Già Amici</span>`; } 
+                else if (mySentRequests.includes(exactName)) { actionsHtml = `<span class="badge-status" style="color:var(--text-muted);">⏳ In attesa</span>`; } 
+                else if (myReceivedRequests.includes(exactName)) { actionsHtml = `<button class="btn-action btn-accept" onclick="navigateTo('page-friends')">Rispondi</button>`; } 
+                else { actionsHtml = `<button class="btn-action btn-add" onclick="sendFriendRequestFromSearch('${exactName}')">➕ Aggiungi</button>`; }
+                resultArea.innerHTML = `<div class="search-result-card"><div style="font-weight: bold; font-size:18px; color:var(--dark);">👤 ${exactName}</div><div>${actionsHtml}</div></div>`;
+            } else { resultArea.innerHTML = '<p style="color:var(--danger); text-align:center; font-size:14px; font-weight:bold;">Utente non trovato.</p>'; }
+        }
+
+        function sendFriendRequestFromSearch(targetNick) { sendFriendRequest(targetNick); setTimeout(searchUser, 300); }
+        function sendFriendRequest(targetNick) { db.ref('friend_requests/' + targetNick + '/' + currentUserNick).set(true); db.ref('friend_requests_sent/' + currentUserNick + '/' + targetNick).set(true); }
+        function acceptFriendRequest(senderNick) { db.ref('users_friends/' + currentUserNick + '/' + senderNick).set(true); db.ref('users_friends/' + senderNick + '/' + currentUserNick).set(true); db.ref('friend_requests/' + currentUserNick + '/' + senderNick).remove(); db.ref('friend_requests_sent/' + senderNick + '/' + currentUserNick).remove(); db.ref('friend_requests_rejected/' + currentUserNick + '/' + senderNick).remove(); }
+        function rejectFriendRequest(senderNick) { db.ref('friend_requests/' + currentUserNick + '/' + senderNick).remove(); db.ref('friend_requests_sent/' + senderNick + '/' + currentUserNick).remove(); db.ref('friend_requests_rejected/' + currentUserNick + '/' + senderNick).set(true); }
+        function cancelSentRequest(targetNick) { db.ref('friend_requests/' + targetNick + '/' + currentUserNick).remove(); db.ref('friend_requests_sent/' + currentUserNick + '/' + targetNick).remove(); }
+        function removeFriend(friendNick) { showCustomConfirm(`Vuoi davvero rimuovere ${friendNick}?`, "Rimuovi Amico", () => { db.ref('users_friends/' + currentUserNick + '/' + friendNick).remove(); db.ref('users_friends/' + friendNick + '/' + currentUserNick).remove(); }); }
+        function restoreRejectedRequest(senderNick) { db.ref('friend_requests_rejected/' + currentUserNick + '/' + senderNick).remove(); acceptFriendRequest(senderNick); }
+
+        function renderFriendsManager() {
+            const list = document.getElementById('friendsManagerList'); if(!list) return;
+            list.innerHTML = '';
+            if (currentFriendsTab === 'received') {
+                if (!myReceivedRequests || myReceivedRequests.length === 0) { list.innerHTML = '<p style="text-align:center;">Nessuna richiesta.</p>'; return; }
+                myReceivedRequests.forEach(sender => { let item = document.createElement('div'); item.className = 'list-item'; item.innerHTML = `<div class="lb-user">📩 ${sender}</div><div style="display:flex; gap:10px;"><button class="btn-action btn-accept" onclick="acceptFriendRequest('${sender}')">✔️ Accetta</button><button class="btn-action btn-reject" onclick="rejectFriendRequest('${sender}')">❌ Rifiuta</button></div>`; list.appendChild(item); });
+            } else if (currentFriendsTab === 'sent') {
+                if (!mySentRequests || mySentRequests.length === 0) { list.innerHTML = '<p style="text-align:center;">Nessuna richiesta inviata.</p>'; return; }
+                mySentRequests.forEach(target => { let item = document.createElement('div'); item.className = 'list-item'; item.innerHTML = `<div class="lb-user">📤 ${target}</div><button class="btn-action btn-cancel" onclick="cancelSentRequest('${target}')">Annulla</button>`; list.appendChild(item); });
+            } else if (currentFriendsTab === 'accepted') {
+                if (!myFriendsList || myFriendsList.length === 0) { list.innerHTML = '<p style="text-align:center;">Nessun amico.</p>'; return; }
+                myFriendsList.forEach(friend => { let item = document.createElement('div'); item.className = 'list-item'; item.innerHTML = `<div class="lb-user">🤝 ${friend}</div><button class="btn-action btn-reject" onclick="removeFriend('${friend}')">Rimuovi</button>`; list.appendChild(item); });
+            } else if (currentFriendsTab === 'rejected') {
+                if (!myRejectedRequests || myRejectedRequests.length === 0) { list.innerHTML = '<p style="text-align:center;">Nessun utente rifiutato.</p>'; return; }
+                myRejectedRequests.forEach(sender => { let item = document.createElement('div'); item.className = 'list-item'; item.innerHTML = `<div class="lb-user">❌ ${sender}</div><button class="btn-action btn-accept" onclick="restoreRejectedRequest('${sender}')">Sblocca</button>`; list.appendChild(item); });
+            }
+        }
+
+        let currentFilter = 'Tutte'; 
+        function setFilter(country) { currentFilter = country; filterBeers(); navigateTo('page-explore'); }
+        function filterBeers() { const searchInput = document.getElementById('searchBar'); const searchTerm = searchInput ? searchInput.value.toLowerCase() : ''; const filtered = beers.filter(beer => { const variantsText = beer.variants.join(' ').toLowerCase(); const matchSearch = beer.brand.toLowerCase().includes(searchTerm) || beer.desc.toLowerCase().includes(searchTerm) || variantsText.includes(searchTerm); const matchRegion = currentFilter === 'Tutte' || beer.country === currentFilter; return matchSearch && matchRegion; }); displayBeers(filtered); }
+
+        displayBeers(beers);
+
         // --- REGISTRAZIONE SERVICE WORKER PER PWA ---
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
                 navigator.serviceWorker.register('/sw.js')
-                    .then(reg => console.log(' PWA BeerDex registrata con successo!', reg.scope))
-                    .catch(err => console.error(' Errore registrazione PWA:', err));
+                    .then(reg => console.log('PWA BeerDex registrata con successo!', reg.scope))
+                    .catch(err => console.error('Errore registrazione PWA:', err));
             });
         }
     </script>
-<script>
-if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('/sw.js');
-}
-</script>
 </body>
 </html>
