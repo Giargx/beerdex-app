@@ -31,13 +31,13 @@
             --danger: #e74c3c;
         }
         
-        /* Modifica margini body per fare spazio alle Top/Bottom Bar */
         body { font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: var(--light); color: var(--dark); margin: 0; padding-top: 60px; padding-bottom: 75px; overflow-x: hidden; }
 
-        /* TOP BAR */
+        /* TOP BAR AGGIORNATA (Logo centrato) */
         .top-bar { position: fixed; top: 0; left: 0; width: 100%; height: 60px; background: var(--white); box-shadow: 0 2px 10px rgba(0,0,0,0.05); display: flex; justify-content: space-between; align-items: center; padding: 0 20px; box-sizing: border-box; z-index: 1000; }
-        .top-bar-logo { font-size: 20px; font-weight: 900; color: var(--primary-dark); letter-spacing: -0.5px; }
-        .top-bar-actions { display: flex; gap: 20px; align-items: center; }
+        .top-bar-side { display: flex; gap: 20px; align-items: center; width: 80px; }
+        .top-bar-side.right { justify-content: flex-end; }
+        .top-bar-logo { font-size: 22px; font-weight: 900; color: var(--primary-dark); letter-spacing: -0.5px; position: absolute; left: 50%; transform: translateX(-50%); }
         .top-action-btn { background: none; border: none; font-size: 24px; cursor: pointer; position: relative; padding: 0; color: var(--dark); transition: transform 0.2s;}
         .top-action-btn:hover { transform: scale(1.1); }
         .top-badge { position: absolute; top: -5px; right: -8px; font-size: 10px; background: var(--danger); color: white; border-radius: 50%; padding: 2px 5px; font-weight: bold; animation: bounce 1s infinite; display: none;}
@@ -214,10 +214,12 @@
 <body>
 
     <div class="top-bar">
-        <div class="top-bar-logo">🍻 BeerDex</div>
-        <div class="top-bar-actions">
+        <div class="top-bar-side">
             <button class="top-action-btn" onclick="navigateTo('page-map')" title="Mappa Sblocchi">🗺️</button>
             <button class="top-action-btn" onclick="navigateTo('page-leaderboard')" title="Classifica Globale">🏅</button>
+        </div>
+        <div class="top-bar-logo">🍻 BeerDex</div>
+        <div class="top-bar-side right">
             <button class="top-action-btn" onclick="navigateTo('page-friends')" title="Gestione Amici">
                 🤝<span class="top-badge" id="topBeerBadge">!</span>
             </button>
@@ -408,6 +410,7 @@
             </div>
         </div>
 
+        <!-- NUOVA PAGINA PROFILO / IMPOSTAZIONI -->
         <div id="page-settings" class="page-view">
             <header class="hero">
                 <h1>⚙️ Il Tuo Profilo</h1>
@@ -417,10 +420,14 @@
                 
                 <div class="profile-user-box" id="settingsUserBox">Caricamento...</div>
 
-                <h3 style="margin-top:30px;">Cambia Nickname</h3>
-                <p style="font-size:13px; color:var(--danger); font-weight:bold;">Attenzione: L'aggiornamento modificherà i tuoi post passati e aggiornerà le liste dei tuoi amici automaticamente.</p>
-                <input type="text" id="newNicknameInput" placeholder="Nuovo Nickname..." style="width:100%; padding:12px; border-radius:10px; border:2px solid var(--gray); margin-bottom:10px; box-sizing:border-box;">
-                <button class="btn-main" onclick="changeUserNickname()" style="margin-top:0;">Salva Nuovo Nickname</button>
+                <button class="btn-secondary" onclick="toggleNicknameSection()">✏️ Opzioni Account</button>
+                
+                <div id="nicknameSection" style="display:none; margin-top:15px; padding: 20px; background: var(--gray); border-radius: 16px;">
+                    <h4 style="margin-top:0;">Cambia Nickname</h4>
+                    <p style="font-size:12px; color:var(--danger); font-weight:bold;">Attenzione: L'aggiornamento modificherà i tuoi post passati e aggiornerà le liste dei tuoi amici automaticamente.</p>
+                    <input type="text" id="newNicknameInput" placeholder="Nuovo Nickname..." style="width:100%; padding:12px; border-radius:10px; border:2px solid #bdc3c7; margin-bottom:10px; box-sizing:border-box;">
+                    <button class="btn-main" onclick="changeUserNickname()" style="margin-top:0;">Salva Nuovo Nickname</button>
+                </div>
                 
                 <hr style="border:none; border-top:1px solid var(--gray); margin:30px 0;">
                 
@@ -558,10 +565,8 @@
         let currentFriendsTab = 'received';
         
         function navigateTo(pageId) {
-            // Nasconde tutte le pagine
             document.querySelectorAll('.page-view').forEach(p => p.classList.remove('active'));
             
-            // Trova e mostra la pagina target
             const targetPage = document.getElementById(pageId);
             if(targetPage) { 
                 targetPage.classList.add('active'); 
@@ -571,18 +576,16 @@
                 pageId = 'page-home';
             }
             
-            // Aggiorna icone Bottom Nav
             document.querySelectorAll('.nav-item').forEach(nav => nav.classList.remove('active'));
             const activeNav = document.getElementById('nav-' + pageId);
             if(activeNav) activeNav.classList.add('active');
 
-            // Trigger specifici di rendering per pagina
             if(pageId === 'page-home') renderDashboard(); 
             if(pageId === 'page-explore') displayBeers(beers);
             if(pageId === 'page-profile') renderTrophies(); 
             if(pageId === 'page-map') {
                 renderMap();
-                setTimeout(() => { if(map) map.invalidateSize(); }, 300); // FIX FORZATURA LEAFLET
+                setTimeout(() => { if(map) map.invalidateSize(); }, 300); 
             }
             if(pageId === 'page-social') renderSocialFeed();
             if(pageId === 'page-leaderboard') renderLeaderboard();
@@ -592,6 +595,11 @@
 
         function switchLeaderboardTab(tabName) { currentLeaderboardTab = tabName; document.getElementById('tab-friends').classList.toggle('active', tabName === 'friends'); document.getElementById('tab-global').classList.toggle('active', tabName === 'global'); document.getElementById('friendSearchWrapper').style.display = (tabName === 'global') ? 'block' : 'none'; renderLeaderboard(); }
         function switchFriendsTab(tabName) { currentFriendsTab = tabName; document.getElementById('tab-req-received').classList.toggle('active', tabName === 'received'); document.getElementById('tab-req-sent').classList.toggle('active', tabName === 'sent'); document.getElementById('tab-req-accepted').classList.toggle('active', tabName === 'accepted'); document.getElementById('tab-req-rejected').classList.toggle('active', tabName === 'rejected'); renderFriendsManager(); }
+        
+        function toggleNicknameSection() {
+            const sec = document.getElementById('nicknameSection');
+            sec.style.display = sec.style.display === 'none' ? 'block' : 'none';
+        }
 
         // --- COSTANTI E CONFIGURAZIONI ---
         const ADMIN_EMAIL = "barcello.luca02@gmail.com".toLowerCase(); 
@@ -702,22 +710,6 @@
         }
         checkAgeGate();
 
-        function updateUserBoxUI(score) {
-            let roleText = isAdminUser ? "👑 ADMIN" : "👤 UTENTE";
-            let roleColor = isAdminUser ? "var(--danger)" : "var(--text-muted)";
-            let rankTitle = getUserRankTitle(score);
-            
-            const box = document.getElementById("settingsUserBox");
-            if (box) {
-                box.innerHTML = `
-                    <div style="font-size:12px; letter-spacing:1px; color:${roleColor}; margin-bottom:5px;">${roleText}</div>
-                    <div style="font-size:26px; color:var(--primary-dark); font-weight:900; margin-bottom: 5px;">${currentUserNick}</div>
-                    <div class="user-rank-title" style="margin-bottom:15px; font-size:13px; padding: 5px 12px;">${rankTitle}</div>
-                    <div style="font-size:12px; color:var(--text-muted); font-weight:normal;">Email collegata: <br><strong>${currentUserEmail}</strong></div>
-                `;
-            }
-        }
-
         let isRegisterMode = false;
         function resetPassword() {
             const email = prompt("Inserisci l'indirizzo Email:");
@@ -806,7 +798,7 @@
             });
         }
 
-        // --- DATABASE BIRRE ---
+        // --- DATABASE BIRRE (Con Rarità Aggiunta per Raffo) ---
         const beers = [
             { brand: "Beck's", country: "Germania", flag: "🇩🇪", rarity: "comune", desc: "Classica pilsner tedesca (Brema).", variants: ["Pilsner", "Blue (Analcolica)", "Lemon", "Green Lemon", "Unfiltered"] },
             { brand: "Carlsberg", country: "Danimarca", flag: "🇩🇰", rarity: "comune", desc: "Colosso industriale danese.", variants: ["Pilsner", "Elephant", "Special Brew"] },
@@ -841,7 +833,7 @@
             { brand: "Paulaner", country: "Germania", flag: "🇩🇪", rarity: "media", desc: "Grande protagonista dell'Oktoberfest.", variants: ["Hefe-Weißbier Naturtrüb", "Oktoberfest Bier", "Münchner Hell", "Salvator"] },
             { brand: "Pedavena", country: "Italia", flag: "🇮🇹", rarity: "media", desc: "Antica tradizione bellunese (Veneto).", variants: ["Pils", "Lager", "Speciale", "Bock", "8 Gradi"] },
             { brand: "Pilsner Urquell", country: "Repubblica Ceca", flag: "🇨🇿", rarity: "media", desc: "La madre di tutte le birre bionde.", variants: ["Original Lager"] },
-            { brand: "Raffo", country: "Italia", flag: "🇮🇹", desc: "La 'birra dei due mari', simbolo della città di Taranto.", variants: ["Classica", "Lavorazione Grezza"] },
+            { brand: "Raffo", country: "Italia", flag: "🇮🇹", rarity: "media", desc: "La 'birra dei due mari', simbolo della città di Taranto.", variants: ["Classica", "Lavorazione Grezza"] },
             { brand: "Super Bock", country: "Portogallo", flag: "🇵🇹", rarity: "media", desc: "La birra più famosa del Portogallo.", variants: ["Original", "Abadia", "Stout"] },
             { brand: "Tennent's", country: "Scozia", flag: "🏴󠁧󠁢󠁳󠁣󠁴󠁿", rarity: "media", desc: "Storico marchio scozzese.", variants: ["Super", "Extra", "1885 Lager", "Scotch Ale"] },
             { brand: "Baladin", country: "Italia", flag: "🇮🇹", rarity: "rara", desc: "Pioniere della birra artigianale italiana (Piemonte).", variants: ["Isaac (Blanche)", "Wayan (Saison)", "Nora (Speziata)", "Super Bitter", "Leon", "Nazionale", "L'IPPA", "Rock'n'Roll"] },
@@ -863,9 +855,40 @@
         ];
         beers.sort((a, b) => a.brand.localeCompare(b.brand));
 
-        function getBeerPoints(brandName, isShiny) {
-            const beer = beers.find(b => b.brand === brandName); if(!beer) return 1;
-            let base = 1; if(beer.rarity === "media") base = 2; if(beer.rarity === "rara") base = 5;
+        // --- GESTORE PUNTI SINGOLA VARIANTE ---
+        function getBasePoints(brandName, variantName) {
+            let base = 1;
+            const beer = beers.find(b => b.brand === brandName);
+            if (beer) {
+                if (beer.rarity === "media") base = 2;
+                if (beer.rarity === "rara") base = 5;
+            }
+            
+            // Override Punti Specifici per varianti speciali di brand comuni/medi
+            if (brandName === "Ichnusa") {
+                if (variantName === "Non Filtrata" || variantName === "Ambra Limpidissima") return 3;
+            }
+            if (brandName === "Moretti") {
+                if (variantName === "La Rossa" || variantName === "IPA" || variantName === "Bianca" || variantName === "Lunga Maturazione") return 2;
+            }
+            if (brandName === "Peroni") {
+                if (variantName.includes("Gran Riserva")) return 3;
+                if (variantName === "Non Filtrata" || variantName === "Cruda") return 2;
+            }
+            if (brandName === "Poretti") {
+                if (variantName === "7 Luppoli" || variantName === "8 Luppoli" || variantName === "Le 9 Luppoli (IPA)") return 3;
+                if (variantName === "5 Luppoli Bock" || variantName === "6 Luppoli Rossa") return 2;
+            }
+            if (brandName === "Raffo") {
+                if (variantName === "Lavorazione Grezza") return 3;
+                return 2;
+            }
+
+            return base;
+        }
+
+        function getBeerPoints(brandName, variantName, isShiny) {
+            let base = getBasePoints(brandName, variantName);
             return isShiny ? base * 2 : base;
         }
 
@@ -964,7 +987,6 @@
                             return; 
                         }
                         
-                        // FIX: Usiamo l'ID corretto "aiStatusMini" invece di "progressText" che non esiste
                         const aiStatus = document.getElementById('aiStatusMini');
                         if(aiStatus) aiStatus.innerText = "🤖 Analisi Forma (AI) in corso...";
 
@@ -976,7 +998,7 @@
                             
                             if (!isDrink) { 
                                 showCustomAlert("🚨 Non vedo bottiglie o bicchieri veri.", "AI Anti-Cheat"); 
-                                if(aiStatus) aiStatus.innerText = "🤖 AI Anti-Cheat: Pronto e Attivo"; // Reset
+                                if(aiStatus) aiStatus.innerText = "🤖 AI Anti-Cheat: Pronto e Attivo";
                                 updateStats(); 
                                 return; 
                             }
@@ -999,15 +1021,15 @@
                                         
                                         newPostRef.set(postData).then(() => {
                                             recalculateTotalScore(currentUserNick);
-                                            let msg = `Birra sbloccata con successo! (+${getBeerPoints(brand, isShiny)} Punti)`;
+                                            let msg = `Birra sbloccata con successo! (+${getBeerPoints(brand, variant, isShiny)} Punti)`;
                                             if(isShiny) msg += " ✨ SBLOCCO SHINY IN TRASFERTA COMPLETATO!";
                                             showCustomAlert(msg, "✅ Conquistata!");
-                                            if(aiStatus) aiStatus.innerText = "🤖 AI Anti-Cheat: Pronto e Attivo"; // Reset
+                                            if(aiStatus) aiStatus.innerText = "🤖 AI Anti-Cheat: Pronto e Attivo";
                                         });
                                     });
                                 } else {
                                     showCustomAlert(`L'AI non riesce a leggere la scritta "${brand}" sull'etichetta.`, "AI Anti-Cheat");
-                                    if(aiStatus) aiStatus.innerText = "🤖 AI Anti-Cheat: Pronto e Attivo"; // Reset
+                                    if(aiStatus) aiStatus.innerText = "🤖 AI Anti-Cheat: Pronto e Attivo";
                                     updateStats();
                                 }
                             });
@@ -1017,7 +1039,7 @@
                 };
                 reader.readAsDataURL(file);
             }
-        } // <---- QUESTA ERA LA PARENTESI GRAFFA MANCANTE CHE HA FATTO CRASHARE TUTTO!
+        }
 
         function recalculateTotalScore(username) {
             db.ref('pokedex_profiles/' + username).once('value').then(snap => {
@@ -1029,8 +1051,9 @@
                     for(let uniqueId in profileData) {
                         const entry = profileData[uniqueId];
                         let bName = entry.brand || uniqueId.split('-')[0];
+                        let vName = uniqueId.substring(bName.length + 1); // Estrae il nome variante superando il trattino
                         let isShiny = entry.isShiny || false;
-                        totalScore += getBeerPoints(bName, isShiny);
+                        totalScore += getBeerPoints(bName, vName, isShiny);
                         if (brandUnlockCounts[bName] !== undefined) brandUnlockCounts[bName]++;
                     }
                 }
@@ -1061,9 +1084,10 @@
             variantsArray.forEach(variant => {
                 let uniqueId = brand + '-' + variant; 
                 let hasPhoto = myPokedex && myPokedex[uniqueId] !== undefined;
+                let specificPts = getBasePoints(brand, variant);
                 listHTML += `
                 <div class="variant-item" onclick="event.stopPropagation()">
-                    <span style="flex-grow: 1; font-weight: 500;">${variant}</span>
+                    <span style="flex-grow: 1; font-weight: 500;">${variant} <span style="font-size:11px; color:var(--text-muted); font-weight:bold;">(${specificPts} pt)</span></span>
                     ${hasPhoto ? `
                         <div class="unlocked-status">
                             <span>✔ ${myPokedex[uniqueId].isShiny ? '✨ Shiny' : 'Sbloccato'}</span>
@@ -1087,11 +1111,10 @@
                 let realIndex = beers.findIndex(b => b.brand === beer.brand);
                 const card = document.createElement('div'); card.className = 'card'; card.id = 'card-' + realIndex; card.setAttribute('onclick', 'toggleCard(this)');
                 let rClass = `rarity-${beer.rarity}`;
-                let pointsTip = beer.rarity === 'comune' ? '1 PT' : (beer.rarity === 'media' ? '2 PT' : '5 PT');
                 card.innerHTML = `
                     <div class="toggle-icon">▼</div>
                     <span class="region">${beer.flag} ${beer.country}</span>
-                    <span class="rarity-badge ${rClass}">${beer.rarity} (${pointsTip})</span>
+                    <span class="rarity-badge ${rClass}">${beer.rarity}</span>
                     <h2>${beer.brand} <span class="trophy" style="display:none;">🏆</span></h2><div class="desc">${beer.desc}</div>
                     <div class="variants-container"><div class="variants" onclick="event.stopPropagation()"><p>📸 Varianti da trovare:</p>${generateVariantsHTML(beer.brand, beer.variants)}</div></div>
                 `;
@@ -1365,7 +1388,6 @@
 
         displayBeers(beers);
 
-        // --- REGISTRAZIONE SERVICE WORKER CON SVUOTAMENTO CACHE AUTOMATICO AD OGNI NUOVO DEPLOY ---
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
                 navigator.serviceWorker.register('/sw.js')
