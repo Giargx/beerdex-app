@@ -932,53 +932,90 @@
             } else { processPhoto(); }
 
             function processPhoto() {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    const img = new Image();
-                    img.onload = function() {
-                        const canvas = document.createElement('canvas'); const MAX_SIZE = 400;
-                        let width = img.width; let height = img.height;
-                        if (width > height) { if (width > MAX_SIZE) { height *= MAX_SIZE / width; width = MAX_SIZE; } } else { if (height > MAX_SIZE) { width *= MAX_SIZE / height; height = MAX_SIZE; } }
-                        canvas.width = width; canvas.height = height;
-                        const ctx = canvas.getContext('2d'); ctx.drawImage(img, 0, 0, width, height);
-                        const imgData = ctx.getImageData(0, 0, width, height); const data = imgData.data; let totalBrightness = 0;
-                        for (let i = 0; i < data.length; i += 4) { totalBrightness += (data[i] + data[i+1] + data[i+2]) / 3; }
-                        if ((totalBrightness / (data.length / 4)) < 20) { showCustomAlert("🚨 Immagine troppo scura! Riprova con più luce.", "Foto Respinta"); return; }
-                        document.getElementById('progressText').innerText = "🤖 Analisi Forma (AI) in corso...";
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        const img = new Image();
+        img.onload = function() {
+            const canvas = document.createElement('canvas'); 
+            const MAX_SIZE = 400;
+            let width = img.width; 
+            let height = img.height;
+            
+            if (width > height) { 
+                if (width > MAX_SIZE) { height *= MAX_SIZE / width; width = MAX_SIZE; } 
+            } else { 
+                if (height > MAX_SIZE) { width *= MAX_SIZE / height; height = MAX_SIZE; } 
+            }
+            
+            canvas.width = width; canvas.height = height;
+            const ctx = canvas.getContext('2d'); 
+            ctx.drawImage(img, 0, 0, width, height);
+            
+            const imgData = ctx.getImageData(0, 0, width, height); 
+            const data = imgData.data; 
+            let totalBrightness = 0;
+            
+            for (let i = 0; i < data.length; i += 4) { 
+                totalBrightness += (data[i] + data[i+1] + data[i+2]) / 3; 
+            }
+            if ((totalBrightness / (data.length / 4)) < 20) { 
+                showCustomAlert("🚨 Immagine troppo scura! Riprova con più luce.", "Foto Respinta"); 
+                return; 
+            }
+            
+            // FIX: Usiamo l'ID corretto "aiStatusMini" invece di "progressText" che non esiste
+            const aiStatus = document.getElementById('aiStatusMini');
+            if(aiStatus) aiStatus.innerText = "🤖 Analisi Forma (AI) in corso...";
 
-                        aiModel.detect(canvas).then(predictions => {
-                            let isDrink = false; predictions.forEach(p => { if(p.class === 'bottle' || p.class === 'cup' || p.class === 'wine glass') isDrink = true; });
-                            if (!isDrink) { showCustomAlert("🚨 Non vedo bottiglie o bicchieri veri.", "AI Anti-Cheat"); updateStats(); return; }
-                            document.getElementById('progressText').innerText = "🔍 Lettura etichetta in corso...";
-                            Tesseract.recognize(canvas, 'ita+eng').then(({ data: { text } }) => {
-                                const extractedText = text.toLowerCase(); const brandWord = brand.toLowerCase().split(' ')[0];
-                                if (extractedText.includes(brandWord) || extractedText.replace(/\s/g, '').includes(brandWord)) {
-                                    const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.6);
-                                    const uniqueId = brand + '-' + variant;
-                                    const pokedexEntry = { photo: compressedDataUrl, isShiny: isShiny, brand: brand };
-                                    db.ref('pokedex_profiles/' + currentUserNick + '/' + uniqueId).set(pokedexEntry).then(() => {
-                                        const newPostRef = db.ref('social_timeline').push();
-                                        let postData = { user: currentUserNick, brand: brand, variant: variant, photo: compressedDataUrl, time: new Date().getTime(), isShiny: isShiny };
-                                        if(currentLat !== null && currentLng !== null) { postData.lat = currentLat; postData.lng = currentLng; }
-                                        newPostRef.set(postData).then(() => {
-                                            recalculateTotalScore(currentUserNick);
-                                            let msg = `Birra sbloccata con successo! (+${getBeerPoints(brand, isShiny)} Punti)`;
-                                            if(isShiny) msg += " ✨ SBLOCCO SHINY IN TRASFERTA COMPLETATO!";
-                                            showCustomAlert(msg, "✅ Conquistata!");
-                                        });
-                                    });
-                                } else {
-                                    showCustomAlert(`L'AI non riesce a leggere la scritta "${brand}" sull'etichetta.`, "AI Anti-Cheat");
-                                    updateStats();
-                                }
+            aiModel.detect(canvas).then(predictions => {
+                let isDrink = false; 
+                predictions.forEach(p => { 
+                    if(p.class === 'bottle' || p.class === 'cup' || p.class === 'wine glass') isDrink = true; 
+                });
+                
+                if (!isDrink) { 
+                    showCustomAlert("🚨 Non vedo bottiglie o bicchieri veri.", "AI Anti-Cheat"); 
+                    if(aiStatus) aiStatus.innerText = "🤖 AI Anti-Cheat: Pronto e Attivo"; // Reset
+                    updateStats(); 
+                    return; 
+                }
+                
+                if(aiStatus) aiStatus.innerText = "🔍 Lettura etichetta in corso...";
+                
+                Tesseract.recognize(canvas, 'ita+eng').then(({ data: { text } }) => {
+                    const extractedText = text.toLowerCase(); 
+                    const brandWord = brand.toLowerCase().split(' ')[0];
+                    
+                    if (extractedText.includes(brandWord) || extractedText.replace(/\s/g, '').includes(brandWord)) {
+                        const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.6);
+                        const uniqueId = brand + '-' + variant;
+                        const pokedexEntry = { photo: compressedDataUrl, isShiny: isShiny, brand: brand };
+                        
+                        db.ref('pokedex_profiles/' + currentUserNick + '/' + uniqueId).set(pokedexEntry).then(() => {
+                            const newPostRef = db.ref('social_timeline').push();
+                            let postData = { user: currentUserNick, brand: brand, variant: variant, photo: compressedDataUrl, time: new Date().getTime(), isShiny: isShiny };
+                            if(currentLat !== null && currentLng !== null) { postData.lat = currentLat; postData.lng = currentLng; }
+                            
+                            newPostRef.set(postData).then(() => {
+                                recalculateTotalScore(currentUserNick);
+                                let msg = `Birra sbloccata con successo! (+${getBeerPoints(brand, isShiny)} Punti)`;
+                                if(isShiny) msg += " ✨ SBLOCCO SHINY IN TRASFERTA COMPLETATO!";
+                                showCustomAlert(msg, "✅ Conquistata!");
+                                if(aiStatus) aiStatus.innerText = "🤖 AI Anti-Cheat: Pronto e Attivo"; // Reset
                             });
                         });
-                    };
-                    img.src = e.target.result;
-                };
-                reader.readAsDataURL(file);
-            }
-        }
+                    } else {
+                        showCustomAlert(`L'AI non riesce a leggere la scritta "${brand}" sull'etichetta.`, "AI Anti-Cheat");
+                        if(aiStatus) aiStatus.innerText = "🤖 AI Anti-Cheat: Pronto e Attivo"; // Reset
+                        updateStats();
+                    }
+                });
+            });
+        };
+        img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+}
 
         function recalculateTotalScore(username) {
             db.ref('pokedex_profiles/' + username).once('value').then(snap => {
