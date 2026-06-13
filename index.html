@@ -11,6 +11,8 @@
 
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/coco-ssd"></script>
+    <!-- Libreria per il controllo contenuti inappropriati (NSFW) -->
+    <script src="https://unpkg.com/nsfwjs"></script>
     <script src="https://cdn.jsdelivr.net/npm/tesseract.js@4.1.2/dist/tesseract.min.js"></script>
 
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
@@ -51,14 +53,16 @@
 
         @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-3px); } }
 
-        .btn-logout { background: var(--danger) !important; color: white; border: none; padding: 10px; border-radius: 8px; font-size: 14px; font-weight: bold; width: 100%; cursor: pointer; }
+        .btn-logout { background: var(--danger) !important; color: white; border: none; padding: 15px; border-radius: 12px; font-size: 16px; font-weight: bold; width: 100%; margin-top: 20px; cursor: pointer; box-shadow: 0 4px 10px rgba(231, 76, 60, 0.2); }
         
+        #aiStatusMini { position: fixed; bottom: 70px; left: 0; width: 100%; background: rgba(255,255,255,0.95); color: var(--text-muted); text-align: center; font-size: 11px; font-weight: bold; padding: 5px 0; border-top: 1px solid var(--gray); z-index: 999; backdrop-filter: blur(5px); }
+
         .progress-container { width: 100%; height: 10px; background: #e0e6ed; border-radius: 10px; margin: 15px auto 5px auto; overflow: hidden; }
         .progress-bar { height: 100%; background-color: var(--primary-dark); width: 0%; transition: width 0.8s cubic-bezier(0.25, 0.8, 0.25, 1); }
         .progress-text { font-size: 13px; font-weight: bold; color: var(--text-muted); text-align: center; margin-bottom: 20px; }
 
-        .controls input[type="text"] { width: 100%; padding: 12px 15px; border: 2px solid var(--gray); border-radius: 12px; font-size: 15px; outline: none; box-sizing: border-box; background: #fbfcfc; margin-bottom: 15px; transition: border-color 0.3s; }
-        .controls input[type="text"]:focus { border-color: var(--primary-dark); }
+        .controls input[type="text"], .controls input[type="password"] { width: 100%; padding: 12px 15px; border: 2px solid var(--gray); border-radius: 12px; font-size: 15px; outline: none; box-sizing: border-box; background: #fbfcfc; margin-bottom: 15px; transition: border-color 0.3s; }
+        .controls input[type="text"]:focus, .controls input[type="password"]:focus { border-color: var(--primary-dark); }
         .filters-label { font-size: 12px; font-weight: bold; text-transform: uppercase; color: var(--text-muted); margin-bottom: 8px; display: block; letter-spacing: 1px; }
         select#countryFilter { width: 100%; padding: 12px 15px; border: 2px solid var(--gray); border-radius: 12px; font-size: 15px; font-weight: bold; color: var(--dark); background: var(--white); outline: none; cursor: pointer; transition: 0.3s; margin-bottom: 20px;}
         select#countryFilter:focus { border-color: var(--primary-dark); }
@@ -190,7 +194,6 @@
         .rules-section ul { padding-left: 20px; }
         .rules-section li { margin-bottom: 8px; line-height: 1.4; }
 
-        /* AGGIORNAMENTO TROFEI/BOTTIGLIE */
         .trophy-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 15px; text-align: center; margin-bottom: 30px;}
         .trophy-card { background: var(--light); padding: 12px 8px; border-radius: 12px; display: flex; flex-direction: column; align-items: center; transition: 0.2s; position: relative;}
         .trophy-img-container { width: 70px; height: 70px; border-radius: 50%; overflow: hidden; background: #e0e6ed; display: flex; align-items: center; justify-content: center; font-size: 40px; border: 3px solid #ccc; margin-bottom: 10px; transition: 0.3s; filter: grayscale(100%) opacity(40%); }
@@ -203,8 +206,12 @@
         .medal-badge-card.unlocked { opacity: 1; filter: none; box-shadow: 0 4px 10px rgba(241,196,15,0.2); }
         .medal-icon-container { font-size: 35px; margin-bottom: 5px; }
         
-        /* PROFILO E IMPOSTAZIONI */
         .profile-user-box { text-align: center; padding: 25px; background: var(--white); border-radius: 16px; margin-bottom: 25px; position: relative; box-shadow: 0 5px 15px rgba(0,0,0,0.05); border: 2px solid var(--primary); }
+        
+        /* OVERLAY IMPOSTAZIONI FULL SCREEN */
+        .settings-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--light); z-index: 10001; overflow-y: auto; padding: 40px 20px; box-sizing: border-box; animation: slideUp 0.3s ease-out; }
+        .settings-content { max-width: 400px; margin: 0 auto; background: var(--white); border-radius: 20px; padding: 30px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); position: relative; }
+        .btn-close-settings { position: absolute; top: 15px; right: 20px; background: none; border: none; font-size: 30px; color: var(--text-muted); cursor: pointer; }
     </style>
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#f39c12">
@@ -225,6 +232,7 @@
         </div>
     </div>
 
+    <!-- MODALI ALERT -->
     <div id="customModalOverlay" class="auth-modal" style="display:none; z-index: 20000;">
         <div class="auth-container" style="max-width: 350px;">
             <h3 id="customModalTitle" style="margin-top:0; color:var(--dark); font-size:22px;">Avviso</h3>
@@ -271,6 +279,7 @@
         </div>
     </div>
 
+    <!-- MAIN CONTENT -->
     <div class="main-content">
         
         <div id="page-home" class="page-view">
@@ -358,42 +367,20 @@
             </div>
         </div>
 
-        <!-- NUOVA PAGINA PROFILO UNIFICATA (Bacheca + Opzioni Profilo) -->
+        <!-- PAGINA PROFILO UNIFICATA (Bacheca + Menù Hamburg) -->
         <div id="page-profile" class="page-view">
             <header class="hero">
                 <h1>👤 Il Tuo Profilo</h1>
-                <p>La tua bacheca personale e le impostazioni account.</p>
+                <p>La tua bacheca personale e i tuoi dati.</p>
             </header>
             <div class="page-container">
                 
                 <!-- BOX UTENTE CON AVATAR E MENU TENDINA -->
                 <div class="profile-user-box" style="position:relative;">
                     
-                    <!-- Pulsante Menù Tendina -->
-                    <button id="btnProfileMenu" onclick="toggleProfileMenu(event)" style="position:absolute; top:15px; right:15px; background:none; border:none; font-size:24px; cursor:pointer; color:var(--text-muted); transition:0.2s;">⚙️</button>
+                    <!-- Pulsante Menù Tendina Hamburger -->
+                    <button id="btnProfileMenu" onclick="toggleProfileSettings()" style="position:absolute; top:15px; right:15px; background:none; border:none; font-size:26px; cursor:pointer; color:var(--dark); transition:0.2s;">☰</button>
                     
-                    <!-- Menù Tendina (Nascosto di default) -->
-                    <div id="profileDropdown" style="display:none; position:absolute; top:45px; right:15px; background:white; box-shadow:0 8px 25px rgba(0,0,0,0.15); border-radius:16px; padding:20px; text-align:left; z-index:100; width:240px; border:1px solid var(--gray);">
-                        <div style="font-size:16px; font-weight:bold; color:var(--dark); margin-bottom:5px;" id="ddUsername"></div>
-                        <div style="font-size:11px; color:var(--text-muted); margin-bottom:15px; word-wrap: break-word;" id="ddEmail"></div>
-                        
-                        <hr style="border:0; border-top:1px solid var(--gray); margin:15px 0;">
-                        
-                        <p style="font-size:12px; font-weight:bold; color:var(--dark); margin:0 0 8px 0;">Modifica Nickname</p>
-                        <input type="text" id="newNicknameInput" placeholder="Nuovo Nick" style="width:100%; padding:10px; border:2px solid var(--gray); border-radius:8px; margin-bottom:8px; font-size:13px; box-sizing:border-box;">
-                        <button class="btn-main" onclick="changeUserNickname()" style="padding:8px; font-size:12px; margin-top:0;">Salva Nick</button>
-
-                        <hr style="border:0; border-top:1px solid var(--gray); margin:15px 0;">
-                        
-                        <p style="font-size:12px; font-weight:bold; color:var(--dark); margin:0 0 8px 0;">Modifica Password</p>
-                        <input type="password" id="newPasswordInput" placeholder="Nuova Password" style="width:100%; padding:10px; border:2px solid var(--gray); border-radius:8px; margin-bottom:8px; font-size:13px; box-sizing:border-box;">
-                        <button class="btn-main" onclick="changeUserPassword()" style="padding:8px; font-size:12px; margin-top:0; background:var(--social-blue);">Salva Password</button>
-
-                        <hr style="border:0; border-top:1px solid var(--gray); margin:15px 0;">
-                        
-                        <button class="btn-logout" onclick="logoutUser()" style="margin-top:0;">🚪 Esci dall'App</button>
-                    </div>
-
                     <!-- Area Avatar Cliccabile -->
                     <label style="cursor:pointer; display:inline-block; position:relative;" title="Cambia foto profilo">
                         <div id="profileAvatarDisplay" style="width:90px; height:90px; border-radius:50%; background:#e0e6ed; margin:0 auto 15px auto; border:4px solid var(--primary); display:flex; align-items:center; justify-content:center; font-size:35px; overflow:hidden; box-shadow:0 4px 10px rgba(0,0,0,0.1);">
@@ -406,7 +393,6 @@
                     <div id="settingsUserBoxContent">Caricamento...</div>
                 </div>
 
-                <!-- SEZIONE TROFEI -->
                 <h3 style="margin-top:40px; color:var(--dark); border-bottom: 2px solid var(--gray); padding-bottom:8px;">🏅 Medaglie Maestro Brand (Completamento 100%)</h3>
                 <div class="trophy-grid" id="brandMedalsGrid" style="grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap:15px;"></div>
 
@@ -506,6 +492,39 @@
 
     </div>
     
+    <!-- IMPOSTAZIONI FULL SCREEN OVERLAY -->
+    <div id="settingsOverlayFull" class="settings-overlay">
+        <div class="settings-content">
+            <button class="btn-close-settings" onclick="toggleProfileSettings()">×</button>
+            <h2 style="margin-top:0; color:var(--dark); text-align:center;">Impostazioni Account</h2>
+            
+            <div style="text-align:center; margin-bottom:20px;">
+                <div style="font-size:18px; font-weight:bold; color:var(--primary-dark);" id="ddUsername"></div>
+                <div style="font-size:13px; color:var(--text-muted);" id="ddEmail"></div>
+            </div>
+            
+            <div class="controls">
+                <h4 style="margin:25px 0 10px 0; color:var(--dark);">✏️ Cambia Nickname</h4>
+                <p style="font-size:12px; color:var(--danger); font-weight:bold; margin-top:0;">Attenzione: L'aggiornamento modificherà i tuoi post passati e aggiornerà le liste dei tuoi amici automaticamente.</p>
+                <input type="text" id="newNicknameInput" placeholder="Nuovo Nickname...">
+                <button class="btn-main" onclick="changeUserNickname()" style="margin-top:0;">Salva Nuovo Nick</button>
+
+                <hr style="border:0; border-top:1px solid var(--gray); margin:25px 0;">
+                
+                <h4 style="margin:0 0 10px 0; color:var(--dark);">🔒 Modifica Password</h4>
+                <p style="font-size:12px; color:var(--text-muted); margin-top:0;">Per sicurezza inserisci prima la tua vecchia password, e poi la nuova confermandola.</p>
+                <input type="password" id="oldPasswordInput" placeholder="Vecchia Password">
+                <input type="password" id="newPasswordInput" placeholder="Nuova Password">
+                <input type="password" id="confirmNewPasswordInput" placeholder="Conferma Nuova Password">
+                <button class="btn-main" onclick="changeUserPassword()" style="margin-top:0; background:var(--social-blue);">Aggiorna Password</button>
+
+                <hr style="border:0; border-top:1px solid var(--gray); margin:25px 0;">
+                
+                <button class="btn-logout" onclick="logoutUser()">🚪 Esci dall'App</button>
+            </div>
+        </div>
+    </div>
+
     <nav class="bottom-nav">
         <div class="nav-item active" onclick="navigateTo('page-home')" id="nav-page-home">
             <div class="nav-icon">🏠</div>
@@ -612,22 +631,17 @@
         function switchLeaderboardTab(tabName) { currentLeaderboardTab = tabName; document.getElementById('tab-friends').classList.toggle('active', tabName === 'friends'); document.getElementById('tab-global').classList.toggle('active', tabName === 'global'); document.getElementById('friendSearchWrapper').style.display = (tabName === 'global') ? 'block' : 'none'; renderLeaderboard(); }
         function switchFriendsTab(tabName) { currentFriendsTab = tabName; document.getElementById('tab-req-received').classList.toggle('active', tabName === 'received'); document.getElementById('tab-req-sent').classList.toggle('active', tabName === 'sent'); document.getElementById('tab-req-accepted').classList.toggle('active', tabName === 'accepted'); document.getElementById('tab-req-rejected').classList.toggle('active', tabName === 'rejected'); renderFriendsManager(); }
         
-        // --- LOGICA MENU TENDINA PROFILO ---
-        function toggleProfileMenu(event) {
-            if(event) event.stopPropagation();
-            const sec = document.getElementById('profileDropdown');
-            sec.style.display = sec.style.display === 'none' ? 'block' : 'none';
+        // --- LOGICA MENU TENDINA FULL SCREEN ---
+        function toggleProfileSettings() {
+            const overlay = document.getElementById('settingsOverlayFull');
+            if (overlay.style.display === 'block') {
+                overlay.style.display = 'none';
+            } else {
+                overlay.style.display = 'block';
+            }
         }
 
         document.addEventListener('click', function(e) {
-            // Chiude il menu tendina profilo se si clicca fuori
-            const dropdown = document.getElementById('profileDropdown');
-            const toggleBtn = document.getElementById('btnProfileMenu');
-            if(dropdown && dropdown.style.display === 'block') {
-                if(!dropdown.contains(e.target) && e.target !== toggleBtn) {
-                    dropdown.style.display = 'none';
-                }
-            }
             // Chiude i suggerimenti ricerca
             if(!e.target.closest('.add-friend-wrapper')) {
                 const box = document.getElementById('suggestionsBox'); if(box) box.style.display = 'none';
@@ -639,11 +653,14 @@
         let currentUserEmail = "";
         let isAdminUser = false; 
 
-        // --- INIZIALIZZAZIONE AI ---
+        // --- INIZIALIZZAZIONE AI (Bottiglie + NSFW) ---
         let aiModel = null;
-        cocoSsd.load().then(model => { 
-            aiModel = model; 
-        });
+        cocoSsd.load().then(model => { aiModel = model; });
+        
+        let nsfwModel = null;
+        if (typeof nsfwjs !== 'undefined') {
+            nsfwjs.load().then(model => { nsfwModel = model; }).catch(e => console.log("Errore caricamento modello NSFW", e));
+        }
 
         // --- CONFIGURAZIONE FIREBASE ---
         const firebaseConfig = {
@@ -847,7 +864,6 @@
                 myFriendsList.forEach(f => { updates['users_friends/' + f + '/' + newNick] = true; updates['users_friends/' + f + '/' + currentUserNick] = null; });
                 globalPosts.forEach(p => { if(p.user === currentUserNick) { updates['social_timeline/' + p.postId + '/user'] = newNick; } });
                 
-                // Aggiorna anche l'avatar se esistente
                 if(globalAvatars[currentUserNick]) {
                     updates['users_avatars/' + newNick] = globalAvatars[currentUserNick];
                     updates['users_avatars/' + currentUserNick] = null;
@@ -858,19 +874,30 @@
         }
 
         function changeUserPassword() {
+            const oldPwd = document.getElementById('oldPasswordInput').value;
             const newPwd = document.getElementById('newPasswordInput').value;
-            if(newPwd.length < 8) { showCustomAlert("La password deve contenere almeno 8 caratteri."); return; }
+            const confPwd = document.getElementById('confirmNewPasswordInput').value;
+
+            if(!oldPwd || !newPwd || !confPwd) { showCustomAlert("Compila tutti i campi richiesti per la password."); return; }
+            if(newPwd !== confPwd) { showCustomAlert("Le nuove password inserite non coincidono."); return; }
+            if(newPwd.length < 8) { showCustomAlert("La nuova password deve avere almeno 8 caratteri."); return; }
+            if(!/[A-Z]/.test(newPwd)) { showCustomAlert("La nuova password deve contenere almeno una lettera MAIUSCOLA."); return; }
+            if(!/\d/.test(newPwd)) { showCustomAlert("La nuova password deve contenere almeno un NUMERO."); return; }
+            if(!/[!?$%&]/.test(newPwd)) { showCustomAlert("La nuova password deve contenere almeno un carattere speciale tra ! ? $ % &"); return; }
             
-            auth.currentUser.updatePassword(newPwd).then(() => {
-                showCustomAlert("Password aggiornata con successo!");
-                document.getElementById('newPasswordInput').value = '';
-                document.getElementById('profileDropdown').style.display = 'none';
-            }).catch(error => {
-                if (error.code === 'auth/requires-recent-login') {
-                    showCustomAlert("Per motivi di sicurezza, fai il logout e riaccedi prima di cambiare la password.");
-                } else {
+            // Re-autenticazione necessaria per le modifiche critiche su Firebase
+            auth.signInWithEmailAndPassword(currentUserEmail, oldPwd).then(() => {
+                auth.currentUser.updatePassword(newPwd).then(() => {
+                    showCustomAlert("Password aggiornata con successo!");
+                    document.getElementById('oldPasswordInput').value = '';
+                    document.getElementById('newPasswordInput').value = '';
+                    document.getElementById('confirmNewPasswordInput').value = '';
+                    toggleProfileSettings(); // Chiudi tendina
+                }).catch(error => {
                     showCustomAlert("Errore durante l'aggiornamento: " + error.message);
-                }
+                });
+            }).catch(error => {
+                showCustomAlert("La vecchia password inserita non è corretta.", "Errore Autenticazione");
             });
         }
 
@@ -882,9 +909,8 @@
                 const img = new Image();
                 img.onload = function() {
                     const canvas = document.createElement('canvas');
-                    const MAX_SIZE = 150; 
+                    const MAX_SIZE = 200; 
                     let width = img.width; let height = img.height;
-                    
                     const size = Math.min(width, height);
                     const startX = (width - size) / 2;
                     const startY = (height - size) / 2;
@@ -893,10 +919,35 @@
                     const ctx = canvas.getContext('2d');
                     ctx.drawImage(img, startX, startY, size, size, 0, 0, MAX_SIZE, MAX_SIZE);
                     
-                    const avatarBase64 = canvas.toDataURL('image/jpeg', 0.8);
-                    db.ref('users_avatars/' + currentUserNick).set(avatarBase64).then(() => {
-                        showCustomAlert("Foto profilo aggiornata!", "Fatto");
-                    });
+                    const saveAvatarToDB = () => {
+                        const avatarBase64 = canvas.toDataURL('image/jpeg', 0.8);
+                        db.ref('users_avatars/' + currentUserNick).set(avatarBase64).then(() => {
+                            showCustomAlert("Foto profilo aggiornata con successo!", "Fatto");
+                        });
+                    };
+
+                    // Controllo Sicurezza Foto Profilo tramite NSFWJS
+                    if (nsfwModel) {
+                        nsfwModel.classify(canvas).then(predictions => {
+                            let isSafe = true;
+                            predictions.forEach(p => {
+                                // Se la probabilità di contenuti pornografici o espliciti supera il 60%
+                                if ((p.className === 'Porn' || p.className === 'Hentai' || p.className === 'Sexy') && p.probability > 0.60) {
+                                    isSafe = false;
+                                }
+                            });
+                            if (!isSafe) {
+                                showCustomAlert("⚠️ La foto selezionata è stata bloccata perché potrebbe contenere contenuti inappropriati o osceni.", "Sicurezza Profilo");
+                                return;
+                            }
+                            saveAvatarToDB();
+                        }).catch(err => {
+                            console.log("Errore durante la scansione NSFW", err);
+                            saveAvatarToDB(); // Fallback se il modello fallisce
+                        });
+                    } else {
+                        saveAvatarToDB(); // Salva se la rete ha bloccato la libreria esterna
+                    }
                 };
                 img.src = e.target.result;
             };
@@ -960,7 +1011,6 @@
         ];
         beers.sort((a, b) => a.brand.localeCompare(b.brand));
 
-        // --- GESTORE PUNTI SINGOLA VARIANTE ---
         function getBasePoints(brandName, variantName) {
             let base = 1;
             const beer = beers.find(b => b.brand === brandName);
@@ -968,8 +1018,6 @@
                 if (beer.rarity === "media") base = 2;
                 if (beer.rarity === "rara") base = 5;
             }
-            
-            // Override Punti Specifici per varianti speciali
             if (brandName === "Ichnusa") {
                 if (variantName === "Non Filtrata" || variantName === "Ambra Limpidissima") return 3;
             }
@@ -997,7 +1045,6 @@
             return isShiny ? base * 2 : base;
         }
 
-        // --- SISTEMA EVENTI CALENDARIO ---
         function checkTimedEvents() {
             const now = new Date();
             const month = now.getMonth() + 1; 
@@ -1092,45 +1139,47 @@
                             return; 
                         }
 
-                        aiModel.detect(canvas).then(predictions => {
-                            let isDrink = false; 
-                            predictions.forEach(p => { 
-                                if(p.class === 'bottle' || p.class === 'cup' || p.class === 'wine glass') isDrink = true; 
-                            });
-                            
-                            if (!isDrink) { 
-                                showCustomAlert("🚨 Non vedo bottiglie o bicchieri veri.", "AI Anti-Cheat"); 
-                                updateStats(); 
-                                return; 
-                            }
-                            
-                            Tesseract.recognize(canvas, 'ita+eng').then(({ data: { text } }) => {
-                                const extractedText = text.toLowerCase(); 
-                                const brandWord = brand.toLowerCase().split(' ')[0];
+                        if (aiModel) {
+                            aiModel.detect(canvas).then(predictions => {
+                                let isDrink = false; 
+                                predictions.forEach(p => { 
+                                    if(p.class === 'bottle' || p.class === 'cup' || p.class === 'wine glass') isDrink = true; 
+                                });
                                 
-                                if (extractedText.includes(brandWord) || extractedText.replace(/\s/g, '').includes(brandWord)) {
-                                    const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.6);
-                                    const uniqueId = brand + '-' + variant;
-                                    const pokedexEntry = { photo: compressedDataUrl, isShiny: isShiny, brand: brand };
-                                    
-                                    db.ref('pokedex_profiles/' + currentUserNick + '/' + uniqueId).set(pokedexEntry).then(() => {
-                                        const newPostRef = db.ref('social_timeline').push();
-                                        let postData = { user: currentUserNick, brand: brand, variant: variant, photo: compressedDataUrl, time: new Date().getTime(), isShiny: isShiny };
-                                        if(currentLat !== null && currentLng !== null) { postData.lat = currentLat; postData.lng = currentLng; }
-                                        
-                                        newPostRef.set(postData).then(() => {
-                                            recalculateTotalScore(currentUserNick);
-                                            let msg = `Birra sbloccata con successo! (+${getBeerPoints(brand, variant, isShiny)} Punti)`;
-                                            if(isShiny) msg += " ✨ SBLOCCO SHINY IN TRASFERTA COMPLETATO!";
-                                            showCustomAlert(msg, "✅ Conquistata!");
-                                        });
-                                    });
-                                } else {
-                                    showCustomAlert(`L'AI non riesce a leggere la scritta "${brand}" sull'etichetta. Riprova inquadrando meglio il nome!`, "AI Anti-Cheat");
-                                    updateStats();
+                                if (!isDrink) { 
+                                    showCustomAlert("🚨 Non vedo bottiglie o bicchieri veri.", "AI Anti-Cheat"); 
+                                    updateStats(); 
+                                    return; 
                                 }
+                                
+                                Tesseract.recognize(canvas, 'ita+eng').then(({ data: { text } }) => {
+                                    const extractedText = text.toLowerCase(); 
+                                    const brandWord = brand.toLowerCase().split(' ')[0];
+                                    
+                                    if (extractedText.includes(brandWord) || extractedText.replace(/\s/g, '').includes(brandWord)) {
+                                        const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.6);
+                                        const uniqueId = brand + '-' + variant;
+                                        const pokedexEntry = { photo: compressedDataUrl, isShiny: isShiny, brand: brand };
+                                        
+                                        db.ref('pokedex_profiles/' + currentUserNick + '/' + uniqueId).set(pokedexEntry).then(() => {
+                                            const newPostRef = db.ref('social_timeline').push();
+                                            let postData = { user: currentUserNick, brand: brand, variant: variant, photo: compressedDataUrl, time: new Date().getTime(), isShiny: isShiny };
+                                            if(currentLat !== null && currentLng !== null) { postData.lat = currentLat; postData.lng = currentLng; }
+                                            
+                                            newPostRef.set(postData).then(() => {
+                                                recalculateTotalScore(currentUserNick);
+                                                let msg = `Birra sbloccata con successo! (+${getBeerPoints(brand, variant, isShiny)} Punti)`;
+                                                if(isShiny) msg += " ✨ SBLOCCO SHINY IN TRASFERTA COMPLETATO!";
+                                                showCustomAlert(msg, "✅ Conquistata!");
+                                            });
+                                        });
+                                    } else {
+                                        showCustomAlert(`L'AI non riesce a leggere la scritta "${brand}" sull'etichetta. Riprova inquadrando meglio il nome!`, "AI Anti-Cheat");
+                                        updateStats();
+                                    }
+                                });
                             });
-                        });
+                        }
                     };
                     img.src = e.target.result;
                 };
@@ -1243,7 +1292,6 @@
             });
         }
 
-        // AGGIORNAMENTO BOTTIGLIE GRIGIE/COLORATE
         function renderTrophies() {
             const grid = document.getElementById('trophyGrid'); 
             const medalsGrid = document.getElementById('brandMedalsGrid');
