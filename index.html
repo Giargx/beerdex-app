@@ -3,17 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>BeerDex - Social Network & AI Anti-Cheat</title>
+    <title>BeerDex - Social Network</title>
     
+    <!-- Firebase -->
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
 
+    <!-- AI & OCR -->
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/coco-ssd"></script>
     <script src="https://unpkg.com/nsfwjs"></script>
     <script src="https://cdn.jsdelivr.net/npm/tesseract.js@4.1.2/dist/tesseract.min.js"></script>
 
+    <!-- Mappa -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
@@ -43,7 +46,7 @@
         .top-action-btn:hover { transform: scale(1.1); }
         .top-badge { position: absolute; top: -5px; right: -8px; font-size: 10px; background: var(--danger); color: white; border-radius: 50%; padding: 2px 5px; font-weight: bold; animation: bounce 1s infinite; display: none;}
 
-        /* BOTTOM NAV */
+        /* BOTTOM NAV CON SAFE AREA IOS */
         .bottom-nav { 
             position: fixed; 
             bottom: 0; 
@@ -117,7 +120,7 @@
         .variant-item { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid #e1e8ed; }
         .variant-item:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
         
-        /* PALLINI COLORATI TIPOLOGIE */
+        /* PALLINI COLORATI TIPOLOGIE BIRRA */
         .beer-type-dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 5px; vertical-align: middle; }
         .type-bionda { background-color: #f1c40f; box-shadow: 0 0 6px rgba(241,196,15,0.5); }
         .type-rossa { background-color: #e74c3c; box-shadow: 0 0 6px rgba(231,76,60,0.5); }
@@ -205,6 +208,12 @@
         .post-time { font-size: 12px; color: var(--text-muted); }
         .post-image { width: 100%; max-height: 400px; object-fit: contain; background: #000; display: block; border-bottom: 1px solid var(--gray); }
         .post-caption { padding: 15px; font-size: 14px; line-height: 1.5; color: var(--dark); border-top: 1px solid var(--gray);}
+
+        .rules-section { margin-bottom: 25px; border-bottom: 1px solid var(--gray); padding-bottom: 20px; }
+        .rules-section:last-child { border-bottom: none; }
+        .rules-section h3 { color: var(--accent); margin-top: 0; }
+        .rules-section ul { padding-left: 20px; }
+        .rules-section li { margin-bottom: 8px; line-height: 1.4; }
 
         .trophy-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 15px; text-align: center; margin-bottom: 30px;}
         .trophy-card { background: var(--light); padding: 12px 8px; border-radius: 12px; display: flex; flex-direction: column; align-items: center; transition: 0.2s; position: relative;}
@@ -324,6 +333,7 @@
             </div>
         </div>
 
+        <!-- PAGINA ESPLORA (Con pallini colorati aggiunti) -->
         <div id="page-explore" class="page-view">
             <header class="hero">
                 <h1>🔍 Esplora Birre</h1>
@@ -386,9 +396,7 @@
             </header>
             <div class="page-container">
                 
-                <!-- BOX UTENTE CON AVATAR E MENU HAMBURGER -->
                 <div class="profile-user-box" style="position:relative;">
-                    
                     <button id="btnProfileMenu" onclick="toggleProfileSettings()" style="position:absolute; top:15px; right:15px; background:none; border:none; font-size:26px; cursor:pointer; color:var(--dark); transition:0.2s;">☰</button>
                     
                     <label style="cursor:pointer; display:inline-block; position:relative;" title="Cambia foto profilo">
@@ -443,6 +451,58 @@
                 </div>
                 <div class="list-container" id="friendsManagerList">
                     <p style="text-align:center;">Caricamento...</p>
+                </div>
+            </div>
+        </div>
+
+        <div id="page-rules" class="page-view">
+            <header class="hero">
+                <h1>📜 Regolamento BeerDex</h1>
+                <p>Tutto quello che c'è da sapere sulla caccia ai luppoli.</p>
+            </header>
+            <div class="page-container">
+                <div class="rules-section">
+                    <h3>🎯 Cos'è BeerDex?</h3>
+                    <p>BeerDex è un social network interamente basato sulla gamification e sul completamento per veri appassionati. Lo scopo del gioco è completare il proprio catalogo "catturando" fotograficamente le varianti delle marche presenti nel database.</p>
+                </div>
+                <div class="rules-section">
+                    <h3>🏅 Gradi di Evoluzione Utente</h3>
+                    <p>In base al tuo punteggio totale sbloccherai dei titoli ufficiali che testimoniano la tua esperienza:</p>
+                    <ul>
+                        <li>🍺 <strong>Novizio del Pub:</strong> Meno di 10 punti. L'avventura è appena iniziata.</li>
+                        <li>🎒 <strong>Apprendista Bevitore:</strong> Da 10 a 49 punti. Inizi a conoscere gli stili.</li>
+                        <li>🧭 <strong>Esploratore di Luppoli:</strong> Da 50 a 99 punti. Cerchi marchi sempre nuovi.</li>
+                        <li>🎓 <strong>Sommelier del Bancone:</strong> Da 100 a 199 punti. Una guida per i tuoi amici.</li>
+                        <li>👑 <strong>Maestro Birraio:</strong> Da 200 punti in su. Hall of fame dei collezionisti.</li>
+                    </ul>
+                </div>
+                <div class="rules-section">
+                    <h3>📅 Eventi a Tempo Limitato & Event Badges</h3>
+                    <p>Durante l'anno si attivano automaticamente dei trofei speciali legati al calendario reale:</p>
+                    <ul>
+                        <li>🍀 <strong>Medaglia San Patrizio (Marzo):</strong> Si ottiene sbloccando almeno 2 varianti di Guinness o birre cerchiate come Stout/Irlandesi durante il mese di marzo.</li>
+                        <li>🥨 <strong>Medaglia Oktoberfest (Settembre - Ottobre):</strong> Si sblocca catturando almeno 3 varianti di qualsiasi birra tedesca nel periodo compreso tra il 1° settembre e il 31 ottobre.</li>
+                    </ul>
+                </div>
+                <div class="rules-section">
+                    <h3>✨ Il Sistema dei Punti & Rarità</h3>
+                    <ul>
+                        <li>⚪ <strong>Comune (1 Punto):</strong> Commerciali e industriali (es. Heineken, Moretti, Peroni).</li>
+                        <li>🔵 <strong>Media (2 Punti):</strong> Speciali o artigianali diffuse (es. Ceres, Leffe, Ichnusa).</li>
+                        <li>🟣 <strong>Rara (5 Punti):</strong> Eccellenze territoriali o trappiste (es. Baladin, Tripel Karmeliet, Chimay, Crak).</li>
+                    </ul>
+                </div>
+                <div class="rules-section">
+                    <h3>🎁 Bonus Completamento Brand (+10 Punti)</h3>
+                    <p>Ogni volta che completi al 100% tutte le varianti di un singolo brand, ottieni un **Bonus di +10 Punti Extra** in classifica e sblocchi la prestigiosa medaglia dorata **"Maestro Brand"** all'interno della tua Bacheca!</p>
+                </div>
+                <div class="rules-section">
+                    <h3>✈️ Bonus Trasferta (Moltiplicatore x2)</h3>
+                    <p>Se sblocchi una birra tramite GPS all'interno della sua nazione d'origine, lo sblocco diventa <strong>Shiny</strong> e il suo punteggio **raddoppia istantaneamente**.</p>
+                </div>
+                <div class="rules-section" style="background:#fffcf0; padding:20px; border-radius:12px; border-left:4px solid var(--primary-dark);">
+                    <h3>🛡️ Politica del Consumo Responsabile</h3>
+                    <p style="margin:0; line-height:1.5; font-size:14px; color:var(--dark);"><strong>BeerDex non assegna premi basati sulla quantità totale di alcol consumata</strong>. Riteniamo che incentivare il consumo quantitativo promuova comportamenti dannosi. Degusta responsabilmente.</p>
                 </div>
             </div>
         </div>
@@ -610,13 +670,17 @@
         let currentUserEmail = "";
         let isAdminUser = false; 
 
-        // --- INIZIALIZZAZIONE AI (Bottiglie + NSFW) ---
+        // --- INIZIALIZZAZIONE AI (Bottiglie + NSFW JS sicuro) ---
         let aiModel = null;
         cocoSsd.load().then(model => { aiModel = model; });
         
         let nsfwModel = null;
-        if (typeof nsfwjs !== 'undefined') {
-            nsfwjs.load().then(model => { nsfwModel = model; }).catch(e => console.log("Errore caricamento modello NSFW", e));
+        try {
+            if (typeof nsfwjs !== 'undefined') {
+                nsfwjs.load().then(model => { nsfwModel = model; }).catch(e => console.log("Errore NSFW", e));
+            }
+        } catch(e) {
+            console.log("NSFWJS non caricato.");
         }
 
         // --- CONFIGURAZIONE FIREBASE ---
@@ -758,11 +822,9 @@
             document.getElementById("authToggle").innerText = isRegisterMode ? "Hai già un account? Accedi" : "Non hai un account? Registrati";
         }
 
-        // --- SISTEMA DI DETERMINAZIONE DELLA TIPOLOGIA DI BIRRA ---
+        // --- SISTEMA TIPOLOGIA BIRRA ---
         function getBeerType(brandName, variantName) {
             const vLower = variantName.toLowerCase();
-            const bLower = brandName.toLowerCase();
-
             if (vLower.includes("rossa") || vLower.includes("rouge") || vLower.includes("red") || vLower.includes("cherry") || vLower.includes("porpora") || vLower.includes("amber") || vLower.includes("ambrata") || vLower.includes("rituel")) {
                 return "rossa";
             }
@@ -775,7 +837,7 @@
             if (vLower.includes("ipa") || vLower.includes("ippa") || vLower.includes("guerrilla") || vLower.includes("taranta")) {
                 return "ipa";
             }
-            return "bionda"; // Fallback predefinito per lager/pilsner industriali e classiche bionde
+            return "bionda"; 
         }
 
         function togglePasswordVisibility(inputId) {
@@ -794,7 +856,7 @@
                 if(nickname.length < 3) { showCustomAlert("Scegli un Nickname di almeno 3 caratteri!"); return; }
                 if(password !== confirmPassword) { showCustomAlert("Le due password inserite non coincidono. Riprova!"); return; }
                 if(password.length < 8) { showCustomAlert("La password deve essere lunga almeno 8 caratteri!"); return; }
-                if(!/[A-Z]/.test(password)) { showCustomAlert("La password deve contenere almeno una letterina MAIUSCOLA!"); return; }
+                if(!/[A-Z]/.test(password)) { showCustomAlert("La password deve contenere almeno una lettera MAIUSCOLA!"); return; }
                 if(!/\d/.test(password)) { showCustomAlert("La password deve contenere almeno un NUMERO!"); return; }
                 if(!/[!?$%&]/.test(password)) { showCustomAlert("La password deve contenere almeno un carattere SPECIALE tra questi: ! ? $ % &"); return; }
 
@@ -927,6 +989,96 @@
             reader.readAsDataURL(file);
         }
 
+        // --- DATABASE BIRRE ---
+        const beers = [
+            { brand: "Beck's", country: "Germania", flag: "🇩🇪", rarity: "comune", desc: "Classica pilsner tedesca (Brema).", variants: ["Pilsner", "Blue (Analcolica)", "Lemon", "Green Lemon", "Unfiltered"] },
+            { brand: "Carlsberg", country: "Danimarca", flag: "🇩🇰", rarity: "comune", desc: "Colosso industriale danese.", variants: ["Pilsner", "Elephant", "Special Brew"] },
+            { brand: "Corona", country: "Messico", flag: "🇲🇽", rarity: "comune", desc: "La lager messicana famosa in tutto il mondo.", variants: ["Extra", "Cero"] },
+            { brand: "Dreher", country: "Italia", flag: "🇮🇹", rarity: "comune", desc: "Uno dei marchi storici più antichi, fondato a Trieste.", variants: ["Classica", "Radler Limone"] },
+            { brand: "Heineken", country: "Paesi Bassi", flag: "🇳🇱", rarity: "comune", desc: "Il colosso olandese di Amsterdam.", variants: ["Original", "Silver", "0.0"] },
+            { brand: "Moretti", country: "Italia", flag: "🇮🇹", rarity: "comune", desc: "Storico marchio nato in Friuli-Venezia Giulia (Udine).", variants: ["Ricetta Originale", "Baffo d'Oro", "La Rossa", "Filtrata a Freddo", "IPA", "Bianca", "Zero", "Lunga Maturazione"] },
+            { brand: "Peroni", country: "Italia", flag: "🇮🇹", rarity: "comune", desc: "Il colosso romano, celebre a livello internazionale.", variants: ["Classica", "Nastro Azzurro", "Nastro Azzurro 0.0", "Non Filtrata", "Cruda", "Gran Riserva Puro Malto", "Gran Riserva Doppio Malto", "Gran Riserva Rossa", "Gran Riserva Bianca", "Chill Lemon", "Capri"] },
+            { brand: "Poretti", country: "Italia", flag: "🇮🇹", rarity: "comune", desc: "Realtà lombarda che classifica le birre coi luppoli.", variants: ["3 Luppoli", "4 Luppoli Originale", "4 Luppoli Non Filtrata", "5 Luppoli Bock", "6 Luppoli Rossa", "7 Luppoli", "8 Luppoli", "Le 9 Luppoli (IPA)"] },
+            { brand: "San Miguel", country: "Spagna", flag: "🇪🇸", rarity: "comune", desc: "Marchio spagnolo popolarissimo.", variants: ["Especial", "Selecta", "0,0"] },
+            { brand: "Stella Artois", country: "Belgio", flag: "🇧🇪", rarity: "comune", desc: "Premium lager belga.", variants: ["Premium Lager", "Unfiltered", "0.0"] },
+            { brand: "Tuborg", country: "Danimarca", flag: "🇩🇰", rarity: "comune", desc: "Lager danese leggera.", variants: ["Green", "Strong", "Red"] },
+            { brand: "Wuhrer", country: "Italia", flag: "🇮🇹", rarity: "comune", desc: "Il più antico marchio di birra italiano (Brescia, 1829).", variants: ["La Classica"] },
+            { brand: "Augustiner", country: "Germania", flag: "🇩🇪", rarity: "media", desc: "Storico birrificio di Monaco di Baviera.", variants: ["Lagerbier Hell", "Edelstoff", "Maximator"] },
+            { brand: "Bavaria", country: "Paesi Bassi", flag: "🇳🇱", rarity: "media", desc: "Marchio olandese noto per la linea 8.6.", variants: ["Premium Pilsner", "8.6 Original", "8.6 Red", "8.6 Gold", "8.6 Extreme"] },
+            { brand: "Budweiser Budvar", country: "Repubblica Ceca", flag: "🇨🇿", rarity: "media", desc: "L'autentica lager ceca protetta.", variants: ["Original Lager", "Dark Lager", "Nealko"] },
+            { brand: "Castello", country: "Italia", flag: "🇮🇹", rarity: "media", desc: "Erede dello storico stabilimento di Udine.", variants: ["La Decisa", "L'Intensa", "La Forte", "Radler"] },
+            { brand: "Ceres", country: "Danimarca", flag: "🇩🇰", rarity: "media", desc: "Marchio danese diventato un cult in Italia per le strong ale.", variants: ["Strong Ale", "Red Erik", "Extreme Ten"] },
+            { brand: "Desperados", country: "Francia", flag: "🇫🇷", rarity: "media", desc: "Birra bionda aromatizzata alla tequila.", variants: ["Original", "Lime", "Mojito"] },
+            { brand: "Erdinger", country: "Germania", flag: "🇩🇪", rarity: "media", desc: "Il birrificio di frumento più grande del mondo.", variants: ["Weißbier", "Dunkel", "Pikantus"] },
+            { brand: "Estrella Damm", country: "Spagna", flag: "🇪🇸", rarity: "media", desc: "La bionda di Barcellona.", variants: ["Estrella Damm", "Inedit", "Daura"] },
+            { brand: "Forst", country: "Italia", flag: "🇮🇹", rarity: "media", desc: "Birrificio indipendente del Trentino-Alto Adige.", variants: ["Kronen", "V.I.P. Pils", "1857", "Felsenkeller", "Sixtus (Doppelbock)", "0.0%"] },
+            { brand: "Franziskaner", country: "Germania", flag: "🇩🇪", rarity: "media", desc: "Eccellenza tedesca di birre di frumento.", variants: ["Weissbier Naturtrüb", "Weissbier Dunkel"] },
+            { brand: "Grolsch", country: "Paesi Bassi", flag: "🇳🇱", rarity: "media", desc: "Iconica lager olandese.", variants: ["Premium Pilsner", "Radler"] },
+            { brand: "Guinness", country: "Irlanda", flag: "🇮🇪", rarity: "media", desc: "La regina delle Stout irlandesi.", variants: ["Draught", "Extra Stout", "Hop House 13", "0.0"] },
+            { brand: "Ichnusa", country: "Italia", flag: "🇮🇹", rarity: "media", desc: "L'iconica birra sarda, amatissima in tutta Italia.", variants: ["Classica", "Non Filtrata", "Cruda", "Ambra Limpidissima", "Radler"] },
+            { brand: "Kozel", country: "Repubblica Ceca", flag: "🇨🇿", rarity: "media", desc: "Famosissima birra ceca.", variants: ["Premium Lager", "Dark (Cerna)"] },
+            { brand: "Kronenbourg 1664", country: "Francia", flag: "🇫🇷", rarity: "media", desc: "Il marchio francese più venduto al mondo.", variants: ["Blanc", "Lager"] },
+            { brand: "Leffe", country: "Belgio", flag: "🇧🇪", rarity: "media", desc: "La storica birra d'abbazia belga.", variants: ["Blonde", "Brune", "Rituel 9°", "Rouge", "Triple"] },
+            { brand: "Menabrea", country: "Italia", flag: "🇮🇹", rarity: "media", desc: "Pluripremiato birrificio di Biella (Piemonte).", variants: ["Bionda 150°", "Ambrata", "Non Filtrata", "Strong", "Weiss", "Rossa"] },
+            { brand: "Messina", country: "Italia", flag: "🇮🇹", rarity: "media", desc: "Storico marchio siciliano dai sapori del Mediterraneo.", variants: ["Ricetta Classica", "Cristalli di Sale", "Vivace"] },
+            { brand: "Paulaner", country: "Germania", flag: "🇩🇪", rarity: "media", desc: "Grande protagonista dell'Oktoberfest.", variants: ["Hefe-Weißbier Naturtrüb", "Oktoberfest Bier", "Münchner Hell", "Salvator"] },
+            { brand: "Pedavena", country: "Italia", flag: "🇮🇹", rarity: "media", desc: "Antica tradizione bellunese (Veneto).", variants: ["Pils", "Lager", "Speciale", "Bock", "8 Gradi"] },
+            { brand: "Pilsner Urquell", country: "Repubblica Ceca", flag: "🇨🇿", rarity: "media", desc: "La madre di tutte le birre bionde.", variants: ["Original Lager"] },
+            { brand: "Raffo", country: "Italia", flag: "🇮🇹", rarity: "media", desc: "La 'birra dei due mari', simbolo della città di Taranto.", variants: ["Classica", "Lavorazione Grezza"] },
+            { brand: "Super Bock", country: "Portogallo", flag: "🇵🇹", rarity: "media", desc: "La birra più famosa del Portogallo.", variants: ["Original", "Abadia", "Stout"] },
+            { brand: "Tennent's", country: "Scozia", flag: "🏴󠁧󠁢󠁳󠁣󠁴󠁿", rarity: "media", desc: "Storico marchio scozzese.", variants: ["Super", "Extra", "1885 Lager", "Scotch Ale"] },
+            { brand: "Baladin", country: "Italia", flag: "🇮🇹", rarity: "rara", desc: "Pioniere della birra artigianale italiana (Piemonte).", variants: ["Isaac (Blanche)", "Wayan (Saison)", "Nora (Speziata)", "Super Bitter", "Leon", "Nazionale", "L'IPPA", "Rock'n'Roll"] },
+            { brand: "Birrificio Italiano", country: "Italia", flag: "🇮🇹", rarity: "rara", desc: "Storico birrificio artigianale lombardo.", variants: ["Tipopils", "Bibock", "Nigredo", "Vudù", "Amber Shock"] },
+            { brand: "Birrificio Lambrate", country: "Italia", flag: "🇮🇹", rarity: "rara", desc: "Il birrificio simbolo di Milano e del fermento artigianale.", variants: ["Montestella", "Sant'Ambroeus", "Ghisa", "Porpora", "Quarantot"] },
+            { brand: "Chimay", country: "Belgio", flag: "🇧🇪", rarity: "rara", desc: "Autentica birra trappista belga prodotta dai monaci.", variants: ["Première (Rossa)", "Cinq Cents (Tripel)", "Grande Réserve (Blu)"] },
+            { brand: "Chouffe", country: "Belgio", flag: "🇧🇪", rarity: "rara", desc: "La celebre birra artigianale belga dello gnomo.", variants: ["La Chouffe (Blonde)", "Mc Chouffe (Brune)", "Cherry Chouffe"] },
+            { brand: "Crak Brewery", country: "Italia", flag: "🇮🇹", rarity: "rara", desc: "Rivoluzionario birrificio veneto, re indiscusso delle IPA.", variants: ["Guerrilla (IPA)", "Mundaka", "Mansueto", "After Summer"] },
+            { brand: "Del Borgo", country: "Italia", flag: "🇮🇹", rarity: "rara", desc: "Famoso birrificio laziale, noto per le sue ricette creative.", variants: ["ReAle", "Duchessa", "My Antonia", "Lisa", "Cortigiana"] },
+            { brand: "Delirium", country: "Belgio", flag: "🇧🇪", rarity: "rara", desc: "Famosissima Strong Ale belga.", variants: ["Tremens", "Nocturnum", "Red"] },
+            { brand: "Duvel", country: "Belgio", flag: "🇧🇪", rarity: "rara", desc: "La leggendaria Strong Gold Ale belga.", variants: ["Original Blond", "Triple Hop", "6.66"] },
+            { brand: "Flea", country: "Italia", flag: "🇮🇹", rarity: "rara", desc: "Birre artigianali umbre brassate con acqua di sorgente.", variants: ["Costanza", "Bianca Lancia", "Federico II", "Bastola", "Violante"] },
+            { brand: "Hoegaarden", country: "Belgio", flag: "🇧🇪", rarity: "rara", desc: "La regina delle birre bianche belghe.", variants: ["Witbier", "Rosée"] },
+            { brand: "Mastri Birrai Umbri", country: "Italia", flag: "🇮🇹", rarity: "rara", desc: "Realtà umbra che esalta i cereali del territorio.", variants: ["Cotta 21 (Bionda)", "Cotta 37 (Rossa)", "Cotta 74 (Nera)", "Cotta 68 (IPA)", "Cotta 50 (Weiss)"] },
+            { brand: "Salento", country: "Italia", flag: "🇮🇹", rarity: "rara", desc: "Eccellenza artigianale pugliese, nata a Leverano (Lecce).", variants: ["Agricola (Lager)", "Nuda e Cruda", "Beggia", "Taranta (IPA)"] },
+            { brand: "Semedorato", country: "Italia", flag: "🇮🇹", rarity: "rara", desc: "Birra artigianale premium siciliana.", variants: ["Bionda Premium", "Rossa Doppio Malto", "Non Filtrata"] },
+            { brand: "Tripel Karmeliet", country: "Belgio", flag: "🇧🇪", rarity: "rara", desc: "Straordinaria birra belga ai tre cereali.", variants: ["Tripel"] },
+            { brand: "Weihenstephaner", country: "Germania", flag: "🇩🇪", rarity: "rara", desc: "Il più antico marchio di birra italiano (1040).", variants: ["Hefe Weissbier", "Vitus", "Original Hell"] }
+        ];
+        beers.sort((a, b) => a.brand.localeCompare(b.brand));
+
+        function getBasePoints(brandName, variantName) {
+            let base = 1;
+            const beer = beers.find(b => b.brand === brandName);
+            if (beer) {
+                if (beer.rarity === "media") base = 2;
+                if (beer.rarity === "rara") base = 5;
+            }
+            if (brandName === "Ichnusa") {
+                if (variantName === "Non Filtrata" || variantName === "Ambra Limpidissima") return 3;
+            }
+            if (brandName === "Moretti") {
+                if (variantName === "La Rossa" || variantName === "IPA" || variantName === "Bianca" || variantName === "Lunga Maturazione") return 2;
+            }
+            if (brandName === "Peroni") {
+                if (variantName.includes("Gran Riserva")) return 3;
+                if (variantName === "Non Filtrata" || variantName === "Cruda") return 2;
+            }
+            if (brandName === "Poretti") {
+                if (variantName === "7 Luppoli" || variantName === "8 Luppoli" || variantName === "Le 9 Luppoli (IPA)") return 3;
+                if (variantName === "5 Luppoli Bock" || variantName === "6 Luppoli Rossa") return 2;
+            }
+            if (brandName === "Raffo") {
+                if (variantName === "Lavorazione Grezza") return 3;
+                return 2;
+            }
+            return base;
+        }
+
+        function getBeerPoints(brandName, variantName, isShiny) {
+            let base = getBasePoints(brandName, variantName);
+            return isShiny ? base * 2 : base;
+        }
+
         function generateVariantsHTML(brand, variantsArray) {
             let listHTML = '';
             variantsArray.forEach(variant => {
@@ -934,20 +1086,19 @@
                 let hasPhoto = myPokedex && myPokedex[uniqueId] !== undefined;
                 let specificPts = getBasePoints(brand, variant);
                 
-                // Determina la tipologia e assegna le label testuali/classi css
                 let typeKey = getBeerType(brand, variant);
                 let typeLabelHTML = '';
-                if (typeKey === 'bionda') typeLabelHTML = '<span class="beer-type-dot type-bionda"></span><span class="type-label-text beer-type-label">Bionda</span>';
-                if (typeKey === 'rossa') typeLabelHTML = '<span class="beer-type-dot type-rossa"></span><span class="type-label-text beer-type-label">Rossa</span>';
-                if (typeKey === 'scura') typeLabelHTML = '<span class="beer-type-dot type-scura"></span><span class="type-label-text beer-type-label">Scura</span>';
-                if (typeKey === 'bianca') typeLabelHTML = '<span class="beer-type-dot type-bianca"></span><span class="type-label-text beer-type-label">Bianca</span>';
-                if (typeKey === 'ipa') typeLabelHTML = '<span class="beer-type-dot type-ipa"></span><span class="type-label-text beer-type-label">IPA</span>';
+                if (typeKey === 'bionda') typeLabelHTML = '<span class="beer-type-dot type-bionda"></span><span class="beer-type-label">Bionda</span>';
+                if (typeKey === 'rossa') typeLabelHTML = '<span class="beer-type-dot type-rossa"></span><span class="beer-type-label">Rossa</span>';
+                if (typeKey === 'scura') typeLabelHTML = '<span class="beer-type-dot type-scura"></span><span class="beer-type-label">Scura</span>';
+                if (typeKey === 'bianca') typeLabelHTML = '<span class="beer-type-dot type-bianca"></span><span class="beer-type-label">Bianca</span>';
+                if (typeKey === 'ipa') typeLabelHTML = '<span class="beer-type-dot type-ipa"></span><span class="beer-type-label">IPA</span>';
 
                 listHTML += `
                 <div class="variant-item" onclick="event.stopPropagation()">
                     <div style="flex-grow: 1; display:flex; flex-direction:column; gap:4px;">
                         <span style="font-weight: 500;">${variant} <span style="font-size:11px; color:var(--text-muted); font-weight:bold;">(${specificPts} pt)</span></span>
-                        <div style="display:flex; align-items:center;">${typeLabelHTML}</div>
+                        <div style="display:flex; align-items:center; margin-top:2px;">${typeLabelHTML}</div>
                     </div>
                     ${hasPhoto ? `
                         <div class="unlocked-status">
