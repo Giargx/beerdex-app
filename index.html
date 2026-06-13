@@ -33,7 +33,7 @@
         
         body { font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: var(--light); color: var(--dark); margin: 0; padding-top: 60px; padding-bottom: 75px; overflow-x: hidden; }
 
-        /* TOP BAR AGGIORNATA (Logo centrato) */
+        /* TOP BAR */
         .top-bar { position: fixed; top: 0; left: 0; width: 100%; height: 60px; background: var(--white); box-shadow: 0 2px 10px rgba(0,0,0,0.05); display: flex; justify-content: space-between; align-items: center; padding: 0 20px; box-sizing: border-box; z-index: 1000; }
         .top-bar-side { display: flex; gap: 20px; align-items: center; width: 80px; }
         .top-bar-side.right { justify-content: flex-end; }
@@ -42,7 +42,7 @@
         .top-action-btn:hover { transform: scale(1.1); }
         .top-badge { position: absolute; top: -5px; right: -8px; font-size: 10px; background: var(--danger); color: white; border-radius: 50%; padding: 2px 5px; font-weight: bold; animation: bounce 1s infinite; display: none;}
 
-        /* BOTTOM NAV AGGIORNATA (Highlight pagina attiva) */
+        /* BOTTOM NAV */
         .bottom-nav { position: fixed; bottom: 0; left: 0; width: 100%; height: 70px; background: var(--white); box-shadow: 0 -2px 15px rgba(0,0,0,0.08); display: flex; z-index: 1000; padding-bottom: env(safe-area-inset-bottom); }
         .nav-item { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; color: var(--text-muted); cursor: pointer; transition: 0.3s; user-select: none; }
         .nav-item.active { background: #f8f9f9; color: var(--primary-dark); border-top: 3px solid var(--primary-dark); }
@@ -51,7 +51,7 @@
 
         @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-3px); } }
 
-        .btn-logout { background: var(--danger) !important; color: white; border: none; padding: 15px; border-radius: 12px; font-size: 16px; font-weight: bold; width: 100%; margin-top: 20px; cursor: pointer; box-shadow: 0 4px 10px rgba(231, 76, 60, 0.2); }
+        .btn-logout { background: var(--danger) !important; color: white; border: none; padding: 10px; border-radius: 8px; font-size: 14px; font-weight: bold; width: 100%; cursor: pointer; }
         
         .progress-container { width: 100%; height: 10px; background: #e0e6ed; border-radius: 10px; margin: 15px auto 5px auto; overflow: hidden; }
         .progress-bar { height: 100%; background-color: var(--primary-dark); width: 0%; transition: width 0.8s cubic-bezier(0.25, 0.8, 0.25, 1); }
@@ -178,7 +178,7 @@
         .social-feed { display: flex; flex-direction: column; gap: 30px; }
         .post-card { background: var(--white); border: 1px solid var(--gray); border-radius: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); overflow: hidden; }
         .post-header { display: flex; align-items: center; padding: 15px; border-bottom: 1px solid var(--gray); justify-content: space-between;}
-        .post-avatar { width: 40px; height: 40px; background: linear-gradient(135deg, var(--social-blue), #8e44ad); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: var(--white); font-weight: bold; font-size: 18px; margin-right: 12px; text-transform: uppercase; }
+        .post-avatar { width: 40px; height: 40px; background: linear-gradient(135deg, var(--social-blue), #8e44ad); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: var(--white); font-weight: bold; font-size: 18px; margin-right: 12px; text-transform: uppercase; overflow: hidden; }
         .post-user { font-weight: bold; font-size: 15px; color: var(--dark); }
         .post-time { font-size: 12px; color: var(--text-muted); }
         .post-image { width: 100%; max-height: 400px; object-fit: contain; background: #000; display: block; border-bottom: 1px solid var(--gray); }
@@ -204,7 +204,7 @@
         .medal-icon-container { font-size: 35px; margin-bottom: 5px; }
         
         /* PROFILO E IMPOSTAZIONI */
-        .profile-user-box { text-align: center; padding: 25px; background: var(--white); border-radius: 16px; margin-bottom: 25px; font-weight: bold; color: var(--dark); position: relative; box-shadow: 0 5px 15px rgba(0,0,0,0.05); border: 2px solid var(--primary); }
+        .profile-user-box { text-align: center; padding: 25px; background: var(--white); border-radius: 16px; margin-bottom: 25px; position: relative; box-shadow: 0 5px 15px rgba(0,0,0,0.05); border: 2px solid var(--primary); }
     </style>
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#f39c12">
@@ -215,7 +215,6 @@
     <div class="top-bar">
         <div class="top-bar-side">
             <button class="top-action-btn" onclick="navigateTo('page-map')" title="Mappa Sblocchi">🗺️</button>
-            <button class="top-action-btn" onclick="navigateTo('page-leaderboard')" title="Classifica Globale">🏅</button>
         </div>
         <div class="top-bar-logo">🍻 BeerDex</div>
         <div class="top-bar-side right">
@@ -335,36 +334,6 @@
             <div class="container" id="beerList"></div>
         </div>
 
-        <div id="page-profile" class="page-view">
-            <header class="hero">
-                <h1>🏆 La Mia Bacheca</h1>
-                <p>I tuoi traguardi, gradi di evoluzione e medaglie di completamento.</p>
-            </header>
-            <div class="page-container">
-                <h3 style="margin-top:0; color:var(--dark); border-bottom: 2px solid var(--gray); padding-bottom:8px;">🏅 Medaglie Maestro Brand (Completamento 100%)</h3>
-                <div class="trophy-grid" id="brandMedalsGrid" style="grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap:15px;"></div>
-
-                <h3 style="margin-top:40px; color:var(--dark); border-bottom: 2px solid var(--gray); padding-bottom:8px;">📸 Singole Varianti Sbloccate</h3>
-                <div class="trophy-grid" id="trophyGrid"></div>
-            </div>
-        </div>
-
-        <div id="page-map" class="page-view">
-            <header class="hero" style="margin-bottom: 0; padding-bottom: 30px; border-bottom-left-radius: 20px; border-bottom-right-radius: 20px; z-index: 10; position: relative; box-shadow: 0 10px 20px rgba(0,0,0,0.1);">
-                <h1>🗺️ Mappa Sblocchi</h1>
-                <p>Esplora il mondo e traccia i pub in cui hai conquistato le tue birre.</p>
-            </header>
-            <div id="mapContainer"></div>
-        </div>
-
-        <div id="page-social" class="page-view">
-            <header class="hero">
-                <h1>📸 Feed Amici</h1>
-                <p>Scopri le birre sbloccate dalla tua rete di amici.</p>
-            </header>
-            <div class="page-container"><div class="social-feed" id="socialFeed"></div></div>
-        </div>
-
         <div id="page-leaderboard" class="page-view">
             <header class="hero">
                 <h1>🏅 Classifiche</h1>
@@ -389,6 +358,80 @@
             </div>
         </div>
 
+        <!-- NUOVA PAGINA PROFILO UNIFICATA (Bacheca + Opzioni Profilo) -->
+        <div id="page-profile" class="page-view">
+            <header class="hero">
+                <h1>👤 Il Tuo Profilo</h1>
+                <p>La tua bacheca personale e le impostazioni account.</p>
+            </header>
+            <div class="page-container">
+                
+                <!-- BOX UTENTE CON AVATAR E MENU TENDINA -->
+                <div class="profile-user-box" style="position:relative;">
+                    
+                    <!-- Pulsante Menù Tendina -->
+                    <button id="btnProfileMenu" onclick="toggleProfileMenu(event)" style="position:absolute; top:15px; right:15px; background:none; border:none; font-size:24px; cursor:pointer; color:var(--text-muted); transition:0.2s;">⚙️</button>
+                    
+                    <!-- Menù Tendina (Nascosto di default) -->
+                    <div id="profileDropdown" style="display:none; position:absolute; top:45px; right:15px; background:white; box-shadow:0 8px 25px rgba(0,0,0,0.15); border-radius:16px; padding:20px; text-align:left; z-index:100; width:240px; border:1px solid var(--gray);">
+                        <div style="font-size:16px; font-weight:bold; color:var(--dark); margin-bottom:5px;" id="ddUsername"></div>
+                        <div style="font-size:11px; color:var(--text-muted); margin-bottom:15px; word-wrap: break-word;" id="ddEmail"></div>
+                        
+                        <hr style="border:0; border-top:1px solid var(--gray); margin:15px 0;">
+                        
+                        <p style="font-size:12px; font-weight:bold; color:var(--dark); margin:0 0 8px 0;">Modifica Nickname</p>
+                        <input type="text" id="newNicknameInput" placeholder="Nuovo Nick" style="width:100%; padding:10px; border:2px solid var(--gray); border-radius:8px; margin-bottom:8px; font-size:13px; box-sizing:border-box;">
+                        <button class="btn-main" onclick="changeUserNickname()" style="padding:8px; font-size:12px; margin-top:0;">Salva Nick</button>
+
+                        <hr style="border:0; border-top:1px solid var(--gray); margin:15px 0;">
+                        
+                        <p style="font-size:12px; font-weight:bold; color:var(--dark); margin:0 0 8px 0;">Modifica Password</p>
+                        <input type="password" id="newPasswordInput" placeholder="Nuova Password" style="width:100%; padding:10px; border:2px solid var(--gray); border-radius:8px; margin-bottom:8px; font-size:13px; box-sizing:border-box;">
+                        <button class="btn-main" onclick="changeUserPassword()" style="padding:8px; font-size:12px; margin-top:0; background:var(--social-blue);">Salva Password</button>
+
+                        <hr style="border:0; border-top:1px solid var(--gray); margin:15px 0;">
+                        
+                        <button class="btn-logout" onclick="logoutUser()" style="margin-top:0;">🚪 Esci dall'App</button>
+                    </div>
+
+                    <!-- Area Avatar Cliccabile -->
+                    <label style="cursor:pointer; display:inline-block; position:relative;" title="Cambia foto profilo">
+                        <div id="profileAvatarDisplay" style="width:90px; height:90px; border-radius:50%; background:#e0e6ed; margin:0 auto 15px auto; border:4px solid var(--primary); display:flex; align-items:center; justify-content:center; font-size:35px; overflow:hidden; box-shadow:0 4px 10px rgba(0,0,0,0.1);">
+                            👤
+                        </div>
+                        <div style="position:absolute; bottom:15px; right:0; background:var(--white); border-radius:50%; width:30px; height:30px; box-shadow:0 2px 8px rgba(0,0,0,0.2); display:flex; align-items:center; justify-content:center; font-size:14px; border:2px solid var(--primary);">📷</div>
+                        <input type="file" accept="image/*" style="display:none;" onchange="handleAvatarUpload(event)">
+                    </label>
+
+                    <div id="settingsUserBoxContent">Caricamento...</div>
+                </div>
+
+                <!-- SEZIONE TROFEI -->
+                <h3 style="margin-top:40px; color:var(--dark); border-bottom: 2px solid var(--gray); padding-bottom:8px;">🏅 Medaglie Maestro Brand (Completamento 100%)</h3>
+                <div class="trophy-grid" id="brandMedalsGrid" style="grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap:15px;"></div>
+
+                <h3 style="margin-top:40px; color:var(--dark); border-bottom: 2px solid var(--gray); padding-bottom:8px;">📸 Singole Varianti Sbloccate</h3>
+                <div class="trophy-grid" id="trophyGrid"></div>
+
+            </div>
+        </div>
+
+        <div id="page-map" class="page-view">
+            <header class="hero" style="margin-bottom: 0; padding-bottom: 30px; border-bottom-left-radius: 20px; border-bottom-right-radius: 20px; z-index: 10; position: relative; box-shadow: 0 10px 20px rgba(0,0,0,0.1);">
+                <h1>🗺️ Mappa Sblocchi</h1>
+                <p>Esplora il mondo e traccia i pub in cui hai conquistato le tue birre.</p>
+            </header>
+            <div id="mapContainer"></div>
+        </div>
+
+        <div id="page-social" class="page-view">
+            <header class="hero">
+                <h1>📸 Feed Amici</h1>
+                <p>Scopri le birre sbloccate dalla tua rete di amici.</p>
+            </header>
+            <div class="page-container"><div class="social-feed" id="socialFeed"></div></div>
+        </div>
+
         <div id="page-friends" class="page-view">
             <header class="hero">
                 <h1>🤝 Gestione Amici</h1>
@@ -406,30 +449,6 @@
                 <div class="list-container" id="friendsManagerList">
                     <p style="text-align:center;">Caricamento...</p>
                 </div>
-            </div>
-        </div>
-
-        <div id="page-settings" class="page-view">
-            <header class="hero">
-                <h1>⚙️ Il Tuo Profilo</h1>
-                <p>Gestisci il tuo account e le tue preferenze.</p>
-            </header>
-            <div class="page-container">
-                
-                <div class="profile-user-box" id="settingsUserBox">Caricamento...</div>
-
-                <button class="btn-secondary" onclick="toggleNicknameSection()">✏️ Opzioni Account</button>
-                
-                <div id="nicknameSection" style="display:none; margin-top:15px; padding: 20px; background: var(--gray); border-radius: 16px;">
-                    <h4 style="margin-top:0;">Cambia Nickname</h4>
-                    <p style="font-size:12px; color:var(--danger); font-weight:bold;">Attenzione: L'aggiornamento modificherà i tuoi post passati e aggiornerà le liste dei tuoi amici automaticamente.</p>
-                    <input type="text" id="newNicknameInput" placeholder="Nuovo Nickname..." style="width:100%; padding:12px; border-radius:10px; border:2px solid #bdc3c7; margin-bottom:10px; box-sizing:border-box;">
-                    <button class="btn-main" onclick="changeUserNickname()" style="margin-top:0;">Salva Nuovo Nickname</button>
-                </div>
-                
-                <hr style="border:none; border-top:1px solid var(--gray); margin:30px 0;">
-                
-                <button class="btn-logout" onclick="logoutUser()">🚪 Esci dall'Account</button>
             </div>
         </div>
 
@@ -496,15 +515,15 @@
             <div class="nav-icon">🔍</div>
             <div class="nav-text">Esplora</div>
         </div>
-        <div class="nav-item" onclick="navigateTo('page-profile')" id="nav-page-profile">
-            <div class="nav-icon">🏆</div>
-            <div class="nav-text">Trofei</div>
+        <div class="nav-item" onclick="navigateTo('page-leaderboard')" id="nav-page-leaderboard">
+            <div class="nav-icon">🏅</div>
+            <div class="nav-text">Classifica</div>
         </div>
         <div class="nav-item" onclick="navigateTo('page-social')" id="nav-page-social">
             <div class="nav-icon">🌍</div>
             <div class="nav-text">Social</div>
         </div>
-        <div class="nav-item" onclick="navigateTo('page-settings')" id="nav-page-settings">
+        <div class="nav-item" onclick="navigateTo('page-profile')" id="nav-page-profile">
             <div class="nav-icon">👤</div>
             <div class="nav-text">Profilo</div>
         </div>
@@ -593,10 +612,27 @@
         function switchLeaderboardTab(tabName) { currentLeaderboardTab = tabName; document.getElementById('tab-friends').classList.toggle('active', tabName === 'friends'); document.getElementById('tab-global').classList.toggle('active', tabName === 'global'); document.getElementById('friendSearchWrapper').style.display = (tabName === 'global') ? 'block' : 'none'; renderLeaderboard(); }
         function switchFriendsTab(tabName) { currentFriendsTab = tabName; document.getElementById('tab-req-received').classList.toggle('active', tabName === 'received'); document.getElementById('tab-req-sent').classList.toggle('active', tabName === 'sent'); document.getElementById('tab-req-accepted').classList.toggle('active', tabName === 'accepted'); document.getElementById('tab-req-rejected').classList.toggle('active', tabName === 'rejected'); renderFriendsManager(); }
         
-        function toggleNicknameSection() {
-            const sec = document.getElementById('nicknameSection');
+        // --- LOGICA MENU TENDINA PROFILO ---
+        function toggleProfileMenu(event) {
+            if(event) event.stopPropagation();
+            const sec = document.getElementById('profileDropdown');
             sec.style.display = sec.style.display === 'none' ? 'block' : 'none';
         }
+
+        document.addEventListener('click', function(e) {
+            // Chiude il menu tendina profilo se si clicca fuori
+            const dropdown = document.getElementById('profileDropdown');
+            const toggleBtn = document.getElementById('btnProfileMenu');
+            if(dropdown && dropdown.style.display === 'block') {
+                if(!dropdown.contains(e.target) && e.target !== toggleBtn) {
+                    dropdown.style.display = 'none';
+                }
+            }
+            // Chiude i suggerimenti ricerca
+            if(!e.target.closest('.add-friend-wrapper')) {
+                const box = document.getElementById('suggestionsBox'); if(box) box.style.display = 'none';
+            }
+        });
 
         // --- COSTANTI E CONFIGURAZIONI ---
         const ADMIN_EMAIL = "barcello.luca02@gmail.com".toLowerCase(); 
@@ -709,15 +745,20 @@
             let roleColor = isAdminUser ? "var(--danger)" : "var(--text-muted)";
             let rankTitle = getUserRankTitle(score);
             
-            const box = document.getElementById("settingsUserBox");
-            if (box) {
-                box.innerHTML = `
+            const boxContent = document.getElementById("settingsUserBoxContent");
+            if (boxContent) {
+                boxContent.innerHTML = `
                     <div style="font-size:12px; letter-spacing:1px; color:${roleColor}; margin-bottom:5px;">${roleText}</div>
                     <div style="font-size:26px; color:var(--primary-dark); font-weight:900; margin-bottom: 5px;">${currentUserNick}</div>
-                    <div class="user-rank-title" style="margin-bottom:15px; font-size:13px; padding: 5px 12px;">${rankTitle}</div>
-                    <div style="font-size:12px; color:var(--text-muted); font-weight:normal;">Email collegata: <br><strong>${currentUserEmail}</strong></div>
+                    <div class="user-rank-title" style="margin-bottom:0; font-size:13px; padding: 5px 12px;">${rankTitle}</div>
                 `;
             }
+
+            // Popola i dati nella tendina
+            const ddEmail = document.getElementById("ddEmail");
+            const ddUser = document.getElementById("ddUsername");
+            if(ddEmail) ddEmail.innerText = currentUserEmail;
+            if(ddUser) ddUser.innerText = "Ciao, " + currentUserNick;
         }
 
         checkAgeGate();
@@ -805,9 +846,61 @@
                 if(myFriendsList.length > 0) { updates['users_friends/' + newNick] = Object.fromEntries(myFriendsList.map(f => [f, true])); updates['users_friends/' + currentUserNick] = null; }
                 myFriendsList.forEach(f => { updates['users_friends/' + f + '/' + newNick] = true; updates['users_friends/' + f + '/' + currentUserNick] = null; });
                 globalPosts.forEach(p => { if(p.user === currentUserNick) { updates['social_timeline/' + p.postId + '/user'] = newNick; } });
+                
+                // Aggiorna anche l'avatar se esistente
+                if(globalAvatars[currentUserNick]) {
+                    updates['users_avatars/' + newNick] = globalAvatars[currentUserNick];
+                    updates['users_avatars/' + currentUserNick] = null;
+                }
 
                 db.ref().update(updates).then(() => { showCustomAlert("Nickname aggiornato!", "Fatto", () => { window.location.reload(); }); });
             });
+        }
+
+        function changeUserPassword() {
+            const newPwd = document.getElementById('newPasswordInput').value;
+            if(newPwd.length < 8) { showCustomAlert("La password deve contenere almeno 8 caratteri."); return; }
+            
+            auth.currentUser.updatePassword(newPwd).then(() => {
+                showCustomAlert("Password aggiornata con successo!");
+                document.getElementById('newPasswordInput').value = '';
+                document.getElementById('profileDropdown').style.display = 'none';
+            }).catch(error => {
+                if (error.code === 'auth/requires-recent-login') {
+                    showCustomAlert("Per motivi di sicurezza, fai il logout e riaccedi prima di cambiare la password.");
+                } else {
+                    showCustomAlert("Errore durante l'aggiornamento: " + error.message);
+                }
+            });
+        }
+
+        function handleAvatarUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const img = new Image();
+                img.onload = function() {
+                    const canvas = document.createElement('canvas');
+                    const MAX_SIZE = 150; 
+                    let width = img.width; let height = img.height;
+                    
+                    const size = Math.min(width, height);
+                    const startX = (width - size) / 2;
+                    const startY = (height - size) / 2;
+                    
+                    canvas.width = MAX_SIZE; canvas.height = MAX_SIZE;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, startX, startY, size, size, 0, 0, MAX_SIZE, MAX_SIZE);
+                    
+                    const avatarBase64 = canvas.toDataURL('image/jpeg', 0.8);
+                    db.ref('users_avatars/' + currentUserNick).set(avatarBase64).then(() => {
+                        showCustomAlert("Foto profilo aggiornata!", "Fatto");
+                    });
+                };
+                img.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
         }
 
         // --- DATABASE BIRRE ---
@@ -1195,10 +1288,11 @@
             const visiblePosts = globalPosts.filter(post => post.user === currentUserNick || myFriendsList.includes(post.user) || isAdminUser);
             if(visiblePosts.length === 0) { feed.innerHTML = '<p style="text-align:center; padding:20px;">Nessun post.</p>'; return; }
             [...visiblePosts].reverse().forEach(post => {
-                let letter = post.user.charAt(0).toUpperCase(); let card = document.createElement('div'); card.className = 'post-card';
+                let avatarContent = globalAvatars[post.user] ? `<img src="${globalAvatars[post.user]}" style="width:100%; height:100%; object-fit:cover;">` : post.user.charAt(0).toUpperCase();
+                let card = document.createElement('div'); card.className = 'post-card';
                 let canDelete = (post.user === currentUserNick) || isAdminUser;
                 let shinyTag = post.isShiny ? ' <span style="color:var(--primary-dark); font-size:12px;">✨ Sblocco Shiny in Trasferta!</span>' : '';
-                card.innerHTML = `<div class="post-header"><div style="display:flex; align-items:center;"><div class="post-avatar">${letter}</div><div><div class="post-user">${post.user} ${post.user === currentUserNick ? '(Tu)' : ''}</div><div class="post-time">Nuovo sblocco!${shinyTag}</div></div></div>${canDelete ? `<button class="btn-delete" onclick="deletePost('${post.postId}', '${post.user}', '${post.brand}', '${post.variant}')" style="font-size:20px;" title="Elimina post e punti">🗑️</button>` : ''}</div><img src="${post.photo}" class="post-image" alt="Foto"><div class="post-caption"><strong>${post.user}</strong> ha trovato la <strong>${post.brand} - ${post.variant}</strong>! 🍻</div>`;
+                card.innerHTML = `<div class="post-header"><div style="display:flex; align-items:center;"><div class="post-avatar">${avatarContent}</div><div><div class="post-user">${post.user} ${post.user === currentUserNick ? '(Tu)' : ''}</div><div class="post-time">Nuovo sblocco!${shinyTag}</div></div></div>${canDelete ? `<button class="btn-delete" onclick="deletePost('${post.postId}', '${post.user}', '${post.brand}', '${post.variant}')" style="font-size:20px;" title="Elimina post e punti">🗑️</button>` : ''}</div><img src="${post.photo}" class="post-image" alt="Foto"><div class="post-caption"><strong>${post.user}</strong> ha trovato la <strong>${post.brand} - ${post.variant}</strong>! 🍻</div>`;
                 feed.appendChild(card);
             });
         }
@@ -1249,8 +1343,19 @@
 
         let myPokedex = {}; let globalPosts = []; let globalLeaderboardScores = {}; 
         let myFriendsList = []; let myReceivedRequests = []; let mySentRequests = []; let myRejectedRequests = [];
+        let globalAvatars = {};
 
         function loadRealtimeData() {
+            db.ref('users_avatars').on('value', snap => {
+                globalAvatars = snap.val() || {};
+                const activeView = document.querySelector('.page-view.active');
+                if(activeView && activeView.id === 'page-social') renderSocialFeed();
+                if(globalAvatars[currentUserNick]) {
+                    const avatarDisplay = document.getElementById('profileAvatarDisplay');
+                    if(avatarDisplay) avatarDisplay.innerHTML = `<img src="${globalAvatars[currentUserNick]}" style="width:100%; height:100%; object-fit:cover;">`;
+                }
+            });
+
             db.ref('pokedex_profiles/' + currentUserNick).on('value', (snapshot) => {
                 myPokedex = snapshot.val() || {}; 
                 updateStats(); 
@@ -1337,12 +1442,6 @@
             });
             box.style.display = 'block';
         }
-
-        document.addEventListener('click', function(e) {
-            if(!e.target.closest('.add-friend-wrapper')) {
-                const box = document.getElementById('suggestionsBox'); if(box) box.style.display = 'none';
-            }
-        });
 
         function searchUser() {
             let friendName = document.getElementById('friendInput').value.trim();
