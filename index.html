@@ -5,18 +5,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>BeerDex - Social Network</title>
     
-    <!-- Firebase -->
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
 
-    <!-- AI & OCR -->
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/coco-ssd"></script>
     <script src="https://unpkg.com/nsfwjs"></script>
     <script src="https://cdn.jsdelivr.net/npm/tesseract.js@4.1.2/dist/tesseract.min.js"></script>
 
-    <!-- Mappa -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
@@ -99,20 +96,35 @@
 
         .container { display: flex; flex-wrap: wrap; justify-content: center; gap: 25px; max-width: 1200px; width: 100%; position: relative; z-index: 5; flex-grow: 1; }
         
-        .card { background: var(--white); border-radius: 16px; padding: 20px; width: 100%; max-width: 350px; box-shadow: 0 8px 24px rgba(0,0,0,0.06); cursor: pointer; transition: all 0.3s ease; position: relative; border-top: 5px solid var(--accent); align-self: flex-start; border: 1px solid var(--gray); border-top: 5px solid var(--accent); }
+        /* FIX ALTEZZA CARDS */
+        .card { 
+            background: var(--white); 
+            border-radius: 16px; 
+            padding: 20px; 
+            width: 100%; 
+            max-width: 350px; 
+            box-shadow: 0 8px 24px rgba(0,0,0,0.06); 
+            cursor: pointer; 
+            transition: all 0.3s ease; 
+            position: relative; 
+            border: 1px solid var(--gray); 
+            border-top: 5px solid var(--accent);
+            display: flex; 
+            flex-direction: column; /* Permette alla carta di allungarsi uniformemente */
+        }
         .card:hover { transform: translateY(-5px); box-shadow: 0 12px 30px rgba(0,0,0,0.12); }
         .card h2 { margin: 0 0 10px 0; color: var(--dark); font-size: 22px; }
         .toggle-icon { position: absolute; top: 20px; right: 20px; font-size: 16px; color: var(--text-muted); transition: transform 0.3s; }
         .card.active .toggle-icon { transform: rotate(180deg); color: var(--primary-dark); }
         .region { font-size: 11px; font-weight: bold; text-transform: uppercase; color: var(--primary-dark); margin-bottom: 8px; display: inline-block; background: #fef5e6; padding: 4px 8px; border-radius: 6px;}
-        .desc { font-size: 14px; line-height: 1.5; color: var(--text-muted); margin-bottom: 0; }
+        .desc { font-size: 14px; line-height: 1.5; color: var(--text-muted); margin-bottom: 0; flex-grow: 1; } /* flex-grow spinge le varianti in basso se la carta si allunga */
         
         .rarity-badge { font-size: 10px; font-weight: bold; text-transform: uppercase; padding: 3px 6px; border-radius: 4px; margin-left: 5px; color: white; display: inline-block; vertical-align: middle; }
         .rarity-comune { background-color: #7f8c8d; }
         .rarity-media { background-color: #3498db; }
         .rarity-rara { background-color: #9b59b6; }
 
-        .variants-container { max-height: 0; overflow: hidden; transition: max-height 0.4s ease-out, margin-top 0.4s ease-out, opacity 0.3s; opacity: 0; }
+        .variants-container { max-height: 0; overflow: hidden; transition: max-height 0.4s ease-out, margin-top 0.4s ease-out, opacity 0.3s; opacity: 0; margin-top: 0; }
         .card.active .variants-container { max-height: 1200px; margin-top: 20px; opacity: 1; }
         .variants { font-size: 14px; background: var(--light); padding: 15px; border-radius: 10px; border-left: 4px solid var(--primary-dark); }
         .variants p { margin: 0 0 15px 0; font-weight: bold; color: var(--dark); font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px;}
@@ -253,7 +265,6 @@
         </div>
     </div>
 
-    <!-- MODALI ALERT -->
     <div id="customModalOverlay" class="auth-modal" style="display:none; z-index: 20000;">
         <div class="auth-container" style="max-width: 350px;">
             <h3 id="customModalTitle" style="margin-top:0; color:var(--dark); font-size:22px;">Avviso</h3>
@@ -300,7 +311,6 @@
         </div>
     </div>
 
-    <!-- MAIN CONTENT -->
     <div class="main-content">
         
         <div id="page-home" class="page-view">
@@ -333,7 +343,6 @@
             </div>
         </div>
 
-        <!-- PAGINA ESPLORA (Con pallini colorati aggiunti) -->
         <div id="page-explore" class="page-view">
             <header class="hero">
                 <h1>🔍 Esplora Birre</h1>
@@ -388,7 +397,6 @@
             </div>
         </div>
 
-        <!-- PAGINA PROFILO UNIFICATA (Bacheca + Menù Hamburg) -->
         <div id="page-profile" class="page-view">
             <header class="hero">
                 <h1>👤 Il Tuo Profilo</h1>
@@ -509,7 +517,6 @@
 
     </div>
     
-    <!-- IMPOSTAZIONI FULL SCREEN OVERLAY -->
     <div id="settingsOverlayFull" class="settings-overlay">
         <div class="settings-content">
             <button class="btn-close-settings" onclick="toggleProfileSettings()">×</button>
@@ -856,7 +863,7 @@
                 if(nickname.length < 3) { showCustomAlert("Scegli un Nickname di almeno 3 caratteri!"); return; }
                 if(password !== confirmPassword) { showCustomAlert("Le due password inserite non coincidono. Riprova!"); return; }
                 if(password.length < 8) { showCustomAlert("La password deve essere lunga almeno 8 caratteri!"); return; }
-                if(!/[A-Z]/.test(password)) { showCustomAlert("La password deve contenere almeno una lettera MAIUSCOLA!"); return; }
+                if(!/[A-Z]/.test(password)) { showCustomAlert("La password deve contenere almeno una letterina MAIUSCOLA!"); return; }
                 if(!/\d/.test(password)) { showCustomAlert("La password deve contenere almeno un NUMERO!"); return; }
                 if(!/[!?$%&]/.test(password)) { showCustomAlert("La password deve contenere almeno un carattere SPECIALE tra questi: ! ? $ % &"); return; }
 
@@ -1071,6 +1078,7 @@
                 if (variantName === "Lavorazione Grezza") return 3;
                 return 2;
             }
+
             return base;
         }
 
@@ -1235,24 +1243,6 @@
                 item.innerHTML = `<div style="display:flex; align-items:center; flex-grow:1;"><div class="rank">${medal}</div><div class="lb-user">${player.name} ${player.name === currentUserNick ? '(Tu)' : ''}<br><small style="font-size:11px;color:var(--text-muted);font-weight:normal;">${rankLabel}</small></div></div><div style="display:flex; align-items:center; gap:15px;"><div class="lb-score">${player.score} 🏆</div>${actionsHtml}</div>`;
                 list.appendChild(item);
             });
-        }
-
-        function renderDashboard() {
-            checkTimedEvents();
-            const welcomeEl = document.getElementById('dashWelcomeName');
-            if (welcomeEl) welcomeEl.innerText = currentUserNick;
-            const dashLastBeer = document.getElementById('dashLastBeer');
-            if (!dashLastBeer) return;
-            
-            let myPosts = globalPosts.filter(p => p.user === currentUserNick);
-            checkAndUnlockEventBadges(currentUserNick, myPosts);
-
-            if(myPosts.length > 0) {
-                myPosts.sort((a,b) => b.time - a.time); let lastPost = myPosts[0];
-                let date = new Date(lastPost.time); let dateStr = date.toLocaleDateString() + ' alle ' + date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-                let shinyBadge = lastPost.isShiny ? '<span style="color:var(--primary-dark); font-weight:bold;">✨ SHINY (x2 Punti)</span>' : '';
-                dashLastBeer.innerHTML = `<div class="dash-last-card"><img src="${lastPost.photo}" class="dash-last-img"><div class="dash-last-info"><h4 style="margin: 0 0 5px 0; color: var(--dark); font-size: 18px;">${lastPost.brand}</h4><div style="color: var(--primary-dark); font-weight: bold; font-size: 14px; margin-bottom: 5px;">${lastPost.variant} ${shinyBadge}</div><div style="font-size: 12px; color: var(--text-muted);">Sbloccata il: ${dateStr}</div></div></div>`;
-            } else { dashLastBeer.innerHTML = `<div class="dash-empty">Nessuna birra sbloccata!<br>Inizia la tua avventura! 🧭</div>`; }
         }
 
         let myPokedex = {}; let globalPosts = []; let globalLeaderboardScores = {}; 
