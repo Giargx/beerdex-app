@@ -22,7 +22,7 @@
             --primary: #f1c40f;        
             --primary-dark: #f39c12;  
             --dark: #2c3e50;          
-            --light: #fdfbf7;         
+            --light: #f4f6f8; /* Sfondo generale più moderno e staccato */
             --white: #ffffff;
             --accent: #e67e22;        
             --gray: #ecf0f1;
@@ -66,8 +66,6 @@
 
         .btn-logout { background: var(--danger) !important; color: white; border: none; padding: 15px; border-radius: 12px; font-size: 16px; font-weight: bold; width: 100%; margin-top: 20px; cursor: pointer; box-shadow: 0 4px 10px rgba(231, 76, 60, 0.2); }
         
-        #aiStatusMini { position: fixed; bottom: 70px; left: 0; width: 100%; background: rgba(255,255,255,0.95); color: var(--text-muted); text-align: center; font-size: 11px; font-weight: bold; padding: 5px 0; border-top: 1px solid var(--gray); z-index: 999; backdrop-filter: blur(5px); }
-
         .progress-container { width: 100%; height: 10px; background: #e0e6ed; border-radius: 10px; margin: 15px auto 5px auto; overflow: hidden; }
         .progress-bar { height: 100%; background-color: var(--primary-dark); width: 0%; transition: width 0.8s cubic-bezier(0.25, 0.8, 0.25, 1); }
         .progress-text { font-size: 13px; font-weight: bold; color: var(--text-muted); text-align: center; margin-bottom: 20px; }
@@ -83,13 +81,8 @@
         .page-view.active { display: block; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* FIX MAPPA FULL PAGE */
-        #page-map.active { display: flex !important; flex-direction: column; height: calc(100vh - 135px); margin: 0; padding: 0; overflow: hidden; }
-        #page-map .hero { margin-bottom: 0; padding-bottom: 20px; border-bottom-left-radius: 20px; border-bottom-right-radius: 20px; z-index: 10; position: relative; box-shadow: 0 5px 15px rgba(0,0,0,0.1); flex-shrink: 0; }
-        #mapContainer { flex-grow: 1; width: 100%; z-index: 1; background: #e0e6ed; }
-
-        /* HEADER ANIMATO */
-        header.hero { background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%); color: var(--dark); padding: 30px 20px 60px 20px; text-align: center; margin-bottom: 0; position: relative; overflow: hidden; z-index: 1; }
+        /* HEADER ANIMATO: Schiuma ferma, risponde al tilt */
+        header.hero { background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%); color: var(--dark); padding: 30px 20px 60px 20px; text-align: center; margin-bottom: 0; position: relative; overflow: hidden; z-index: 1; border-radius: 0; }
         header.hero h1 { margin: 10px 0 10px 0; font-size: 32px; font-weight: 800; letter-spacing: -1px; position: relative; z-index: 5; }
         header.hero p { margin: 0; font-size: 15px; opacity: 0.85; font-weight: 500; position: relative; z-index: 5; }
         
@@ -99,48 +92,34 @@
         .bubble { position: absolute; bottom: -20px; background: rgba(255, 255, 255, 0.4); border-radius: 50%; animation: rise infinite ease-in; }
         @keyframes rise { 0% { bottom: -20px; transform: translateX(0); opacity: 0; } 50% { opacity: 1; } 100% { bottom: 100%; transform: translateX(-20px); opacity: 0; } }
 
-        .page-container { width: 100%; max-width: 900px; margin: -30px auto 0 auto; padding: 30px 20px 40px 20px; background: var(--white); border-radius: 30px 30px 0 0; box-shadow: 0 -10px 25px rgba(0,0,0,0.05); position: relative; z-index: 5; box-sizing: border-box; }
-
-        .container { display: flex; flex-wrap: wrap; justify-content: center; gap: 25px; max-width: 1200px; width: 100%; margin: 0 auto 40px auto; position: relative; z-index: 5; flex-grow: 1; padding: 0 20px;}
+        /* NUOVO LAYOUT EDGE-TO-EDGE */
+        .page-container { width: 100%; max-width: 900px; margin: 0 auto; padding: 20px 0 60px 0; background: transparent; box-shadow: none; position: relative; z-index: 5; box-sizing: border-box; }
         
-        .card { 
-            background: var(--white); 
-            border-radius: 16px; 
-            padding: 20px; 
-            width: 100%; 
-            max-width: 320px; 
-            box-shadow: 0 8px 24px rgba(0,0,0,0.06); 
-            cursor: pointer; 
-            transition: all 0.3s ease; 
-            position: relative; 
-            border: 1px solid var(--gray); 
-            border-top: 5px solid var(--accent);
-            display: flex; 
-            flex-direction: column; 
-        }
+        /* Spaziature per gli elementi dentro page-container per evitare che tocchino i bordi */
+        .controls, .dashboard-stats, .dashboard-event, .profile-user-box, .rules-section, .tabs, .add-friend-wrapper, #searchResultArea, .list-container, .hero-section-title { margin: 0 20px 20px 20px; }
+        .rules-section { background: var(--white); padding: 20px; border-radius: 16px; box-shadow: 0 5px 15px rgba(0,0,0,0.05); }
+
+        .container { display: flex; flex-wrap: wrap; justify-content: center; gap: 20px; width: 100%; position: relative; z-index: 5; padding: 0 20px; box-sizing: border-box;}
+        
+        .card { background: var(--white); border-radius: 16px; padding: 20px; width: 100%; max-width: 350px; box-shadow: 0 8px 24px rgba(0,0,0,0.06); cursor: pointer; transition: all 0.3s ease; position: relative; border-top: 5px solid var(--accent); display: flex; flex-direction: column; }
         .card:hover { transform: translateY(-5px); box-shadow: 0 12px 30px rgba(0,0,0,0.12); }
         .card h2 { margin: 0 0 10px 0; color: var(--dark); font-size: 22px; }
-        
         .card-badges { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; align-items: center; justify-content: flex-start; }
         .region { font-size: 11px; font-weight: bold; text-transform: uppercase; color: var(--primary-dark); background: #fef5e6; padding: 4px 8px; border-radius: 6px; margin: 0; display: inline-block;}
         .rarity-badge { font-size: 10px; font-weight: bold; text-transform: uppercase; padding: 4px 8px; border-radius: 6px; color: white; margin: 0; display: inline-block; }
         .rarity-comune { background-color: #7f8c8d; }
         .rarity-media { background-color: #3498db; }
         .rarity-rara { background-color: #9b59b6; }
-
         .toggle-icon { position: absolute; top: 20px; right: 20px; font-size: 16px; color: var(--text-muted); transition: transform 0.3s; }
         .card.active .toggle-icon { transform: rotate(180deg); color: var(--primary-dark); }
         .desc { font-size: 14px; line-height: 1.5; color: var(--text-muted); margin-bottom: 0; flex-grow: 1; } 
-
         .variants-container { max-height: 0; overflow: hidden; transition: max-height 0.4s ease-out, margin-top 0.4s ease-out, opacity 0.3s; opacity: 0; margin-top: 0; }
         .card.active .variants-container { max-height: 1200px; margin-top: 20px; opacity: 1; }
         .variants { font-size: 14px; background: var(--light); padding: 15px; border-radius: 10px; border-left: 4px solid var(--primary-dark); }
         .variants p { margin: 0 0 15px 0; font-weight: bold; color: var(--dark); font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px;}
-        
         .variant-item { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid #e1e8ed; }
         .variant-item:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
         
-        /* PALLINI COLORATI TIPOLOGIE BIRRA */
         .beer-type-dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 5px; vertical-align: middle; }
         .type-bionda { background-color: #f1c40f; box-shadow: 0 0 6px rgba(241,196,15,0.5); }
         .type-rossa { background-color: #e74c3c; box-shadow: 0 0 6px rgba(231,76,60,0.5); }
@@ -151,7 +130,6 @@
 
         .photo-btn { background-color: var(--primary-dark); color: var(--white); padding: 8px 14px; border-radius: 8px; cursor: pointer; font-size: 12px; font-weight: bold; display: inline-block; transition: 0.2s; box-shadow: 0 2px 5px rgba(243, 156, 18, 0.3); }
         input[type="file"] { display: none; }
-        
         .thumb-preview { width: 45px; height: 45px; border-radius: 8px; object-fit: cover; border: 2px solid var(--accent); margin-left: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); cursor: pointer; }
         .unlocked-status { display: flex; align-items: center; color: #27ae60; font-weight: bold; font-size: 13px;}
         .btn-delete { background: none; border: none; color: var(--danger); cursor: pointer; font-size: 16px; margin-left: 8px; padding: 5px; transition: 0.2s; }
@@ -160,41 +138,34 @@
         .card.completed { border-top: 5px solid var(--gold); background: #fffcf0; }
         .card.completed h2 { color: #d35400; }
         
-        /* DASHBOARD */
-        .dashboard-stats { background: var(--white); padding: 25px; border-radius: 16px; border: 2px solid var(--primary); box-shadow: 0 5px 15px rgba(241,196,15,0.1); text-align: center; margin-bottom: 25px;}
-        .dashboard-event { background: #ebf5fb; border: 2px solid var(--social-blue); padding: 20px; border-radius: 16px; margin-bottom: 25px; display: flex; align-items: center; gap: 15px; text-align: left; }
-        .dash-last-card { display: flex; align-items: center; background: var(--white); border-radius: 16px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.05); border: 1px solid var(--gray);}
+        .dashboard-stats { background: var(--white); padding: 25px; border-radius: 16px; box-shadow: 0 5px 15px rgba(241,196,15,0.1); text-align: center; border: 2px solid var(--primary); }
+        .dashboard-event { background: #ebf5fb; border: 2px solid var(--social-blue); padding: 20px; border-radius: 16px; display: flex; align-items: center; gap: 15px; text-align: left; }
+        .dash-last-card { display: flex; align-items: center; background: var(--white); border-radius: 16px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.05); border: 1px solid var(--gray); margin: 0 20px;}
         .dash-last-img { width: 120px; height: 120px; object-fit: cover; border-right: 1px solid var(--gray);}
         .dash-last-info { padding: 15px; flex-grow: 1; text-align: left;}
-        .dash-empty { background: #fdf2f2; border: 1px dashed var(--danger); padding: 20px; border-radius: 12px; text-align: center; color: var(--danger); font-weight: bold; }
+        .dash-empty { background: #fdf2f2; border: 1px dashed var(--danger); padding: 20px; border-radius: 12px; text-align: center; color: var(--danger); font-weight: bold; margin: 0 20px; }
         .user-rank-title { font-size: 11px; background: #eef3f7; padding: 3px 8px; border-radius: 20px; font-weight: bold; color: var(--social-blue); display: inline-block; margin-top: 4px;}
 
-        /* MODALI & REGOLAMENTO */
+        /* MODALI */
         .auth-modal { display: flex; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 10000; align-items: center; justify-content: center; backdrop-filter: blur(8px); }
         .auth-container { background: var(--white); padding: 35px; border-radius: 24px; width: 90%; max-width: 400px; text-align: center; box-shadow: 0 15px 35px rgba(0,0,0,0.3); animation: slideUp 0.3s ease-out; position: relative;}
         .auth-container input { width: 100%; padding: 12px; margin: 8px 0; border: 2px solid var(--gray); border-radius: 10px; font-size: 15px; box-sizing: border-box; outline: none; transition: 0.3s; }
         .auth-container input:focus { border-color: var(--primary-dark); }
-        
         .pwd-container { position: relative; width: 100%; margin: 8px 0; }
         .pwd-container input { margin: 0; padding-right: 40px; }
         .eye-icon { position: absolute; right: 15px; top: 50%; transform: translateY(-50%); cursor: pointer; font-size: 18px; user-select: none; opacity: 0.6; }
-        .eye-icon:hover { opacity: 1; }
-
         .btn-main { width: 100%; background: var(--primary-dark); color: white; border: none; padding: 14px; border-radius: 10px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 15px; transition: 0.2s;}
         .btn-main:hover { background: #d35400; }
         .btn-secondary { width: 100%; background: var(--gray); color: var(--dark); border: none; padding: 14px; border-radius: 10px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 10px; transition: 0.2s;}
-        .btn-secondary:hover { background: #bdc3c7; }
-        .auth-toggle { font-size: 13px; color: var(--social-blue); cursor: pointer; margin-top: 15px; display: inline-block; text-decoration: underline; margin-right: 15px;}
         
-        .tabs { display: flex; margin-bottom: 20px; background: var(--gray); border-radius: 12px; overflow: hidden; }
+        .tabs { display: flex; background: var(--gray); border-radius: 12px; overflow: hidden; }
         .tab { flex: 1; padding: 12px; text-align: center; font-weight: bold; cursor: pointer; color: var(--text-muted); transition: 0.3s; font-size: 13px; display: flex; align-items: center; justify-content: center; gap: 5px;}
         .tab.active { background: var(--primary-dark); color: var(--white); }
         
-        .add-friend-wrapper { position: relative; margin-bottom: 20px; }
+        .add-friend-wrapper { position: relative; }
         .add-friend-box { display: flex; gap: 10px; margin-bottom: 0; }
         .add-friend-box input { flex-grow: 1; padding: 12px 15px; border: 2px solid var(--gray); border-radius: 10px; font-size: 14px; outline: none; margin: 0; }
         .add-friend-box button { background: var(--social-blue); color: white; border: none; padding: 0 20px; border-radius: 10px; font-weight: bold; cursor: pointer; }
-        
         .suggestions-box { position: absolute; top: 100%; left: 0; right: 0; background: var(--white); border: 1px solid var(--gray); border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); z-index: 10; display: none; max-height: 150px; overflow-y: auto; margin-top: 5px;}
         .suggestion-item { padding: 10px 15px; cursor: pointer; border-bottom: 1px solid var(--gray); font-size: 14px; font-weight: bold; color: var(--dark); }
         .suggestion-item:last-child { border-bottom: none; }
@@ -203,15 +174,13 @@
         .search-result-card { display: flex; align-items: center; justify-content: space-between; background: #ebf5fb; border: 2px solid var(--social-blue); padding: 15px; border-radius: 12px; margin-bottom: 20px; animation: fadeIn 0.3s;}
 
         .btn-action { border: none; border-radius: 8px; font-weight: bold; cursor: pointer; transition: 0.2s; padding: 8px 12px; font-size: 12px;}
-        .btn-action:hover { transform: scale(1.05); }
         .btn-accept { background: #d4efdf; color: #1e8449; }
         .btn-reject { background: #fdf2f2; color: #e74c3c; }
         .btn-add { background: var(--primary-dark); color: var(--white); }
         .btn-cancel { background: #f0f3f4; color: #7f8c8d; }
-        .badge-status { font-size: 12px; font-weight: bold; }
-
+        
         .list-container { display: flex; flex-direction: column; gap: 10px; }
-        .list-item { display: flex; align-items: center; justify-content: space-between; background: var(--gray); padding: 15px 20px; border-radius: 12px; }
+        .list-item { display: flex; align-items: center; justify-content: space-between; background: var(--white); box-shadow: 0 4px 10px rgba(0,0,0,0.05); padding: 15px 20px; border-radius: 12px; }
         .list-item .lb-user { flex-grow: 1; font-weight: bold; font-size: 16px; display:flex; flex-direction:column; }
 
         .leaderboard-item:nth-child(1) { background: linear-gradient(135deg, #f1c40f, #f39c12); color: white; transform: scale(1.02); box-shadow: 0 5px 15px rgba(241,196,15,0.4); z-index: 2;}
@@ -220,37 +189,28 @@
         .rank { font-weight: bold; font-size: 20px; width: 30px; }
         .lb-score { font-size: 20px; font-weight: bold; }
 
-        /* SOCIAL FEED RESPONSIVO (Stile Instagram) */
-        .social-page-container { width: 100%; margin: -30px auto 0 auto; background: var(--light); border-radius: 30px 30px 0 0; box-shadow: 0 -10px 25px rgba(0,0,0,0.05); position: relative; z-index: 5; box-sizing: border-box; padding-top: 20px; min-height: calc(100vh - 110px); }
-        .social-feed { display: flex; flex-direction: column; gap: 10px; }
-        .post-card { background: var(--white); border-top: 1px solid var(--gray); border-bottom: 1px solid var(--gray); overflow: hidden; margin-bottom: 15px; }
-        .post-header { display: flex; align-items: center; padding: 12px 15px; justify-content: space-between; }
         .post-avatar { width: 40px; height: 40px; flex-shrink: 0; background: linear-gradient(135deg, var(--social-blue), #8e44ad); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: var(--white); font-weight: bold; font-size: 18px; text-transform: uppercase; overflow: hidden; }
+        
+        /* SOCIAL FEED EDGE-TO-EDGE SU MOBILE */
+        .social-feed { display: flex; flex-direction: column; gap: 10px; margin-top: 0; }
+        .post-card { background: var(--white); border-radius: 0; border: none; border-top: 1px solid #e1e8ed; border-bottom: 1px solid #e1e8ed; overflow: hidden; margin-bottom: 5px; }
+        .post-header { display: flex; align-items: center; padding: 12px 15px; justify-content: space-between;}
         .post-user { font-weight: bold; font-size: 15px; color: var(--dark); }
         .post-time { font-size: 12px; color: var(--text-muted); }
         .post-image { width: 100%; max-height: 60vh; object-fit: contain; background: #000; display: block; }
         .post-actions { display: flex; align-items: center; padding: 10px 15px 5px 15px; }
-        .btn-like { background: var(--light); border: 1px solid var(--gray); border-radius: 20px; padding: 6px 14px; font-weight: bold; cursor: pointer; display:flex; align-items:center; gap:5px; transition: 0.2s; color: var(--text-muted); font-size:14px; }
+        .btn-like { background: var(--light); border: 1px solid var(--gray); border-radius: 20px; padding: 6px 14px; font-weight: bold; cursor: pointer; display:flex; align-items:center; gap:5px; transition: 0.2s; color: var(--text-muted); font-size:14px; outline: none; }
         .btn-like.liked { background: #fef5e6; border-color: var(--primary); color: var(--primary-dark); }
         .btn-like:hover { transform: scale(1.05); }
         .post-caption { padding: 5px 15px 15px 15px; font-size: 14px; line-height: 1.5; color: var(--dark); }
 
-        /* Media Query per mantenere le schede separate su schermi grandi */
         @media (min-width: 600px) {
-            .social-page-container { max-width: 600px; padding: 30px 20px; background: var(--white); }
-            .social-feed { gap: 30px; }
-            .post-card { border-radius: 16px; border: 1px solid var(--gray); box-shadow: 0 4px 12px rgba(0,0,0,0.05); margin-bottom: 0; }
+            .post-card { border-radius: 16px; border: 1px solid var(--gray); margin: 0 20px 15px 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
             .post-image { max-height: 500px; }
         }
 
-        .rules-section { margin-bottom: 25px; border-bottom: 1px solid var(--gray); padding-bottom: 20px; }
-        .rules-section:last-child { border-bottom: none; }
-        .rules-section h3 { color: var(--accent); margin-top: 0; }
-        .rules-section ul { padding-left: 20px; }
-        .rules-section li { margin-bottom: 8px; line-height: 1.4; }
-
-        .trophy-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 15px; text-align: center; margin-bottom: 30px;}
-        .trophy-card { background: var(--light); padding: 12px 8px; border-radius: 12px; display: flex; flex-direction: column; align-items: center; transition: 0.2s; position: relative;}
+        .trophy-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 15px; text-align: center; margin-bottom: 30px; padding: 0 20px;}
+        .trophy-card { background: var(--white); padding: 12px 8px; border-radius: 12px; display: flex; flex-direction: column; align-items: center; transition: 0.2s; position: relative; box-shadow: 0 4px 10px rgba(0,0,0,0.05);}
         .trophy-img-container { width: 70px; height: 70px; border-radius: 50%; overflow: hidden; background: #e0e6ed; display: flex; align-items: center; justify-content: center; font-size: 40px; border: 3px solid #ccc; margin-bottom: 10px; transition: 0.3s; filter: grayscale(100%) opacity(40%); }
         .trophy-card.unlocked .trophy-img-container { border-color: var(--gold); background: var(--white); box-shadow: 0 0 10px rgba(241, 196, 15, 0.4); filter: none; opacity: 1; }
         .trophy-card.unlocked img { width: 100%; height: 100%; object-fit: cover; }
@@ -261,11 +221,11 @@
         .medal-badge-card.unlocked { opacity: 1; filter: none; box-shadow: 0 4px 10px rgba(241,196,15,0.2); }
         .medal-icon-container { font-size: 35px; margin-bottom: 5px; }
         
-        .profile-user-box { text-align: center; padding: 25px; background: var(--white); border-radius: 16px; margin-bottom: 25px; position: relative; box-shadow: 0 5px 15px rgba(0,0,0,0.05); border: 2px solid var(--primary); }
+        .profile-user-box { text-align: center; padding: 25px; background: var(--white); border-radius: 16px; position: relative; box-shadow: 0 5px 15px rgba(0,0,0,0.05); border: 2px solid var(--primary); margin: 0 20px 20px 20px; }
         
         /* OVERLAY IMPOSTAZIONI FULL SCREEN */
-        .settings-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--white); z-index: 10001; overflow-y: auto; animation: slideUp 0.3s ease-out; }
-        .settings-content { width: 100%; min-height: 100%; margin: 0 auto; background: var(--white); padding: 60px 20px 100px 20px; position: relative; box-sizing: border-box; }
+        .settings-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--light); z-index: 10001; overflow-y: auto; animation: slideUp 0.3s ease-out; }
+        .settings-content { width: 100%; min-height: 100%; margin: 0 auto; background: var(--light); padding: 60px 20px 100px 20px; position: relative; box-sizing: border-box; }
         .btn-close-settings { position: absolute; top: 15px; right: 20px; background: none; border: none; font-size: 40px; color: var(--dark); cursor: pointer; line-height: 1; }
     </style>
     <link rel="manifest" href="manifest.json">
@@ -371,10 +331,12 @@
                     </div>
                 </div>
                 
-                <h3 style="margin-top: 30px; color: var(--dark); text-align:center;">Ultima Conquista 📸</h3>
+                <h3 class="hero-section-title" style="margin-top: 30px; color: var(--dark); text-align:center;">Ultima Conquista 📸</h3>
                 <div id="dashLastBeer"></div>
 
-                <button class="btn-main" style="margin-top: 30px; font-size: 18px; padding: 16px; background: linear-gradient(135deg, #f39c12, #e67e22);" onclick="navigateTo('page-explore')">🔍 Vai a Esplorare e Scatta</button>
+                <div style="padding: 0 20px;">
+                    <button class="btn-main" style="margin-top: 30px; font-size: 18px; padding: 16px; background: linear-gradient(135deg, #f39c12, #e67e22);" onclick="navigateTo('page-explore')">🔍 Vai a Esplorare e Scatta</button>
+                </div>
             </div>
         </div>
 
@@ -412,7 +374,7 @@
                         <option value="rarityDesc">🌟 Rarità (Decrescente)</option>
                     </select>
                 </div>
-                <div class="container" id="beerList" style="margin-top: 20px; padding: 0;"></div>
+                <div class="container" id="beerList" style="margin-top: 20px;"></div>
             </div>
         </div>
 
@@ -440,15 +402,15 @@
             </div>
         </div>
 
-        <!-- PAGINA PROFILO -->
+        <!-- PAGINA PROFILO UNIFICATA -->
         <div id="page-profile" class="page-view">
             <header class="hero">
                 <h1>👤 Il Tuo Profilo</h1>
                 <p>La tua bacheca personale e i tuoi dati.</p>
             </header>
-            <div class="page-container" style="margin-top: -30px; margin-bottom: 20px;">
+            <div class="page-container">
                 
-                <div class="profile-user-box" style="position:relative;">
+                <div class="profile-user-box">
                     <button id="btnProfileMenu" onclick="toggleProfileSettings()" style="position:absolute; top:15px; right:15px; background:none; border:none; font-size:26px; cursor:pointer; color:var(--dark); transition:0.2s;">☰</button>
                     
                     <label style="cursor:pointer; display:inline-block; position:relative;" title="Cambia foto profilo">
@@ -462,13 +424,10 @@
                     <div id="settingsUserBoxContent">Caricamento...</div>
                 </div>
 
-                <h3 style="margin-top:40px; color:var(--dark); border-bottom: 2px solid var(--gray); padding-bottom:8px;">🏅 Medaglie Maestro Brand</h3>
-                <div class="trophy-grid" id="brandMedalsGrid" style="grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap:15px;"></div>
+                <h3 class="hero-section-title" style="margin-top:40px; color:var(--dark); border-bottom: 2px solid var(--gray); padding-bottom:8px;">🏅 Medaglie Maestro Brand</h3>
+                <div class="trophy-grid" id="brandMedalsGrid"></div>
 
-            </div>
-
-            <div class="container" style="padding: 0 20px;">
-                <div style="width: 100%; display:flex; justify-content:space-between; align-items:center; border-bottom: 2px solid var(--gray); padding-bottom:8px; margin-bottom:15px; position:relative; z-index: 5;">
+                <div style="display:flex; justify-content:space-between; align-items:center; border-bottom: 2px solid var(--gray); padding-bottom:8px; margin: 40px 20px 15px 20px;">
                     <h3 style="margin:0; color:var(--dark);">📸 Varianti Sbloccate</h3>
                     <select id="profileSort" onchange="renderTrophies()" style="padding: 6px 10px; border-radius: 8px; border: 1px solid var(--gray); font-size: 12px; font-weight:bold; color: var(--dark); background: #fbfcfc; outline: none; cursor:pointer;">
                         <option value="alpha">🔤 Alfabetico</option>
@@ -477,13 +436,13 @@
                         <option value="rarityDesc">🌟 Rarità (Decresc.)</option>
                     </select>
                 </div>
-                <div class="trophy-grid" id="trophyGrid" style="width: 100%; position: relative; z-index: 5;"></div>
-            </div>
+                <div class="trophy-grid" id="trophyGrid"></div>
 
+            </div>
         </div>
 
         <div id="page-map" class="page-view">
-            <header class="hero" style="margin-bottom: 0; padding-bottom: 30px; border-bottom-left-radius: 20px; border-bottom-right-radius: 20px; z-index: 10; position: relative; box-shadow: 0 10px 20px rgba(0,0,0,0.1);">
+            <header class="hero" style="margin-bottom: 0; padding-bottom: 30px; border-radius: 0; z-index: 10; position: relative; box-shadow: 0 5px 15px rgba(0,0,0,0.1);">
                 <h1>🗺️ Mappa Sblocchi</h1>
                 <p>Esplora il mondo e traccia i pub in cui hai conquistato le tue birre.</p>
             </header>
@@ -495,7 +454,7 @@
                 <h1>📸 Feed Amici</h1>
                 <p>Scopri le birre sbloccate dalla tua rete di amici.</p>
             </header>
-            <div class="social-page-container"><div class="social-feed" id="socialFeed"></div></div>
+            <div class="page-container" style="padding: 15px 0 100px 0;"><div class="social-feed" id="socialFeed"></div></div>
         </div>
 
         <div id="page-friends" class="page-view">
@@ -591,8 +550,8 @@
                 <div style="font-size:13px; color:var(--text-muted);" id="ddEmail"></div>
             </div>
             
-            <div class="controls">
-                <h4 style="margin:25px 0 10px 0; color:var(--dark);">✏️ Cambia Nickname</h4>
+            <div class="controls" style="background:var(--white); padding:20px; border-radius:16px; box-shadow:0 4px 15px rgba(0,0,0,0.05);">
+                <h4 style="margin:0 0 10px 0; color:var(--dark);">✏️ Cambia Nickname</h4>
                 <p style="font-size:12px; color:var(--danger); font-weight:bold; margin-top:0;">Attenzione: L'aggiornamento modificherà i tuoi post passati e aggiornerà le liste dei tuoi amici automaticamente.</p>
                 <input type="text" id="newNicknameInput" placeholder="Nuovo Nickname...">
                 <button class="btn-main" onclick="changeUserNickname()" style="margin-top:0;">Salva Nuovo Nick</button>
@@ -612,29 +571,6 @@
             </div>
         </div>
     </div>
-
-    <nav class="bottom-nav">
-        <div class="nav-item active" onclick="navigateTo('page-home')" id="nav-page-home">
-            <div class="nav-icon">🏠</div>
-            <div class="nav-text">Home</div>
-        </div>
-        <div class="nav-item" onclick="navigateTo('page-explore')" id="nav-page-explore">
-            <div class="nav-icon">🔍</div>
-            <div class="nav-text">Esplora</div>
-        </div>
-        <div class="nav-item" onclick="navigateTo('page-leaderboard')" id="nav-page-leaderboard">
-            <div class="nav-icon">🏅</div>
-            <div class="nav-text">Classifica</div>
-        </div>
-        <div class="nav-item" onclick="navigateTo('page-social')" id="nav-page-social">
-            <div class="nav-icon">🌍</div>
-            <div class="nav-text">Social</div>
-        </div>
-        <div class="nav-item" onclick="navigateTo('page-profile')" id="nav-page-profile">
-            <div class="nav-icon">👤</div>
-            <div class="nav-text">Profilo</div>
-        </div>
-    </nav>
 
     <script>
         // Funzione helper per la ricerca normalizzata (ignora accenti e umlaut)
@@ -1103,7 +1039,7 @@
             reader.readAsDataURL(file);
         }
 
-        // --- DATABASE BIRRE (57 Birre) ---
+        // --- DATABASE BIRRE (60 Birre) ---
         const beers = [
             { brand: "Augustiner", country: "Germania", flag: "🇩🇪", rarity: "media", desc: "Storico birrificio di Monaco di Baviera.", variants: ["Lagerbier Hell", "Edelstoff", "Maximator"] },
             { brand: "Baladin", country: "Italia", flag: "🇮🇹", rarity: "rara", desc: "Pioniere della birra artigianale italiana.", variants: ["Isaac (Blanche)", "Wayan (Saison)", "Nora (Speziata)", "Super Bitter", "Leon", "Nazionale", "L'IPPA", "Rock'n'Roll"] },
@@ -1128,7 +1064,7 @@
             { brand: "Duvel", country: "Belgio", flag: "🇧🇪", rarity: "rara", desc: "La leggendaria Strong Gold Ale belga.", variants: ["Original Blond", "Triple Hop", "6.66"] },
             { brand: "Erdinger", country: "Germania", flag: "🇩🇪", rarity: "media", desc: "Il birrificio di frumento più grande del mondo.", variants: ["Weißbier", "Dunkel", "Pikantus"] },
             { brand: "Estrella Damm", country: "Spagna", flag: "🇪🇸", rarity: "media", desc: "La bionda di Barcellona.", variants: ["Estrella Damm", "Inedit", "Daura"] },
-            { brand: "Finkbräu", country: "Germania", flag: "🇩🇪", rarity: "comune", desc: "Birra bionda commerciale molto popolare nei discount (Lidl).", variants: ["Pilsner", "Analcolica"] },
+            { brand: "Finkbräu", country: "Germania", flag: "🇩🇪", rarity: "comune", desc: "Birra bionda commerciale molto popolare nei discount.", variants: ["Pilsner", "Analcolica"] },
             { brand: "Flea", country: "Italia", flag: "🇮🇹", rarity: "rara", desc: "Birre artigianali umbre brassate con acqua di sorgente.", variants: ["Costanza", "Bianca Lancia", "Federico II", "Bastola", "Violante"] },
             { brand: "Forst", country: "Italia", flag: "🇮🇹", rarity: "media", desc: "Birrificio indipendente del Trentino-Alto Adige.", variants: ["Kronen", "V.I.P. Pils", "1857", "Felsenkeller", "Sixtus (Doppelbock)", "0.0%"] },
             { brand: "Franziskaner", country: "Germania", flag: "🇩🇪", rarity: "media", desc: "Eccellenza tedesca di birre di frumento.", variants: ["Weissbier Naturtrüb", "Weissbier Dunkel"] },
@@ -1163,7 +1099,7 @@
             { brand: "Tennent's", country: "Scozia", flag: "🏴󠁧󠁢󠁳󠁣󠁴󠁿", rarity: "media", desc: "Storico marchio scozzese.", variants: ["Super", "Extra", "1885 Lager", "Scotch Ale"] },
             { brand: "Tripel Karmeliet", country: "Belgio", flag: "🇧🇪", rarity: "rara", desc: "Straordinaria birra belga ai tre cereali.", variants: ["Tripel"] },
             { brand: "Tuborg", country: "Danimarca", flag: "🇩🇰", rarity: "comune", desc: "Lager danese leggera.", variants: ["Green", "Strong", "Red"] },
-            { brand: "Weihenstephaner", country: "Germania", flag: "🇩🇪", rarity: "rara", desc: "Il più antico marchio di birra italiano (1040).", variants: ["Hefe Weissbier", "Vitus", "Original Hell"] },
+            { brand: "Weihenstephaner", country: "Germania", flag: "🇩🇪", rarity: "rara", desc: "Il più antico marchio di birra al mondo (1040).", variants: ["Hefe Weissbier", "Vitus", "Original Hell"] },
             { brand: "Wuhrer", country: "Italia", flag: "🇮🇹", rarity: "comune", desc: "Il più antico marchio di birra italiano (Brescia, 1829).", variants: ["La Classica"] }
         ];
 
@@ -1280,7 +1216,10 @@
                                 const extractedText = normalizeStr(text); 
                                 const brandWord = normalizeStr(brand).split(' ')[0];
                                 
-                                if (extractedText.includes(brandWord) || extractedText.replace(/\s/g, '').includes(brandWord)) {
+                                const hasText = extractedText.includes(brandWord) || extractedText.replace(/\s/g, '').includes(brandWord);
+                                
+                                // AMMORBIDITO: O trova il testo O trova il bicchiere
+                                if (hasText || drinkCount > 0) {
                                     const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.5);
                                     
                                     if (drinkCount >= 2 && myFriendsList.length > 0) {
@@ -1292,10 +1231,12 @@
                                     } else {
                                         finalizeUpload({brand, variant, isShiny, canvasBase64: compressedDataUrl, currentLat, currentLng}, null);
                                     }
-
                                 } else {
-                                    showCustomAlert(`L'AI non riesce a leggere la scritta "${brand}" sull'etichetta.\n\nSe è in LATTINA o ALLA SPINA, assicurati di inquadrare bene il logo sul bicchiere, il sottobicchiere o la latta!`, "AI Anti-Cheat");
-                                    updateStats();
+                                    // ZERO BLOCCHI: Chiede solo conferma se non riconosce nulla
+                                    showCustomConfirm(`L'AI è indecisa.\nConfermi che si tratta di ${brand} - ${variant}?`, "Verifica Manuale", () => {
+                                        const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.5);
+                                        finalizeUpload({brand, variant, isShiny, canvasBase64: compressedDataUrl, currentLat, currentLng}, null);
+                                    });
                                 }
                             });
                         };
@@ -1306,16 +1247,11 @@
                                 let drinkCount = 0;
                                 predictions.forEach(p => { 
                                     if(p.class === 'tv' || p.class === 'laptop' || p.class === 'monitor' || p.class === 'cell phone') isScreen = true; 
-                                    if(p.class === 'bottle' || p.class === 'cup' || p.class === 'wine glass') drinkCount++;
+                                    if(p.class === 'bottle' || p.class === 'cup' || p.class === 'wine glass' || p.class === 'dining table') drinkCount++;
                                 });
                                 
                                 if (isScreen) { 
                                     showCustomAlert("🚨 L'AI ha rilevato uno schermo. È vietato fotografare PC o smartphone per barare!", "Frode Rilevata"); 
-                                    updateStats(); 
-                                    return; 
-                                }
-                                if (drinkCount === 0) { 
-                                    showCustomAlert("🚨 Non vedo bottiglie, bicchieri o lattine. Assicurati di inquadrarli bene!", "AI Anti-Cheat"); 
                                     updateStats(); 
                                     return; 
                                 }
@@ -1450,10 +1386,6 @@
             }
             filterBeers(); 
             navigateTo('page-explore'); 
-        }
-
-        function normalizeStr(str) {
-            return str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
         }
 
         function filterBeers() { 
@@ -1804,7 +1736,14 @@
                 navigator.serviceWorker.register('/sw.js')
                     .then(reg => {
                         console.log('PWA registrata con successo!');
-                        reg.update(); 
+                        reg.onupdatefound = () => {
+                            const installingWorker = reg.installing;
+                            installingWorker.onstatechange = () => {
+                                if (installingWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                                    window.location.reload();
+                                }
+                            };
+                        };
                     })
                     .catch(err => console.error('Errore registrazione PWA:', err));
             });
