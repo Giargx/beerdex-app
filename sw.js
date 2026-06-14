@@ -1,12 +1,11 @@
-const CACHE_NAME = 'beerdex-v1.2'; // Cambiando questo numero forzerai un aggiornamento sui telefoni
+const CACHE_NAME = 'beerdex-v2.0'; // ⬅️ CAMBIA QUESTO NUMERO OGNI VOLTA CHE MODIFICHI IL SITO
 
-// Quando l'app vede un nuovo sw.js, forza l'installazione
 self.addEventListener('install', event => {
-    self.skipWaiting();
+    self.skipWaiting(); // Forza l'installazione del nuovo codice
 });
 
-// Pulisce le vecchie versioni salvate nel telefono e attiva la nuova
 self.addEventListener('activate', event => {
+    // Pulisce le vecchie versioni salvate nel telefono
     event.waitUntil(
         caches.keys().then(cacheNames => {
             return Promise.all(
@@ -21,11 +20,8 @@ self.addEventListener('activate', event => {
     event.waitUntil(clients.claim());
 });
 
-// Intercetta il traffico dati (utile per l'offline)
 self.addEventListener('fetch', event => {
     event.respondWith(
-        fetch(event.request).catch(() => {
-            return caches.match(event.request);
-        })
+        fetch(event.request).catch(() => caches.match(event.request))
     );
 });
