@@ -32,7 +32,7 @@
             --danger: #e74c3c;
         }
         
-        body { font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: var(--light); color: var(--dark); margin: 0; padding-top: 60px; padding-bottom: 110px; overflow-x: hidden; }
+        body { font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: var(--light); color: var(--dark); margin: 0; padding-top: 60px; padding-bottom: 120px; overflow-x: hidden; }
 
         /* TOP BAR */
         .top-bar { position: fixed; top: 0; left: 0; width: 100%; height: 60px; background: var(--white); box-shadow: 0 2px 10px rgba(0,0,0,0.05); display: flex; justify-content: space-between; align-items: center; padding: 0 20px; box-sizing: border-box; z-index: 1000; }
@@ -43,27 +43,27 @@
         .top-action-btn:hover { transform: scale(1.1); }
         .top-badge { position: absolute; top: -5px; right: -8px; font-size: 10px; background: var(--danger); color: white; border-radius: 50%; padding: 2px 5px; font-weight: bold; animation: bounce 1s infinite; display: none;}
 
-        /* BOTTOM NAV INFALLIBILE */
+        /* BOTTOM NAV BLINDATA CON VALORI FISSI */
         .bottom-nav { 
             position: fixed; 
             bottom: 0; 
             left: 0; 
             width: 100%; 
-            height: 85px; 
-            background: var(--white); 
-            box-shadow: 0 -2px 15px rgba(0,0,0,0.08); 
+            height: 80px; /* Altezza fissa generosa per ogni telefono */
+            background-color: var(--white); 
+            box-shadow: 0 -2px 15px rgba(0,0,0,0.1); 
             display: flex; 
-            z-index: 10000; 
+            z-index: 99999; /* Livello altissimo per non farsi mai coprire */
+            padding-bottom: 15px; /* Margine per la barra iOS */
             box-sizing: border-box;
-            align-items: flex-start; 
+            flex-direction: row;
         }
         .nav-item { 
             flex: 1; 
             display: flex; 
             flex-direction: column; 
             align-items: center; 
-            justify-content: flex-start; 
-            padding-top: 12px; 
+            justify-content: center; 
             height: 100%; 
             color: var(--text-muted); 
             cursor: pointer; 
@@ -71,10 +71,9 @@
             user-select: none; 
         }
         .nav-item.active { 
-            background: #f8f9f9; 
+            background-color: #f8f9f9; 
             color: var(--primary-dark); 
             border-top: 3px solid var(--primary-dark); 
-            padding-top: 9px; 
         }
         .nav-icon { font-size: 22px; margin-bottom: 2px; }
         .nav-text { font-size: 9px; font-weight: 800; text-transform: uppercase; }
@@ -91,18 +90,19 @@
         select#countryFilter, select#sortFilter, select#pubProfileSort, select#profileSort { width: 100%; padding: 12px 15px; border: 2px solid var(--gray); border-radius: 12px; font-size: 15px; font-weight: bold; color: var(--dark); background: var(--white); outline: none; cursor: pointer; transition: 0.3s; margin-bottom: 20px;}
         select#countryFilter:focus, select#sortFilter:focus, select#pubProfileSort:focus, select#profileSort:focus { border-color: var(--primary-dark); }
 
-        .main-content { width: 100%; min-height: calc(100vh - 145px); display: flex; flex-direction: column; position: relative;}
+        .main-content { width: 100%; min-height: calc(100vh - 140px); display: flex; flex-direction: column; position: relative;}
         .page-view { display: none; flex-grow: 1; animation: fadeIn 0.4s; }
         .page-view.active { display: block; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* MAPPA INCASTRATA PERFETTAMENTE TRA HEADER E FOOTER */
-        #page-map.active { display: flex !important; flex-direction: column; position: fixed; top: 60px; bottom: 85px; left: 0; width: 100%; margin: 0; padding: 0; overflow: hidden; z-index: 500; background: var(--light); }
+        /* FIX MAPPA INCASSATA */
+        #page-map.active { display: flex !important; flex-direction: column; position: fixed; top: 60px; bottom: 80px; left: 0; width: 100%; margin: 0; padding: 0; overflow: hidden; z-index: 500; background: var(--light); }
         #page-map .hero { margin-bottom: 0; padding: 15px 20px 20px 20px; border-radius: 0; z-index: 10; position: relative; box-shadow: 0 5px 15px rgba(0,0,0,0.1); flex-shrink: 0; }
         #page-map .hero h1 { font-size: 24px; margin: 0 0 5px 0; }
         #page-map .hero p { font-size: 13px; margin: 0; }
         #mapContainer { flex-grow: 1; width: 100%; z-index: 1; background: #e0e6ed; }
 
+        /* HEADER ANIMATO */
         header.hero { background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%); color: var(--dark); padding: 30px 20px 60px 20px; text-align: center; margin-bottom: 0; position: relative; overflow: hidden; z-index: 1; border-radius: 0; }
         header.hero h1 { margin: 10px 0 10px 0; font-size: 32px; font-weight: 800; letter-spacing: -1px; position: relative; z-index: 5; }
         header.hero p { margin: 0; font-size: 15px; opacity: 0.85; font-weight: 500; position: relative; z-index: 5; }
@@ -174,13 +174,12 @@
         .btn-main { width: 100%; background: var(--primary-dark); color: white; border: none; padding: 14px; border-radius: 10px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 15px; transition: 0.2s;}
         .btn-main:hover { background: #d35400; }
         .btn-secondary { width: 100%; background: var(--gray); color: var(--dark); border: none; padding: 14px; border-radius: 10px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 10px; transition: 0.2s;}
-        .auth-toggle { font-size: 13px; color: var(--social-blue); cursor: pointer; margin-top: 15px; display: inline-block; text-decoration: underline; margin-right: 15px;}
         
         .tabs { display: flex; background: var(--gray); border-radius: 12px; overflow: hidden; }
         .tab { flex: 1; padding: 12px; text-align: center; font-weight: bold; cursor: pointer; color: var(--text-muted); transition: 0.3s; font-size: 13px; display: flex; align-items: center; justify-content: center; gap: 5px;}
         .tab.active { background: var(--primary-dark); color: var(--white); }
         
-        .add-friend-wrapper { position: relative; }
+        .add-friend-wrapper { position: relative; margin-bottom: 20px; }
         .add-friend-box { display: flex; gap: 10px; margin-bottom: 0; }
         .add-friend-box input { flex-grow: 1; padding: 12px 15px; border: 2px solid var(--gray); border-radius: 10px; font-size: 14px; outline: none; margin: 0; }
         .add-friend-box button { background: var(--social-blue); color: white; border: none; padding: 0 20px; border-radius: 10px; font-weight: bold; cursor: pointer; }
@@ -192,11 +191,13 @@
         .search-result-card { display: flex; align-items: center; justify-content: space-between; background: #ebf5fb; border: 2px solid var(--social-blue); padding: 15px; border-radius: 12px; margin-bottom: 20px; animation: fadeIn 0.3s;}
 
         .btn-action { border: none; border-radius: 8px; font-weight: bold; cursor: pointer; transition: 0.2s; padding: 8px 12px; font-size: 12px;}
+        .btn-action:hover { transform: scale(1.05); }
         .btn-accept { background: #d4efdf; color: #1e8449; }
         .btn-reject { background: #fdf2f2; color: #e74c3c; }
         .btn-add { background: var(--primary-dark); color: var(--white); }
         .btn-cancel { background: #f0f3f4; color: #7f8c8d; }
-        
+        .badge-status { font-size: 12px; font-weight: bold; }
+
         .list-container { display: flex; flex-direction: column; gap: 10px; }
         .list-item { display: flex; align-items: center; justify-content: space-between; background: var(--white); box-shadow: 0 4px 10px rgba(0,0,0,0.05); padding: 15px 20px; border-radius: 12px; }
         .list-item .lb-user { flex-grow: 1; font-weight: bold; font-size: 16px; display:flex; flex-direction:column; }
@@ -214,16 +215,18 @@
         .post-avatar { width: 40px; height: 40px; flex-shrink: 0; background: linear-gradient(135deg, var(--social-blue), #8e44ad); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: var(--white); font-weight: bold; font-size: 18px; text-transform: uppercase; overflow: hidden; }
         
         /* SOCIAL FEED EDGE-TO-EDGE SU MOBILE */
-        .social-page-container { width: 100%; max-width: 600px; margin: 0 auto; background: var(--light); position: relative; z-index: 5; padding-top: 20px; }
-        .social-feed { display: flex; flex-direction: column; gap: 10px; margin-top: 0; }
-        .post-card { background: var(--white); border-radius: 0; border: none; border-top: 1px solid #e1e8ed; border-bottom: 1px solid #e1e8ed; overflow: hidden; margin-bottom: 5px; }
+        .social-page-container { width: 100%; max-width: 600px; margin: 0 auto; background: var(--light); position: relative; z-index: 5; padding-top: 15px; }
+        .social-feed { display: flex; flex-direction: column; gap: 15px; margin-top: 0; padding-bottom: 20px; }
+        .post-card { background: var(--white); border-radius: 0; border: none; border-top: 1px solid #e1e8ed; border-bottom: 1px solid #e1e8ed; overflow: hidden; margin-bottom: 0; }
         .post-header { display: flex; align-items: center; padding: 12px 15px; justify-content: space-between;}
         
-        /* DISTANZA NOME - AVATAR AUMENTATA */
-        .post-user { font-weight: bold; font-size: 15px; color: var(--dark); margin-left: 18px; } 
-        .post-time { font-size: 12px; color: var(--text-muted); margin-left: 18px; } 
+        /* DISTANZA MAGGIORATA NOME - AVATAR */
+        .post-user { font-weight: bold; font-size: 15px; color: var(--dark); margin-left: 20px; } 
+        .post-time { font-size: 12px; color: var(--text-muted); margin-left: 20px; } 
         
-        .post-image { width: 100%; aspect-ratio: 4/5; object-fit: cover; background: #000; display: block; }
+        /* FOTO OTTIMIZZATA PER NON USCIRE MAI DALLO SCHERMO */
+        .post-image { width: 100%; height: 50vh; object-fit: cover; background: #e0e6ed; display: block; }
+        
         .post-actions { display: flex; align-items: center; padding: 10px 15px 5px 15px; }
         .btn-like { background: var(--light); border: 1px solid var(--gray); border-radius: 20px; padding: 6px 14px; font-weight: bold; cursor: pointer; display:flex; align-items:center; gap:5px; transition: 0.2s; color: var(--text-muted); font-size:14px; outline: none; }
         .btn-like.liked { background: #fef5e6; border-color: var(--primary); color: var(--primary-dark); }
@@ -233,6 +236,7 @@
         @media (min-width: 600px) {
             .social-page-container { border-radius: 30px 30px 0 0; box-shadow: 0 -10px 25px rgba(0,0,0,0.05); background: var(--white); padding: 30px 20px; margin-top: -30px; }
             .post-card { border-radius: 16px; border: 1px solid var(--gray); margin-bottom: 30px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+            .post-image { height: 500px; }
         }
 
         .rules-section { margin-bottom: 25px; border-bottom: 1px solid var(--gray); padding-bottom: 20px; }
@@ -260,7 +264,7 @@
         
         .profile-user-box { text-align: center; padding: 25px; background: var(--white); border-radius: 16px; position: relative; box-shadow: 0 5px 15px rgba(0,0,0,0.05); border: 2px solid var(--primary); margin: 0 20px 20px 20px; }
         
-        /* OVERLAY IMPOSTAZIONI */
+        /* OVERLAY IMPOSTAZIONI FULL SCREEN */
         .settings-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--light); z-index: 10001; overflow-y: auto; animation: slideUp 0.3s ease-out; }
         .settings-content { width: 100%; max-width: 600px; min-height: 100%; margin: 0 auto; background: var(--light); padding: 60px 20px 100px 20px; position: relative; box-sizing: border-box; }
         .btn-close-settings { position: absolute; top: 15px; right: 20px; background: none; border: none; font-size: 40px; color: var(--dark); cursor: pointer; line-height: 1; }
@@ -500,7 +504,7 @@
         </div>
 
         <div id="page-map" class="page-view">
-            <header class="hero">
+            <header class="hero" style="margin-bottom: 0; padding-bottom: 30px; border-radius: 0; z-index: 10; position: relative; box-shadow: 0 5px 15px rgba(0,0,0,0.1);">
                 <h1>🗺️ Mappa Sblocchi</h1>
                 <p>Esplora il mondo e traccia i pub in cui hai conquistato le tue birre.</p>
             </header>
@@ -630,6 +634,29 @@
             </div>
         </div>
     </div>
+
+    <nav class="bottom-nav">
+        <div class="nav-item active" onclick="navigateTo('page-home')" id="nav-page-home">
+            <div class="nav-icon">🏠</div>
+            <div class="nav-text">Home</div>
+        </div>
+        <div class="nav-item" onclick="navigateTo('page-explore')" id="nav-page-explore">
+            <div class="nav-icon">🔍</div>
+            <div class="nav-text">Esplora</div>
+        </div>
+        <div class="nav-item" onclick="navigateTo('page-leaderboard')" id="nav-page-leaderboard">
+            <div class="nav-icon">🏅</div>
+            <div class="nav-text">Classifica</div>
+        </div>
+        <div class="nav-item" onclick="navigateTo('page-social')" id="nav-page-social">
+            <div class="nav-icon">🌍</div>
+            <div class="nav-text">Social</div>
+        </div>
+        <div class="nav-item" onclick="navigateTo('page-profile')" id="nav-page-profile">
+            <div class="nav-icon">👤</div>
+            <div class="nav-text">Profilo</div>
+        </div>
+    </nav>
 
     <script>
         function normalizeStr(str) {
@@ -1067,7 +1094,7 @@
                                 }
                             });
                             if (!isSafe) {
-                                showCustomAlert("⚠️ La foto selezionata è stata bloccata perché potrebbe contenere contenuti inappropriati o osceni.", "Sicurezza Profilo");
+                                showCustomAlert("⚠️ La foto selezionata è stata bloccata perché potrebbe contenere contenuti inappropriati.", "Sicurezza Profilo");
                                 return;
                             }
                             saveAvatarToDB();
@@ -1169,52 +1196,6 @@
             if(isShiny) base *= 2;
             if(isShared) base *= 2; 
             return base;
-        }
-
-        function checkTimedEvents() {
-            const now = new Date();
-            const month = now.getMonth() + 1; 
-            let activeEvent = null;
-            if (month === 3) {
-                activeEvent = { id: "stpatrick", name: "🍀 San Patrizio", desc: "Mese di Marzo! Sblocca 2 varianti irlandesi o scozzesi per vincere la medaglia!" };
-            } else if (month === 9 || month === 10) {
-                activeEvent = { id: "oktoberfest", name: "🥨 Oktoberfest", desc: "Periodo Oktoberfest! Sblocca 3 varianti tedesche tra Settembre e Ottobre!" };
-            }
-            const box = document.getElementById("dashEventBox");
-            const txt = document.getElementById("dashEventText");
-            if (box && txt) {
-                if (activeEvent) {
-                    box.style.display = "flex";
-                    txt.innerHTML = `<strong>${activeEvent.name} ATTIVO!</strong><br>${activeEvent.desc}`;
-                } else {
-                    box.style.display = "flex";
-                    txt.innerHTML = `<strong>Nessun evento attivo</strong><br>Prossimi appuntamenti: San Patrizio (Marzo) e Oktoberfest (Settembre/Ottobre).`;
-                }
-            }
-            return activeEvent;
-        }
-
-        function checkAndUnlockEventBadges(username, userPosts) {
-            if (!userPosts || userPosts.length === 0) return;
-            const now = new Date();
-            const month = now.getMonth() + 1;
-            let currentYear = now.getFullYear();
-            if (month === 3) { 
-                let count = userPosts.filter(p => {
-                    let pDate = new Date(p.time);
-                    let targetBeer = beers.find(b => b.brand === p.brand);
-                    return pDate.getFullYear() === currentYear && pDate.getMonth() + 1 === 3 && targetBeer && (targetBeer.country === "Irlanda" || targetBeer.country === "Scozia");
-                }).length;
-                if (count >= 2) db.ref(`user_event_badges/${username}/stpatrick`).set(true);
-            } 
-            else if (month === 9 || month === 10) { 
-                let count = userPosts.filter(p => {
-                    let pDate = new Date(p.time);
-                    let targetBeer = beers.find(b => b.brand === p.brand);
-                    return pDate.getFullYear() === currentYear && (pDate.getMonth() + 1 === 9 || pDate.getMonth() + 1 === 10) && targetBeer && targetBeer.country === "Germania";
-                }).length;
-                if (count >= 3) db.ref(`user_event_badges/${username}/oktoberfest`).set(true);
-            }
         }
 
         let pendingUploadData = null;
