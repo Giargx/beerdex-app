@@ -95,7 +95,7 @@
         .page-view.active { display: block; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* MAPPA INCASSATA */
+        /* FIX MAPPA INCASSATA */
         #page-map.active { display: flex !important; flex-direction: column; position: fixed; top: 60px; bottom: 80px; left: 0; width: 100%; margin: 0; padding: 0; overflow: hidden; z-index: 500; background: var(--light); }
         #page-map .hero { margin-bottom: 0; padding: 15px 20px 20px 20px; border-radius: 0; z-index: 10; position: relative; box-shadow: 0 5px 15px rgba(0,0,0,0.1); flex-shrink: 0; }
         #page-map .hero h1 { font-size: 24px; margin: 0 0 5px 0; }
@@ -112,9 +112,7 @@
         .bubble { position: absolute; bottom: -20px; background: rgba(255, 255, 255, 0.4); border-radius: 50%; animation: rise infinite ease-in; }
         @keyframes rise { 0% { bottom: -20px; transform: translateX(0); opacity: 0; } 50% { opacity: 1; } 100% { bottom: 100%; transform: translateX(-20px); opacity: 0; } }
 
-        .page-container { width: 100%; max-width: 900px; margin: 0 auto; padding: 20px 0 60px 0; background: transparent; box-shadow: none; position: relative; z-index: 5; box-sizing: border-box; }
-        .controls, .dashboard-stats, .dashboard-event, .profile-user-box, .rules-section, .tabs, .add-friend-wrapper, #searchResultArea, .list-container, .hero-section-title { margin: 0 20px 20px 20px; }
-        .rules-section { background: var(--white); padding: 20px; border-radius: 16px; box-shadow: 0 5px 15px rgba(0,0,0,0.05); }
+        .page-container { width: 100%; max-width: 900px; margin: -30px auto 0 auto; padding: 30px 20px 40px 20px; background: var(--white); border-radius: 30px 30px 0 0; box-shadow: 0 -10px 25px rgba(0,0,0,0.05); position: relative; z-index: 5; box-sizing: border-box; }
 
         .container { display: flex; flex-wrap: wrap; justify-content: center; gap: 20px; width: 100%; position: relative; z-index: 5; padding: 0 20px; box-sizing: border-box;}
         
@@ -156,14 +154,14 @@
         .card.completed h2 { color: #d35400; }
         
         .dashboard-stats { background: var(--white); padding: 25px; border-radius: 16px; box-shadow: 0 5px 15px rgba(241,196,15,0.1); text-align: center; border: 2px solid var(--primary); }
-        .dashboard-event { background: #ebf5fb; border: 2px solid var(--social-blue); padding: 20px; border-radius: 16px; display: flex; align-items: center; gap: 15px; text-align: left; }
+        .dashboard-event { background: #ebf5fb; border: 2px solid var(--social-blue); padding: 20px; border-radius: 16px; margin-bottom: 25px; display: flex; align-items: center; gap: 15px; text-align: left; }
         .dash-last-card { display: flex; align-items: center; background: var(--white); border-radius: 16px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.05); border: 1px solid var(--gray); margin: 0 20px;}
         .dash-last-img { width: 120px; height: 120px; object-fit: cover; border-right: 1px solid var(--gray);}
         .dash-last-info { padding: 15px; flex-grow: 1; text-align: left;}
         .dash-empty { background: #fdf2f2; border: 1px dashed var(--danger); padding: 20px; border-radius: 12px; text-align: center; color: var(--danger); font-weight: bold; margin: 0 20px; }
         .user-rank-title { font-size: 11px; background: #eef3f7; padding: 3px 8px; border-radius: 20px; font-weight: bold; color: var(--social-blue); display: inline-block; margin-top: 4px;}
 
-        /* MODALI - Gestione Catcher Migliorata */
+        /* MODALI */
         .auth-modal { display: flex; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 10000; align-items: center; justify-content: center; backdrop-filter: blur(8px); }
         .auth-container { background: var(--white); padding: 35px; border-radius: 24px; width: 90%; max-width: 400px; text-align: center; box-shadow: 0 15px 35px rgba(0,0,0,0.3); animation: slideUp 0.3s ease-out; position: relative;}
         .auth-container input { width: 100%; padding: 12px; margin: 8px 0; border: 2px solid var(--gray); border-radius: 10px; font-size: 15px; box-sizing: border-box; outline: none; transition: 0.3s; }
@@ -176,7 +174,7 @@
         .btn-secondary { width: 100%; background: var(--gray); color: var(--dark); border: none; padding: 14px; border-radius: 10px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 10px; transition: 0.2s;}
         .auth-toggle { font-size: 13px; color: var(--social-blue); cursor: pointer; margin-top: 15px; display: inline-block; text-decoration: underline; margin-right: 15px;}
         
-        .tabs { display: flex; background: var(--gray); border-radius: 12px; overflow: hidden; }
+        .tabs { display: flex; margin-bottom: 20px; background: var(--gray); border-radius: 12px; overflow: hidden; }
         .tab { flex: 1; padding: 12px; text-align: center; font-weight: bold; cursor: pointer; color: var(--text-muted); transition: 0.3s; font-size: 13px; display: flex; align-items: center; justify-content: center; gap: 5px;}
         .tab.active { background: var(--primary-dark); color: var(--white); }
         
@@ -221,7 +219,7 @@
 
         .post-avatar { width: 40px; height: 40px; flex-shrink: 0; background: linear-gradient(135deg, var(--social-blue), #8e44ad); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: var(--white); font-weight: bold; font-size: 18px; text-transform: uppercase; overflow: hidden; }
         
-        /* SOCIAL FEED EDGE-TO-EDGE SU MOBILE (Instagram-like) */
+        /* SOCIAL FEED EDGE-TO-EDGE SU MOBILE */
         .social-page-container { width: 100%; max-width: 600px; margin: 0 auto; background: var(--light); position: relative; z-index: 5; padding-top: 15px; }
         .social-feed { display: flex; flex-direction: column; gap: 15px; margin-top: 0; padding-bottom: 20px; }
         .post-card { background: var(--white); border-radius: 0; border: none; border-top: 1px solid #e1e8ed; border-bottom: 1px solid #e1e8ed; overflow: hidden; margin-bottom: 0; }
@@ -418,7 +416,7 @@
                         <option value="rarityDesc">🌟 Rarità (Decrescente)</option>
                     </select>
                 </div>
-                <div class="container" id="beerList" style="margin-top: 20px; padding: 0;"></div>
+                <div class="container" id="beerList"></div>
             </div>
         </div>
 
@@ -509,7 +507,7 @@
         </div>
 
         <div id="page-map" class="page-view">
-            <header class="hero">
+            <header class="hero" style="margin-bottom: 0; padding-bottom: 30px; border-radius: 0; z-index: 10; position: relative; box-shadow: 0 5px 15px rgba(0,0,0,0.1);">
                 <h1>🗺️ Mappa Sblocchi</h1>
                 <p>Esplora il mondo e traccia i pub in cui hai conquistato le tue birre.</p>
             </header>
@@ -640,28 +638,7 @@
             </div>
         </div>
     </div>
-<nav class="bottom-nav">
-        <div class="nav-item active" onclick="navigateTo('page-home')" id="nav-page-home">
-            <div class="nav-icon">🏠</div>
-            <div class="nav-text">Home</div>
-        </div>
-        <div class="nav-item" onclick="navigateTo('page-explore')" id="nav-page-explore">
-            <div class="nav-icon">🔍</div>
-            <div class="nav-text">Esplora</div>
-        </div>
-        <div class="nav-item" onclick="navigateTo('page-leaderboard')" id="nav-page-leaderboard">
-            <div class="nav-icon">🏅</div>
-            <div class="nav-text">Classifica</div>
-        </div>
-        <div class="nav-item" onclick="navigateTo('page-social')" id="nav-page-social">
-            <div class="nav-icon">🌍</div>
-            <div class="nav-text">Social</div>
-        </div>
-        <div class="nav-item" onclick="navigateTo('page-profile')" id="nav-page-profile">
-            <div class="nav-icon">👤</div>
-            <div class="nav-text">Profilo</div>
-        </div>
-    </nav>
+
     <script>
         function normalizeStr(str) {
             return str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
@@ -776,10 +753,9 @@
             if(activeNav) activeNav.classList.add('active');
 
             if(pageId === 'page-home') {
-                checkTimedEvents(); // Forza il calcolo dell'evento appena apri la Home
+                checkTimedEvents(); 
                 renderDashboard(); 
             }
-        renderDashboard(); 
             if(pageId === 'page-explore') filterBeers();
             if(pageId === 'page-profile') renderTrophies(); 
             if(pageId === 'page-map') {
@@ -1212,6 +1188,62 @@
             return base;
         }
 
+        function checkTimedEvents() {
+            const now = new Date();
+            const month = now.getMonth() + 1; 
+            let activeEvent = null;
+            if (month === 3) {
+                activeEvent = { id: "stpatrick", name: "🍀 San Patrizio", desc: "Mese di Marzo! Sblocca 2 varianti irlandesi o scozzesi per vincere la medaglia!" };
+            } else if (month >= 6 && month <= 8) {
+                activeEvent = { id: "summer", name: "☀️ Solstizio d'Estate", desc: "Estate! Sblocca 3 birre Bionde o IPA per rinfrescarti e vincere la medaglia!" };
+            } else if (month === 9 || month === 10) {
+                activeEvent = { id: "oktoberfest", name: "🥨 Oktoberfest", desc: "Periodo Oktoberfest! Sblocca 3 varianti tedesche tra Settembre e Ottobre!" };
+            }
+            const box = document.getElementById("dashEventBox");
+            const txt = document.getElementById("dashEventText");
+            if (box && txt) {
+                if (activeEvent) {
+                    box.style.display = "flex";
+                    txt.innerHTML = `<strong>${activeEvent.name} ATTIVO!</strong><br>${activeEvent.desc}`;
+                } else {
+                    box.style.display = "flex";
+                    txt.innerHTML = `<strong>Nessun evento attivo</strong><br>Prossimi appuntamenti: San Patrizio (Marzo) e Oktoberfest (Settembre/Ottobre).`;
+                }
+            }
+            return activeEvent;
+        }
+
+        function checkAndUnlockEventBadges(username, userPosts) {
+            if (!userPosts || userPosts.length === 0) return;
+            const now = new Date();
+            const month = now.getMonth() + 1;
+            let currentYear = now.getFullYear();
+            if (month === 3) { 
+                let count = userPosts.filter(p => {
+                    let pDate = new Date(p.time);
+                    let targetBeer = beers.find(b => b.brand === p.brand);
+                    return pDate.getFullYear() === currentYear && pDate.getMonth() + 1 === 3 && targetBeer && (targetBeer.country === "Irlanda" || targetBeer.country === "Scozia");
+                }).length;
+                if (count >= 2) db.ref(`user_event_badges/${username}/stpatrick`).set(true);
+            } 
+            else if (month >= 6 && month <= 8) { 
+                let count = userPosts.filter(p => {
+                    let pDate = new Date(p.time);
+                    let type = getBeerType(p.brand, p.variant);
+                    return pDate.getFullYear() === currentYear && (pDate.getMonth() + 1 >= 6 && pDate.getMonth() + 1 <= 8) && (type === 'bionda' || type === 'ipa');
+                }).length;
+                if (count >= 3) db.ref(`user_event_badges/${username}/summer`).set(true);
+            }
+            else if (month === 9 || month === 10) { 
+                let count = userPosts.filter(p => {
+                    let pDate = new Date(p.time);
+                    let targetBeer = beers.find(b => b.brand === p.brand);
+                    return pDate.getFullYear() === currentYear && (pDate.getMonth() + 1 === 9 || pDate.getMonth() + 1 === 10) && targetBeer && targetBeer.country === "Germania";
+                }).length;
+                if (count >= 3) db.ref(`user_event_badges/${username}/oktoberfest`).set(true);
+            }
+        }
+
         let pendingUploadData = null;
 
         function submitSharedPost() {
@@ -1226,9 +1258,7 @@
         }
 
         function finalizeUpload(data, taggedFriend) {
-            // Chiudi manualmente i modali aperti e imposta un micro-delay per i browser mobile
             document.getElementById('customModalOverlay').style.display = 'none';
-            
             setTimeout(() => {
                 showCustomAlert("Caricamento sblocco in corso...", "Cloud Sync ☁️", false);
                 const {brand, variant, isShiny, canvasBase64, currentLat, currentLng} = data;
@@ -1275,7 +1305,7 @@
                     const img = new Image();
                     img.onload = function() {
                         const canvas = document.createElement('canvas'); 
-                        const MAX_SIZE = 300; // Ridotto per garantire un Base64 fulmineo
+                        const MAX_SIZE = 300; 
                         let width = img.width; 
                         let height = img.height;
                         
@@ -1307,7 +1337,7 @@
                                 const brandWord = normalizeStr(brand).split(' ')[0];
                                 
                                 const hasText = extractedText.includes(brandWord) || extractedText.replace(/\s/g, '').includes(brandWord);
-                                const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.4); // Super compresso per invio istantaneo Firebase DB
+                                const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.4); 
                                 
                                 if (hasText) {
                                     if (drinkCount >= 2 && myFriendsList.length > 0) {
@@ -1869,6 +1899,24 @@
                 if (!myRejectedRequests || myRejectedRequests.length === 0) { list.innerHTML = '<p style="text-align:center;">Nessun utente rifiutato.</p>'; return; }
                 myRejectedRequests.forEach(sender => { let item = document.createElement('div'); item.className = 'list-item'; item.innerHTML = `<div class="lb-user clickable-user" onclick="openPublicProfile('${sender}')">❌ ${sender}</div><button class="btn-action btn-accept" onclick="restoreRejectedRequest('${sender}')">Sblocca</button>`; list.appendChild(item); });
             }
+        }
+
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js')
+                    .then(reg => {
+                        console.log('PWA registrata con successo!');
+                        reg.onupdatefound = () => {
+                            const installingWorker = reg.installing;
+                            installingWorker.onstatechange = () => {
+                                if (installingWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                                    window.location.reload();
+                                }
+                            };
+                        };
+                    })
+                    .catch(err => console.error('Errore registrazione PWA:', err));
+            });
         }
     </script>
 </body>
