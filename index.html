@@ -267,7 +267,7 @@
         
         .profile-user-box { text-align: center; padding: 25px; background: var(--white); border-radius: 16px; position: relative; box-shadow: 0 5px 15px rgba(0,0,0,0.05); border: 2px solid var(--primary); margin: 0 20px 20px 20px; }
         
-        /* OVERLAY IMPOSTAZIONI */
+        /* OVERLAY IMPOSTAZIONI FULL SCREEN */
         .settings-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--light); z-index: 10001; overflow-y: auto; animation: slideUp 0.3s ease-out; }
         .settings-content { width: 100%; max-width: 600px; min-height: 100%; margin: 0 auto; background: var(--light); padding: 60px 20px 100px 20px; position: relative; box-sizing: border-box; }
         .btn-close-settings { position: absolute; top: 15px; right: 20px; background: none; border: none; font-size: 40px; color: var(--dark); cursor: pointer; line-height: 1; }
@@ -416,7 +416,7 @@
                         <option value="rarityDesc">🌟 Rarità (Decrescente)</option>
                     </select>
                 </div>
-                <div class="container" id="beerList"></div>
+                <div class="container" id="beerList" style="margin-top: 20px; padding: 0;"></div>
             </div>
         </div>
 
@@ -638,7 +638,8 @@
             </div>
         </div>
     </div>
-<nav class="bottom-nav">
+
+    <nav class="bottom-nav">
         <div class="nav-item active" onclick="navigateTo('page-home')" id="nav-page-home">
             <div class="nav-icon">🏠</div>
             <div class="nav-text">Home</div>
@@ -660,6 +661,7 @@
             <div class="nav-text">Profilo</div>
         </div>
     </nav>
+
     <script>
         function normalizeStr(str) {
             return str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
@@ -1763,6 +1765,23 @@
                 item.innerHTML = `<div style="display:flex; align-items:center; flex-grow:1;"><div class="rank">${medal}</div><div class="post-avatar" style="width:40px; height:40px; font-size:16px; margin: 0 10px 0 5px;">${avatarContent}</div><div class="lb-user clickable-user" onclick="openPublicProfile('${player.name}')">${player.name} <br><small style="font-size:11px;color:var(--text-muted);font-weight:normal;">${rankLabel}</small></div></div><div style="display:flex; align-items:center; gap:15px;"><div class="lb-score">${player.score} 🏆</div>${actionsHtml}</div>`;
                 list.appendChild(item);
             });
+        }
+
+        function renderDashboard() {
+            const welcomeEl = document.getElementById('dashWelcomeName');
+            if (welcomeEl) welcomeEl.innerText = currentUserNick;
+            const dashLastBeer = document.getElementById('dashLastBeer');
+            if (!dashLastBeer) return;
+            
+            let myPosts = globalPosts.filter(p => p.user === currentUserNick);
+            checkAndUnlockEventBadges(currentUserNick, myPosts);
+
+            if(myPosts.length > 0) {
+                myPosts.sort((a,b) => b.time - a.time); let lastPost = myPosts[0];
+                let date = new Date(lastPost.time); let dateStr = date.toLocaleDateString() + ' alle ' + date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+                let shinyBadge = lastPost.isShiny ? '<span style="color:var(--primary-dark); font-weight:bold;">✨ SHINY (x2 Punti)</span>' : '';
+                dashLastBeer.innerHTML = `<div class="dash-last-card"><img src="${lastPost.photo}" class="dash-last-img"><div class="dash-last-info"><h4 style="margin: 0 0 5px 0; color: var(--dark); font-size: 18px;">${lastPost.brand}</h4><div style="color: var(--primary-dark); font-weight: bold; font-size: 14px; margin-bottom: 5px;">${lastPost.variant} ${shinyBadge}</div><div style="font-size: 12px; color: var(--text-muted);">Sbloccata il: ${dateStr}</div></div></div>`;
+            } else { dashLastBeer.innerHTML = `<div class="dash-empty">Nessuna birra sbloccata!<br>Inizia la tua avventura! 🧭</div>`; }
         }
 
         let myPokedex = {}; let globalPosts = []; let globalLeaderboardScores = {}; 
