@@ -49,12 +49,12 @@
             bottom: 0; 
             left: 0; 
             width: 100%; 
-            height: 80px; /* Altezza fissa generosa per ogni telefono */
+            height: 80px;
             background-color: var(--white); 
             box-shadow: 0 -2px 15px rgba(0,0,0,0.1); 
             display: flex; 
-            z-index: 99999; /* Livello altissimo per non farsi mai coprire */
-            padding-bottom: 15px; /* Margine per la barra iOS */
+            z-index: 99999; 
+            padding-bottom: 15px; 
             box-sizing: border-box;
             flex-direction: row;
         }
@@ -174,6 +174,7 @@
         .btn-main { width: 100%; background: var(--primary-dark); color: white; border: none; padding: 14px; border-radius: 10px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 15px; transition: 0.2s;}
         .btn-main:hover { background: #d35400; }
         .btn-secondary { width: 100%; background: var(--gray); color: var(--dark); border: none; padding: 14px; border-radius: 10px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 10px; transition: 0.2s;}
+        .auth-toggle { font-size: 13px; color: var(--social-blue); cursor: pointer; margin-top: 15px; display: inline-block; text-decoration: underline; margin-right: 15px;}
         
         .tabs { display: flex; background: var(--gray); border-radius: 12px; overflow: hidden; }
         .tab { flex: 1; padding: 12px; text-align: center; font-weight: bold; cursor: pointer; color: var(--text-muted); transition: 0.3s; font-size: 13px; display: flex; align-items: center; justify-content: center; gap: 5px;}
@@ -202,15 +203,22 @@
         .list-item { display: flex; align-items: center; justify-content: space-between; background: var(--white); box-shadow: 0 4px 10px rgba(0,0,0,0.05); padding: 15px 20px; border-radius: 12px; }
         .list-item .lb-user { flex-grow: 1; font-weight: bold; font-size: 16px; display:flex; flex-direction:column; }
 
-        .leaderboard-item:nth-child(1) { background: linear-gradient(135deg, #f1c40f, #f39c12); color: white; transform: scale(1.02); box-shadow: 0 5px 15px rgba(241,196,15,0.4); z-index: 2;}
-        .leaderboard-item:nth-child(2) { background: linear-gradient(135deg, #bdc3c7, #95a5a6); color: white; }
+        /* CLASSIFICA CON COLORI CORRETTI PER I NOMI */
+        .leaderboard-item:nth-child(1) { background: linear-gradient(135deg, #f1c40f, #f39c12); color: var(--dark); transform: scale(1.02); box-shadow: 0 5px 15px rgba(241,196,15,0.4); z-index: 2;}
+        .leaderboard-item:nth-child(1) .clickable-user, .leaderboard-item:nth-child(1) small, .leaderboard-item:nth-child(1) .lb-score { color: var(--dark) !important; }
+
+        .leaderboard-item:nth-child(2) { background: linear-gradient(135deg, #bdc3c7, #95a5a6); color: var(--dark); }
+        .leaderboard-item:nth-child(2) .clickable-user, .leaderboard-item:nth-child(2) small, .leaderboard-item:nth-child(2) .lb-score { color: var(--dark) !important; }
+
         .leaderboard-item:nth-child(3) { background: linear-gradient(135deg, #e67e22, #d35400); color: white; }
+        .leaderboard-item:nth-child(3) .clickable-user, .leaderboard-item:nth-child(3) small, .leaderboard-item:nth-child(3) .lb-score { color: white !important; }
+
         .rank { font-weight: bold; font-size: 20px; width: 30px; }
         .lb-score { font-size: 20px; font-weight: bold; }
 
         /* USER CLICKABLE */
         .clickable-user { cursor: pointer; color: var(--primary-dark); transition: 0.2s; }
-        .clickable-user:hover { text-decoration: underline; color: var(--accent); }
+        .clickable-user:hover { text-decoration: underline; color: var(--accent) !important; }
 
         .post-avatar { width: 40px; height: 40px; flex-shrink: 0; background: linear-gradient(135deg, var(--social-blue), #8e44ad); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: var(--white); font-weight: bold; font-size: 18px; text-transform: uppercase; overflow: hidden; }
         
@@ -220,11 +228,9 @@
         .post-card { background: var(--white); border-radius: 0; border: none; border-top: 1px solid #e1e8ed; border-bottom: 1px solid #e1e8ed; overflow: hidden; margin-bottom: 0; }
         .post-header { display: flex; align-items: center; padding: 12px 15px; justify-content: space-between;}
         
-        /* DISTANZA MAGGIORATA NOME - AVATAR */
         .post-user { font-weight: bold; font-size: 15px; color: var(--dark); margin-left: 20px; } 
         .post-time { font-size: 12px; color: var(--text-muted); margin-left: 20px; } 
         
-        /* FOTO OTTIMIZZATA PER NON USCIRE MAI DALLO SCHERMO */
         .post-image { width: 100%; height: 50vh; object-fit: cover; background: #e0e6ed; display: block; }
         
         .post-actions { display: flex; align-items: center; padding: 10px 15px 5px 15px; }
@@ -264,7 +270,7 @@
         
         .profile-user-box { text-align: center; padding: 25px; background: var(--white); border-radius: 16px; position: relative; box-shadow: 0 5px 15px rgba(0,0,0,0.05); border: 2px solid var(--primary); margin: 0 20px 20px 20px; }
         
-        /* OVERLAY IMPOSTAZIONI FULL SCREEN */
+        /* OVERLAY IMPOSTAZIONI */
         .settings-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--light); z-index: 10001; overflow-y: auto; animation: slideUp 0.3s ease-out; }
         .settings-content { width: 100%; max-width: 600px; min-height: 100%; margin: 0 auto; background: var(--light); padding: 60px 20px 100px 20px; position: relative; box-sizing: border-box; }
         .btn-close-settings { position: absolute; top: 15px; right: 20px; background: none; border: none; font-size: 40px; color: var(--dark); cursor: pointer; line-height: 1; }
@@ -288,6 +294,7 @@
         </div>
     </div>
 
+    <!-- MODALI ALERT -->
     <div id="customModalOverlay" class="auth-modal" style="display:none; z-index: 20000;">
         <div class="auth-container" style="max-width: 350px;">
             <h3 id="customModalTitle" style="margin-top:0; color:var(--dark); font-size:22px;">Avviso</h3>
@@ -296,6 +303,7 @@
         </div>
     </div>
 
+    <!-- MODALE CONDIVISIONE BEVUTA -->
     <div id="shareModal" class="auth-modal" style="display:none; z-index: 20000;">
         <div class="auth-container" style="max-width: 350px;">
             <h3 style="margin-top:0; color:var(--dark); font-size:22px;">🍻 Più bevande rilevate!</h3>
@@ -344,6 +352,7 @@
         </div>
     </div>
 
+    <!-- MAIN CONTENT -->
     <div class="main-content">
         
         <div id="page-home" class="page-view">
@@ -413,7 +422,7 @@
                         <option value="rarityDesc">🌟 Rarità (Decrescente)</option>
                     </select>
                 </div>
-                <div class="container" id="beerList" style="margin-top: 20px; padding: 0;"></div>
+                <div class="container" id="beerList"></div>
             </div>
         </div>
 
@@ -441,6 +450,7 @@
             </div>
         </div>
 
+        <!-- PAGINA PROFILO PERSONALE -->
         <div id="page-profile" class="page-view">
             <header class="hero">
                 <h1>👤 Il Tuo Profilo</h1>
@@ -478,6 +488,7 @@
             </div>
         </div>
 
+        <!-- PAGINA PROFILO PUBBLICO (AMICI) -->
         <div id="page-public-profile" class="page-view">
             <header class="hero">
                 <button onclick="navigateTo('page-leaderboard')" style="position:absolute; top:15px; left:15px; background:rgba(255,255,255,0.2); border:none; padding:8px 12px; border-radius:10px; color:var(--dark); font-weight:bold; cursor:pointer; font-size:12px;">⬅ Indietro</button>
@@ -567,6 +578,7 @@
                     <p>Durante l'anno si attivano automaticamente dei trofei speciali legati al calendario reale:</p>
                     <ul>
                         <li>🍀 <strong>Medaglia San Patrizio (Marzo):</strong> Si ottiene sbloccando almeno 2 varianti di Guinness o birre cerchiate come Stout/Irlandesi durante il mese di marzo.</li>
+                        <li>☀️ <strong>Solstizio d'Estate (Giu-Lug-Ago):</strong> Si sblocca catturando almeno 3 birre chiare o IPA per rinfrescare l'estate.</li>
                         <li>🥨 <strong>Medaglia Oktoberfest (Settembre - Ottobre):</strong> Si sblocca catturando almeno 3 varianti di qualsiasi birra tedesca nel periodo compreso tra il 1° settembre e il 31 ottobre.</li>
                     </ul>
                 </div>
@@ -603,6 +615,7 @@
 
     </div>
     
+    <!-- IMPOSTAZIONI FULL SCREEN OVERLAY -->
     <div id="settingsOverlayFull" class="settings-overlay">
         <div class="settings-content">
             <button class="btn-close-settings" onclick="toggleProfileSettings()">×</button>
@@ -634,29 +647,6 @@
             </div>
         </div>
     </div>
-
-    <nav class="bottom-nav">
-        <div class="nav-item active" onclick="navigateTo('page-home')" id="nav-page-home">
-            <div class="nav-icon">🏠</div>
-            <div class="nav-text">Home</div>
-        </div>
-        <div class="nav-item" onclick="navigateTo('page-explore')" id="nav-page-explore">
-            <div class="nav-icon">🔍</div>
-            <div class="nav-text">Esplora</div>
-        </div>
-        <div class="nav-item" onclick="navigateTo('page-leaderboard')" id="nav-page-leaderboard">
-            <div class="nav-icon">🏅</div>
-            <div class="nav-text">Classifica</div>
-        </div>
-        <div class="nav-item" onclick="navigateTo('page-social')" id="nav-page-social">
-            <div class="nav-icon">🌍</div>
-            <div class="nav-text">Social</div>
-        </div>
-        <div class="nav-item" onclick="navigateTo('page-profile')" id="nav-page-profile">
-            <div class="nav-icon">👤</div>
-            <div class="nav-text">Profilo</div>
-        </div>
-    </nav>
 
     <script>
         function normalizeStr(str) {
@@ -1198,6 +1188,62 @@
             return base;
         }
 
+        function checkTimedEvents() {
+            const now = new Date();
+            const month = now.getMonth() + 1; 
+            let activeEvent = null;
+            if (month === 3) {
+                activeEvent = { id: "stpatrick", name: "🍀 San Patrizio", desc: "Mese di Marzo! Sblocca 2 varianti irlandesi o scozzesi per vincere la medaglia!" };
+            } else if (month >= 6 && month <= 8) {
+                activeEvent = { id: "summer", name: "☀️ Solstizio d'Estate", desc: "Estate! Sblocca 3 birre Bionde o IPA per rinfrescarti e vincere la medaglia!" };
+            } else if (month === 9 || month === 10) {
+                activeEvent = { id: "oktoberfest", name: "🥨 Oktoberfest", desc: "Periodo Oktoberfest! Sblocca 3 varianti tedesche tra Settembre e Ottobre!" };
+            }
+            const box = document.getElementById("dashEventBox");
+            const txt = document.getElementById("dashEventText");
+            if (box && txt) {
+                if (activeEvent) {
+                    box.style.display = "flex";
+                    txt.innerHTML = `<strong>${activeEvent.name} ATTIVO!</strong><br>${activeEvent.desc}`;
+                } else {
+                    box.style.display = "flex";
+                    txt.innerHTML = `<strong>Nessun evento attivo</strong><br>Prossimi appuntamenti: San Patrizio (Marzo) e Oktoberfest (Settembre/Ottobre).`;
+                }
+            }
+            return activeEvent;
+        }
+
+        function checkAndUnlockEventBadges(username, userPosts) {
+            if (!userPosts || userPosts.length === 0) return;
+            const now = new Date();
+            const month = now.getMonth() + 1;
+            let currentYear = now.getFullYear();
+            if (month === 3) { 
+                let count = userPosts.filter(p => {
+                    let pDate = new Date(p.time);
+                    let targetBeer = beers.find(b => b.brand === p.brand);
+                    return pDate.getFullYear() === currentYear && pDate.getMonth() + 1 === 3 && targetBeer && (targetBeer.country === "Irlanda" || targetBeer.country === "Scozia");
+                }).length;
+                if (count >= 2) db.ref(`user_event_badges/${username}/stpatrick`).set(true);
+            } 
+            else if (month >= 6 && month <= 8) { 
+                let count = userPosts.filter(p => {
+                    let pDate = new Date(p.time);
+                    let type = getBeerType(p.brand, p.variant);
+                    return pDate.getFullYear() === currentYear && (pDate.getMonth() + 1 >= 6 && pDate.getMonth() + 1 <= 8) && (type === 'bionda' || type === 'ipa');
+                }).length;
+                if (count >= 3) db.ref(`user_event_badges/${username}/summer`).set(true);
+            }
+            else if (month === 9 || month === 10) { 
+                let count = userPosts.filter(p => {
+                    let pDate = new Date(p.time);
+                    let targetBeer = beers.find(b => b.brand === p.brand);
+                    return pDate.getFullYear() === currentYear && (pDate.getMonth() + 1 === 9 || pDate.getMonth() + 1 === 10) && targetBeer && targetBeer.country === "Germania";
+                }).length;
+                if (count >= 3) db.ref(`user_event_badges/${username}/oktoberfest`).set(true);
+            }
+        }
+
         let pendingUploadData = null;
 
         function submitSharedPost() {
@@ -1693,6 +1739,24 @@
                 item.innerHTML = `<div style="display:flex; align-items:center; flex-grow:1;"><div class="rank">${medal}</div><div class="post-avatar" style="width:40px; height:40px; font-size:16px; margin: 0 10px 0 5px;">${avatarContent}</div><div class="lb-user clickable-user" onclick="openPublicProfile('${player.name}')">${player.name} <br><small style="font-size:11px;color:var(--text-muted);font-weight:normal;">${rankLabel}</small></div></div><div style="display:flex; align-items:center; gap:15px;"><div class="lb-score">${player.score} 🏆</div>${actionsHtml}</div>`;
                 list.appendChild(item);
             });
+        }
+
+        function renderDashboard() {
+            checkTimedEvents(); 
+            const welcomeEl = document.getElementById('dashWelcomeName');
+            if (welcomeEl) welcomeEl.innerText = currentUserNick;
+            const dashLastBeer = document.getElementById('dashLastBeer');
+            if (!dashLastBeer) return;
+            
+            let myPosts = globalPosts.filter(p => p.user === currentUserNick);
+            checkAndUnlockEventBadges(currentUserNick, myPosts);
+
+            if(myPosts.length > 0) {
+                myPosts.sort((a,b) => b.time - a.time); let lastPost = myPosts[0];
+                let date = new Date(lastPost.time); let dateStr = date.toLocaleDateString() + ' alle ' + date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+                let shinyBadge = lastPost.isShiny ? '<span style="color:var(--primary-dark); font-weight:bold;">✨ SHINY (x2 Punti)</span>' : '';
+                dashLastBeer.innerHTML = `<div class="dash-last-card"><img src="${lastPost.photo}" class="dash-last-img"><div class="dash-last-info"><h4 style="margin: 0 0 5px 0; color: var(--dark); font-size: 18px;">${lastPost.brand}</h4><div style="color: var(--primary-dark); font-weight: bold; font-size: 14px; margin-bottom: 5px;">${lastPost.variant} ${shinyBadge}</div><div style="font-size: 12px; color: var(--text-muted);">Sbloccata il: ${dateStr}</div></div></div>`;
+            } else { dashLastBeer.innerHTML = `<div class="dash-empty">Nessuna birra sbloccata!<br>Inizia la tua avventura! 🧭</div>`; }
         }
 
         let myPokedex = {}; let globalPosts = []; let globalLeaderboardScores = {}; 
