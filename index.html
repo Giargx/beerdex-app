@@ -43,7 +43,7 @@
         .top-action-btn:hover { transform: scale(1.1); }
         .top-badge { position: absolute; top: -5px; right: -8px; font-size: 10px; background: var(--danger); color: white; border-radius: 50%; padding: 2px 5px; font-weight: bold; animation: bounce 1s infinite; display: none;}
 
-        /* BOTTOM NAV */
+        /* BOTTOM NAV CON SAFE AREA IOS */
         .bottom-nav { 
             position: fixed; 
             bottom: 0; 
@@ -138,6 +138,7 @@
         .variant-item { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid #e1e8ed; }
         .variant-item:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
         
+        /* PALLINI COLORATI TIPOLOGIE BIRRA */
         .beer-type-dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 5px; vertical-align: middle; }
         .type-bionda { background-color: #f1c40f; box-shadow: 0 0 6px rgba(241,196,15,0.5); }
         .type-rossa { background-color: #e74c3c; box-shadow: 0 0 6px rgba(231,76,60,0.5); }
@@ -157,6 +158,7 @@
         .card.completed { border-top: 5px solid var(--gold); background: #fffcf0; }
         .card.completed h2 { color: #d35400; }
         
+        /* DASHBOARD */
         .dashboard-stats { background: var(--white); padding: 25px; border-radius: 16px; border: 2px solid var(--primary); box-shadow: 0 5px 15px rgba(241,196,15,0.1); text-align: center; margin-bottom: 25px;}
         .dashboard-event { background: #ebf5fb; border: 2px solid var(--social-blue); padding: 20px; border-radius: 16px; margin-bottom: 25px; display: flex; align-items: center; gap: 15px; text-align: left; }
         .dash-last-card { display: flex; align-items: center; background: var(--white); border-radius: 16px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.05); border: 1px solid var(--gray);}
@@ -215,6 +217,7 @@
         .rank { font-weight: bold; font-size: 20px; width: 30px; }
         .lb-score { font-size: 20px; font-weight: bold; }
 
+        /* AVATAR CONDIVISO PER CLASSIFICA E POST */
         .post-avatar { width: 40px; height: 40px; flex-shrink: 0; background: linear-gradient(135deg, var(--social-blue), #8e44ad); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: var(--white); font-weight: bold; font-size: 18px; text-transform: uppercase; overflow: hidden; }
         
         .social-feed { display: flex; flex-direction: column; gap: 30px; }
@@ -273,7 +276,7 @@
         </div>
     </div>
 
-    <!-- MODALI -->
+    <!-- MODALI ALERT -->
     <div id="customModalOverlay" class="auth-modal" style="display:none; z-index: 20000;">
         <div class="auth-container" style="max-width: 350px;">
             <h3 id="customModalTitle" style="margin-top:0; color:var(--dark); font-size:22px;">Avviso</h3>
@@ -398,9 +401,8 @@
                         <option value="rarityDesc">🌟 Rarità (Decrescente)</option>
                     </select>
                 </div>
+                <div class="container" id="beerList" style="margin-top: 20px; padding: 0;"></div>
             </div>
-            
-            <div class="container" id="beerList" style="margin-top: 20px; padding: 0;"></div>
         </div>
 
         <div id="page-leaderboard" class="page-view">
@@ -427,7 +429,6 @@
             </div>
         </div>
 
-        <!-- PAGINA PROFILO -->
         <div id="page-profile" class="page-view">
             <header class="hero">
                 <h1>👤 Il Tuo Profilo</h1>
@@ -537,7 +538,7 @@
                 <div class="rules-section">
                     <h3>✨ Il Sistema dei Punti & Rarità</h3>
                     <ul>
-                        <li>⚪ <strong>Comune (1 Punto):</strong> Commerciali e industriali (es. Heineken, Moretti, Peroni).</li>
+                        <li>⚪ <strong>Comune (1 Punto):</strong> Commerciali e industriali (es. Heineken, Moretti, Peroni, Best Brau).</li>
                         <li>🔵 <strong>Media (2 Punti):</strong> Speciali o artigianali diffuse (es. Ceres, Leffe, Ichnusa).</li>
                         <li>🟣 <strong>Rara (5 Punti):</strong> Eccellenze territoriali o trappiste (es. Baladin, Tripel Karmeliet, Chimay, Crak).</li>
                     </ul>
@@ -624,9 +625,14 @@
     </nav>
 
     <script>
+        // Funzione helper per la ricerca normalizzata (ignora accenti e umlaut)
+        function normalizeStr(str) {
+            return str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+        }
+
         // AGGIUNTA DINAMICA DELLA SCHIUMA AGLI HEADER
         document.addEventListener("DOMContentLoaded", () => {
-            checkTimedEvents(); // Inizializza subito l'avviso evento
+            checkTimedEvents(); 
             const heroes = document.querySelectorAll('header.hero');
             heroes.forEach(hero => {
                 const foam = document.createElement('div');
@@ -647,7 +653,6 @@
                 hero.insertBefore(foam, hero.firstChild);
             });
 
-            // Sensori di movimento (Giroscopio)
             window.addEventListener('deviceorientation', (e) => {
                 let tiltX = e.gamma ? e.gamma / 2 : 0; 
                 let tiltY = e.beta ? (e.beta - 45) / 4 : 0; 
@@ -655,7 +660,6 @@
                 document.documentElement.style.setProperty('--tilt-y', tiltY + 'px');
             });
             
-            // Sensori di tocco per muovere la schiuma scorrendo il dito
             document.addEventListener('touchmove', (e) => {
                 let touch = e.touches[0];
                 let moveX = (touch.clientX / window.innerWidth - 0.5) * 40;
@@ -1087,12 +1091,13 @@
             reader.readAsDataURL(file);
         }
 
-        // --- DATABASE BIRRE AGGIORNATO (57 Birre, divisibile per 3) ---
+        // --- DATABASE BIRRE ---
         const beers = [
             { brand: "Augustiner", country: "Germania", flag: "🇩🇪", rarity: "media", desc: "Storico birrificio di Monaco di Baviera.", variants: ["Lagerbier Hell", "Edelstoff", "Maximator"] },
-            { brand: "Baladin", country: "Italia", flag: "🇮🇹", rarity: "rara", desc: "Pioniere della birra artigianale italiana.", variants: ["Isaac (Blanche)", "Wayan (Saison)", "Nora (Speziata)", "Super Bitter", "Leon", "Nazionale", "L'IPPA", "Rock'n'Roll"] },
+            { brand: "Baladin", country: "Italia", flag: "🇮🇹", rarity: "rara", desc: "Pioniere della birra artigianale italiana (Piemonte).", variants: ["Isaac (Blanche)", "Wayan (Saison)", "Nora (Speziata)", "Super Bitter", "Leon", "Nazionale", "L'IPPA", "Rock'n'Roll"] },
             { brand: "Bavaria", country: "Paesi Bassi", flag: "🇳🇱", rarity: "media", desc: "Marchio olandese noto per la linea 8.6.", variants: ["Premium Pilsner", "8.6 Original", "8.6 Red", "8.6 Gold", "8.6 Extreme"] },
             { brand: "Beck's", country: "Germania", flag: "🇩🇪", rarity: "comune", desc: "Classica pilsner tedesca (Brema).", variants: ["Pilsner", "Blue (Analcolica)", "Lemon", "Green Lemon", "Unfiltered"] },
+            { brand: "Best Brau", country: "Germania", flag: "🇩🇪", rarity: "comune", desc: "Birra commerciale molto diffusa nei supermercati Eurospin.", variants: ["Premium Pils", "Doppio Malto", "Rossa", "Weiss"] },
             { brand: "Birrificio Italiano", country: "Italia", flag: "🇮🇹", rarity: "rara", desc: "Storico birrificio artigianale lombardo.", variants: ["Tipopils", "Bibock", "Nigredo", "Vudù", "Amber Shock"] },
             { brand: "Birrificio Lambrate", country: "Italia", flag: "🇮🇹", rarity: "rara", desc: "Il birrificio simbolo di Milano e del fermento artigianale.", variants: ["Montestella", "Sant'Ambroeus", "Ghisa", "Porpora", "Quarantot"] },
             { brand: "BrewDog", country: "Scozia", flag: "🏴󠁧󠁢󠁳󠁣󠁴󠁿", rarity: "media", desc: "Birrificio artigianale scozzese famoso in tutto il mondo.", variants: ["Punk IPA", "Elvis Juice", "Hazy Jane"] },
@@ -1111,18 +1116,20 @@
             { brand: "Duvel", country: "Belgio", flag: "🇧🇪", rarity: "rara", desc: "La leggendaria Strong Gold Ale belga.", variants: ["Original Blond", "Triple Hop", "6.66"] },
             { brand: "Erdinger", country: "Germania", flag: "🇩🇪", rarity: "media", desc: "Il birrificio di frumento più grande del mondo.", variants: ["Weißbier", "Dunkel", "Pikantus"] },
             { brand: "Estrella Damm", country: "Spagna", flag: "🇪🇸", rarity: "media", desc: "La bionda di Barcellona.", variants: ["Estrella Damm", "Inedit", "Daura"] },
+            { brand: "Finkbräu", country: "Germania", flag: "🇩🇪", rarity: "comune", desc: "Birra bionda commerciale molto popolare nei discount (Lidl).", variants: ["Pilsner", "Analcolica"] },
             { brand: "Flea", country: "Italia", flag: "🇮🇹", rarity: "rara", desc: "Birre artigianali umbre brassate con acqua di sorgente.", variants: ["Costanza", "Bianca Lancia", "Federico II", "Bastola", "Violante"] },
             { brand: "Forst", country: "Italia", flag: "🇮🇹", rarity: "media", desc: "Birrificio indipendente del Trentino-Alto Adige.", variants: ["Kronen", "V.I.P. Pils", "1857", "Felsenkeller", "Sixtus (Doppelbock)", "0.0%"] },
             { brand: "Franziskaner", country: "Germania", flag: "🇩🇪", rarity: "media", desc: "Eccellenza tedesca di birre di frumento.", variants: ["Weissbier Naturtrüb", "Weissbier Dunkel"] },
             { brand: "Grolsch", country: "Paesi Bassi", flag: "🇳🇱", rarity: "media", desc: "Iconica lager olandese.", variants: ["Premium Pilsner", "Radler"] },
             { brand: "Guinness", country: "Irlanda", flag: "🇮🇪", rarity: "media", desc: "La regina delle Stout irlandesi.", variants: ["Draught", "Extra Stout", "Hop House 13", "0.0"] },
+            { brand: "Hacker-Pschorr", country: "Germania", flag: "🇩🇪", rarity: "media", desc: "Storico marchio monacense dell'Oktoberfest.", variants: ["Münchner Hell", "Weisse", "Oktoberfest Märzen"] },
             { brand: "Heineken", country: "Paesi Bassi", flag: "🇳🇱", rarity: "comune", desc: "Il colosso olandese di Amsterdam.", variants: ["Original", "Silver", "0.0"] },
             { brand: "Hoegaarden", country: "Belgio", flag: "🇧🇪", rarity: "rara", desc: "La regina delle birre bianche belghe.", variants: ["Witbier", "Rosée"] },
             { brand: "Hofbräu", country: "Germania", flag: "🇩🇪", rarity: "media", desc: "Il leggendario birrificio della HB di Monaco.", variants: ["Original", "Münchner Weisse", "Schwarze Weisse", "Dunkel"] },
             { brand: "Ichnusa", country: "Italia", flag: "🇮🇹", rarity: "media", desc: "L'iconica birra sarda, amatissima in tutta Italia.", variants: ["Classica", "Non Filtrata", "Cruda", "Ambra Limpidissima", "Radler"] },
             { brand: "Kozel", country: "Repubblica Ceca", flag: "🇨🇿", rarity: "media", desc: "Famosissima birra ceca.", variants: ["Premium Lager", "Dark (Cerna)"] },
             { brand: "Kronenbourg 1664", country: "Francia", flag: "🇫🇷", rarity: "media", desc: "Il marchio francese più venduto al mondo.", variants: ["Blanc", "Lager"] },
-            { brand: "Kwak", country: "Belgio", flag: "🇧🇪", rarity: "rara", desc: "Famosa per il suo iconico bicchiere a clessidra.", variants: ["Pauwel Kwak", "Rouge"] },
+            { brand: "Kwak", country: "Belgio", flag: "🇧🇪", rarity: "rara", desc: "Famosa per il suo iconico bicchiere a clessidra e l'alto grado alcolico.", variants: ["Pauwel Kwak", "Rouge"] },
             { brand: "Leffe", country: "Belgio", flag: "🇧🇪", rarity: "media", desc: "La storica birra d'abbazia belga.", variants: ["Blonde", "Brune", "Rituel 9°", "Rouge", "Triple"] },
             { brand: "Löwenbräu", country: "Germania", flag: "🇩🇪", rarity: "media", desc: "Storica birra monacense del leone.", variants: ["Original", "Oktoberfestbier", "Triumphator"] },
             { brand: "Mastri Birrai Umbri", country: "Italia", flag: "🇮🇹", rarity: "rara", desc: "Realtà umbra che esalta i cereali del territorio.", variants: ["Cotta 21 (Bionda)", "Cotta 37 (Rossa)", "Cotta 74 (Nera)", "Cotta 68 (IPA)", "Cotta 50 (Weiss)"] },
@@ -1137,13 +1144,14 @@
             { brand: "Raffo", country: "Italia", flag: "🇮🇹", rarity: "media", desc: "La 'birra dei due mari', simbolo della città di Taranto.", variants: ["Classica", "Lavorazione Grezza"] },
             { brand: "Salento", country: "Italia", flag: "🇮🇹", rarity: "rara", desc: "Eccellenza artigianale pugliese, nata a Leverano (Lecce).", variants: ["Agricola (Lager)", "Nuda e Cruda", "Beggia", "Taranta (IPA)"] },
             { brand: "San Miguel", country: "Spagna", flag: "🇪🇸", rarity: "comune", desc: "Marchio spagnolo popolarissimo.", variants: ["Especial", "Selecta", "0,0"] },
+            { brand: "Semedorato", country: "Italia", flag: "🇮🇹", rarity: "rara", desc: "Birra artigianale premium siciliana.", variants: ["Bionda Premium", "Rossa Doppio Malto", "Non Filtrata"] },
             { brand: "Slalom", country: "Scozia", flag: "🏴󠁧󠁢󠁳󠁣󠁴󠁿", rarity: "media", desc: "Strong Lager scozzese, popolarissima nei pub italiani.", variants: ["Strong"] },
             { brand: "Stella Artois", country: "Belgio", flag: "🇧🇪", rarity: "comune", desc: "Premium lager belga.", variants: ["Premium Lager", "Unfiltered", "0.0"] },
             { brand: "Super Bock", country: "Portogallo", flag: "🇵🇹", rarity: "media", desc: "La birra più famosa del Portogallo.", variants: ["Original", "Abadia", "Stout"] },
             { brand: "Tennent's", country: "Scozia", flag: "🏴󠁧󠁢󠁳󠁣󠁴󠁿", rarity: "media", desc: "Storico marchio scozzese.", variants: ["Super", "Extra", "1885 Lager", "Scotch Ale"] },
             { brand: "Tripel Karmeliet", country: "Belgio", flag: "🇧🇪", rarity: "rara", desc: "Straordinaria birra belga ai tre cereali.", variants: ["Tripel"] },
             { brand: "Tuborg", country: "Danimarca", flag: "🇩🇰", rarity: "comune", desc: "Lager danese leggera.", variants: ["Green", "Strong", "Red"] },
-            { brand: "Weihenstephaner", country: "Germania", flag: "🇩🇪", rarity: "rara", desc: "Il più antico birrificio del mondo (1040).", variants: ["Hefe Weissbier", "Vitus", "Original Hell"] },
+            { brand: "Weihenstephaner", country: "Germania", flag: "🇩🇪", rarity: "rara", desc: "Il più antico marchio di birra italiano (1040).", variants: ["Hefe Weissbier", "Vitus", "Original Hell"] },
             { brand: "Wuhrer", country: "Italia", flag: "🇮🇹", rarity: "comune", desc: "Il più antico marchio di birra italiano (Brescia, 1829).", variants: ["La Classica"] }
         ];
 
@@ -1166,54 +1174,8 @@
         function getBeerPoints(brandName, variantName, isShiny, isShared) {
             let base = getBasePoints(brandName, variantName);
             if(isShiny) base *= 2;
-            if(isShared) base *= 2; // DOPPI PUNTI SE BEVI IN COMPAGNIA!
+            if(isShared) base *= 2;
             return base;
-        }
-
-        function checkTimedEvents() {
-            const now = new Date();
-            const month = now.getMonth() + 1; 
-            let activeEvent = null;
-            if (month === 3) {
-                activeEvent = { id: "stpatrick", name: "🍀 San Patrizio", desc: "Mese di Marzo! Sblocca 2 varianti irlandesi o scozzesi per vincere la medaglia!" };
-            } else if (month === 9 || month === 10) {
-                activeEvent = { id: "oktoberfest", name: "🥨 Oktoberfest", desc: "Periodo Oktoberfest! Sblocca 3 varianti tedesche tra Settembre e Ottobre!" };
-            }
-            const box = document.getElementById("dashEventBox");
-            const txt = document.getElementById("dashEventText");
-            if (box && txt) {
-                if (activeEvent) {
-                    box.style.display = "flex";
-                    txt.innerHTML = `<strong>${activeEvent.name} ATTIVO!</strong><br>${activeEvent.desc}`;
-                } else {
-                    box.style.display = "flex";
-                    txt.innerHTML = `<strong>Nessun evento attivo</strong><br>Prossimi appuntamenti: San Patrizio (Marzo) e Oktoberfest (Settembre/Ottobre).`;
-                }
-            }
-            return activeEvent;
-        }
-
-        function checkAndUnlockEventBadges(username, userPosts) {
-            if (!userPosts || userPosts.length === 0) return;
-            const now = new Date();
-            const month = now.getMonth() + 1;
-            let currentYear = now.getFullYear();
-            if (month === 3) { 
-                let count = userPosts.filter(p => {
-                    let pDate = new Date(p.time);
-                    let targetBeer = beers.find(b => b.brand === p.brand);
-                    return pDate.getFullYear() === currentYear && pDate.getMonth() + 1 === 3 && targetBeer && (targetBeer.country === "Irlanda" || targetBeer.country === "Scozia");
-                }).length;
-                if (count >= 2) db.ref(`user_event_badges/${username}/stpatrick`).set(true);
-            } 
-            else if (month === 9 || month === 10) { 
-                let count = userPosts.filter(p => {
-                    let pDate = new Date(p.time);
-                    let targetBeer = beers.find(b => b.brand === p.brand);
-                    return pDate.getFullYear() === currentYear && (pDate.getMonth() + 1 === 9 || pDate.getMonth() + 1 === 10) && targetBeer && targetBeer.country === "Germania";
-                }).length;
-                if (count >= 3) db.ref(`user_event_badges/${username}/oktoberfest`).set(true);
-            }
         }
 
         // VARIABILI GLOBALI PER UPLOAD CONDIVISO
@@ -1233,7 +1195,7 @@
         function finalizeUpload(data, taggedFriend) {
             showCustomAlert("Caricamento sblocco in corso...", "Attendere");
             const {brand, variant, isShiny, canvasBase64, currentLat, currentLng} = data;
-            let isShared = (taggedFriend != null);
+            let isShared = (taggedFriend != null && taggedFriend !== "");
             
             const uniqueId = brand + '-' + variant;
             const pokedexEntry = { photo: canvasBase64, isShiny: isShiny, isShared: isShared, taggedFriend: taggedFriend, brand: brand };
@@ -1303,13 +1265,12 @@
 
                         const executeUploadBase64 = (drinkCount) => {
                             Tesseract.recognize(canvas, 'ita+eng').then(({ data: { text } }) => {
-                                const extractedText = text.toLowerCase(); 
-                                const brandWord = brand.toLowerCase().split(' ')[0];
+                                const extractedText = normalizeStr(text); 
+                                const brandWord = normalizeStr(brand).split(' ')[0];
                                 
                                 if (extractedText.includes(brandWord) || extractedText.replace(/\s/g, '').includes(brandWord)) {
                                     const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.5);
                                     
-                                    // SE CI SONO AMICI E PIU' BIRRE -> MODALE CONDIVISIONE
                                     if (drinkCount >= 2 && myFriendsList.length > 0) {
                                         pendingUploadData = {brand, variant, isShiny, canvasBase64: compressedDataUrl, currentLat, currentLng};
                                         let selectHtml = '<option value="">-- Seleziona un amico --</option>';
@@ -1479,14 +1440,22 @@
             navigateTo('page-explore'); 
         }
 
+        function normalizeStr(str) {
+            return str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+        }
+
         function filterBeers() { 
             const searchInput = document.getElementById('searchBar'); 
-            const searchTerm = searchInput ? searchInput.value.toLowerCase() : ''; 
+            const rawSearchTerm = searchInput ? searchInput.value : ''; 
+            const searchTerm = normalizeStr(rawSearchTerm);
             const sortVal = document.getElementById('sortFilter') ? document.getElementById('sortFilter').value : 'alpha';
             
             let filtered = beers.filter(beer => { 
-                const variantsText = beer.variants.join(' ').toLowerCase(); 
-                const matchSearch = beer.brand.toLowerCase().includes(searchTerm) || beer.desc.toLowerCase().includes(searchTerm) || variantsText.includes(searchTerm); 
+                const brandName = normalizeStr(beer.brand);
+                const descText = normalizeStr(beer.desc);
+                const variantsText = normalizeStr(beer.variants.join(' ')); 
+                
+                const matchSearch = brandName.includes(searchTerm) || descText.includes(searchTerm) || variantsText.includes(searchTerm); 
                 const matchRegion = currentFilter === 'Tutte' || !currentFilter || beer.country === currentFilter; 
                 return matchSearch && matchRegion; 
             }); 
@@ -1661,24 +1630,6 @@
             });
         }
 
-        function renderDashboard() {
-            checkTimedEvents();
-            const welcomeEl = document.getElementById('dashWelcomeName');
-            if (welcomeEl) welcomeEl.innerText = currentUserNick;
-            const dashLastBeer = document.getElementById('dashLastBeer');
-            if (!dashLastBeer) return;
-            
-            let myPosts = globalPosts.filter(p => p.user === currentUserNick);
-            checkAndUnlockEventBadges(currentUserNick, myPosts);
-
-            if(myPosts.length > 0) {
-                myPosts.sort((a,b) => b.time - a.time); let lastPost = myPosts[0];
-                let date = new Date(lastPost.time); let dateStr = date.toLocaleDateString() + ' alle ' + date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-                let shinyBadge = lastPost.isShiny ? '<span style="color:var(--primary-dark); font-weight:bold;">✨ SHINY (x2 Punti)</span>' : '';
-                dashLastBeer.innerHTML = `<div class="dash-last-card"><img src="${lastPost.photo}" class="dash-last-img"><div class="dash-last-info"><h4 style="margin: 0 0 5px 0; color: var(--dark); font-size: 18px;">${lastPost.brand}</h4><div style="color: var(--primary-dark); font-weight: bold; font-size: 14px; margin-bottom: 5px;">${lastPost.variant} ${shinyBadge}</div><div style="font-size: 12px; color: var(--text-muted);">Sbloccata il: ${dateStr}</div></div></div>`;
-            } else { dashLastBeer.innerHTML = `<div class="dash-empty">Nessuna birra sbloccata!<br>Inizia la tua avventura! 🧭</div>`; }
-        }
-
         let myPokedex = {}; let globalPosts = []; let globalLeaderboardScores = {}; 
         let myFriendsList = []; let myReceivedRequests = []; let mySentRequests = []; let myRejectedRequests = [];
         let globalAvatars = {};
@@ -1766,12 +1717,15 @@
         }
 
         function showSuggestions() {
-            const val = document.getElementById('friendInput').value.trim().toLowerCase();
+            const val = document.getElementById('friendInput').value.trim();
             const box = document.getElementById('suggestionsBox');
             if(!box) return;
             box.innerHTML = '';
             if(val.length === 0) { box.style.display = 'none'; return; }
-            let matches = Object.keys(globalLeaderboardScores).filter(name => name.toLowerCase().includes(val) && name.toLowerCase() !== currentUserNick.toLowerCase());
+            
+            const normalizedVal = normalizeStr(val);
+            let matches = Object.keys(globalLeaderboardScores).filter(name => normalizeStr(name).includes(normalizedVal) && name.toLowerCase() !== currentUserNick.toLowerCase());
+            
             if(matches.length === 0) { box.style.display = 'none'; return; }
             matches.slice(0, 5).forEach(match => {
                 let div = document.createElement('div'); div.className = 'suggestion-item'; div.innerText = match;
@@ -1786,11 +1740,17 @@
             let resultArea = document.getElementById('searchResultArea'); if(!resultArea) return;
             resultArea.innerHTML = '';
             if(!friendName) return;
-            if(friendName.toLowerCase() === currentUserNick.toLowerCase()) { 
+            
+            const normalizedFriendName = normalizeStr(friendName);
+            if(normalizedFriendName === normalizeStr(currentUserNick)) { 
                 resultArea.innerHTML = '<p style="color:var(--danger); text-align:center; font-size:14px; font-weight:bold;">Non puoi cercare te stesso!</p>'; return; 
             }
+            
             let exactName = null;
-            for (let name in globalLeaderboardScores) { if(name.toLowerCase() === friendName.toLowerCase()) { exactName = name; break; } }
+            for (let name in globalLeaderboardScores) { 
+                if(normalizeStr(name) === normalizedFriendName) { exactName = name; break; } 
+            }
+            
             if(exactName) {
                 let actionsHtml = '';
                 if (myFriendsList.includes(exactName)) { actionsHtml = `<span class="badge-status" style="color:var(--social-blue);">🤝 Già Amici</span>`; } 
