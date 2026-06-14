@@ -49,7 +49,7 @@
             bottom: 0; 
             left: 0; 
             width: 100%; 
-            height: 80px; 
+            height: 80px;
             background-color: var(--white); 
             box-shadow: 0 -2px 15px rgba(0,0,0,0.1); 
             display: flex; 
@@ -95,7 +95,7 @@
         .page-view.active { display: block; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* FIX MAPPA INCASSATA */
+        /* MAPPA INCASSATA */
         #page-map.active { display: flex !important; flex-direction: column; position: fixed; top: 60px; bottom: 80px; left: 0; width: 100%; margin: 0; padding: 0; overflow: hidden; z-index: 500; background: var(--light); }
         #page-map .hero { margin-bottom: 0; padding: 15px 20px 20px 20px; border-radius: 0; z-index: 10; position: relative; box-shadow: 0 5px 15px rgba(0,0,0,0.1); flex-shrink: 0; }
         #page-map .hero h1 { font-size: 24px; margin: 0 0 5px 0; }
@@ -163,7 +163,7 @@
         .dash-empty { background: #fdf2f2; border: 1px dashed var(--danger); padding: 20px; border-radius: 12px; text-align: center; color: var(--danger); font-weight: bold; margin: 0 20px; }
         .user-rank-title { font-size: 11px; background: #eef3f7; padding: 3px 8px; border-radius: 20px; font-weight: bold; color: var(--social-blue); display: inline-block; margin-top: 4px;}
 
-        /* MODALI */
+        /* MODALI - Gestione Catcher Migliorata */
         .auth-modal { display: flex; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 10000; align-items: center; justify-content: center; backdrop-filter: blur(8px); }
         .auth-container { background: var(--white); padding: 35px; border-radius: 24px; width: 90%; max-width: 400px; text-align: center; box-shadow: 0 15px 35px rgba(0,0,0,0.3); animation: slideUp 0.3s ease-out; position: relative;}
         .auth-container input { width: 100%; padding: 12px; margin: 8px 0; border: 2px solid var(--gray); border-radius: 10px; font-size: 15px; box-sizing: border-box; outline: none; transition: 0.3s; }
@@ -203,7 +203,7 @@
         .list-item { display: flex; align-items: center; justify-content: space-between; background: var(--white); box-shadow: 0 4px 10px rgba(0,0,0,0.05); padding: 15px 20px; border-radius: 12px; }
         .list-item .lb-user { flex-grow: 1; font-weight: bold; font-size: 16px; display:flex; flex-direction:column; }
 
-        /* CLASSIFICA CON COLORI CORRETTI PER I NOMI */
+        /* CLASSIFICA */
         .leaderboard-item:nth-child(1) { background: linear-gradient(135deg, #f1c40f, #f39c12); color: var(--dark); transform: scale(1.02); box-shadow: 0 5px 15px rgba(241,196,15,0.4); z-index: 2;}
         .leaderboard-item:nth-child(1) .clickable-user, .leaderboard-item:nth-child(1) small, .leaderboard-item:nth-child(1) .lb-score { color: var(--dark) !important; }
 
@@ -216,23 +216,20 @@
         .rank { font-weight: bold; font-size: 20px; width: 30px; }
         .lb-score { font-size: 20px; font-weight: bold; }
 
-        /* USER CLICKABLE */
         .clickable-user { cursor: pointer; color: var(--primary-dark); transition: 0.2s; }
         .clickable-user:hover { text-decoration: underline; color: var(--accent) !important; }
 
         .post-avatar { width: 40px; height: 40px; flex-shrink: 0; background: linear-gradient(135deg, var(--social-blue), #8e44ad); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: var(--white); font-weight: bold; font-size: 18px; text-transform: uppercase; overflow: hidden; }
         
-        /* SOCIAL FEED EDGE-TO-EDGE SU MOBILE */
+        /* SOCIAL FEED EDGE-TO-EDGE SU MOBILE (Instagram-like) */
         .social-page-container { width: 100%; max-width: 600px; margin: 0 auto; background: var(--light); position: relative; z-index: 5; padding-top: 15px; }
         .social-feed { display: flex; flex-direction: column; gap: 15px; margin-top: 0; padding-bottom: 20px; }
         .post-card { background: var(--white); border-radius: 0; border: none; border-top: 1px solid #e1e8ed; border-bottom: 1px solid #e1e8ed; overflow: hidden; margin-bottom: 0; }
         .post-header { display: flex; align-items: center; padding: 12px 15px; justify-content: space-between;}
         
-        /* DISTANZA MAGGIORATA NOME - AVATAR */
         .post-user { font-weight: bold; font-size: 15px; color: var(--dark); margin-left: 20px; } 
         .post-time { font-size: 12px; color: var(--text-muted); margin-left: 20px; } 
         
-        /* FOTO 4:5 e COPERTURA TOTALE LARGHETTA MOBILE */
         .post-image { width: 100%; height: 50vh; object-fit: cover; background: #e0e6ed; display: block; }
         
         .post-actions { display: flex; align-items: center; padding: 10px 15px 5px 15px; }
@@ -272,18 +269,10 @@
         
         .profile-user-box { text-align: center; padding: 25px; background: var(--white); border-radius: 16px; position: relative; box-shadow: 0 5px 15px rgba(0,0,0,0.05); border: 2px solid var(--primary); margin: 0 20px 20px 20px; }
         
-        /* OVERLAY IMPOSTAZIONI FULL SCREEN */
+        /* OVERLAY IMPOSTAZIONI */
         .settings-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--light); z-index: 10001; overflow-y: auto; animation: slideUp 0.3s ease-out; }
         .settings-content { width: 100%; max-width: 600px; min-height: 100%; margin: 0 auto; background: var(--light); padding: 60px 20px 100px 20px; position: relative; box-sizing: border-box; }
         .btn-close-settings { position: absolute; top: 15px; right: 20px; background: none; border: none; font-size: 40px; color: var(--dark); cursor: pointer; line-height: 1; }
-        
-        /* Aggiunta barra di navigazione */
-        nav.bottom-nav { position: fixed; bottom: 0; left: 0; width: 100%; height: 80px; background-color: var(--white); box-shadow: 0 -2px 15px rgba(0,0,0,0.1); display: flex; z-index: 99999; padding-bottom: 15px; box-sizing: border-box; flex-direction: row; }
-        .nav-item { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; color: var(--text-muted); cursor: pointer; transition: 0.3s; user-select: none; }
-        .nav-item.active { background-color: #f8f9f9; color: var(--primary-dark); border-top: 3px solid var(--primary-dark); }
-        .nav-icon { font-size: 22px; margin-bottom: 2px; }
-        .nav-text { font-size: 9px; font-weight: 800; text-transform: uppercase; }
-
     </style>
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#f39c12">
@@ -304,7 +293,6 @@
         </div>
     </div>
 
-    <!-- MODALI ALERT -->
     <div id="customModalOverlay" class="auth-modal" style="display:none; z-index: 20000;">
         <div class="auth-container" style="max-width: 350px;">
             <h3 id="customModalTitle" style="margin-top:0; color:var(--dark); font-size:22px;">Avviso</h3>
@@ -313,7 +301,6 @@
         </div>
     </div>
 
-    <!-- MODALE CONDIVISIONE BEVUTA -->
     <div id="shareModal" class="auth-modal" style="display:none; z-index: 20000;">
         <div class="auth-container" style="max-width: 350px;">
             <h3 style="margin-top:0; color:var(--dark); font-size:22px;">🍻 Più bevande rilevate!</h3>
@@ -362,7 +349,6 @@
         </div>
     </div>
 
-    <!-- MAIN CONTENT -->
     <div class="main-content">
         
         <div id="page-home" class="page-view">
@@ -460,7 +446,6 @@
             </div>
         </div>
 
-        <!-- PAGINA PROFILO PERSONALE -->
         <div id="page-profile" class="page-view">
             <header class="hero">
                 <h1>👤 Il Tuo Profilo</h1>
@@ -498,7 +483,6 @@
             </div>
         </div>
 
-        <!-- PAGINA PROFILO PUBBLICO (AMICI) -->
         <div id="page-public-profile" class="page-view">
             <header class="hero">
                 <button onclick="navigateTo('page-leaderboard')" style="position:absolute; top:15px; left:15px; background:rgba(255,255,255,0.2); border:none; padding:8px 12px; border-radius:10px; color:var(--dark); font-weight:bold; cursor:pointer; font-size:12px;">⬅ Indietro</button>
@@ -525,7 +509,7 @@
         </div>
 
         <div id="page-map" class="page-view">
-            <header class="hero" style="margin-bottom: 0; padding-bottom: 30px; border-radius: 0; z-index: 10; position: relative; box-shadow: 0 5px 15px rgba(0,0,0,0.1);">
+            <header class="hero">
                 <h1>🗺️ Mappa Sblocchi</h1>
                 <p>Esplora il mondo e traccia i pub in cui hai conquistato le tue birre.</p>
             </header>
@@ -625,7 +609,6 @@
 
     </div>
     
-    <!-- IMPOSTAZIONI FULL SCREEN OVERLAY -->
     <div id="settingsOverlayFull" class="settings-overlay">
         <div class="settings-content">
             <button class="btn-close-settings" onclick="toggleProfileSettings()">×</button>
@@ -657,30 +640,6 @@
             </div>
         </div>
     </div>
-
-    <!-- BOTTOM NAV DEFINITIVA -->
-    <nav class="bottom-nav">
-        <div class="nav-item active" onclick="navigateTo('page-home')" id="nav-page-home">
-            <div class="nav-icon">🏠</div>
-            <div class="nav-text">Home</div>
-        </div>
-        <div class="nav-item" onclick="navigateTo('page-explore')" id="nav-page-explore">
-            <div class="nav-icon">🔍</div>
-            <div class="nav-text">Esplora</div>
-        </div>
-        <div class="nav-item" onclick="navigateTo('page-leaderboard')" id="nav-page-leaderboard">
-            <div class="nav-icon">🏅</div>
-            <div class="nav-text">Classifica</div>
-        </div>
-        <div class="nav-item" onclick="navigateTo('page-social')" id="nav-page-social">
-            <div class="nav-icon">🌍</div>
-            <div class="nav-text">Social</div>
-        </div>
-        <div class="nav-item" onclick="navigateTo('page-profile')" id="nav-page-profile">
-            <div class="nav-icon">👤</div>
-            <div class="nav-text">Profilo</div>
-        </div>
-    </nav>
 
     <script>
         function normalizeStr(str) {
@@ -733,7 +692,7 @@
             return "Maestro Birraio 👑";
         }
 
-        function showCustomAlert(message, title="🍻 Avviso", callback=null) {
+        function showCustomAlert(message, title="🍻 Avviso", showOk=true, callback=null) {
             const titleEl = document.getElementById('customModalTitle');
             const textEl = document.getElementById('customModalText');
             const btnsEl = document.getElementById('customModalButtons');
@@ -742,12 +701,17 @@
             
             titleEl.innerText = title;
             textEl.innerText = message;
-            btnsEl.innerHTML = `<button class="btn-main" id="customAlertBtn" style="margin-top:0;">OK</button>`;
+            
+            if(showOk) {
+                btnsEl.innerHTML = `<button class="btn-main" id="customAlertBtn" style="margin-top:0;">OK</button>`;
+                document.getElementById('customAlertBtn').onclick = () => {
+                    overlayEl.style.display = 'none';
+                    if(callback) callback();
+                };
+            } else {
+                btnsEl.innerHTML = `<div style="padding: 10px; color: var(--primary-dark); font-weight: bold;">Attendere prego... ⏳</div>`;
+            }
             overlayEl.style.display = 'flex';
-            document.getElementById('customAlertBtn').onclick = () => {
-                overlayEl.style.display = 'none';
-                if(callback) callback();
-            };
         }
 
         function showCustomConfirm(message, title, onConfirm) {
@@ -1052,7 +1016,7 @@
                     updates['users_avatars/' + currentUserNick] = null;
                 }
 
-                db.ref().update(updates).then(() => { showCustomAlert("Nickname aggiornato!", "Fatto", () => { window.location.reload(); }); });
+                db.ref().update(updates).then(() => { showCustomAlert("Nickname aggiornato!", "Fatto", true, () => { window.location.reload(); }); });
             });
         }
 
@@ -1102,11 +1066,12 @@
                     ctx.drawImage(img, startX, startY, size, size, 0, 0, MAX_SIZE, MAX_SIZE);
                     
                     const saveAvatarToDB = () => {
-                        showCustomAlert("Caricamento avatar in corso...", "Attendere");
+                        showCustomAlert("Caricamento avatar in corso...", "Attendere", false);
                         const avatarBase64 = canvas.toDataURL('image/jpeg', 0.8);
+                        document.getElementById('customModalOverlay').style.display = 'none';
                         db.ref('users_avatars/' + currentUserNick).set(avatarBase64).then(() => {
-                            showCustomAlert("Foto profilo aggiornata con successo!", "Fatto");
-                        });
+                            showCustomAlert("Foto profilo aggiornata con successo!", "Fatto", true);
+                        }).catch(err => showCustomAlert("Errore di rete: " + err.message, "Errore", true));
                     };
 
                     if (nsfwModel) {
@@ -1118,7 +1083,7 @@
                                 }
                             });
                             if (!isSafe) {
-                                showCustomAlert("⚠️ La foto selezionata è stata bloccata perché potrebbe contenere contenuti inappropriati.", "Sicurezza Profilo");
+                                showCustomAlert("⚠️ La foto selezionata è stata bloccata perché potrebbe contenere contenuti inappropriati.", "Sicurezza Profilo", true);
                                 return;
                             }
                             saveAvatarToDB();
@@ -1222,62 +1187,6 @@
             return base;
         }
 
-        function checkTimedEvents() {
-            const now = new Date();
-            const month = now.getMonth() + 1; 
-            let activeEvent = null;
-            if (month === 3) {
-                activeEvent = { id: "stpatrick", name: "🍀 San Patrizio", desc: "Mese di Marzo! Sblocca 2 varianti irlandesi o scozzesi per vincere la medaglia!" };
-            } else if (month >= 6 && month <= 8) {
-                activeEvent = { id: "summer", name: "☀️ Solstizio d'Estate", desc: "Estate! Sblocca 3 birre Bionde o IPA per rinfrescarti e vincere la medaglia!" };
-            } else if (month === 9 || month === 10) {
-                activeEvent = { id: "oktoberfest", name: "🥨 Oktoberfest", desc: "Periodo Oktoberfest! Sblocca 3 varianti tedesche tra Settembre e Ottobre!" };
-            }
-            const box = document.getElementById("dashEventBox");
-            const txt = document.getElementById("dashEventText");
-            if (box && txt) {
-                if (activeEvent) {
-                    box.style.display = "flex";
-                    txt.innerHTML = `<strong>${activeEvent.name} ATTIVO!</strong><br>${activeEvent.desc}`;
-                } else {
-                    box.style.display = "flex";
-                    txt.innerHTML = `<strong>Nessun evento attivo</strong><br>Prossimi appuntamenti: San Patrizio (Marzo) e Oktoberfest (Settembre/Ottobre).`;
-                }
-            }
-            return activeEvent;
-        }
-
-        function checkAndUnlockEventBadges(username, userPosts) {
-            if (!userPosts || userPosts.length === 0) return;
-            const now = new Date();
-            const month = now.getMonth() + 1;
-            let currentYear = now.getFullYear();
-            if (month === 3) { 
-                let count = userPosts.filter(p => {
-                    let pDate = new Date(p.time);
-                    let targetBeer = beers.find(b => b.brand === p.brand);
-                    return pDate.getFullYear() === currentYear && pDate.getMonth() + 1 === 3 && targetBeer && (targetBeer.country === "Irlanda" || targetBeer.country === "Scozia");
-                }).length;
-                if (count >= 2) db.ref(`user_event_badges/${username}/stpatrick`).set(true);
-            } 
-            else if (month >= 6 && month <= 8) { 
-                let count = userPosts.filter(p => {
-                    let pDate = new Date(p.time);
-                    let type = getBeerType(p.brand, p.variant);
-                    return pDate.getFullYear() === currentYear && (pDate.getMonth() + 1 >= 6 && pDate.getMonth() + 1 <= 8) && (type === 'bionda' || type === 'ipa');
-                }).length;
-                if (count >= 3) db.ref(`user_event_badges/${username}/summer`).set(true);
-            }
-            else if (month === 9 || month === 10) { 
-                let count = userPosts.filter(p => {
-                    let pDate = new Date(p.time);
-                    let targetBeer = beers.find(b => b.brand === p.brand);
-                    return pDate.getFullYear() === currentYear && (pDate.getMonth() + 1 === 9 || pDate.getMonth() + 1 === 10) && targetBeer && targetBeer.country === "Germania";
-                }).length;
-                if (count >= 3) db.ref(`user_event_badges/${username}/oktoberfest`).set(true);
-            }
-        }
-
         let pendingUploadData = null;
 
         function submitSharedPost() {
@@ -1292,26 +1201,31 @@
         }
 
         function finalizeUpload(data, taggedFriend) {
-            showCustomAlert("Caricamento sblocco in corso...", "Attendere");
-            const {brand, variant, isShiny, canvasBase64, currentLat, currentLng} = data;
-            let isShared = (taggedFriend != null && taggedFriend !== "");
+            // Chiudi manualmente i modali aperti e imposta un micro-delay per i browser mobile
+            document.getElementById('customModalOverlay').style.display = 'none';
             
-            const uniqueId = brand + '-' + variant;
-            const pokedexEntry = { photo: canvasBase64, isShiny: isShiny, isShared: isShared, taggedFriend: taggedFriend, brand: brand };
-            
-            db.ref('pokedex_profiles/' + currentUserNick + '/' + uniqueId).set(pokedexEntry).then(() => {
-                const newPostRef = db.ref('social_timeline').push();
-                let postData = { user: currentUserNick, brand: brand, variant: variant, photo: canvasBase64, time: new Date().getTime(), isShiny: isShiny, isShared: isShared, taggedFriend: taggedFriend };
-                if(currentLat !== null && currentLng !== null) { postData.lat = currentLat; postData.lng = currentLng; }
+            setTimeout(() => {
+                showCustomAlert("Caricamento sblocco in corso...", "Cloud Sync ☁️", false);
+                const {brand, variant, isShiny, canvasBase64, currentLat, currentLng} = data;
+                let isShared = (taggedFriend != null && taggedFriend !== "");
                 
-                newPostRef.set(postData).then(() => {
-                    recalculateTotalScore(currentUserNick);
-                    let msg = `Birra sbloccata con successo! (+${getBeerPoints(brand, variant, isShiny, isShared)} Punti)`;
-                    if(isShiny) msg += " ✨ TRASFERTA!";
-                    if(isShared) msg += ` 🍻 BEVUTA CON ${taggedFriend}!`;
-                    showCustomAlert(msg, "✅ Conquistata!");
-                });
-            });
+                const uniqueId = brand + '-' + variant;
+                const pokedexEntry = { photo: canvasBase64, isShiny: isShiny, isShared: isShared, taggedFriend: taggedFriend, brand: brand };
+                
+                db.ref('pokedex_profiles/' + currentUserNick + '/' + uniqueId).set(pokedexEntry).then(() => {
+                    const newPostRef = db.ref('social_timeline').push();
+                    let postData = { user: currentUserNick, brand: brand, variant: variant, photo: canvasBase64, time: new Date().getTime(), isShiny: isShiny, isShared: isShared, taggedFriend: taggedFriend };
+                    if(currentLat !== null && currentLng !== null) { postData.lat = currentLat; postData.lng = currentLng; }
+                    
+                    newPostRef.set(postData).then(() => {
+                        recalculateTotalScore(currentUserNick);
+                        let msg = `Birra sbloccata con successo! (+${getBeerPoints(brand, variant, isShiny, isShared)} Punti)`;
+                        if(isShiny) msg += "\n✨ SBLOCCO IN TRASFERTA!";
+                        if(isShared) msg += `\n🍻 BEVUTA CON ${taggedFriend}!`;
+                        showCustomAlert(msg, "✅ Conquistata!", true);
+                    }).catch(err => showCustomAlert("Errore caricamento feed: " + err.message, "Errore di Rete", true));
+                }).catch(err => showCustomAlert("Errore salvataggio profilo: " + err.message, "Errore di Rete", true));
+            }, 100);
         }
 
         function handlePhotoUpload(event, brand, variant) {
@@ -1336,7 +1250,7 @@
                     const img = new Image();
                     img.onload = function() {
                         const canvas = document.createElement('canvas'); 
-                        const MAX_SIZE = 400;
+                        const MAX_SIZE = 300; // Ridotto per garantire un Base64 fulmineo
                         let width = img.width; 
                         let height = img.height;
                         
@@ -1358,7 +1272,7 @@
                             totalBrightness += (data[i] + data[i+1] + data[i+2]) / 3; 
                         }
                         if ((totalBrightness / (data.length / 4)) < 20) { 
-                            showCustomAlert("🚨 Immagine troppo scura! Riprova con più luce.", "Foto Respinta"); 
+                            showCustomAlert("🚨 Immagine troppo scura! Riprova con più luce.", "Foto Respinta", true); 
                             return; 
                         }
 
@@ -1368,7 +1282,7 @@
                                 const brandWord = normalizeStr(brand).split(' ')[0];
                                 
                                 const hasText = extractedText.includes(brandWord) || extractedText.replace(/\s/g, '').includes(brandWord);
-                                const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.5);
+                                const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.4); // Super compresso per invio istantaneo Firebase DB
                                 
                                 if (hasText) {
                                     if (drinkCount >= 2 && myFriendsList.length > 0) {
@@ -1398,12 +1312,12 @@
                                 });
                                 
                                 if (isScreen) { 
-                                    showCustomAlert("🚨 L'AI ha rilevato uno schermo. È vietato fotografare PC o smartphone per barare!", "Frode Rilevata"); 
+                                    showCustomAlert("🚨 L'AI ha rilevato uno schermo. È vietato fotografare PC o smartphone per barare!", "Frode Rilevata", true); 
                                     updateStats(); 
                                     return; 
                                 }
                                 if (drinkCount === 0) { 
-                                    showCustomAlert("🚨 L'AI non rileva né bottiglie né bicchieri. Inquadra bene la bevanda!", "AI Anti-Cheat"); 
+                                    showCustomAlert("🚨 L'AI non rileva né bottiglie né bicchieri. Inquadra bene la bevanda!", "AI Anti-Cheat", true); 
                                     updateStats(); 
                                     return; 
                                 }
@@ -1439,7 +1353,7 @@
                 beers.forEach(beer => {
                     if(brandUnlockCounts[beer.brand] === beer.variants.length && beer.variants.length > 0) { totalScore += 10; }
                 });
-                db.ref('leaderboard_scores/' + username).set(totalScore);
+                db.ref('leaderboard_scores/' + username).set(totalScore).catch(e => console.error(e));
             });
         }
 
@@ -1775,24 +1689,6 @@
             });
         }
 
-        function renderDashboard() {
-            checkTimedEvents(); 
-            const welcomeEl = document.getElementById('dashWelcomeName');
-            if (welcomeEl) welcomeEl.innerText = currentUserNick;
-            const dashLastBeer = document.getElementById('dashLastBeer');
-            if (!dashLastBeer) return;
-            
-            let myPosts = globalPosts.filter(p => p.user === currentUserNick);
-            checkAndUnlockEventBadges(currentUserNick, myPosts);
-
-            if(myPosts.length > 0) {
-                myPosts.sort((a,b) => b.time - a.time); let lastPost = myPosts[0];
-                let date = new Date(lastPost.time); let dateStr = date.toLocaleDateString() + ' alle ' + date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-                let shinyBadge = lastPost.isShiny ? '<span style="color:var(--primary-dark); font-weight:bold;">✨ SHINY (x2 Punti)</span>' : '';
-                dashLastBeer.innerHTML = `<div class="dash-last-card"><img src="${lastPost.photo}" class="dash-last-img"><div class="dash-last-info"><h4 style="margin: 0 0 5px 0; color: var(--dark); font-size: 18px;">${lastPost.brand}</h4><div style="color: var(--primary-dark); font-weight: bold; font-size: 14px; margin-bottom: 5px;">${lastPost.variant} ${shinyBadge}</div><div style="font-size: 12px; color: var(--text-muted);">Sbloccata il: ${dateStr}</div></div></div>`;
-            } else { dashLastBeer.innerHTML = `<div class="dash-empty">Nessuna birra sbloccata!<br>Inizia la tua avventura! 🧭</div>`; }
-        }
-
         let myPokedex = {}; let globalPosts = []; let globalLeaderboardScores = {}; 
         let myFriendsList = []; let myReceivedRequests = []; let mySentRequests = []; let myRejectedRequests = [];
         let globalAvatars = {};
@@ -1948,24 +1844,6 @@
                 if (!myRejectedRequests || myRejectedRequests.length === 0) { list.innerHTML = '<p style="text-align:center;">Nessun utente rifiutato.</p>'; return; }
                 myRejectedRequests.forEach(sender => { let item = document.createElement('div'); item.className = 'list-item'; item.innerHTML = `<div class="lb-user clickable-user" onclick="openPublicProfile('${sender}')">❌ ${sender}</div><button class="btn-action btn-accept" onclick="restoreRejectedRequest('${sender}')">Sblocca</button>`; list.appendChild(item); });
             }
-        }
-
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('/sw.js')
-                    .then(reg => {
-                        console.log('PWA registrata con successo!');
-                        reg.onupdatefound = () => {
-                            const installingWorker = reg.installing;
-                            installingWorker.onstatechange = () => {
-                                if (installingWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                                    window.location.reload();
-                                }
-                            };
-                        };
-                    })
-                    .catch(err => console.error('Errore registrazione PWA:', err));
-            });
         }
     </script>
 </body>
