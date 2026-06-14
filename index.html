@@ -94,39 +94,36 @@
         header.hero p { margin: 0; font-size: 15px; opacity: 0.85; font-weight: 500; position: relative; z-index: 5; }
         
         .foam-container { position: absolute; top: 0; left: -10%; width: 120%; height: 100%; z-index: 0; pointer-events: none; transition: transform 0.15s ease-out; transform: translate(var(--tilt-x, 0px), var(--tilt-y, 0px)); }
-        
-        /* Curva morbida, ferma, si muove solo col telefono */
         .foam-wave { position: absolute; top: -2px; left: 0; width: 100%; height: 60px; background: url('data:image/svg+xml;utf8,<svg viewBox="0 0 1200 120" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg"><path d="M0,30 C300,70 900,-10 1200,30 L1200,0 L0,0 Z" fill="%23ffffff"/></svg>') no-repeat; background-size: 100% 100%; }
         .foam-wave.layer2 { top: 5px; opacity: 0.4; background: url('data:image/svg+xml;utf8,<svg viewBox="0 0 1200 120" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg"><path d="M0,50 C400,-10 800,70 1200,30 L1200,0 L0,0 Z" fill="%23ffffff"/></svg>') no-repeat; background-size: 100% 100%; }
-        
-        /* Bollicine */
         .bubble { position: absolute; bottom: -20px; background: rgba(255, 255, 255, 0.4); border-radius: 50%; animation: rise infinite ease-in; }
         @keyframes rise { 0% { bottom: -20px; transform: translateX(0); opacity: 0; } 50% { opacity: 1; } 100% { bottom: 100%; transform: translateX(-20px); opacity: 0; } }
 
-        .page-container { width: 100%; max-width: 900px; margin: -30px auto 0 auto; padding: 30px 20px 100px 20px; background: var(--white); border-radius: 30px 30px 0 0; box-shadow: 0 -10px 25px rgba(0,0,0,0.05); position: relative; z-index: 5; box-sizing: border-box; min-height: calc(100vh - 110px); }
+        .page-container { width: 100%; max-width: 900px; margin: -30px auto 0 auto; padding: 30px 20px 40px 20px; background: var(--white); border-radius: 30px 30px 0 0; box-shadow: 0 -10px 25px rgba(0,0,0,0.05); position: relative; z-index: 5; box-sizing: border-box; }
 
-        .container { display: flex; flex-wrap: wrap; justify-content: center; gap: 25px; max-width: 1200px; width: 100%; position: relative; z-index: 5; flex-grow: 1; }
+        .container { display: flex; flex-wrap: wrap; justify-content: center; gap: 25px; max-width: 1200px; margin: 0 auto 40px auto; position: relative; z-index: 5; flex-grow: 1; padding: 0 20px;}
         
+        /* FIX CARTE UGUALI E BADGE PICCOLI */
         .card { 
             background: var(--white); 
             border-radius: 16px; 
             padding: 20px; 
             width: 100%; 
-            max-width: 350px; 
+            max-width: 320px; 
             box-shadow: 0 8px 24px rgba(0,0,0,0.06); 
             cursor: pointer; 
             transition: all 0.3s ease; 
             position: relative; 
-            border: 1px solid var(--gray); 
             border-top: 5px solid var(--accent);
             display: flex; 
             flex-direction: column; 
         }
         .card:hover { transform: translateY(-5px); box-shadow: 0 12px 30px rgba(0,0,0,0.12); }
         .card h2 { margin: 0 0 10px 0; color: var(--dark); font-size: 22px; }
-        .card-badges { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; align-items: center; }
-        .region { font-size: 11px; font-weight: bold; text-transform: uppercase; color: var(--primary-dark); background: #fef5e6; padding: 4px 8px; border-radius: 6px; margin: 0; }
-        .rarity-badge { font-size: 10px; font-weight: bold; text-transform: uppercase; padding: 4px 8px; border-radius: 6px; color: white; margin: 0; }
+        
+        .card-badges { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; align-items: center; justify-content: flex-start; }
+        .region { font-size: 11px; font-weight: bold; text-transform: uppercase; color: var(--primary-dark); background: #fef5e6; padding: 4px 8px; border-radius: 6px; margin: 0; display: inline-block;}
+        .rarity-badge { font-size: 10px; font-weight: bold; text-transform: uppercase; padding: 4px 8px; border-radius: 6px; color: white; margin: 0; display: inline-block; }
         .rarity-comune { background-color: #7f8c8d; }
         .rarity-media { background-color: #3498db; }
         .rarity-rara { background-color: #9b59b6; }
@@ -364,7 +361,7 @@
                 <p>Cerca, scopri e scatta per catturare nuove birre.</p>
             </header>
             
-            <div class="page-container">
+            <div class="page-container" style="margin-top: -30px; margin-bottom: 20px;">
                 <div class="controls">
                     <input type="text" id="searchBar" placeholder="Cerca marca o variante..." onkeyup="filterBeers()">
                     <span class="filters-label">Esplora per nazione</span>
@@ -392,8 +389,10 @@
                         <option value="rarityDesc">🌟 Rarità (Decrescente)</option>
                     </select>
                 </div>
-                <div class="container" id="beerList" style="margin-top: 20px; padding: 0;"></div>
             </div>
+
+            <!-- IL CONTENITORE DELLE CARTE DEVE ESSERE QUI FUORI PER MANTENERE IL LAYOUT LARGO E COMPLETO -->
+            <div class="container" id="beerList"></div>
         </div>
 
         <div id="page-leaderboard" class="page-view">
@@ -425,7 +424,7 @@
                 <h1>👤 Il Tuo Profilo</h1>
                 <p>La tua bacheca personale e i tuoi dati.</p>
             </header>
-            <div class="page-container">
+            <div class="page-container" style="margin-top: -30px; margin-bottom: 20px;">
                 
                 <div class="profile-user-box" style="position:relative;">
                     <button id="btnProfileMenu" onclick="toggleProfileSettings()" style="position:absolute; top:15px; right:15px; background:none; border:none; font-size:26px; cursor:pointer; color:var(--dark); transition:0.2s;">☰</button>
@@ -444,7 +443,10 @@
                 <h3 style="margin-top:40px; color:var(--dark); border-bottom: 2px solid var(--gray); padding-bottom:8px;">🏅 Medaglie Maestro Brand</h3>
                 <div class="trophy-grid" id="brandMedalsGrid" style="grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap:15px;"></div>
 
-                <div style="display:flex; justify-content:space-between; align-items:center; border-bottom: 2px solid var(--gray); padding-bottom:8px; margin-top:40px; margin-bottom:15px;">
+            </div>
+
+            <div class="container" style="padding: 0 20px;">
+                <div style="width: 100%; display:flex; justify-content:space-between; align-items:center; border-bottom: 2px solid var(--gray); padding-bottom:8px; margin-bottom:15px; position:relative; z-index: 5;">
                     <h3 style="margin:0; color:var(--dark);">📸 Varianti Sbloccate</h3>
                     <select id="profileSort" onchange="renderTrophies()" style="padding: 6px 10px; border-radius: 8px; border: 1px solid var(--gray); font-size: 12px; font-weight:bold; color: var(--dark); background: #fbfcfc; outline: none; cursor:pointer;">
                         <option value="alpha">🔤 Alfabetico</option>
@@ -453,9 +455,9 @@
                         <option value="rarityDesc">🌟 Rarità (Decresc.)</option>
                     </select>
                 </div>
-                <div class="trophy-grid" id="trophyGrid"></div>
-
+                <div class="trophy-grid" id="trophyGrid" style="width: 100%; position: relative; z-index: 5;"></div>
             </div>
+
         </div>
 
         <div id="page-map" class="page-view">
@@ -1172,7 +1174,7 @@
                 listHTML += `
                 <div class="variant-item" onclick="event.stopPropagation()">
                     <div style="flex-grow: 1; display:flex; flex-direction:column; gap:4px;">
-                        <span style="font-weight: 500;">${variant} <span style="font-size:11px; color:var(--text-muted); font-weight:bold;">(${specificPts} pt)</span></span>
+                        <span style="font-weight: 500; font-size: 14px;">${variant} <span style="font-size:11px; color:var(--text-muted); font-weight:bold;">(${specificPts} pt)</span></span>
                         <div style="display:flex; align-items:center; margin-top:2px;">${typeLabelHTML}</div>
                     </div>
                     ${hasPhoto ? `
@@ -1212,6 +1214,9 @@
             checkTrophiesVisually();
         }
 
+        let currentFilter = 'Tutte'; 
+        function setFilter(country) { currentFilter = country; filterBeers(); navigateTo('page-explore'); }
+
         function filterBeers() { 
             const searchInput = document.getElementById('searchBar'); 
             const searchTerm = searchInput ? searchInput.value.toLowerCase() : ''; 
@@ -1229,8 +1234,8 @@
             filtered.sort((a, b) => {
                 if (sortVal === 'alpha') return a.brand.localeCompare(b.brand);
                 if (sortVal === 'nation') return a.country.localeCompare(b.country) || a.brand.localeCompare(b.brand);
-                if (sortVal === 'rarityAsc') return rarityMap[a.rarity] - rarityMap[b.rarity] || a.brand.localeCompare(b.brand);
-                if (sortVal === 'rarityDesc') return rarityMap[b.rarity] - rarityMap[a.rarity] || a.brand.localeCompare(b.brand);
+                if (sortVal === 'rarityAsc') return (rarityMap[a.rarity] || 0) - (rarityMap[b.rarity] || 0) || a.brand.localeCompare(b.brand);
+                if (sortVal === 'rarityDesc') return (rarityMap[b.rarity] || 0) - (rarityMap[a.rarity] || 0) || a.brand.localeCompare(b.brand);
                 return 0;
             });
 
@@ -1296,8 +1301,8 @@
             allVariantsList.sort((a, b) => {
                 if (sortVal === 'alpha') return a.brand.localeCompare(b.brand) || a.variant.localeCompare(b.variant);
                 if (sortVal === 'nation') return a.country.localeCompare(b.country) || a.brand.localeCompare(b.brand);
-                if (sortVal === 'rarityAsc') return rarityMap[a.rarity] - rarityMap[b.rarity] || a.brand.localeCompare(b.brand);
-                if (sortVal === 'rarityDesc') return rarityMap[b.rarity] - rarityMap[a.rarity] || a.brand.localeCompare(b.brand);
+                if (sortVal === 'rarityAsc') return (rarityMap[a.rarity] || 0) - (rarityMap[b.rarity] || 0) || a.brand.localeCompare(b.brand);
+                if (sortVal === 'rarityDesc') return (rarityMap[b.rarity] || 0) - (rarityMap[a.rarity] || 0) || a.brand.localeCompare(b.brand);
                 return 0;
             });
 
@@ -1365,6 +1370,24 @@
                 item.innerHTML = `<div style="display:flex; align-items:center; flex-grow:1;"><div class="rank">${medal}</div><div class="post-avatar" style="width:40px; height:40px; font-size:16px; margin: 0 10px 0 5px;">${avatarContent}</div><div class="lb-user">${player.name} ${player.name === currentUserNick ? '(Tu)' : ''}<br><small style="font-size:11px;color:var(--text-muted);font-weight:normal;">${rankLabel}</small></div></div><div style="display:flex; align-items:center; gap:15px;"><div class="lb-score">${player.score} 🏆</div>${actionsHtml}</div>`;
                 list.appendChild(item);
             });
+        }
+
+        function renderDashboard() {
+            checkTimedEvents();
+            const welcomeEl = document.getElementById('dashWelcomeName');
+            if (welcomeEl) welcomeEl.innerText = currentUserNick;
+            const dashLastBeer = document.getElementById('dashLastBeer');
+            if (!dashLastBeer) return;
+            
+            let myPosts = globalPosts.filter(p => p.user === currentUserNick);
+            checkAndUnlockEventBadges(currentUserNick, myPosts);
+
+            if(myPosts.length > 0) {
+                myPosts.sort((a,b) => b.time - a.time); let lastPost = myPosts[0];
+                let date = new Date(lastPost.time); let dateStr = date.toLocaleDateString() + ' alle ' + date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+                let shinyBadge = lastPost.isShiny ? '<span style="color:var(--primary-dark); font-weight:bold;">✨ SHINY (x2 Punti)</span>' : '';
+                dashLastBeer.innerHTML = `<div class="dash-last-card"><img src="${lastPost.photo}" class="dash-last-img"><div class="dash-last-info"><h4 style="margin: 0 0 5px 0; color: var(--dark); font-size: 18px;">${lastPost.brand}</h4><div style="color: var(--primary-dark); font-weight: bold; font-size: 14px; margin-bottom: 5px;">${lastPost.variant} ${shinyBadge}</div><div style="font-size: 12px; color: var(--text-muted);">Sbloccata il: ${dateStr}</div></div></div>`;
+            } else { dashLastBeer.innerHTML = `<div class="dash-empty">Nessuna birra sbloccata!<br>Inizia la tua avventura! 🧭</div>`; }
         }
 
         let myPokedex = {}; let globalPosts = []; let globalLeaderboardScores = {}; 
@@ -1514,6 +1537,8 @@
                 myRejectedRequests.forEach(sender => { let item = document.createElement('div'); item.className = 'list-item'; item.innerHTML = `<div class="lb-user">❌ ${sender}</div><button class="btn-action btn-accept" onclick="restoreRejectedRequest('${sender}')">Sblocca</button>`; list.appendChild(item); });
             }
         }
+
+        displayBeers(beers);
 
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
