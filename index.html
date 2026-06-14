@@ -2,7 +2,7 @@
 <html lang="it">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>BeerDex - Social Network</title>
     
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
@@ -32,7 +32,7 @@
             --danger: #e74c3c;
         }
         
-        body { font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: var(--light); color: var(--dark); margin: 0; padding-top: 60px; padding-bottom: 100px; overflow-x: hidden; }
+        body { font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: var(--light); color: var(--dark); margin: 0; padding-top: 60px; padding-bottom: 110px; overflow-x: hidden; }
 
         /* TOP BAR */
         .top-bar { position: fixed; top: 0; left: 0; width: 100%; height: 60px; background: var(--white); box-shadow: 0 2px 10px rgba(0,0,0,0.05); display: flex; justify-content: space-between; align-items: center; padding: 0 20px; box-sizing: border-box; z-index: 1000; }
@@ -43,11 +43,39 @@
         .top-action-btn:hover { transform: scale(1.1); }
         .top-badge { position: absolute; top: -5px; right: -8px; font-size: 10px; background: var(--danger); color: white; border-radius: 50%; padding: 2px 5px; font-weight: bold; animation: bounce 1s infinite; display: none;}
 
-        /* BOTTOM NAV */
-        .bottom-nav { position: fixed; bottom: 0; left: 0; width: 100%; height: 85px; background: var(--white); box-shadow: 0 -2px 15px rgba(0,0,0,0.08); display: flex; z-index: 10000; }
-        @supports (padding-bottom: env(safe-area-inset-bottom)) { .bottom-nav { padding-bottom: env(safe-area-inset-bottom); height: calc(70px + env(safe-area-inset-bottom)); } }
-        .nav-item { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; padding-top: 12px; color: var(--text-muted); cursor: pointer; transition: 0.3s; user-select: none; }
-        .nav-item.active { background: #f8f9f9; color: var(--primary-dark); border-top: 3px solid var(--primary-dark); padding-top: 9px; }
+        /* BOTTOM NAV INFALLIBILE */
+        .bottom-nav { 
+            position: fixed; 
+            bottom: 0; 
+            left: 0; 
+            width: 100%; 
+            height: 85px; 
+            background: var(--white); 
+            box-shadow: 0 -2px 15px rgba(0,0,0,0.08); 
+            display: flex; 
+            z-index: 10000; 
+            box-sizing: border-box;
+            align-items: flex-start; 
+        }
+        .nav-item { 
+            flex: 1; 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            justify-content: flex-start; 
+            padding-top: 12px; 
+            height: 100%; 
+            color: var(--text-muted); 
+            cursor: pointer; 
+            transition: 0.3s; 
+            user-select: none; 
+        }
+        .nav-item.active { 
+            background: #f8f9f9; 
+            color: var(--primary-dark); 
+            border-top: 3px solid var(--primary-dark); 
+            padding-top: 9px; 
+        }
         .nav-icon { font-size: 22px; margin-bottom: 2px; }
         .nav-text { font-size: 9px; font-weight: 800; text-transform: uppercase; }
 
@@ -63,11 +91,12 @@
         select#countryFilter, select#sortFilter, select#pubProfileSort, select#profileSort { width: 100%; padding: 12px 15px; border: 2px solid var(--gray); border-radius: 12px; font-size: 15px; font-weight: bold; color: var(--dark); background: var(--white); outline: none; cursor: pointer; transition: 0.3s; margin-bottom: 20px;}
         select#countryFilter:focus, select#sortFilter:focus, select#pubProfileSort:focus, select#profileSort:focus { border-color: var(--primary-dark); }
 
-        .main-content { width: 100%; min-height: calc(100vh - 140px); display: flex; flex-direction: column; position: relative;}
+        .main-content { width: 100%; min-height: calc(100vh - 145px); display: flex; flex-direction: column; position: relative;}
         .page-view { display: none; flex-grow: 1; animation: fadeIn 0.4s; }
         .page-view.active { display: block; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
+        /* MAPPA INCASTRATA PERFETTAMENTE TRA HEADER E FOOTER */
         #page-map.active { display: flex !important; flex-direction: column; position: fixed; top: 60px; bottom: 85px; left: 0; width: 100%; margin: 0; padding: 0; overflow: hidden; z-index: 500; background: var(--light); }
         #page-map .hero { margin-bottom: 0; padding: 15px 20px 20px 20px; border-radius: 0; z-index: 10; position: relative; box-shadow: 0 5px 15px rgba(0,0,0,0.1); flex-shrink: 0; }
         #page-map .hero h1 { font-size: 24px; margin: 0 0 5px 0; }
@@ -145,6 +174,7 @@
         .btn-main { width: 100%; background: var(--primary-dark); color: white; border: none; padding: 14px; border-radius: 10px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 15px; transition: 0.2s;}
         .btn-main:hover { background: #d35400; }
         .btn-secondary { width: 100%; background: var(--gray); color: var(--dark); border: none; padding: 14px; border-radius: 10px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 10px; transition: 0.2s;}
+        .auth-toggle { font-size: 13px; color: var(--social-blue); cursor: pointer; margin-top: 15px; display: inline-block; text-decoration: underline; margin-right: 15px;}
         
         .tabs { display: flex; background: var(--gray); border-radius: 12px; overflow: hidden; }
         .tab { flex: 1; padding: 12px; text-align: center; font-weight: bold; cursor: pointer; color: var(--text-muted); transition: 0.3s; font-size: 13px; display: flex; align-items: center; justify-content: center; gap: 5px;}
@@ -184,16 +214,16 @@
         .post-avatar { width: 40px; height: 40px; flex-shrink: 0; background: linear-gradient(135deg, var(--social-blue), #8e44ad); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: var(--white); font-weight: bold; font-size: 18px; text-transform: uppercase; overflow: hidden; }
         
         /* SOCIAL FEED EDGE-TO-EDGE SU MOBILE */
-        .social-page-container { width: 100%; max-width: 600px; margin: -30px auto 0 auto; background: var(--light); position: relative; z-index: 5; padding-top: 20px; min-height: calc(100vh - 110px); }
+        .social-page-container { width: 100%; max-width: 600px; margin: 0 auto; background: var(--light); position: relative; z-index: 5; padding-top: 20px; }
         .social-feed { display: flex; flex-direction: column; gap: 10px; margin-top: 0; }
         .post-card { background: var(--white); border-radius: 0; border: none; border-top: 1px solid #e1e8ed; border-bottom: 1px solid #e1e8ed; overflow: hidden; margin-bottom: 5px; }
         .post-header { display: flex; align-items: center; padding: 12px 15px; justify-content: space-between;}
-        .post-user { font-weight: bold; font-size: 15px; color: var(--dark); margin-left: 15px; } 
-        .post-time { font-size: 12px; color: var(--text-muted); margin-left: 15px; } 
         
-        /* FOTO 4:5 e COPERTURA TOTALE LARGHETTA MOBILE */
+        /* DISTANZA NOME - AVATAR AUMENTATA */
+        .post-user { font-weight: bold; font-size: 15px; color: var(--dark); margin-left: 18px; } 
+        .post-time { font-size: 12px; color: var(--text-muted); margin-left: 18px; } 
+        
         .post-image { width: 100%; aspect-ratio: 4/5; object-fit: cover; background: #000; display: block; }
-        
         .post-actions { display: flex; align-items: center; padding: 10px 15px 5px 15px; }
         .btn-like { background: var(--light); border: 1px solid var(--gray); border-radius: 20px; padding: 6px 14px; font-weight: bold; cursor: pointer; display:flex; align-items:center; gap:5px; transition: 0.2s; color: var(--text-muted); font-size:14px; outline: none; }
         .btn-like.liked { background: #fef5e6; border-color: var(--primary); color: var(--primary-dark); }
@@ -201,7 +231,7 @@
         .post-caption { padding: 5px 15px 15px 15px; font-size: 14px; line-height: 1.5; color: var(--dark); }
 
         @media (min-width: 600px) {
-            .social-page-container { border-radius: 30px 30px 0 0; box-shadow: 0 -10px 25px rgba(0,0,0,0.05); background: var(--white); padding: 30px 20px; }
+            .social-page-container { border-radius: 30px 30px 0 0; box-shadow: 0 -10px 25px rgba(0,0,0,0.05); background: var(--white); padding: 30px 20px; margin-top: -30px; }
             .post-card { border-radius: 16px; border: 1px solid var(--gray); margin-bottom: 30px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
         }
 
@@ -230,7 +260,7 @@
         
         .profile-user-box { text-align: center; padding: 25px; background: var(--white); border-radius: 16px; position: relative; box-shadow: 0 5px 15px rgba(0,0,0,0.05); border: 2px solid var(--primary); margin: 0 20px 20px 20px; }
         
-        /* OVERLAY IMPOSTAZIONI FULL SCREEN */
+        /* OVERLAY IMPOSTAZIONI */
         .settings-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--light); z-index: 10001; overflow-y: auto; animation: slideUp 0.3s ease-out; }
         .settings-content { width: 100%; max-width: 600px; min-height: 100%; margin: 0 auto; background: var(--light); padding: 60px 20px 100px 20px; position: relative; box-sizing: border-box; }
         .btn-close-settings { position: absolute; top: 15px; right: 20px; background: none; border: none; font-size: 40px; color: var(--dark); cursor: pointer; line-height: 1; }
@@ -254,7 +284,6 @@
         </div>
     </div>
 
-    <!-- MODALI ALERT -->
     <div id="customModalOverlay" class="auth-modal" style="display:none; z-index: 20000;">
         <div class="auth-container" style="max-width: 350px;">
             <h3 id="customModalTitle" style="margin-top:0; color:var(--dark); font-size:22px;">Avviso</h3>
@@ -263,7 +292,6 @@
         </div>
     </div>
 
-    <!-- MODALE CONDIVISIONE BEVUTA -->
     <div id="shareModal" class="auth-modal" style="display:none; z-index: 20000;">
         <div class="auth-container" style="max-width: 350px;">
             <h3 style="margin-top:0; color:var(--dark); font-size:22px;">🍻 Più bevande rilevate!</h3>
@@ -312,7 +340,6 @@
         </div>
     </div>
 
-    <!-- MAIN CONTENT -->
     <div class="main-content">
         
         <div id="page-home" class="page-view">
@@ -382,7 +409,7 @@
                         <option value="rarityDesc">🌟 Rarità (Decrescente)</option>
                     </select>
                 </div>
-                <div class="container" id="beerList"></div>
+                <div class="container" id="beerList" style="margin-top: 20px; padding: 0;"></div>
             </div>
         </div>
 
@@ -410,7 +437,6 @@
             </div>
         </div>
 
-        <!-- PAGINA PROFILO PERSONALE -->
         <div id="page-profile" class="page-view">
             <header class="hero">
                 <h1>👤 Il Tuo Profilo</h1>
@@ -448,7 +474,6 @@
             </div>
         </div>
 
-        <!-- PAGINA PROFILO PUBBLICO (AMICI) -->
         <div id="page-public-profile" class="page-view">
             <header class="hero">
                 <button onclick="navigateTo('page-leaderboard')" style="position:absolute; top:15px; left:15px; background:rgba(255,255,255,0.2); border:none; padding:8px 12px; border-radius:10px; color:var(--dark); font-weight:bold; cursor:pointer; font-size:12px;">⬅ Indietro</button>
@@ -574,7 +599,6 @@
 
     </div>
     
-    <!-- IMPOSTAZIONI FULL SCREEN OVERLAY -->
     <div id="settingsOverlayFull" class="settings-overlay">
         <div class="settings-content">
             <button class="btn-close-settings" onclick="toggleProfileSettings()">×</button>
@@ -1043,7 +1067,7 @@
                                 }
                             });
                             if (!isSafe) {
-                                showCustomAlert("⚠️ La foto selezionata è stata bloccata perché potrebbe contenere contenuti inappropriati.", "Sicurezza Profilo");
+                                showCustomAlert("⚠️ La foto selezionata è stata bloccata perché potrebbe contenere contenuti inappropriati o osceni.", "Sicurezza Profilo");
                                 return;
                             }
                             saveAvatarToDB();
@@ -1314,10 +1338,12 @@
                                 
                                 if (isScreen) { 
                                     showCustomAlert("🚨 L'AI ha rilevato uno schermo. È vietato fotografare PC o smartphone per barare!", "Frode Rilevata"); 
+                                    updateStats(); 
                                     return; 
                                 }
                                 if (drinkCount === 0) { 
                                     showCustomAlert("🚨 L'AI non rileva né bottiglie né bicchieri. Inquadra bene la bevanda!", "AI Anti-Cheat"); 
+                                    updateStats(); 
                                     return; 
                                 }
                                 executeUploadBase64(drinkCount);
@@ -1686,24 +1712,6 @@
                 item.innerHTML = `<div style="display:flex; align-items:center; flex-grow:1;"><div class="rank">${medal}</div><div class="post-avatar" style="width:40px; height:40px; font-size:16px; margin: 0 10px 0 5px;">${avatarContent}</div><div class="lb-user clickable-user" onclick="openPublicProfile('${player.name}')">${player.name} <br><small style="font-size:11px;color:var(--text-muted);font-weight:normal;">${rankLabel}</small></div></div><div style="display:flex; align-items:center; gap:15px;"><div class="lb-score">${player.score} 🏆</div>${actionsHtml}</div>`;
                 list.appendChild(item);
             });
-        }
-
-        function renderDashboard() {
-            checkTimedEvents(); 
-            const welcomeEl = document.getElementById('dashWelcomeName');
-            if (welcomeEl) welcomeEl.innerText = currentUserNick;
-            const dashLastBeer = document.getElementById('dashLastBeer');
-            if (!dashLastBeer) return;
-            
-            let myPosts = globalPosts.filter(p => p.user === currentUserNick);
-            checkAndUnlockEventBadges(currentUserNick, myPosts);
-
-            if(myPosts.length > 0) {
-                myPosts.sort((a,b) => b.time - a.time); let lastPost = myPosts[0];
-                let date = new Date(lastPost.time); let dateStr = date.toLocaleDateString() + ' alle ' + date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-                let shinyBadge = lastPost.isShiny ? '<span style="color:var(--primary-dark); font-weight:bold;">✨ SHINY (x2 Punti)</span>' : '';
-                dashLastBeer.innerHTML = `<div class="dash-last-card"><img src="${lastPost.photo}" class="dash-last-img"><div class="dash-last-info"><h4 style="margin: 0 0 5px 0; color: var(--dark); font-size: 18px;">${lastPost.brand}</h4><div style="color: var(--primary-dark); font-weight: bold; font-size: 14px; margin-bottom: 5px;">${lastPost.variant} ${shinyBadge}</div><div style="font-size: 12px; color: var(--text-muted);">Sbloccata il: ${dateStr}</div></div></div>`;
-            } else { dashLastBeer.innerHTML = `<div class="dash-empty">Nessuna birra sbloccata!<br>Inizia la tua avventura! 🧭</div>`; }
         }
 
         let myPokedex = {}; let globalPosts = []; let globalLeaderboardScores = {}; 
