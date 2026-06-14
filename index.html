@@ -775,7 +775,9 @@
             const activeNav = document.getElementById('nav-' + pageId);
             if(activeNav) activeNav.classList.add('active');
 
-            if(pageId === 'page-home') renderDashboard(); 
+            if(pageId === 'page-home') {
+        checkTimedEvents(); // Forza il ricalcolo dell'evento ogni volta che torni in home
+        renderDashboard(); 
             if(pageId === 'page-explore') filterBeers();
             if(pageId === 'page-profile') renderTrophies(); 
             if(pageId === 'page-map') {
