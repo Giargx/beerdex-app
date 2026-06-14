@@ -776,7 +776,9 @@
             if(activeNav) activeNav.classList.add('active');
 
             if(pageId === 'page-home') {
-        checkTimedEvents(); // Forza il ricalcolo dell'evento ogni volta che torni in home
+                checkTimedEvents(); // Forza il calcolo dell'evento appena apri la Home
+                renderDashboard(); 
+            }
         renderDashboard(); 
             if(pageId === 'page-explore') filterBeers();
             if(pageId === 'page-profile') renderTrophies(); 
