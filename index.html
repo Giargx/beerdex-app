@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>BeerDex - Social Network & AI Anti-Cheat</title>
+    <title>BeerDex - Social Network</title>
     
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
@@ -43,7 +43,7 @@
         .top-action-btn:hover { transform: scale(1.1); }
         .top-badge { position: absolute; top: -5px; right: -8px; font-size: 10px; background: var(--danger); color: white; border-radius: 50%; padding: 2px 5px; font-weight: bold; animation: bounce 1s infinite; display: none;}
 
-        /* BOTTOM NAV */
+        /* BOTTOM NAV CON SAFE AREA IOS */
         .bottom-nav { 
             position: fixed; 
             bottom: 0; 
@@ -75,7 +75,6 @@
         .controls input[type="text"], .controls input[type="password"] { width: 100%; padding: 12px 15px; border: 2px solid var(--gray); border-radius: 12px; font-size: 15px; outline: none; box-sizing: border-box; background: #fbfcfc; margin-bottom: 15px; transition: border-color 0.3s; }
         .controls input[type="text"]:focus, .controls input[type="password"]:focus { border-color: var(--primary-dark); }
         .filters-label { font-size: 12px; font-weight: bold; text-transform: uppercase; color: var(--text-muted); margin-bottom: 8px; display: block; letter-spacing: 1px; }
-        
         select#countryFilter, select#sortFilter { width: 100%; padding: 12px 15px; border: 2px solid var(--gray); border-radius: 12px; font-size: 15px; font-weight: bold; color: var(--dark); background: var(--white); outline: none; cursor: pointer; transition: 0.3s; margin-bottom: 20px;}
         select#countryFilter:focus, select#sortFilter:focus { border-color: var(--primary-dark); }
 
@@ -89,10 +88,18 @@
         #page-map .hero { margin-bottom: 0; padding-bottom: 20px; border-bottom-left-radius: 20px; border-bottom-right-radius: 20px; z-index: 10; position: relative; box-shadow: 0 5px 15px rgba(0,0,0,0.1); flex-shrink: 0; }
         #mapContainer { flex-grow: 1; width: 100%; z-index: 1; background: #e0e6ed; }
 
-        header.hero { background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%); color: var(--dark); padding: 30px 20px 60px 20px; text-align: center; margin-bottom: 0; }
-        header.hero h1 { margin: 10px 0 10px 0; font-size: 32px; font-weight: 800; letter-spacing: -1px; }
-        header.hero p { margin: 0; font-size: 15px; opacity: 0.85; font-weight: 500;}
+        /* HEADER ANIMATO: EFFETTO BIRRA E SCHIUMA */
+        header.hero { background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%); color: var(--dark); padding: 30px 20px 60px 20px; text-align: center; margin-bottom: 0; position: relative; overflow: hidden; z-index: 1; }
+        header.hero h1 { margin: 10px 0 10px 0; font-size: 32px; font-weight: 800; letter-spacing: -1px; position: relative; z-index: 5; }
+        header.hero p { margin: 0; font-size: 15px; opacity: 0.85; font-weight: 500; position: relative; z-index: 5; }
         
+        .foam-container { position: absolute; top: 0; left: -10%; width: 120%; height: 100%; z-index: 0; pointer-events: none; transition: transform 0.1s ease-out; transform: translate(var(--tilt-x, 0px), var(--tilt-y, 0px)); }
+        .foam-wave { position: absolute; top: -5px; left: 0; width: 200%; height: 120px; background: url('data:image/svg+xml;utf8,<svg viewBox="0 0 1440 320" xmlns="http://www.w3.org/2000/svg"><path fill="%23ffffff" fill-opacity="1" d="M0,64L48,85.3C96,107,192,149,288,149.3C384,149,480,107,576,96C672,85,768,107,864,122.7C960,139,1056,149,1152,133.3C1248,117,1344,75,1392,53.3L1440,32L1440,0L1392,0C1344,0,1248,0,1152,0C1056,0,960,0,864,0C768,0,672,0,576,0C480,0,384,0,288,0C192,0,96,0,48,0L0,0Z"></path></svg>') repeat-x; background-size: 50% 100%; animation: wave 8s linear infinite; }
+        .foam-wave.layer2 { top: 5px; opacity: 0.5; animation: wave 12s linear infinite reverse; }
+        @keyframes wave { 0% { background-position-x: 0; } 100% { background-position-x: 1440px; } }
+        .bubble { position: absolute; bottom: -20px; background: rgba(255, 255, 255, 0.4); border-radius: 50%; animation: rise infinite ease-in; }
+        @keyframes rise { 0% { bottom: -20px; transform: translateX(0); opacity: 0; } 50% { opacity: 1; } 100% { bottom: 100%; transform: translateX(-20px); opacity: 0; } }
+
         .page-container { width: 100%; max-width: 900px; margin: -30px auto 0 auto; padding: 30px 20px 100px 20px; background: var(--white); border-radius: 30px 30px 0 0; box-shadow: 0 -10px 25px rgba(0,0,0,0.05); position: relative; z-index: 5; box-sizing: border-box; min-height: calc(100vh - 110px); }
 
         .container { display: flex; flex-wrap: wrap; justify-content: center; gap: 25px; max-width: 1200px; width: 100%; position: relative; z-index: 5; flex-grow: 1; }
@@ -114,8 +121,6 @@
         }
         .card:hover { transform: translateY(-5px); box-shadow: 0 12px 30px rgba(0,0,0,0.12); }
         .card h2 { margin: 0 0 10px 0; color: var(--dark); font-size: 22px; }
-        
-        /* CARD BADGES COMPATTI */
         .card-badges { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; align-items: center; }
         .region { font-size: 11px; font-weight: bold; text-transform: uppercase; color: var(--primary-dark); background: #fef5e6; padding: 4px 8px; border-radius: 6px; margin: 0; }
         .rarity-badge { font-size: 10px; font-weight: bold; text-transform: uppercase; padding: 4px 8px; border-radius: 6px; color: white; margin: 0; }
@@ -135,7 +140,6 @@
         .variant-item { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid #e1e8ed; }
         .variant-item:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
         
-        /* PALLINI COLORATI TIPOLOGIE BIRRA */
         .beer-type-dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 5px; vertical-align: middle; }
         .type-bionda { background-color: #f1c40f; box-shadow: 0 0 6px rgba(241,196,15,0.5); }
         .type-rossa { background-color: #e74c3c; box-shadow: 0 0 6px rgba(231,76,60,0.5); }
@@ -207,7 +211,7 @@
 
         .list-container { display: flex; flex-direction: column; gap: 10px; }
         .list-item { display: flex; align-items: center; justify-content: space-between; background: var(--gray); padding: 15px 20px; border-radius: 12px; }
-        .list-item .lb-user { flex-grow: 1; font-weight: bold; font-size: 16px; }
+        .list-item .lb-user { flex-grow: 1; font-weight: bold; font-size: 16px; display:flex; flex-direction:column; }
 
         .leaderboard-item:nth-child(1) { background: linear-gradient(135deg, #f1c40f, #f39c12); color: white; transform: scale(1.02); box-shadow: 0 5px 15px rgba(241,196,15,0.4); z-index: 2;}
         .leaderboard-item:nth-child(2) { background: linear-gradient(135deg, #bdc3c7, #95a5a6); color: white; }
@@ -215,10 +219,12 @@
         .rank { font-weight: bold; font-size: 20px; width: 30px; }
         .lb-score { font-size: 20px; font-weight: bold; }
 
+        /* AVATAR CONDIVISO PER CLASSIFICA E POST */
+        .post-avatar { width: 40px; height: 40px; flex-shrink: 0; background: linear-gradient(135deg, var(--social-blue), #8e44ad); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: var(--white); font-weight: bold; font-size: 18px; text-transform: uppercase; overflow: hidden; }
+        
         .social-feed { display: flex; flex-direction: column; gap: 30px; }
         .post-card { background: var(--white); border: 1px solid var(--gray); border-radius: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); overflow: hidden; }
         .post-header { display: flex; align-items: center; padding: 15px; border-bottom: 1px solid var(--gray); justify-content: space-between;}
-        .post-avatar { width: 40px; height: 40px; background: linear-gradient(135deg, var(--social-blue), #8e44ad); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: var(--white); font-weight: bold; font-size: 18px; margin-right: 12px; text-transform: uppercase; overflow: hidden; }
         .post-user { font-weight: bold; font-size: 15px; color: var(--dark); }
         .post-time { font-size: 12px; color: var(--text-muted); }
         .post-image { width: 100%; max-height: 400px; object-fit: contain; background: #000; display: block; border-bottom: 1px solid var(--gray); }
@@ -268,6 +274,7 @@
         </div>
     </div>
 
+    <!-- MODALI ALERT -->
     <div id="customModalOverlay" class="auth-modal" style="display:none; z-index: 20000;">
         <div class="auth-container" style="max-width: 350px;">
             <h3 id="customModalTitle" style="margin-top:0; color:var(--dark); font-size:22px;">Avviso</h3>
@@ -314,6 +321,7 @@
         </div>
     </div>
 
+    <!-- MAIN CONTENT -->
     <div class="main-content">
         
         <div id="page-home" class="page-view">
@@ -356,7 +364,7 @@
                 <div class="controls">
                     <input type="text" id="searchBar" placeholder="Cerca marca o variante..." onkeyup="filterBeers()">
                     <span class="filters-label">Esplora per nazione</span>
-                    <select id="countryFilter" onchange="setFilter()">
+                    <select id="countryFilter" onchange="setFilter(this.value)">
                         <option value="Tutte">🌐 Tutte le Nazioni</option>
                         <option value="Italia">🇮🇹 Italia</option>
                         <option value="Germania">🇩🇪 Germania</option>
@@ -408,6 +416,7 @@
             </div>
         </div>
 
+        <!-- PAGINA PROFILO -->
         <div id="page-profile" class="page-view">
             <header class="hero">
                 <h1>👤 Il Tuo Profilo</h1>
@@ -527,15 +536,12 @@
                     <h3>✈️ Bonus Trasferta (Moltiplicatore x2)</h3>
                     <p>Se sblocchi una birra tramite GPS all'interno della sua nazione d'origine, lo sblocco diventa <strong>Shiny</strong> e il suo punteggio **raddoppia istantaneamente**.</p>
                 </div>
-                <div class="rules-section" style="background:#fffcf0; padding:20px; border-radius:12px; border-left:4px solid var(--primary-dark);">
-                    <h3>🛡️ Politica del Consumo Responsabile</h3>
-                    <p style="margin:0; line-height:1.5; font-size:14px; color:var(--dark);"><strong>BeerDex non assegna premi basati sulla quantità totale di alcol consumata</strong>. Riteniamo che incentivare il consumo quantitativo promuova comportamenti dannosi. Degusta responsabilmente.</p>
-                </div>
             </div>
         </div>
 
     </div>
     
+    <!-- IMPOSTAZIONI FULL SCREEN OVERLAY -->
     <div id="settingsOverlayFull" class="settings-overlay">
         <div class="settings-content">
             <button class="btn-close-settings" onclick="toggleProfileSettings()">×</button>
@@ -592,7 +598,47 @@
     </nav>
 
     <script>
-        // --- FUNZIONI DI BASE AL TOP PER EVITARE CRASH ---
+        // AGGIUNTA DINAMICA DELLA SCHIUMA AGLI HEADER
+        document.addEventListener("DOMContentLoaded", () => {
+            const heroes = document.querySelectorAll('header.hero');
+            heroes.forEach(hero => {
+                const foam = document.createElement('div');
+                foam.className = 'foam-container';
+                foam.innerHTML = `
+                    <div class="foam-wave layer2"></div>
+                    <div class="foam-wave layer1"></div>
+                `;
+                for(let i=0; i<6; i++) {
+                    let b = document.createElement('div');
+                    b.className = 'bubble';
+                    b.style.left = (Math.random() * 100) + '%';
+                    b.style.width = b.style.height = (Math.random() * 15 + 10) + 'px';
+                    b.style.animationDuration = (Math.random() * 3 + 2) + 's';
+                    b.style.animationDelay = (Math.random() * 2) + 's';
+                    foam.appendChild(b);
+                }
+                hero.insertBefore(foam, hero.firstChild);
+            });
+
+            // Sensori di movimento
+            window.addEventListener('deviceorientation', (e) => {
+                let tiltX = e.gamma ? e.gamma / 2 : 0; 
+                let tiltY = e.beta ? (e.beta - 45) / 4 : 0; 
+                document.documentElement.style.setProperty('--tilt-x', tiltX + 'px');
+                document.documentElement.style.setProperty('--tilt-y', tiltY + 'px');
+            });
+            
+            // Sensori di tocco per la schiuma
+            document.addEventListener('touchmove', (e) => {
+                let touch = e.touches[0];
+                let moveX = (touch.clientX / window.innerWidth - 0.5) * 40;
+                let moveY = (touch.clientY / window.innerHeight - 0.5) * 40;
+                document.documentElement.style.setProperty('--tilt-x', moveX + 'px');
+                document.documentElement.style.setProperty('--tilt-y', moveY + 'px');
+            });
+        });
+
+        // --- FUNZIONI DI BASE ---
         function getUserRankTitle(score) {
             if (score < 10) return "Novizio del Pub 🍺";
             if (score < 50) return "Apprendista Bevitore 🎒";
@@ -659,7 +705,7 @@
             if(activeNav) activeNav.classList.add('active');
 
             if(pageId === 'page-home') renderDashboard(); 
-            if(pageId === 'page-explore') displayBeers(beers);
+            if(pageId === 'page-explore') filterBeers();
             if(pageId === 'page-profile') renderTrophies(); 
             if(pageId === 'page-map') {
                 renderMap();
@@ -674,7 +720,6 @@
         function switchLeaderboardTab(tabName) { currentLeaderboardTab = tabName; document.getElementById('tab-friends').classList.toggle('active', tabName === 'friends'); document.getElementById('tab-global').classList.toggle('active', tabName === 'global'); document.getElementById('friendSearchWrapper').style.display = (tabName === 'global') ? 'block' : 'none'; renderLeaderboard(); }
         function switchFriendsTab(tabName) { currentFriendsTab = tabName; document.getElementById('tab-req-received').classList.toggle('active', tabName === 'received'); document.getElementById('tab-req-sent').classList.toggle('active', tabName === 'sent'); document.getElementById('tab-req-accepted').classList.toggle('active', tabName === 'accepted'); document.getElementById('tab-req-rejected').classList.toggle('active', tabName === 'rejected'); renderFriendsManager(); }
         
-        // --- LOGICA MENU TENDINA FULL SCREEN ---
         function toggleProfileSettings() {
             const overlay = document.getElementById('settingsOverlayFull');
             if (overlay.style.display === 'block') {
@@ -685,7 +730,6 @@
         }
 
         document.addEventListener('click', function(e) {
-            // Chiude i suggerimenti ricerca
             if(!e.target.closest('.add-friend-wrapper')) {
                 const box = document.getElementById('suggestionsBox'); if(box) box.style.display = 'none';
             }
@@ -850,7 +894,6 @@
             document.getElementById("authToggle").innerText = isRegisterMode ? "Hai già un account? Accedi" : "Non hai un account? Registrati";
         }
 
-        // --- SISTEMA TIPOLOGIA BIRRA ---
         function getBeerType(brandName, variantName) {
             const vLower = variantName.toLowerCase();
             if (vLower.includes("rossa") || vLower.includes("rouge") || vLower.includes("red") || vLower.includes("cherry") || vLower.includes("porpora") || vLower.includes("amber") || vLower.includes("ambrata") || vLower.includes("rituel")) {
@@ -1108,186 +1151,6 @@
             return isShiny ? base * 2 : base;
         }
 
-        function checkTimedEvents() {
-            const now = new Date();
-            const month = now.getMonth() + 1; 
-            let activeEvent = null;
-            if (month === 3) {
-                activeEvent = { id: "stpatrick", name: "🍀 San Patrizio", desc: "Mese di Marzo! Sblocca 2 varianti irlandesi o scozzesi per vincere la medaglia!" };
-            } else if (month === 9 || month === 10) {
-                activeEvent = { id: "oktoberfest", name: "🥨 Oktoberfest", desc: "Periodo Oktoberfest! Sblocca 3 varianti tedesche tra Settembre e Ottobre!" };
-            }
-            const box = document.getElementById("dashEventBox");
-            const txt = document.getElementById("dashEventText");
-            if (box && txt) {
-                if (activeEvent) {
-                    box.style.display = "flex";
-                    txt.innerHTML = `<strong>${activeEvent.name} ATTIVO!</strong><br>${activeEvent.desc}`;
-                } else {
-                    box.style.display = "flex";
-                    txt.innerHTML = `<strong>Nessun evento attivo</strong><br>Prossimi appuntamenti: San Patrizio (Marzo) e Oktoberfest (Settembre/Ottobre).`;
-                }
-            }
-            return activeEvent;
-        }
-
-        function checkAndUnlockEventBadges(username, userPosts) {
-            if (!userPosts || userPosts.length === 0) return;
-            const now = new Date();
-            const month = now.getMonth() + 1;
-            let currentYear = now.getFullYear();
-            if (month === 3) { 
-                let count = userPosts.filter(p => {
-                    let pDate = new Date(p.time);
-                    let targetBeer = beers.find(b => b.brand === p.brand);
-                    return pDate.getFullYear() === currentYear && pDate.getMonth() + 1 === 3 && targetBeer && (targetBeer.country === "Irlanda" || targetBeer.country === "Scozia");
-                }).length;
-                if (count >= 2) db.ref(`user_event_badges/${username}/stpatrick`).set(true);
-            } 
-            else if (month === 9 || month === 10) { 
-                let count = userPosts.filter(p => {
-                    let pDate = new Date(p.time);
-                    let targetBeer = beers.find(b => b.brand === p.brand);
-                    return pDate.getFullYear() === currentYear && (pDate.getMonth() + 1 === 9 || pDate.getMonth() + 1 === 10) && targetBeer && targetBeer.country === "Germania";
-                }).length;
-                if (count >= 3) db.ref(`user_event_badges/${username}/oktoberfest`).set(true);
-            }
-        }
-
-        function handlePhotoUpload(event, brand, variant) {
-            event.stopPropagation(); const file = event.target.files[0]; if (!file) return;
-            let currentLat = null; let currentLng = null; let isShiny = false;
-            const targetBeer = beers.find(b => b.brand === brand);
-            
-            if(navigator.geolocation) {
-                navigator.geolocation.getCurrentPosition((position) => {
-                    currentLat = position.coords.latitude; currentLng = position.coords.longitude;
-                    if(targetBeer && countryCoordinates[targetBeer.country]) {
-                        const bounds = countryCoordinates[targetBeer.country];
-                        if(currentLat >= bounds.latMin && currentLat <= bounds.latMax && currentLng >= bounds.lngMin && currentLng <= bounds.lngMax) { isShiny = true; }
-                    }
-                    processPhoto();
-                }, () => { processPhoto(); });
-            } else { processPhoto(); }
-
-            function processPhoto() {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    const img = new Image();
-                    img.onload = function() {
-                        const canvas = document.createElement('canvas'); 
-                        const MAX_SIZE = 400;
-                        let width = img.width; 
-                        let height = img.height;
-                        
-                        if (width > height) { 
-                            if (width > MAX_SIZE) { height *= MAX_SIZE / width; width = MAX_SIZE; } 
-                        } else { 
-                            if (height > MAX_SIZE) { width *= MAX_SIZE / height; height = MAX_SIZE; } 
-                        }
-                        
-                        canvas.width = width; canvas.height = height;
-                        const ctx = canvas.getContext('2d'); 
-                        ctx.drawImage(img, 0, 0, width, height);
-                        
-                        const imgData = ctx.getImageData(0, 0, width, height); 
-                        const data = imgData.data; 
-                        let totalBrightness = 0;
-                        
-                        for (let i = 0; i < data.length; i += 4) { 
-                            totalBrightness += (data[i] + data[i+1] + data[i+2]) / 3; 
-                        }
-                        if ((totalBrightness / (data.length / 4)) < 20) { 
-                            showCustomAlert("🚨 Immagine troppo scura! Riprova con più luce.", "Foto Respinta"); 
-                            return; 
-                        }
-
-                        if (aiModel) {
-                            aiModel.detect(canvas).then(predictions => {
-                                let isDrink = false; 
-                                predictions.forEach(p => { 
-                                    if(p.class === 'bottle' || p.class === 'cup' || p.class === 'wine glass') isDrink = true; 
-                                });
-                                
-                                if (!isDrink) { 
-                                    showCustomAlert("🚨 Non vedo bottiglie o bicchieri veri.", "AI Anti-Cheat"); 
-                                    updateStats(); 
-                                    return; 
-                                }
-                                
-                                Tesseract.recognize(canvas, 'ita+eng').then(({ data: { text } }) => {
-                                    const extractedText = text.toLowerCase(); 
-                                    const brandWord = brand.toLowerCase().split(' ')[0];
-                                    
-                                    if (extractedText.includes(brandWord) || extractedText.replace(/\s/g, '').includes(brandWord)) {
-                                        const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.6);
-                                        const uniqueId = brand + '-' + variant;
-                                        const pokedexEntry = { photo: compressedDataUrl, isShiny: isShiny, brand: brand };
-                                        
-                                        db.ref('pokedex_profiles/' + currentUserNick + '/' + uniqueId).set(pokedexEntry).then(() => {
-                                            const newPostRef = db.ref('social_timeline').push();
-                                            let postData = { user: currentUserNick, brand: brand, variant: variant, photo: compressedDataUrl, time: new Date().getTime(), isShiny: isShiny };
-                                            if(currentLat !== null && currentLng !== null) { postData.lat = currentLat; postData.lng = currentLng; }
-                                            
-                                            newPostRef.set(postData).then(() => {
-                                                recalculateTotalScore(currentUserNick);
-                                                let msg = `Birra sbloccata con successo! (+${getBeerPoints(brand, variant, isShiny)} Punti)`;
-                                                if(isShiny) msg += " ✨ SBLOCCO SHINY IN TRASFERTA COMPLETATO!";
-                                                showCustomAlert(msg, "✅ Conquistata!");
-                                            });
-                                        });
-                                    } else {
-                                        showCustomAlert(`L'AI non riesce a leggere la scritta "${brand}" sull'etichetta. Riprova inquadrando meglio il nome!`, "AI Anti-Cheat");
-                                        updateStats();
-                                    }
-                                });
-                            });
-                        }
-                    };
-                    img.src = e.target.result;
-                };
-                reader.readAsDataURL(file);
-            }
-        }
-
-        function recalculateTotalScore(username) {
-            db.ref('pokedex_profiles/' + username).once('value').then(snap => {
-                let totalScore = 0;
-                let brandUnlockCounts = {};
-                beers.forEach(b => { brandUnlockCounts[b.brand] = 0; });
-                if(snap.exists()) {
-                    const profileData = snap.val();
-                    for(let uniqueId in profileData) {
-                        const entry = profileData[uniqueId];
-                        let bName = entry.brand || uniqueId.split('-')[0];
-                        let vName = uniqueId.substring(bName.length + 1); 
-                        let isShiny = entry.isShiny || false;
-                        totalScore += getBeerPoints(bName, vName, isShiny);
-                        if (brandUnlockCounts[bName] !== undefined) brandUnlockCounts[bName]++;
-                    }
-                }
-                beers.forEach(beer => {
-                    if(brandUnlockCounts[beer.brand] === beer.variants.length && beer.variants.length > 0) { totalScore += 10; }
-                });
-                db.ref('leaderboard_scores/' + username).set(totalScore);
-            });
-        }
-
-        function deletePost(postId, postUser, brand, variant) {
-            const uniqueId = brand + '-' + variant;
-            showCustomConfirm(`Vuoi davvero eliminare lo sblocco di ${postUser} per ${brand} - ${variant}?`, "Conferma Eliminazione", () => {
-                db.ref('pokedex_profiles/' + postUser + '/' + uniqueId).remove().then(() => { recalculateTotalScore(postUser); });
-                if(!postId) {
-                    db.ref('social_timeline').once('value').then(snapshot => {
-                        snapshot.forEach(child => {
-                            let p = child.val();
-                            if(p.user === postUser && p.brand === brand && p.variant === variant) { db.ref('social_timeline/' + child.key).remove(); }
-                        });
-                    });
-                } else { db.ref('social_timeline/' + postId).remove(); }
-            });
-        }
-
         function generateVariantsHTML(brand, variantsArray) {
             let listHTML = '';
             variantsArray.forEach(variant => {
@@ -1346,6 +1209,31 @@
             checkTrophiesVisually();
         }
 
+        function filterBeers() { 
+            const searchInput = document.getElementById('searchBar'); 
+            const searchTerm = searchInput ? searchInput.value.toLowerCase() : ''; 
+            const sortVal = document.getElementById('sortFilter') ? document.getElementById('sortFilter').value : 'alpha';
+            
+            let filtered = beers.filter(beer => { 
+                const variantsText = beer.variants.join(' ').toLowerCase(); 
+                const matchSearch = beer.brand.toLowerCase().includes(searchTerm) || beer.desc.toLowerCase().includes(searchTerm) || variantsText.includes(searchTerm); 
+                const matchRegion = currentFilter === 'Tutte' || beer.country === currentFilter; 
+                return matchSearch && matchRegion; 
+            }); 
+
+            const rarityMap = { "comune": 1, "media": 2, "rara": 3 };
+
+            filtered.sort((a, b) => {
+                if (sortVal === 'alpha') return a.brand.localeCompare(b.brand);
+                if (sortVal === 'nation') return a.country.localeCompare(b.country) || a.brand.localeCompare(b.brand);
+                if (sortVal === 'rarityAsc') return rarityMap[a.rarity] - rarityMap[b.rarity] || a.brand.localeCompare(b.brand);
+                if (sortVal === 'rarityDesc') return rarityMap[b.rarity] - rarityMap[a.rarity] || a.brand.localeCompare(b.brand);
+                return 0;
+            });
+
+            displayBeers(filtered); 
+        }
+
         function updateStats() {
             let totalPoints = globalLeaderboardScores[currentUserNick] || 0;
             const progressEl = document.getElementById('progressText');
@@ -1369,7 +1257,6 @@
             });
         }
 
-        // AGGIORNAMENTO TROFEI CON ORDINAMENTO E BOTTIGLIE GRIGIE/COLORATE
         function renderTrophies() {
             const grid = document.getElementById('trophyGrid'); 
             const medalsGrid = document.getElementById('brandMedalsGrid');
@@ -1403,7 +1290,7 @@
                 });
             });
 
-            // ORDINAMENTO DINAMICO
+            // ORDINAMENTO DINAMICO PROFILO
             allVariantsList.sort((a, b) => {
                 if (sortVal === 'alpha') return a.brand.localeCompare(b.brand) || a.variant.localeCompare(b.variant);
                 if (sortVal === 'nation') return a.country.localeCompare(b.country) || a.brand.localeCompare(b.brand);
@@ -1471,27 +1358,11 @@
                     else { actionsHtml = `<button class="btn-action btn-add" onclick="sendFriendRequestFromSearch('${player.name}')" style="padding:5px 10px; font-size:12px;">➕ Aggiungi</button>`; }
                 }
                 let rankLabel = getUserRankTitle(player.score);
-                item.innerHTML = `<div style="display:flex; align-items:center; flex-grow:1;"><div class="rank">${medal}</div><div class="lb-user">${player.name} ${player.name === currentUserNick ? '(Tu)' : ''}<br><small style="font-size:11px;color:var(--text-muted);font-weight:normal;">${rankLabel}</small></div></div><div style="display:flex; align-items:center; gap:15px;"><div class="lb-score">${player.score} 🏆</div>${actionsHtml}</div>`;
+                let avatarContent = globalAvatars[player.name] ? `<img src="${globalAvatars[player.name]}" style="width:100%; height:100%; object-fit:cover;">` : player.name.charAt(0).toUpperCase();
+
+                item.innerHTML = `<div style="display:flex; align-items:center; flex-grow:1;"><div class="rank">${medal}</div><div class="post-avatar" style="width:40px; height:40px; font-size:16px; margin: 0 10px 0 5px;">${avatarContent}</div><div class="lb-user">${player.name} ${player.name === currentUserNick ? '(Tu)' : ''}<br><small style="font-size:11px;color:var(--text-muted);font-weight:normal;">${rankLabel}</small></div></div><div style="display:flex; align-items:center; gap:15px;"><div class="lb-score">${player.score} 🏆</div>${actionsHtml}</div>`;
                 list.appendChild(item);
             });
-        }
-
-        function renderDashboard() {
-            checkTimedEvents();
-            const welcomeEl = document.getElementById('dashWelcomeName');
-            if (welcomeEl) welcomeEl.innerText = currentUserNick;
-            const dashLastBeer = document.getElementById('dashLastBeer');
-            if (!dashLastBeer) return;
-            
-            let myPosts = globalPosts.filter(p => p.user === currentUserNick);
-            checkAndUnlockEventBadges(currentUserNick, myPosts);
-
-            if(myPosts.length > 0) {
-                myPosts.sort((a,b) => b.time - a.time); let lastPost = myPosts[0];
-                let date = new Date(lastPost.time); let dateStr = date.toLocaleDateString() + ' alle ' + date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-                let shinyBadge = lastPost.isShiny ? '<span style="color:var(--primary-dark); font-weight:bold;">✨ SHINY (x2 Punti)</span>' : '';
-                dashLastBeer.innerHTML = `<div class="dash-last-card"><img src="${lastPost.photo}" class="dash-last-img"><div class="dash-last-info"><h4 style="margin: 0 0 5px 0; color: var(--dark); font-size: 18px;">${lastPost.brand}</h4><div style="color: var(--primary-dark); font-weight: bold; font-size: 14px; margin-bottom: 5px;">${lastPost.variant} ${shinyBadge}</div><div style="font-size: 12px; color: var(--text-muted);">Sbloccata il: ${dateStr}</div></div></div>`;
-            } else { dashLastBeer.innerHTML = `<div class="dash-empty">Nessuna birra sbloccata!<br>Inizia la tua avventura! 🧭</div>`; }
         }
 
         let myPokedex = {}; let globalPosts = []; let globalLeaderboardScores = {}; 
@@ -1503,6 +1374,7 @@
                 globalAvatars = snap.val() || {};
                 const activeView = document.querySelector('.page-view.active');
                 if(activeView && activeView.id === 'page-social') renderSocialFeed();
+                if(activeView && activeView.id === 'page-leaderboard') renderLeaderboard();
                 if(globalAvatars[currentUserNick]) {
                     const avatarDisplay = document.getElementById('profileAvatarDisplay');
                     if(avatarDisplay) avatarDisplay.innerHTML = `<img src="${globalAvatars[currentUserNick]}" style="width:100%; height:100%; object-fit:cover;">`;
@@ -1515,7 +1387,6 @@
                 filterBeers();
                 const activeView = document.querySelector('.page-view.active');
                 if(activeView && activeView.id === 'page-profile') renderTrophies();
-                if(activeView && activeView.id === 'page-explore') displayBeers(beers);
             }, (error) => {
                 showCustomAlert("Errore di sicurezza o lettura sul Pokedex personale: " + error.message, "Blocco Regole Firebase");
             });
@@ -1642,42 +1513,11 @@
             }
         }
 
-        let currentFilter = 'Tutte'; 
-        function setFilter(country) { currentFilter = country; filterBeers(); navigateTo('page-explore'); }
-        
-        // --- ORDINAMENTO E FILTRI COMBINATI ---
-        function filterBeers() { 
-            const searchInput = document.getElementById('searchBar'); 
-            const searchTerm = searchInput ? searchInput.value.toLowerCase() : ''; 
-            const sortVal = document.getElementById('sortFilter') ? document.getElementById('sortFilter').value : 'alpha';
-            
-            let filtered = beers.filter(beer => { 
-                const variantsText = beer.variants.join(' ').toLowerCase(); 
-                const matchSearch = beer.brand.toLowerCase().includes(searchTerm) || beer.desc.toLowerCase().includes(searchTerm) || variantsText.includes(searchTerm); 
-                const matchRegion = currentFilter === 'Tutte' || beer.country === currentFilter; 
-                return matchSearch && matchRegion; 
-            }); 
-
-            const rarityMap = { "comune": 1, "media": 2, "rara": 3 };
-
-            filtered.sort((a, b) => {
-                if (sortVal === 'alpha') return a.brand.localeCompare(b.brand);
-                if (sortVal === 'nation') return a.country.localeCompare(b.country) || a.brand.localeCompare(b.brand);
-                if (sortVal === 'rarityAsc') return rarityMap[a.rarity] - rarityMap[b.rarity] || a.brand.localeCompare(b.brand);
-                if (sortVal === 'rarityDesc') return rarityMap[b.rarity] - rarityMap[a.rarity] || a.brand.localeCompare(b.brand);
-                return 0;
-            });
-
-            displayBeers(filtered); 
-        }
-
-        displayBeers(beers);
-
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
                 navigator.serviceWorker.register('/sw.js')
                     .then(reg => {
-                        console.log('PWA BeerDex registrata con successo!', reg.scope);
+                        console.log('PWA registrata con successo!');
                         reg.update(); 
                     })
                     .catch(err => console.error('Errore registrazione PWA:', err));
