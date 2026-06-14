@@ -43,80 +43,47 @@
         .top-action-btn:hover { transform: scale(1.1); }
         .top-badge { position: absolute; top: -5px; right: -8px; font-size: 10px; background: var(--danger); color: white; border-radius: 50%; padding: 2px 5px; font-weight: bold; animation: bounce 1s infinite; display: none;}
 
-        /* BOTTOM NAV BLINDATA PER TUTTI I BROWSER */
-        .bottom-nav { 
-            position: fixed; 
-            bottom: 0; 
-            left: 0; 
-            width: 100%; 
-            height: 85px; /* Altezza fissa infallibile per gestire sia i tasti che la safe-area degli iPhone */
-            background: var(--white); 
-            box-shadow: 0 -2px 15px rgba(0,0,0,0.08); 
-            display: flex; 
-            z-index: 10000; 
-        }
-        .nav-item { 
-            flex: 1; 
-            display: flex; 
-            flex-direction: column; 
-            align-items: center; 
-            justify-content: flex-start; /* Spinge i tasti verso l'alto, lasciando lo spazio sotto vuoto */
-            padding-top: 12px;
-            color: var(--text-muted); 
-            cursor: pointer; 
-            transition: 0.3s; 
-            user-select: none; 
-        }
-        .nav-item.active { 
-            background: #f8f9f9; 
-            color: var(--primary-dark); 
-            border-top: 3px solid var(--primary-dark); 
-            padding-top: 9px; /* Compensa i 3px di bordo */
-        }
+        /* BOTTOM NAV */
+        .bottom-nav { position: fixed; bottom: 0; left: 0; width: 100%; height: 85px; background: var(--white); box-shadow: 0 -2px 15px rgba(0,0,0,0.08); display: flex; z-index: 10000; }
+        @supports (padding-bottom: env(safe-area-inset-bottom)) { .bottom-nav { padding-bottom: env(safe-area-inset-bottom); height: calc(70px + env(safe-area-inset-bottom)); } }
+        .nav-item { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; padding-top: 12px; color: var(--text-muted); cursor: pointer; transition: 0.3s; user-select: none; }
+        .nav-item.active { background: #f8f9f9; color: var(--primary-dark); border-top: 3px solid var(--primary-dark); padding-top: 9px; }
         .nav-icon { font-size: 22px; margin-bottom: 2px; }
         .nav-text { font-size: 9px; font-weight: 800; text-transform: uppercase; }
 
         @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-3px); } }
 
         .btn-logout { background: var(--danger) !important; color: white; border: none; padding: 15px; border-radius: 12px; font-size: 16px; font-weight: bold; width: 100%; margin-top: 20px; cursor: pointer; box-shadow: 0 4px 10px rgba(231, 76, 60, 0.2); }
-        
         .progress-container { width: 100%; height: 10px; background: #e0e6ed; border-radius: 10px; margin: 15px auto 5px auto; overflow: hidden; }
         .progress-bar { height: 100%; background-color: var(--primary-dark); width: 0%; transition: width 0.8s cubic-bezier(0.25, 0.8, 0.25, 1); }
         .progress-text { font-size: 13px; font-weight: bold; color: var(--text-muted); text-align: center; margin-bottom: 20px; }
-
         .controls input[type="text"], .controls input[type="password"] { width: 100%; padding: 12px 15px; border: 2px solid var(--gray); border-radius: 12px; font-size: 15px; outline: none; box-sizing: border-box; background: #fbfcfc; margin-bottom: 15px; transition: border-color 0.3s; }
         .controls input[type="text"]:focus, .controls input[type="password"]:focus { border-color: var(--primary-dark); }
         .filters-label { font-size: 12px; font-weight: bold; text-transform: uppercase; color: var(--text-muted); margin-bottom: 8px; display: block; letter-spacing: 1px; }
-        select#countryFilter, select#sortFilter { width: 100%; padding: 12px 15px; border: 2px solid var(--gray); border-radius: 12px; font-size: 15px; font-weight: bold; color: var(--dark); background: var(--white); outline: none; cursor: pointer; transition: 0.3s; margin-bottom: 20px;}
-        select#countryFilter:focus, select#sortFilter:focus { border-color: var(--primary-dark); }
+        select#countryFilter, select#sortFilter, select#pubProfileSort, select#profileSort { width: 100%; padding: 12px 15px; border: 2px solid var(--gray); border-radius: 12px; font-size: 15px; font-weight: bold; color: var(--dark); background: var(--white); outline: none; cursor: pointer; transition: 0.3s; margin-bottom: 20px;}
+        select#countryFilter:focus, select#sortFilter:focus, select#pubProfileSort:focus, select#profileSort:focus { border-color: var(--primary-dark); }
 
         .main-content { width: 100%; min-height: calc(100vh - 140px); display: flex; flex-direction: column; position: relative;}
         .page-view { display: none; flex-grow: 1; animation: fadeIn 0.4s; }
         .page-view.active { display: block; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* FIX MAPPA INFALLIBILE: Sfrutta top e bottom invece di height calc() */
         #page-map.active { display: flex !important; flex-direction: column; position: fixed; top: 60px; bottom: 85px; left: 0; width: 100%; margin: 0; padding: 0; overflow: hidden; z-index: 500; background: var(--light); }
         #page-map .hero { margin-bottom: 0; padding: 15px 20px 20px 20px; border-radius: 0; z-index: 10; position: relative; box-shadow: 0 5px 15px rgba(0,0,0,0.1); flex-shrink: 0; }
         #page-map .hero h1 { font-size: 24px; margin: 0 0 5px 0; }
         #page-map .hero p { font-size: 13px; margin: 0; }
         #mapContainer { flex-grow: 1; width: 100%; z-index: 1; background: #e0e6ed; }
 
-        /* HEADER ANIMATO */
         header.hero { background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%); color: var(--dark); padding: 30px 20px 60px 20px; text-align: center; margin-bottom: 0; position: relative; overflow: hidden; z-index: 1; border-radius: 0; }
         header.hero h1 { margin: 10px 0 10px 0; font-size: 32px; font-weight: 800; letter-spacing: -1px; position: relative; z-index: 5; }
         header.hero p { margin: 0; font-size: 15px; opacity: 0.85; font-weight: 500; position: relative; z-index: 5; }
-        
         .foam-container { position: absolute; top: 0; left: -10%; width: 120%; height: 100%; z-index: 0; pointer-events: none; transition: transform 0.15s ease-out; transform: translate(var(--tilt-x, 0px), var(--tilt-y, 0px)); }
         .foam-wave { position: absolute; top: -2px; left: 0; width: 100%; height: 60px; background: url('data:image/svg+xml;utf8,<svg viewBox="0 0 1200 120" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg"><path d="M0,30 C300,70 900,-10 1200,30 L1200,0 L0,0 Z" fill="%23ffffff"/></svg>') no-repeat; background-size: 100% 100%; }
         .foam-wave.layer2 { top: 5px; opacity: 0.4; background: url('data:image/svg+xml;utf8,<svg viewBox="0 0 1200 120" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg"><path d="M0,50 C400,-10 800,70 1200,30 L1200,0 L0,0 Z" fill="%23ffffff"/></svg>') no-repeat; background-size: 100% 100%; }
         .bubble { position: absolute; bottom: -20px; background: rgba(255, 255, 255, 0.4); border-radius: 50%; animation: rise infinite ease-in; }
         @keyframes rise { 0% { bottom: -20px; transform: translateX(0); opacity: 0; } 50% { opacity: 1; } 100% { bottom: 100%; transform: translateX(-20px); opacity: 0; } }
 
-        /* LAYOUT EDGE-TO-EDGE */
         .page-container { width: 100%; max-width: 900px; margin: 0 auto; padding: 20px 0 60px 0; background: transparent; box-shadow: none; position: relative; z-index: 5; box-sizing: border-box; }
-        
-        /* Protezione margini per elementi non-full-screen */
         .controls, .dashboard-stats, .dashboard-event, .profile-user-box, .rules-section, .tabs, .add-friend-wrapper, #searchResultArea, .list-container, .hero-section-title { margin: 0 20px 20px 20px; }
         .rules-section { background: var(--white); padding: 20px; border-radius: 16px; box-shadow: 0 5px 15px rgba(0,0,0,0.05); }
 
@@ -210,6 +177,10 @@
         .rank { font-weight: bold; font-size: 20px; width: 30px; }
         .lb-score { font-size: 20px; font-weight: bold; }
 
+        /* USER CLICKABLE */
+        .clickable-user { cursor: pointer; color: var(--primary-dark); transition: 0.2s; }
+        .clickable-user:hover { text-decoration: underline; color: var(--accent); }
+
         .post-avatar { width: 40px; height: 40px; flex-shrink: 0; background: linear-gradient(135deg, var(--social-blue), #8e44ad); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: var(--white); font-weight: bold; font-size: 18px; text-transform: uppercase; overflow: hidden; }
         
         /* SOCIAL FEED EDGE-TO-EDGE SU MOBILE */
@@ -217,8 +188,8 @@
         .social-feed { display: flex; flex-direction: column; gap: 10px; margin-top: 0; }
         .post-card { background: var(--white); border-radius: 0; border: none; border-top: 1px solid #e1e8ed; border-bottom: 1px solid #e1e8ed; overflow: hidden; margin-bottom: 5px; }
         .post-header { display: flex; align-items: center; padding: 12px 15px; justify-content: space-between;}
-        .post-user { font-weight: bold; font-size: 15px; color: var(--dark); margin-left: 15px; } /* Più distanziato! */
-        .post-time { font-size: 12px; color: var(--text-muted); margin-left: 15px; } /* Più distanziato! */
+        .post-user { font-weight: bold; font-size: 15px; color: var(--dark); margin-left: 15px; } 
+        .post-time { font-size: 12px; color: var(--text-muted); margin-left: 15px; } 
         
         /* FOTO 4:5 e COPERTURA TOTALE LARGHETTA MOBILE */
         .post-image { width: 100%; aspect-ratio: 4/5; object-fit: cover; background: #000; display: block; }
@@ -234,15 +205,26 @@
             .post-card { border-radius: 16px; border: 1px solid var(--gray); margin-bottom: 30px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
         }
 
+        .rules-section { margin-bottom: 25px; border-bottom: 1px solid var(--gray); padding-bottom: 20px; }
+        .rules-section:last-child { border-bottom: none; }
+        .rules-section h3 { color: var(--accent); margin-top: 0; }
+        .rules-section ul { padding-left: 20px; }
+        .rules-section li { margin-bottom: 8px; line-height: 1.4; }
+
         .trophy-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 15px; text-align: center; margin-bottom: 30px; padding: 0 20px;}
         .trophy-card { background: var(--white); padding: 12px 8px; border-radius: 12px; display: flex; flex-direction: column; align-items: center; transition: 0.2s; position: relative; box-shadow: 0 4px 10px rgba(0,0,0,0.05);}
+        .trophy-card.shiny-card { background: linear-gradient(135deg, #fffdeb 0%, #fff0b3 100%); border: 2px solid var(--gold); box-shadow: 0 0 15px rgba(241,196,15,0.4); }
+        
+        .pts-badge { background: var(--primary-dark); color: white; border-radius: 10px; padding: 3px 6px; font-size: 10px; font-weight: bold; position: absolute; top: 6px; right: 6px; z-index: 10; box-shadow: 0 2px 5px rgba(0,0,0,0.2);}
+        .mul-badge { background: #9b59b6; color: white; border-radius: 10px; padding: 3px 6px; font-size: 10px; font-weight: bold; position: absolute; top: 6px; left: 6px; z-index: 10; box-shadow: 0 2px 5px rgba(0,0,0,0.2);}
+        
         .trophy-img-container { width: 70px; height: 70px; border-radius: 50%; overflow: hidden; background: #e0e6ed; display: flex; align-items: center; justify-content: center; font-size: 40px; border: 3px solid #ccc; margin-bottom: 10px; transition: 0.3s; filter: grayscale(100%) opacity(40%); }
         .trophy-card.unlocked .trophy-img-container { border-color: var(--gold); background: var(--white); box-shadow: 0 0 10px rgba(241, 196, 15, 0.4); filter: none; opacity: 1; }
         .trophy-card.unlocked img { width: 100%; height: 100%; object-fit: cover; }
         .trophy-name { font-size: 12px; font-weight: bold; line-height: 1.2; color: var(--dark); }
         .trophy-brand { font-size: 10px; color: var(--text-muted); text-transform: uppercase; margin-bottom: 4px;}
 
-        .medal-badge-card { background: #fcf8e3; border: 2px solid var(--gold); border-radius: 12px; padding: 10px; display: flex; flex-direction: column; align-items: center; text-align: center; transition: 0.3s; opacity: 0.4; filter: grayscale(100%); }
+        .medal-badge-card { background: #fcf8e3; border: 2px solid var(--gold); border-radius: 12px; padding: 10px; display: flex; flex-direction: column; align-items: center; text-align: center; transition: 0.3s; opacity: 0.4; filter: grayscale(100%); position: relative; }
         .medal-badge-card.unlocked { opacity: 1; filter: none; box-shadow: 0 4px 10px rgba(241,196,15,0.2); }
         .medal-icon-container { font-size: 35px; margin-bottom: 5px; }
         
@@ -284,7 +266,7 @@
     <!-- MODALE CONDIVISIONE BEVUTA -->
     <div id="shareModal" class="auth-modal" style="display:none; z-index: 20000;">
         <div class="auth-container" style="max-width: 350px;">
-            <h3 style="margin-top:0; color:var(--dark); font-size:22px;">🍻 Più birre rilevate!</h3>
+            <h3 style="margin-top:0; color:var(--dark); font-size:22px;">🍻 Più bevande rilevate!</h3>
             <p style="color:var(--text-muted); font-size:14px; margin-bottom:20px;">L'AI ha notato che non sei solo! Tagga il tuo amico e <strong>raddoppia i punti</strong> di questo sblocco.</p>
             <select id="shareFriendSelect" style="width: 100%; padding: 12px; border-radius: 10px; border: 2px solid var(--gray); margin-bottom: 20px; font-weight: bold; outline:none; cursor:pointer;"></select>
             <button class="btn-main" onclick="submitSharedPost()">Pubblica Sblocco Condiviso</button>
@@ -428,7 +410,7 @@
             </div>
         </div>
 
-        <!-- PAGINA PROFILO UNIFICATA -->
+        <!-- PAGINA PROFILO PERSONALE -->
         <div id="page-profile" class="page-view">
             <header class="hero">
                 <h1>👤 Il Tuo Profilo</h1>
@@ -463,12 +445,37 @@
                     </select>
                 </div>
                 <div class="trophy-grid" id="trophyGrid"></div>
+            </div>
+        </div>
 
+        <!-- PAGINA PROFILO PUBBLICO (AMICI) -->
+        <div id="page-public-profile" class="page-view">
+            <header class="hero">
+                <button onclick="navigateTo('page-leaderboard')" style="position:absolute; top:15px; left:15px; background:rgba(255,255,255,0.2); border:none; padding:8px 12px; border-radius:10px; color:var(--dark); font-weight:bold; cursor:pointer; font-size:12px;">⬅ Indietro</button>
+                <div id="pubAvatarDisplay" style="width:70px; height:70px; border-radius:50%; background:#e0e6ed; margin:10px auto 10px auto; border:3px solid var(--white); display:flex; align-items:center; justify-content:center; font-size:30px; overflow:hidden; box-shadow:0 4px 10px rgba(0,0,0,0.1); font-weight:bold; text-transform:uppercase; color:white;">👤</div>
+                <h1 id="pubProfileName" style="margin:5px 0;">Utente</h1>
+                <p id="pubProfileRank" style="font-weight:bold; color:var(--dark); opacity:0.7;">Grado</p>
+                <div style="font-size:20px; font-weight:900; color:var(--dark); margin-top:5px;" id="pubProfileScore">0 🏆</div>
+            </header>
+            <div class="page-container" style="margin-top: -30px; margin-bottom: 20px;">
+                <h3 class="hero-section-title" style="margin-top:20px; color:var(--dark); border-bottom: 2px solid var(--gray); padding-bottom:8px;">🏅 Medaglie Maestro Brand</h3>
+                <div class="trophy-grid" id="pubBrandMedalsGrid" style="padding: 0 20px;"></div>
+
+                <div style="display:flex; justify-content:space-between; align-items:center; border-bottom: 2px solid var(--gray); padding-bottom:8px; margin: 40px 20px 15px 20px;">
+                    <h3 style="margin:0; color:var(--dark);">📸 Varianti Sbloccate</h3>
+                    <select id="pubProfileSort" onchange="renderPublicTrophiesSort()" style="padding: 6px 10px; border-radius: 8px; border: 1px solid var(--gray); font-size: 12px; font-weight:bold; color: var(--dark); background: #fbfcfc; outline: none; cursor:pointer;">
+                        <option value="alpha">🔤 Alfabetico</option>
+                        <option value="nation">🌍 Nazione</option>
+                        <option value="rarityAsc">⭐ Rarità (Cresc.)</option>
+                        <option value="rarityDesc">🌟 Rarità (Decresc.)</option>
+                    </select>
+                </div>
+                <div class="trophy-grid" id="pubTrophyGrid"></div>
             </div>
         </div>
 
         <div id="page-map" class="page-view">
-            <header class="hero" style="margin-bottom: 0; padding-bottom: 30px; border-radius: 0; z-index: 10; position: relative; box-shadow: 0 5px 15px rgba(0,0,0,0.1);">
+            <header class="hero">
                 <h1>🗺️ Mappa Sblocchi</h1>
                 <p>Esplora il mondo e traccia i pub in cui hai conquistato le tue birre.</p>
             </header>
@@ -599,29 +606,6 @@
             </div>
         </div>
     </div>
-
-    <nav class="bottom-nav">
-        <div class="nav-item active" onclick="navigateTo('page-home')" id="nav-page-home">
-            <div class="nav-icon">🏠</div>
-            <div class="nav-text">Home</div>
-        </div>
-        <div class="nav-item" onclick="navigateTo('page-explore')" id="nav-page-explore">
-            <div class="nav-icon">🔍</div>
-            <div class="nav-text">Esplora</div>
-        </div>
-        <div class="nav-item" onclick="navigateTo('page-leaderboard')" id="nav-page-leaderboard">
-            <div class="nav-icon">🏅</div>
-            <div class="nav-text">Classifica</div>
-        </div>
-        <div class="nav-item" onclick="navigateTo('page-social')" id="nav-page-social">
-            <div class="nav-icon">🌍</div>
-            <div class="nav-text">Social</div>
-        </div>
-        <div class="nav-item" onclick="navigateTo('page-profile')" id="nav-page-profile">
-            <div class="nav-icon">👤</div>
-            <div class="nav-text">Profilo</div>
-        </div>
-    </nav>
 
     <script>
         function normalizeStr(str) {
@@ -1059,7 +1043,7 @@
                                 }
                             });
                             if (!isSafe) {
-                                showCustomAlert("⚠️ La foto selezionata è stata bloccata perché potrebbe contenere contenuti inappropriati o osceni.", "Sicurezza Profilo");
+                                showCustomAlert("⚠️ La foto selezionata è stata bloccata perché potrebbe contenere contenuti inappropriati.", "Sicurezza Profilo");
                                 return;
                             }
                             saveAvatarToDB();
@@ -1163,6 +1147,52 @@
             return base;
         }
 
+        function checkTimedEvents() {
+            const now = new Date();
+            const month = now.getMonth() + 1; 
+            let activeEvent = null;
+            if (month === 3) {
+                activeEvent = { id: "stpatrick", name: "🍀 San Patrizio", desc: "Mese di Marzo! Sblocca 2 varianti irlandesi o scozzesi per vincere la medaglia!" };
+            } else if (month === 9 || month === 10) {
+                activeEvent = { id: "oktoberfest", name: "🥨 Oktoberfest", desc: "Periodo Oktoberfest! Sblocca 3 varianti tedesche tra Settembre e Ottobre!" };
+            }
+            const box = document.getElementById("dashEventBox");
+            const txt = document.getElementById("dashEventText");
+            if (box && txt) {
+                if (activeEvent) {
+                    box.style.display = "flex";
+                    txt.innerHTML = `<strong>${activeEvent.name} ATTIVO!</strong><br>${activeEvent.desc}`;
+                } else {
+                    box.style.display = "flex";
+                    txt.innerHTML = `<strong>Nessun evento attivo</strong><br>Prossimi appuntamenti: San Patrizio (Marzo) e Oktoberfest (Settembre/Ottobre).`;
+                }
+            }
+            return activeEvent;
+        }
+
+        function checkAndUnlockEventBadges(username, userPosts) {
+            if (!userPosts || userPosts.length === 0) return;
+            const now = new Date();
+            const month = now.getMonth() + 1;
+            let currentYear = now.getFullYear();
+            if (month === 3) { 
+                let count = userPosts.filter(p => {
+                    let pDate = new Date(p.time);
+                    let targetBeer = beers.find(b => b.brand === p.brand);
+                    return pDate.getFullYear() === currentYear && pDate.getMonth() + 1 === 3 && targetBeer && (targetBeer.country === "Irlanda" || targetBeer.country === "Scozia");
+                }).length;
+                if (count >= 2) db.ref(`user_event_badges/${username}/stpatrick`).set(true);
+            } 
+            else if (month === 9 || month === 10) { 
+                let count = userPosts.filter(p => {
+                    let pDate = new Date(p.time);
+                    let targetBeer = beers.find(b => b.brand === p.brand);
+                    return pDate.getFullYear() === currentYear && (pDate.getMonth() + 1 === 9 || pDate.getMonth() + 1 === 10) && targetBeer && targetBeer.country === "Germania";
+                }).length;
+                if (count >= 3) db.ref(`user_event_badges/${username}/oktoberfest`).set(true);
+            }
+        }
+
         let pendingUploadData = null;
 
         function submitSharedPost() {
@@ -1253,10 +1283,9 @@
                                 const brandWord = normalizeStr(brand).split(' ')[0];
                                 
                                 const hasText = extractedText.includes(brandWord) || extractedText.replace(/\s/g, '').includes(brandWord);
+                                const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.5);
                                 
-                                if (hasText || drinkCount > 0) {
-                                    const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.5);
-                                    
+                                if (hasText) {
                                     if (drinkCount >= 2 && myFriendsList.length > 0) {
                                         pendingUploadData = {brand, variant, isShiny, canvasBase64: compressedDataUrl, currentLat, currentLng};
                                         let selectHtml = '<option value="">-- Seleziona un amico --</option>';
@@ -1267,8 +1296,7 @@
                                         finalizeUpload({brand, variant, isShiny, canvasBase64: compressedDataUrl, currentLat, currentLng}, null);
                                     }
                                 } else {
-                                    showCustomConfirm(`L'AI è indecisa.\nConfermi che si tratta di ${brand} - ${variant}?`, "Verifica Manuale", () => {
-                                        const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.5);
+                                    showCustomConfirm(`L'AI vede la bevanda, ma non riesce a leggere bene il logo "${brand}".\nConfermi che si tratta di questa birra?`, "Verifica Manuale", () => {
                                         finalizeUpload({brand, variant, isShiny, canvasBase64: compressedDataUrl, currentLat, currentLng}, null);
                                     });
                                 }
@@ -1280,13 +1308,16 @@
                                 let isScreen = false; 
                                 let drinkCount = 0;
                                 predictions.forEach(p => { 
-                                    if(p.class === 'tv' || p.class === 'laptop' || p.class === 'monitor' || p.class === 'cell phone') isScreen = true; 
-                                    if(p.class === 'bottle' || p.class === 'cup' || p.class === 'wine glass' || p.class === 'dining table') drinkCount++;
+                                    if(['tv', 'laptop', 'monitor', 'cell phone'].includes(p.class)) isScreen = true; 
+                                    if(['bottle', 'cup', 'wine glass', 'dining table'].includes(p.class)) drinkCount++;
                                 });
                                 
                                 if (isScreen) { 
                                     showCustomAlert("🚨 L'AI ha rilevato uno schermo. È vietato fotografare PC o smartphone per barare!", "Frode Rilevata"); 
-                                    updateStats(); 
+                                    return; 
+                                }
+                                if (drinkCount === 0) { 
+                                    showCustomAlert("🚨 L'AI non rileva né bottiglie né bicchieri. Inquadra bene la bevanda!", "AI Anti-Cheat"); 
                                     return; 
                                 }
                                 executeUploadBase64(drinkCount);
@@ -1343,11 +1374,7 @@
         function toggleLike(postId) {
             const ref = db.ref('social_timeline/' + postId + '/likes/' + currentUserNick);
             ref.once('value').then(snap => {
-                if(snap.exists()) {
-                    ref.remove();
-                } else {
-                    ref.set(true);
-                }
+                if(snap.exists()) { ref.remove(); } else { ref.set(true); }
             });
         }
 
@@ -1473,35 +1500,48 @@
             });
         }
 
-        function renderTrophies() {
-            const grid = document.getElementById('trophyGrid'); 
-            const medalsGrid = document.getElementById('brandMedalsGrid');
+        function renderTrophyGrid(pokedex, gridId, medalsId, sortVal) {
+            const grid = document.getElementById(gridId); 
+            const medalsGrid = document.getElementById(medalsId);
             if(!grid || !medalsGrid) return;
             grid.innerHTML = ''; medalsGrid.innerHTML = '';
             
-            const sortVal = document.getElementById('profileSort') ? document.getElementById('profileSort').value : 'alpha';
             const rarityMap = { "comune": 1, "media": 2, "rara": 3 };
-
             let brandUnlockCounts = {};
             beers.forEach(b => { brandUnlockCounts[b.brand] = 0; });
-
             let allVariantsList = [];
 
             beers.forEach(beer => {
                 beer.variants.forEach(variant => {
                     let uniqueId = beer.brand + '-' + variant; 
-                    let entry = myPokedex ? myPokedex[uniqueId] : undefined; 
+                    let entry = pokedex ? pokedex[uniqueId] : undefined; 
                     let isUnlocked = entry !== undefined;
                     if(isUnlocked) brandUnlockCounts[beer.brand]++;
                     
+                    let basePts = getBasePoints(beer.brand, variant);
+                    let finalPts = basePts;
+                    let muls = [];
+                    let isShiny = false;
+                    let isShared = false;
+
+                    if(isUnlocked) {
+                        isShiny = entry.isShiny || false;
+                        isShared = entry.isShared || false;
+                        if(isShiny) { finalPts *= 2; muls.push('✨ x2'); }
+                        if(isShared) { finalPts *= 2; muls.push('🍻 x2'); }
+                    }
+
                     allVariantsList.push({
                         brand: beer.brand,
                         variant: variant,
                         country: beer.country,
                         rarity: beer.rarity,
                         isUnlocked: isUnlocked,
-                        isShiny: isUnlocked ? entry.isShiny : false,
-                        photo: isUnlocked ? (entry.photo || entry) : ''
+                        isShiny: isShiny,
+                        isShared: isShared,
+                        photo: isUnlocked ? (entry.photo || entry) : '',
+                        finalPts: finalPts,
+                        muls: muls
                     });
                 });
             });
@@ -1515,12 +1555,15 @@
             });
 
             allVariantsList.forEach(item => {
+                let shinyClass = item.isShiny ? 'shiny-card' : '';
                 let trophyDiv = document.createElement('div'); 
-                trophyDiv.className = `trophy-card ${item.isUnlocked ? 'unlocked' : ''}`;
+                trophyDiv.className = `trophy-card ${item.isUnlocked ? 'unlocked' : ''} ${shinyClass}`;
                 let imageContent = item.isUnlocked ? `<img src="${item.photo}" alt="${item.variant}">` : `🍺`;
-                let shinyStar = item.isShiny ? '<div style="font-size:10px;color:var(--primary-dark)">✨ SHINY</div>' : '';
                 
-                trophyDiv.innerHTML = `<div class="trophy-brand">${item.brand}</div><div class="trophy-img-container">${imageContent}</div><div class="trophy-name">${item.variant}</div>${shinyStar}`;
+                let ptsHtml = item.isUnlocked ? `<div class="pts-badge">+${item.finalPts}pt</div>` : '';
+                let mulHtml = item.isUnlocked && item.muls.length > 0 ? `<div class="mul-badge">${item.muls.join(' ')}</div>` : '';
+
+                trophyDiv.innerHTML = `${ptsHtml}${mulHtml}<div class="trophy-brand">${item.brand}</div><div class="trophy-img-container">${imageContent}</div><div class="trophy-name">${item.variant}</div>`;
                 grid.appendChild(trophyDiv);
             });
 
@@ -1529,11 +1572,49 @@
                 let isCompleted = brandUnlockCounts[beer.brand] === beer.variants.length && beer.variants.length > 0;
                 let medalCard = document.createElement('div');
                 medalCard.className = `medal-badge-card ${isCompleted ? 'unlocked' : ''}`;
+                let ptsHtml = isCompleted ? `<div class="pts-badge" style="background:#e67e22;">+10pt</div>` : '';
                 medalCard.innerHTML = `
+                    ${ptsHtml}
                     <div class="medal-icon-container">${isCompleted ? '🥇' : '⚫'}</div>
                     <div style="font-size:11px; font-weight:bold; color:var(--dark); line-height:1.2;">Maestro<br>${beer.brand}</div>
                 `;
                 medalsGrid.appendChild(medalCard);
+            });
+        }
+
+        function renderTrophies() {
+            const sortVal = document.getElementById('profileSort') ? document.getElementById('profileSort').value : 'alpha';
+            renderTrophyGrid(myPokedex, 'trophyGrid', 'brandMedalsGrid', sortVal);
+        }
+
+        function renderPublicTrophiesSort() {
+            const sortVal = document.getElementById('pubProfileSort') ? document.getElementById('pubProfileSort').value : 'alpha';
+            const username = document.getElementById('pubProfileName').innerText;
+            db.ref('pokedex_profiles/' + username).once('value').then(snap => {
+                renderTrophyGrid(snap.val() || {}, 'pubTrophyGrid', 'pubBrandMedalsGrid', sortVal);
+            });
+        }
+
+        function openPublicProfile(username) {
+            if(username === currentUserNick) {
+                navigateTo('page-profile');
+                return;
+            }
+            db.ref('pokedex_profiles/' + username).once('value').then(snap => {
+                const pubDex = snap.val() || {};
+                renderTrophyGrid(pubDex, 'pubTrophyGrid', 'pubBrandMedalsGrid', 'alpha');
+                
+                db.ref('leaderboard_scores/' + username).once('value').then(scoreSnap => {
+                    let score = scoreSnap.val() || 0;
+                    document.getElementById('pubProfileName').innerText = username;
+                    document.getElementById('pubProfileScore').innerText = score + ' 🏆';
+                    document.getElementById('pubProfileRank').innerText = getUserRankTitle(score);
+                    
+                    let avatarHtml = globalAvatars[username] ? `<img src="${globalAvatars[username]}" style="width:100%; height:100%; object-fit:cover;">` : username.charAt(0).toUpperCase();
+                    document.getElementById('pubAvatarDisplay').innerHTML = avatarHtml;
+
+                    navigateTo('page-public-profile');
+                });
             });
         }
 
@@ -1550,7 +1631,7 @@
                 
                 let actionText = `ha trovato la <strong>${post.brand} - ${post.variant}</strong>! 🍻`;
                 if(post.isShared && post.taggedFriend) {
-                    actionText = `sta bevendo una <strong>${post.brand} - ${post.variant}</strong> con <strong>${post.taggedFriend}</strong>! 🍻`;
+                    actionText = `sta bevendo una <strong>${post.brand} - ${post.variant}</strong> con <strong class="clickable-user" onclick="openPublicProfile('${post.taggedFriend}')">${post.taggedFriend}</strong>! 🍻`;
                 }
 
                 let shinyTag = post.isShiny ? ' <span style="color:var(--primary-dark); font-size:12px;">✨ Sblocco Shiny in Trasferta!</span>' : '';
@@ -1563,7 +1644,7 @@
                         <div style="display:flex; align-items:center;">
                             <div class="post-avatar">${avatarContent}</div>
                             <div>
-                                <div class="post-user">${post.user} ${post.user === currentUserNick ? '(Tu)' : ''}</div>
+                                <div class="post-user clickable-user" onclick="openPublicProfile('${post.user}')">${post.user}</div>
                                 <div class="post-time">Nuovo sblocco!${shinyTag}</div>
                             </div>
                         </div>
@@ -1573,7 +1654,7 @@
                     <div class="post-actions">
                         <button class="btn-like ${isLiked ? 'liked' : ''}" onclick="toggleLike('${post.postId}')">🍻 ${likesCount}</button>
                     </div>
-                    <div class="post-caption"><strong>${post.user}</strong> ${actionText}</div>
+                    <div class="post-caption"><strong class="clickable-user" onclick="openPublicProfile('${post.user}')">${post.user}</strong> ${actionText}</div>
                 `;
                 feed.appendChild(card);
             });
@@ -1602,7 +1683,7 @@
                 let rankLabel = getUserRankTitle(player.score);
                 let avatarContent = globalAvatars[player.name] ? `<img src="${globalAvatars[player.name]}" style="width:100%; height:100%; object-fit:cover;">` : player.name.charAt(0).toUpperCase();
 
-                item.innerHTML = `<div style="display:flex; align-items:center; flex-grow:1;"><div class="rank">${medal}</div><div class="post-avatar" style="width:40px; height:40px; font-size:16px; margin: 0 10px 0 5px;">${avatarContent}</div><div class="lb-user">${player.name} ${player.name === currentUserNick ? '(Tu)' : ''}<br><small style="font-size:11px;color:var(--text-muted);font-weight:normal;">${rankLabel}</small></div></div><div style="display:flex; align-items:center; gap:15px;"><div class="lb-score">${player.score} 🏆</div>${actionsHtml}</div>`;
+                item.innerHTML = `<div style="display:flex; align-items:center; flex-grow:1;"><div class="rank">${medal}</div><div class="post-avatar" style="width:40px; height:40px; font-size:16px; margin: 0 10px 0 5px;">${avatarContent}</div><div class="lb-user clickable-user" onclick="openPublicProfile('${player.name}')">${player.name} <br><small style="font-size:11px;color:var(--text-muted);font-weight:normal;">${rankLabel}</small></div></div><div style="display:flex; align-items:center; gap:15px;"><div class="lb-score">${player.score} 🏆</div>${actionsHtml}</div>`;
                 list.appendChild(item);
             });
         }
@@ -1752,7 +1833,7 @@
                 else if (mySentRequests.includes(exactName)) { actionsHtml = `<span class="badge-status" style="color:var(--text-muted);">⏳ In attesa</span>`; } 
                 else if (myReceivedRequests.includes(exactName)) { actionsHtml = `<button class="btn-action btn-accept" onclick="navigateTo('page-friends')">Rispondi</button>`; } 
                 else { actionsHtml = `<button class="btn-action btn-add" onclick="sendFriendRequestFromSearch('${exactName}')">➕ Aggiungi</button>`; }
-                resultArea.innerHTML = `<div class="search-result-card"><div style="font-weight: bold; font-size:18px; color:var(--dark);">👤 ${exactName}</div><div>${actionsHtml}</div></div>`;
+                resultArea.innerHTML = `<div class="search-result-card"><div style="font-weight: bold; font-size:18px; color:var(--dark); cursor:pointer;" onclick="openPublicProfile('${exactName}')">👤 ${exactName}</div><div>${actionsHtml}</div></div>`;
             } else { resultArea.innerHTML = '<p style="color:var(--danger); text-align:center; font-size:14px; font-weight:bold;">Utente non trovato.</p>'; }
         }
 
@@ -1769,16 +1850,16 @@
             list.innerHTML = '';
             if (currentFriendsTab === 'received') {
                 if (!myReceivedRequests || myReceivedRequests.length === 0) { list.innerHTML = '<p style="text-align:center;">Nessuna richiesta.</p>'; return; }
-                myReceivedRequests.forEach(sender => { let item = document.createElement('div'); item.className = 'list-item'; item.innerHTML = `<div class="lb-user">📩 ${sender}</div><div style="display:flex; gap:10px;"><button class="btn-action btn-accept" onclick="acceptFriendRequest('${sender}')">✔️ Accetta</button><button class="btn-action btn-reject" onclick="rejectFriendRequest('${sender}')">❌ Rifiuta</button></div>`; list.appendChild(item); });
+                myReceivedRequests.forEach(sender => { let item = document.createElement('div'); item.className = 'list-item'; item.innerHTML = `<div class="lb-user clickable-user" onclick="openPublicProfile('${sender}')">📩 ${sender}</div><div style="display:flex; gap:10px;"><button class="btn-action btn-accept" onclick="acceptFriendRequest('${sender}')">✔️ Accetta</button><button class="btn-action btn-reject" onclick="rejectFriendRequest('${sender}')">❌ Rifiuta</button></div>`; list.appendChild(item); });
             } else if (currentFriendsTab === 'sent') {
                 if (!mySentRequests || mySentRequests.length === 0) { list.innerHTML = '<p style="text-align:center;">Nessuna richiesta inviata.</p>'; return; }
-                mySentRequests.forEach(target => { let item = document.createElement('div'); item.className = 'list-item'; item.innerHTML = `<div class="lb-user">📤 ${target}</div><button class="btn-action btn-cancel" onclick="cancelSentRequest('${target}')">Annulla</button>`; list.appendChild(item); });
+                mySentRequests.forEach(target => { let item = document.createElement('div'); item.className = 'list-item'; item.innerHTML = `<div class="lb-user clickable-user" onclick="openPublicProfile('${target}')">📤 ${target}</div><button class="btn-action btn-cancel" onclick="cancelSentRequest('${target}')">Annulla</button>`; list.appendChild(item); });
             } else if (currentFriendsTab === 'accepted') {
                 if (!myFriendsList || myFriendsList.length === 0) { list.innerHTML = '<p style="text-align:center;">Nessun amico.</p>'; return; }
-                myFriendsList.forEach(friend => { let item = document.createElement('div'); item.className = 'list-item'; item.innerHTML = `<div class="lb-user">🤝 ${friend}</div><button class="btn-action btn-reject" onclick="removeFriend('${friend}')">Rimuovi</button>`; list.appendChild(item); });
+                myFriendsList.forEach(friend => { let item = document.createElement('div'); item.className = 'list-item'; item.innerHTML = `<div class="lb-user clickable-user" onclick="openPublicProfile('${friend}')">🤝 ${friend}</div><button class="btn-action btn-reject" onclick="removeFriend('${friend}')">Rimuovi</button>`; list.appendChild(item); });
             } else if (currentFriendsTab === 'rejected') {
                 if (!myRejectedRequests || myRejectedRequests.length === 0) { list.innerHTML = '<p style="text-align:center;">Nessun utente rifiutato.</p>'; return; }
-                myRejectedRequests.forEach(sender => { let item = document.createElement('div'); item.className = 'list-item'; item.innerHTML = `<div class="lb-user">❌ ${sender}</div><button class="btn-action btn-accept" onclick="restoreRejectedRequest('${sender}')">Sblocca</button>`; list.appendChild(item); });
+                myRejectedRequests.forEach(sender => { let item = document.createElement('div'); item.className = 'list-item'; item.innerHTML = `<div class="lb-user clickable-user" onclick="openPublicProfile('${sender}')">❌ ${sender}</div><button class="btn-action btn-accept" onclick="restoreRejectedRequest('${sender}')">Sblocca</button>`; list.appendChild(item); });
             }
         }
 
