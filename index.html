@@ -43,7 +43,7 @@
         .top-action-btn:hover { transform: scale(1.1); }
         .top-badge { position: absolute; top: -5px; right: -8px; font-size: 10px; background: var(--danger); color: white; border-radius: 50%; padding: 2px 5px; font-weight: bold; animation: bounce 1s infinite; display: none;}
 
-        /* BOTTOM NAV */
+        /* BOTTOM NAV CON SAFE AREA IOS */
         .bottom-nav { 
             position: fixed; 
             bottom: 0; 
@@ -101,9 +101,8 @@
 
         .page-container { width: 100%; max-width: 900px; margin: -30px auto 0 auto; padding: 30px 20px 40px 20px; background: var(--white); border-radius: 30px 30px 0 0; box-shadow: 0 -10px 25px rgba(0,0,0,0.05); position: relative; z-index: 5; box-sizing: border-box; }
 
-        .container { display: flex; flex-wrap: wrap; justify-content: center; gap: 25px; max-width: 1200px; margin: 0 auto 40px auto; position: relative; z-index: 5; flex-grow: 1; padding: 0 20px;}
+        .container { display: flex; flex-wrap: wrap; justify-content: center; gap: 25px; max-width: 1200px; width: 100%; margin: 0 auto 40px auto; position: relative; z-index: 5; flex-grow: 1; padding: 0 20px;}
         
-        /* FIX CARTE UGUALI E BADGE PICCOLI */
         .card { 
             background: var(--white); 
             border-radius: 16px; 
@@ -114,13 +113,13 @@
             cursor: pointer; 
             transition: all 0.3s ease; 
             position: relative; 
+            border: 1px solid var(--gray); 
             border-top: 5px solid var(--accent);
             display: flex; 
             flex-direction: column; 
         }
         .card:hover { transform: translateY(-5px); box-shadow: 0 12px 30px rgba(0,0,0,0.12); }
         .card h2 { margin: 0 0 10px 0; color: var(--dark); font-size: 22px; }
-        
         .card-badges { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; align-items: center; justify-content: flex-start; }
         .region { font-size: 11px; font-weight: bold; text-transform: uppercase; color: var(--primary-dark); background: #fef5e6; padding: 4px 8px; border-radius: 6px; margin: 0; display: inline-block;}
         .rarity-badge { font-size: 10px; font-weight: bold; text-transform: uppercase; padding: 4px 8px; border-radius: 6px; color: white; margin: 0; display: inline-block; }
@@ -140,7 +139,6 @@
         .variant-item { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid #e1e8ed; }
         .variant-item:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
         
-        /* PALLINI COLORATI TIPOLOGIE BIRRA */
         .beer-type-dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 5px; vertical-align: middle; }
         .type-bionda { background-color: #f1c40f; box-shadow: 0 0 6px rgba(241,196,15,0.5); }
         .type-rossa { background-color: #e74c3c; box-shadow: 0 0 6px rgba(231,76,60,0.5); }
@@ -360,7 +358,7 @@
                 <p>Cerca, scopri e scatta per catturare nuove birre.</p>
             </header>
             
-            <div class="page-container">
+            <div class="page-container" style="margin-top: -30px; margin-bottom: 20px;">
                 <div class="controls">
                     <input type="text" id="searchBar" placeholder="Cerca marca o variante..." onkeyup="filterBeers()">
                     <span class="filters-label">Esplora per nazione</span>
@@ -444,7 +442,7 @@
 
             </div>
 
-            <div class="container">
+            <div class="container" style="padding: 0 20px;">
                 <div style="width: 100%; display:flex; justify-content:space-between; align-items:center; border-bottom: 2px solid var(--gray); padding-bottom:8px; margin-bottom:15px; position:relative; z-index: 5;">
                     <h3 style="margin:0; color:var(--dark);">📸 Varianti Sbloccate</h3>
                     <select id="profileSort" onchange="renderTrophies()" style="padding: 6px 10px; border-radius: 8px; border: 1px solid var(--gray); font-size: 12px; font-weight:bold; color: var(--dark); background: #fbfcfc; outline: none; cursor:pointer;">
@@ -539,6 +537,14 @@
                 <div class="rules-section">
                     <h3>✈️ Bonus Trasferta (Moltiplicatore x2)</h3>
                     <p>Se sblocchi una birra tramite GPS all'interno della sua nazione d'origine, lo sblocco diventa <strong>Shiny</strong> e il suo punteggio **raddoppia istantaneamente**.</p>
+                </div>
+                <div class="rules-section" style="background:#fffcf0; padding:20px; border-radius:12px; border-left:4px solid var(--primary-dark);">
+                    <h3>📷 Lattine e Birre alla Spina</h3>
+                    <p style="margin:0 0 10px 0; line-height:1.5; font-size:14px; color:var(--dark);">L'Intelligenza Artificiale ora riconosce anche i sottobicchieri e gli spillatori! Se bevi una birra alla spina o in lattina, assicurati di inquadrare bene il logo.<br><br><strong>Attenzione:</strong> l'AI blocca automaticamente le foto scattate a schermi di PC o smartphone per prevenire i bari.</p>
+                </div>
+                <div class="rules-section" style="background:#fdf2f2; padding:20px; border-radius:12px; border-left:4px solid var(--danger);">
+                    <h3>🛡️ Politica del Consumo Responsabile</h3>
+                    <p style="margin:0; line-height:1.5; font-size:14px; color:var(--dark);"><strong>BeerDex non assegna premi basati sulla quantità totale di alcol consumata</strong>. Riteniamo che incentivare il consumo quantitativo promuova comportamenti dannosi. Degusta responsabilmente.</p>
                 </div>
             </div>
         </div>
@@ -745,7 +751,7 @@
         let currentUserEmail = "";
         let isAdminUser = false; 
 
-        // --- INIZIALIZZAZIONE AI ---
+        // --- INIZIALIZZAZIONE AI (Senza blocco script) ---
         let aiModel = null;
         try {
             cocoSsd.load().then(model => { aiModel = model; }).catch(e => console.log("Errore COCO", e));
@@ -786,7 +792,8 @@
             "Irlanda": { latMin: 51.4, latMax: 55.5, lngMin: -10.5, lngMax: -5.9 },
             "Scozia": { latMin: 54.6, latMax: 60.9, lngMin: -8.7, lngMax: -0.7 },
             "Portogallo": { latMin: 36.9, latMax: 42.2, lngMin: -9.5, lngMax: -6.1 },
-            "Messico": { latMin: 14.3, latMax: 32.8, lngMin: -118.4, lngMax: -86.7 }
+            "Messico": { latMin: 14.3, latMax: 32.8, lngMin: -118.4, lngMax: -86.7 },
+            "Stati Uniti": { latMin: 24.3, latMax: 49.3, lngMin: -125.0, lngMax: -66.9 }
         };
 
         // --- MAPPA LEAFLET ---
@@ -907,10 +914,10 @@
             if (vLower.includes("scura") || vLower.includes("stout") || vLower.includes("dark") || vLower.includes("dunkel") || vLower.includes("nera") || vLower.includes("cerna") || vLower.includes("blue") || vLower.includes("blu") || vLower.includes("maximator") || vLower.includes("sixtus") || vLower.includes("salvator") || vLower.includes("ghisa") || vLower.includes("leon")) {
                 return "scura";
             }
-            if (vLower.includes("bianca") || vLower.includes("weiss") || vLower.includes("weiß") || vLower.includes("witbier") || vLower.includes("blanche") || vLower.includes("isaac") || vLower.includes("wayan") || vLower.includes("nora")) {
+            if (vLower.includes("bianca") || vLower.includes("weiss") || vLower.includes("weiß") || vLower.includes("witbier") || vLower.includes("blanche") || vLower.includes("isaac") || vLower.includes("wayan") || vLower.includes("nora") || vLower.includes("hazy")) {
                 return "bianca";
             }
-            if (vLower.includes("ipa") || vLower.includes("ippa") || vLower.includes("guerrilla") || vLower.includes("taranta")) {
+            if (vLower.includes("ipa") || vLower.includes("ippa") || vLower.includes("guerrilla") || vLower.includes("taranta") || vLower.includes("elvis")) {
                 return "ipa";
             }
             return "bionda"; 
@@ -1033,8 +1040,7 @@
                     ctx.drawImage(img, startX, startY, size, size, 0, 0, MAX_SIZE, MAX_SIZE);
                     
                     const saveAvatarToDB = () => {
-                        showCustomAlert("Caricamento avatar in corso...", "Attendere");
-                        const avatarBase64 = canvas.toDataURL('image/jpeg', 0.6);
+                        const avatarBase64 = canvas.toDataURL('image/jpeg', 0.8);
                         db.ref('users_avatars/' + currentUserNick).set(avatarBase64).then(() => {
                             showCustomAlert("Foto profilo aggiornata con successo!", "Fatto");
                         });
@@ -1049,7 +1055,7 @@
                                 }
                             });
                             if (!isSafe) {
-                                showCustomAlert("⚠️ La foto selezionata è stata bloccata perché potrebbe contenere contenuti inappropriati.", "Sicurezza Profilo");
+                                showCustomAlert("⚠️ La foto selezionata è stata bloccata perché potrebbe contenere contenuti inappropriati o osceni.", "Sicurezza Profilo");
                                 return;
                             }
                             saveAvatarToDB();
@@ -1066,7 +1072,7 @@
             reader.readAsDataURL(file);
         }
 
-        // --- DATABASE BIRRE ---
+        // --- DATABASE BIRRE (54 Birre per Griglia Perfetta) ---
         const beers = [
             { brand: "Beck's", country: "Germania", flag: "🇩🇪", rarity: "comune", desc: "Classica pilsner tedesca (Brema).", variants: ["Pilsner", "Blue (Analcolica)", "Lemon", "Green Lemon", "Unfiltered"] },
             { brand: "Carlsberg", country: "Danimarca", flag: "🇩🇰", rarity: "comune", desc: "Colosso industriale danese.", variants: ["Pilsner", "Elephant", "Special Brew"] },
@@ -1082,6 +1088,7 @@
             { brand: "Wuhrer", country: "Italia", flag: "🇮🇹", rarity: "comune", desc: "Il più antico marchio di birra italiano (Brescia, 1829).", variants: ["La Classica"] },
             { brand: "Augustiner", country: "Germania", flag: "🇩🇪", rarity: "media", desc: "Storico birrificio di Monaco di Baviera.", variants: ["Lagerbier Hell", "Edelstoff", "Maximator"] },
             { brand: "Bavaria", country: "Paesi Bassi", flag: "🇳🇱", rarity: "media", desc: "Marchio olandese noto per la linea 8.6.", variants: ["Premium Pilsner", "8.6 Original", "8.6 Red", "8.6 Gold", "8.6 Extreme"] },
+            { brand: "BrewDog", country: "Scozia", flag: "🏴󠁧󠁢󠁳󠁣󠁴󠁿", rarity: "media", desc: "Birrificio artigianale scozzese famoso in tutto il mondo.", variants: ["Punk IPA", "Elvis Juice", "Hazy Jane"] },
             { brand: "Budweiser Budvar", country: "Repubblica Ceca", flag: "🇨🇿", rarity: "media", desc: "L'autentica lager ceca protetta.", variants: ["Original Lager", "Dark Lager", "Nealko"] },
             { brand: "Castello", country: "Italia", flag: "🇮🇹", rarity: "media", desc: "Erede dello storico stabilimento di Udine.", variants: ["La Decisa", "L'Intensa", "La Forte", "Radler"] },
             { brand: "Ceres", country: "Danimarca", flag: "🇩🇰", rarity: "media", desc: "Marchio danese diventato un cult in Italia per le strong ale.", variants: ["Strong Ale", "Red Erik", "Extreme Ten"] },
@@ -1110,11 +1117,12 @@
             { brand: "Chimay", country: "Belgio", flag: "🇧🇪", rarity: "rara", desc: "Autentica birra trappista belga prodotta dai monaci.", variants: ["Première (Rossa)", "Cinq Cents (Tripel)", "Grande Réserve (Blu)"] },
             { brand: "Chouffe", country: "Belgio", flag: "🇧🇪", rarity: "rara", desc: "La celebre birra artigianale belga dello gnomo.", variants: ["La Chouffe (Blonde)", "Mc Chouffe (Brune)", "Cherry Chouffe"] },
             { brand: "Crak Brewery", country: "Italia", flag: "🇮🇹", rarity: "rara", desc: "Rivoluzionario birrificio veneto, re indiscusso delle IPA.", variants: ["Guerrilla (IPA)", "Mundaka", "Mansueto", "After Summer"] },
-            { brand: "Del Borgo", country: "Italia", flag: "🇮🇹", rarity: "rara", desc: "Famoso birrificio laziale, noto per le recursive creative.", variants: ["ReAle", "Duchessa", "My Antonia", "Lisa", "Cortigiana"] },
+            { brand: "Del Borgo", country: "Italia", flag: "🇮🇹", rarity: "rara", desc: "Famoso birrificio laziale, noto per le sue ricette creative.", variants: ["ReAle", "Duchessa", "My Antonia", "Lisa", "Cortigiana"] },
             { brand: "Delirium", country: "Belgio", flag: "🇧🇪", rarity: "rara", desc: "Famosissima Strong Ale belga.", variants: ["Tremens", "Nocturnum", "Red"] },
             { brand: "Duvel", country: "Belgio", flag: "🇧🇪", rarity: "rara", desc: "La leggendaria Strong Gold Ale belga.", variants: ["Original Blond", "Triple Hop", "6.66"] },
             { brand: "Flea", country: "Italia", flag: "🇮🇹", rarity: "rara", desc: "Birre artigianali umbre brassate con acqua di sorgente.", variants: ["Costanza", "Bianca Lancia", "Federico II", "Bastola", "Violante"] },
             { brand: "Hoegaarden", country: "Belgio", flag: "🇧🇪", rarity: "rara", desc: "La regina delle birre bianche belghe.", variants: ["Witbier", "Rosée"] },
+            { brand: "Kwak", country: "Belgio", flag: "🇧🇪", rarity: "rara", desc: "Famosa per il suo iconico bicchiere a forma di clessidra e l'alto grado alcolico.", variants: ["Pauwel Kwak", "Rouge"] },
             { brand: "Mastri Birrai Umbri", country: "Italia", flag: "🇮🇹", rarity: "rara", desc: "Realtà umbra che esalta i cereali del territorio.", variants: ["Cotta 21 (Bionda)", "Cotta 37 (Rossa)", "Cotta 74 (Nera)", "Cotta 68 (IPA)", "Cotta 50 (Weiss)"] },
             { brand: "Salento", country: "Italia", flag: "🇮🇹", rarity: "rara", desc: "Eccellenza artigianale pugliese, nata a Leverano (Lecce).", variants: ["Agricola (Lager)", "Nuda e Cruda", "Beggia", "Taranta (IPA)"] },
             { brand: "Semedorato", country: "Italia", flag: "🇮🇹", rarity: "rara", desc: "Birra artigianale premium siciliana.", variants: ["Bionda Premium", "Rossa Doppio Malto", "Non Filtrata"] },
@@ -1278,7 +1286,7 @@
                                     });
 
                                 } else {
-                                    showCustomAlert(`L'AI non riesce a leggere la scritta "${brand}" sull'etichetta. Riprova inquadrando meglio il nome!`, "AI Anti-Cheat");
+                                    showCustomAlert(`L'AI non riesce a leggere la scritta "${brand}" sull'etichetta.\n\nSe è in LATTINA o ALLA SPINA, assicurati di inquadrare bene il logo sul bicchiere, il sottobicchiere o la latta!`, "AI Anti-Cheat");
                                     updateStats();
                                 }
                             });
@@ -1286,13 +1294,13 @@
 
                         if (aiModel) {
                             aiModel.detect(canvas).then(predictions => {
-                                let isDrink = false; 
+                                let isScreen = false; 
                                 predictions.forEach(p => { 
-                                    if(p.class === 'bottle' || p.class === 'cup' || p.class === 'wine glass') isDrink = true; 
+                                    if(p.class === 'tv' || p.class === 'laptop' || p.class === 'monitor' || p.class === 'cell phone') isScreen = true; 
                                 });
                                 
-                                if (!isDrink) { 
-                                    showCustomAlert("🚨 Non vedo bottiglie o bicchieri veri.", "AI Anti-Cheat"); 
+                                if (isScreen) { 
+                                    showCustomAlert("🚨 L'AI ha rilevato uno schermo. È vietato fotografare PC o smartphone per barare!", "Frode Rilevata"); 
                                     updateStats(); 
                                     return; 
                                 }
@@ -1406,7 +1414,7 @@
 
         let currentFilter = 'Tutte'; 
         function setFilter(countryVal) { 
-            if(countryVal) {
+            if(countryVal !== undefined) {
                 currentFilter = countryVal;
             } else {
                 const el = document.getElementById('countryFilter');
@@ -1497,7 +1505,6 @@
                 });
             });
 
-            // ORDINAMENTO DINAMICO PROFILO
             allVariantsList.sort((a, b) => {
                 if (sortVal === 'alpha') return a.brand.localeCompare(b.brand) || a.variant.localeCompare(b.variant);
                 if (sortVal === 'nation') return a.country.localeCompare(b.country) || a.brand.localeCompare(b.brand);
@@ -1573,7 +1580,6 @@
         }
 
         function renderDashboard() {
-            checkTimedEvents(); // Forza aggiornamento immediato UI evento
             const welcomeEl = document.getElementById('dashWelcomeName');
             if (welcomeEl) welcomeEl.innerText = currentUserNick;
             const dashLastBeer = document.getElementById('dashLastBeer');
