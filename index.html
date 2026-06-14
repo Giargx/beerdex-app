@@ -88,15 +88,18 @@
         #page-map .hero { margin-bottom: 0; padding-bottom: 20px; border-bottom-left-radius: 20px; border-bottom-right-radius: 20px; z-index: 10; position: relative; box-shadow: 0 5px 15px rgba(0,0,0,0.1); flex-shrink: 0; }
         #mapContainer { flex-grow: 1; width: 100%; z-index: 1; background: #e0e6ed; }
 
-        /* HEADER ANIMATO: EFFETTO BIRRA E SCHIUMA */
+        /* HEADER ANIMATO: EFFETTO BIRRA E SCHIUMA MORBIDA (NO NUVOLE) */
         header.hero { background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%); color: var(--dark); padding: 30px 20px 60px 20px; text-align: center; margin-bottom: 0; position: relative; overflow: hidden; z-index: 1; }
         header.hero h1 { margin: 10px 0 10px 0; font-size: 32px; font-weight: 800; letter-spacing: -1px; position: relative; z-index: 5; }
         header.hero p { margin: 0; font-size: 15px; opacity: 0.85; font-weight: 500; position: relative; z-index: 5; }
         
-        .foam-container { position: absolute; top: 0; left: -10%; width: 120%; height: 100%; z-index: 0; pointer-events: none; transition: transform 0.1s ease-out; transform: translate(var(--tilt-x, 0px), var(--tilt-y, 0px)); }
-        .foam-wave { position: absolute; top: -5px; left: 0; width: 200%; height: 120px; background: url('data:image/svg+xml;utf8,<svg viewBox="0 0 1440 320" xmlns="http://www.w3.org/2000/svg"><path fill="%23ffffff" fill-opacity="1" d="M0,64L48,85.3C96,107,192,149,288,149.3C384,149,480,107,576,96C672,85,768,107,864,122.7C960,139,1056,149,1152,133.3C1248,117,1344,75,1392,53.3L1440,32L1440,0L1392,0C1344,0,1248,0,1152,0C1056,0,960,0,864,0C768,0,672,0,576,0C480,0,384,0,288,0C192,0,96,0,48,0L0,0Z"></path></svg>') repeat-x; background-size: 50% 100%; animation: wave 8s linear infinite; }
-        .foam-wave.layer2 { top: 5px; opacity: 0.5; animation: wave 12s linear infinite reverse; }
-        @keyframes wave { 0% { background-position-x: 0; } 100% { background-position-x: 1440px; } }
+        .foam-container { position: absolute; top: 0; left: -10%; width: 120%; height: 100%; z-index: 0; pointer-events: none; transition: transform 0.15s ease-out; transform: translate(var(--tilt-x, 0px), var(--tilt-y, 0px)); }
+        
+        /* Curva morbida, ferma, si muove solo col telefono */
+        .foam-wave { position: absolute; top: -2px; left: 0; width: 100%; height: 60px; background: url('data:image/svg+xml;utf8,<svg viewBox="0 0 1200 120" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg"><path d="M0,30 C300,70 900,-10 1200,30 L1200,0 L0,0 Z" fill="%23ffffff"/></svg>') no-repeat; background-size: 100% 100%; }
+        .foam-wave.layer2 { top: 5px; opacity: 0.4; background: url('data:image/svg+xml;utf8,<svg viewBox="0 0 1200 120" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg"><path d="M0,50 C400,-10 800,70 1200,30 L1200,0 L0,0 Z" fill="%23ffffff"/></svg>') no-repeat; background-size: 100% 100%; }
+        
+        /* Bollicine */
         .bubble { position: absolute; bottom: -20px; background: rgba(255, 255, 255, 0.4); border-radius: 50%; animation: rise infinite ease-in; }
         @keyframes rise { 0% { bottom: -20px; transform: translateX(0); opacity: 0; } 50% { opacity: 1; } 100% { bottom: 100%; transform: translateX(-20px); opacity: 0; } }
 
@@ -140,6 +143,7 @@
         .variant-item { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid #e1e8ed; }
         .variant-item:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
         
+        /* PALLINI COLORATI TIPOLOGIE BIRRA */
         .beer-type-dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 5px; vertical-align: middle; }
         .type-bionda { background-color: #f1c40f; box-shadow: 0 0 6px rgba(241,196,15,0.5); }
         .type-rossa { background-color: #e74c3c; box-shadow: 0 0 6px rgba(231,76,60,0.5); }
@@ -416,7 +420,6 @@
             </div>
         </div>
 
-        <!-- PAGINA PROFILO -->
         <div id="page-profile" class="page-view">
             <header class="hero">
                 <h1>👤 Il Tuo Profilo</h1>
@@ -620,7 +623,7 @@
                 hero.insertBefore(foam, hero.firstChild);
             });
 
-            // Sensori di movimento
+            // Sensori di movimento (Giroscopio)
             window.addEventListener('deviceorientation', (e) => {
                 let tiltX = e.gamma ? e.gamma / 2 : 0; 
                 let tiltY = e.beta ? (e.beta - 45) / 4 : 0; 
@@ -628,7 +631,7 @@
                 document.documentElement.style.setProperty('--tilt-y', tiltY + 'px');
             });
             
-            // Sensori di tocco per la schiuma
+            // Sensori di tocco per muovere la schiuma scorrendo il dito
             document.addEventListener('touchmove', (e) => {
                 let touch = e.touches[0];
                 let moveX = (touch.clientX / window.innerWidth - 0.5) * 40;
@@ -1290,7 +1293,6 @@
                 });
             });
 
-            // ORDINAMENTO DINAMICO PROFILO
             allVariantsList.sort((a, b) => {
                 if (sortVal === 'alpha') return a.brand.localeCompare(b.brand) || a.variant.localeCompare(b.variant);
                 if (sortVal === 'nation') return a.country.localeCompare(b.country) || a.brand.localeCompare(b.brand);
