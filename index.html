@@ -66,6 +66,8 @@
 
         .btn-logout { background: var(--danger) !important; color: white; border: none; padding: 15px; border-radius: 12px; font-size: 16px; font-weight: bold; width: 100%; margin-top: 20px; cursor: pointer; box-shadow: 0 4px 10px rgba(231, 76, 60, 0.2); }
         
+        #aiStatusMini { position: fixed; bottom: 70px; left: 0; width: 100%; background: rgba(255,255,255,0.95); color: var(--text-muted); text-align: center; font-size: 11px; font-weight: bold; padding: 5px 0; border-top: 1px solid var(--gray); z-index: 999; backdrop-filter: blur(5px); }
+
         .progress-container { width: 100%; height: 10px; background: #e0e6ed; border-radius: 10px; margin: 15px auto 5px auto; overflow: hidden; }
         .progress-bar { height: 100%; background-color: var(--primary-dark); width: 0%; transition: width 0.8s cubic-bezier(0.25, 0.8, 0.25, 1); }
         .progress-text { font-size: 13px; font-weight: bold; color: var(--text-muted); text-align: center; margin-bottom: 20px; }
@@ -81,7 +83,7 @@
         .page-view.active { display: block; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* MAPPA */
+        /* FIX MAPPA FULL PAGE */
         #page-map.active { display: flex !important; flex-direction: column; height: calc(100vh - 135px); margin: 0; padding: 0; overflow: hidden; }
         #page-map .hero { margin-bottom: 0; padding-bottom: 20px; border-bottom-left-radius: 20px; border-bottom-right-radius: 20px; z-index: 10; position: relative; box-shadow: 0 5px 15px rgba(0,0,0,0.1); flex-shrink: 0; }
         #mapContainer { flex-grow: 1; width: 100%; z-index: 1; background: #e0e6ed; }
@@ -167,11 +169,12 @@
         .dash-empty { background: #fdf2f2; border: 1px dashed var(--danger); padding: 20px; border-radius: 12px; text-align: center; color: var(--danger); font-weight: bold; }
         .user-rank-title { font-size: 11px; background: #eef3f7; padding: 3px 8px; border-radius: 20px; font-weight: bold; color: var(--social-blue); display: inline-block; margin-top: 4px;}
 
-        /* MODALI */
+        /* MODALI & REGOLAMENTO */
         .auth-modal { display: flex; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 10000; align-items: center; justify-content: center; backdrop-filter: blur(8px); }
         .auth-container { background: var(--white); padding: 35px; border-radius: 24px; width: 90%; max-width: 400px; text-align: center; box-shadow: 0 15px 35px rgba(0,0,0,0.3); animation: slideUp 0.3s ease-out; position: relative;}
         .auth-container input { width: 100%; padding: 12px; margin: 8px 0; border: 2px solid var(--gray); border-radius: 10px; font-size: 15px; box-sizing: border-box; outline: none; transition: 0.3s; }
         .auth-container input:focus { border-color: var(--primary-dark); }
+        
         .pwd-container { position: relative; width: 100%; margin: 8px 0; }
         .pwd-container input { margin: 0; padding-right: 40px; }
         .eye-icon { position: absolute; right: 15px; top: 50%; transform: translateY(-50%); cursor: pointer; font-size: 18px; user-select: none; opacity: 0.6; }
@@ -217,20 +220,28 @@
         .rank { font-weight: bold; font-size: 20px; width: 30px; }
         .lb-score { font-size: 20px; font-weight: bold; }
 
-        /* AVATAR CONDIVISO PER CLASSIFICA E POST */
+        /* SOCIAL FEED RESPONSIVO (Stile Instagram) */
+        .social-page-container { width: 100%; margin: -30px auto 0 auto; background: var(--light); border-radius: 30px 30px 0 0; box-shadow: 0 -10px 25px rgba(0,0,0,0.05); position: relative; z-index: 5; box-sizing: border-box; padding-top: 20px; min-height: calc(100vh - 110px); }
+        .social-feed { display: flex; flex-direction: column; gap: 10px; }
+        .post-card { background: var(--white); border-top: 1px solid var(--gray); border-bottom: 1px solid var(--gray); overflow: hidden; margin-bottom: 15px; }
+        .post-header { display: flex; align-items: center; padding: 12px 15px; justify-content: space-between; }
         .post-avatar { width: 40px; height: 40px; flex-shrink: 0; background: linear-gradient(135deg, var(--social-blue), #8e44ad); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: var(--white); font-weight: bold; font-size: 18px; text-transform: uppercase; overflow: hidden; }
-        
-        .social-feed { display: flex; flex-direction: column; gap: 30px; }
-        .post-card { background: var(--white); border: 1px solid var(--gray); border-radius: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); overflow: hidden; }
-        .post-header { display: flex; align-items: center; padding: 15px; border-bottom: 1px solid var(--gray); justify-content: space-between;}
         .post-user { font-weight: bold; font-size: 15px; color: var(--dark); }
         .post-time { font-size: 12px; color: var(--text-muted); }
-        .post-image { width: 100%; max-height: 400px; object-fit: contain; background: #000; display: block; border-bottom: 1px solid var(--gray); }
-        .post-caption { padding: 15px; font-size: 14px; line-height: 1.5; color: var(--dark); border-top: 1px solid var(--gray);}
-        .post-actions { display: flex; align-items: center; padding: 0 15px 15px 15px; }
+        .post-image { width: 100%; max-height: 60vh; object-fit: contain; background: #000; display: block; }
+        .post-actions { display: flex; align-items: center; padding: 10px 15px 5px 15px; }
         .btn-like { background: var(--light); border: 1px solid var(--gray); border-radius: 20px; padding: 6px 14px; font-weight: bold; cursor: pointer; display:flex; align-items:center; gap:5px; transition: 0.2s; color: var(--text-muted); font-size:14px; }
         .btn-like.liked { background: #fef5e6; border-color: var(--primary); color: var(--primary-dark); }
         .btn-like:hover { transform: scale(1.05); }
+        .post-caption { padding: 5px 15px 15px 15px; font-size: 14px; line-height: 1.5; color: var(--dark); }
+
+        /* Media Query per mantenere le schede separate su schermi grandi */
+        @media (min-width: 600px) {
+            .social-page-container { max-width: 600px; padding: 30px 20px; background: var(--white); }
+            .social-feed { gap: 30px; }
+            .post-card { border-radius: 16px; border: 1px solid var(--gray); box-shadow: 0 4px 12px rgba(0,0,0,0.05); margin-bottom: 0; }
+            .post-image { max-height: 500px; }
+        }
 
         .rules-section { margin-bottom: 25px; border-bottom: 1px solid var(--gray); padding-bottom: 20px; }
         .rules-section:last-child { border-bottom: none; }
@@ -429,6 +440,7 @@
             </div>
         </div>
 
+        <!-- PAGINA PROFILO -->
         <div id="page-profile" class="page-view">
             <header class="hero">
                 <h1>👤 Il Tuo Profilo</h1>
@@ -483,7 +495,7 @@
                 <h1>📸 Feed Amici</h1>
                 <p>Scopri le birre sbloccate dalla tua rete di amici.</p>
             </header>
-            <div class="page-container"><div class="social-feed" id="socialFeed"></div></div>
+            <div class="social-page-container"><div class="social-feed" id="socialFeed"></div></div>
         </div>
 
         <div id="page-friends" class="page-view">
@@ -1091,13 +1103,13 @@
             reader.readAsDataURL(file);
         }
 
-        // --- DATABASE BIRRE ---
+        // --- DATABASE BIRRE (57 Birre) ---
         const beers = [
             { brand: "Augustiner", country: "Germania", flag: "🇩🇪", rarity: "media", desc: "Storico birrificio di Monaco di Baviera.", variants: ["Lagerbier Hell", "Edelstoff", "Maximator"] },
-            { brand: "Baladin", country: "Italia", flag: "🇮🇹", rarity: "rara", desc: "Pioniere della birra artigianale italiana (Piemonte).", variants: ["Isaac (Blanche)", "Wayan (Saison)", "Nora (Speziata)", "Super Bitter", "Leon", "Nazionale", "L'IPPA", "Rock'n'Roll"] },
+            { brand: "Baladin", country: "Italia", flag: "🇮🇹", rarity: "rara", desc: "Pioniere della birra artigianale italiana.", variants: ["Isaac (Blanche)", "Wayan (Saison)", "Nora (Speziata)", "Super Bitter", "Leon", "Nazionale", "L'IPPA", "Rock'n'Roll"] },
             { brand: "Bavaria", country: "Paesi Bassi", flag: "🇳🇱", rarity: "media", desc: "Marchio olandese noto per la linea 8.6.", variants: ["Premium Pilsner", "8.6 Original", "8.6 Red", "8.6 Gold", "8.6 Extreme"] },
             { brand: "Beck's", country: "Germania", flag: "🇩🇪", rarity: "comune", desc: "Classica pilsner tedesca (Brema).", variants: ["Pilsner", "Blue (Analcolica)", "Lemon", "Green Lemon", "Unfiltered"] },
-            { brand: "Best Brau", country: "Germania", flag: "🇩🇪", rarity: "comune", desc: "Birra commerciale molto diffusa nei supermercati Eurospin.", variants: ["Premium Pils", "Doppio Malto", "Rossa", "Weiss"] },
+            { brand: "Best Brau", country: "Germania", flag: "🇩🇪", rarity: "comune", desc: "Birra commerciale diffusa nei supermercati.", variants: ["Premium Pils", "Doppio Malto", "Rossa", "Weiss"] },
             { brand: "Birrificio Italiano", country: "Italia", flag: "🇮🇹", rarity: "rara", desc: "Storico birrificio artigianale lombardo.", variants: ["Tipopils", "Bibock", "Nigredo", "Vudù", "Amber Shock"] },
             { brand: "Birrificio Lambrate", country: "Italia", flag: "🇮🇹", rarity: "rara", desc: "Il birrificio simbolo di Milano e del fermento artigianale.", variants: ["Montestella", "Sant'Ambroeus", "Ghisa", "Porpora", "Quarantot"] },
             { brand: "BrewDog", country: "Scozia", flag: "🏴󠁧󠁢󠁳󠁣󠁴󠁿", rarity: "media", desc: "Birrificio artigianale scozzese famoso in tutto il mondo.", variants: ["Punk IPA", "Elvis Juice", "Hazy Jane"] },
@@ -1174,7 +1186,7 @@
         function getBeerPoints(brandName, variantName, isShiny, isShared) {
             let base = getBasePoints(brandName, variantName);
             if(isShiny) base *= 2;
-            if(isShared) base *= 2;
+            if(isShared) base *= 2; 
             return base;
         }
 
