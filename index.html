@@ -640,7 +640,28 @@
             </div>
         </div>
     </div>
-
+<nav class="bottom-nav">
+        <div class="nav-item active" onclick="navigateTo('page-home')" id="nav-page-home">
+            <div class="nav-icon">🏠</div>
+            <div class="nav-text">Home</div>
+        </div>
+        <div class="nav-item" onclick="navigateTo('page-explore')" id="nav-page-explore">
+            <div class="nav-icon">🔍</div>
+            <div class="nav-text">Esplora</div>
+        </div>
+        <div class="nav-item" onclick="navigateTo('page-leaderboard')" id="nav-page-leaderboard">
+            <div class="nav-icon">🏅</div>
+            <div class="nav-text">Classifica</div>
+        </div>
+        <div class="nav-item" onclick="navigateTo('page-social')" id="nav-page-social">
+            <div class="nav-icon">🌍</div>
+            <div class="nav-text">Social</div>
+        </div>
+        <div class="nav-item" onclick="navigateTo('page-profile')" id="nav-page-profile">
+            <div class="nav-icon">👤</div>
+            <div class="nav-text">Profilo</div>
+        </div>
+    </nav>
     <script>
         function normalizeStr(str) {
             return str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
