@@ -9,10 +9,8 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
 
-    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/coco-ssd"></script>
+    <script src="https://unpkg.com/html5-qrcode"></script>
     <script src="https://unpkg.com/nsfwjs"></script>
-    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@4.1.2/dist/tesseract.min.js"></script>
 
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -143,7 +141,8 @@
         .type-ipa { background-color: #2ecc71; box-shadow: 0 0 6px rgba(46,204,113,0.5); }
         .beer-type-label { font-size: 11px; color: var(--text-muted); font-weight: bold; margin-right: 10px; vertical-align: middle; text-transform: uppercase; }
 
-        .photo-btn { background-color: var(--primary-dark); color: var(--white); padding: 8px 14px; border-radius: 8px; cursor: pointer; font-size: 12px; font-weight: bold; display: inline-block; transition: 0.2s; box-shadow: 0 2px 5px rgba(243, 156, 18, 0.3); }
+        .photo-btn { background-color: var(--primary-dark); color: var(--white); border: none; padding: 8px 14px; border-radius: 8px; cursor: pointer; font-size: 12px; font-weight: bold; display: inline-block; transition: 0.2s; box-shadow: 0 2px 5px rgba(243, 156, 18, 0.3); }
+        .photo-btn:hover { background-color: var(--accent); }
         input[type="file"] { display: none; }
         .thumb-preview { width: 45px; height: 45px; border-radius: 8px; object-fit: cover; border: 2px solid var(--accent); margin-left: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); cursor: pointer; }
         .unlocked-status { display: flex; align-items: center; color: #27ae60; font-weight: bold; font-size: 13px;}
@@ -173,7 +172,7 @@
         .btn-main:hover { background: #d35400; }
         .btn-secondary { width: 100%; background: var(--gray); color: var(--dark); border: none; padding: 14px; border-radius: 10px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 10px; transition: 0.2s;}
         .auth-toggle { font-size: 13px; color: var(--social-blue); cursor: pointer; margin-top: 15px; display: inline-block; text-decoration: underline; margin-right: 15px;}
-        
+
         .tabs { display: flex; margin-bottom: 20px; background: var(--gray); border-radius: 12px; overflow: hidden; }
         .tab { flex: 1; padding: 12px; text-align: center; font-weight: bold; cursor: pointer; color: var(--text-muted); transition: 0.3s; font-size: 13px; display: flex; align-items: center; justify-content: center; gap: 5px;}
         .tab.active { background: var(--primary-dark); color: var(--white); }
@@ -195,6 +194,8 @@
         .btn-reject { background: #fdf2f2; color: #e74c3c; }
         .btn-add { background: var(--primary-dark); color: var(--white); }
         .btn-cancel { background: #f0f3f4; color: #7f8c8d; }
+        .btn-report { background: none; border: none; font-size: 18px; cursor: pointer; margin-left: auto; color: var(--text-muted); transition: 0.2s;}
+        .btn-report:hover { transform: scale(1.2); }
         .badge-status { font-size: 12px; font-weight: bold; }
 
         .list-container { display: flex; flex-direction: column; gap: 10px; }
@@ -278,6 +279,9 @@
 </head>
 <body>
 
+    <!-- Div Nascosto per l'istanza HTML5-QRCode -->
+    <div id="hidden-reader-div" style="display:none;"></div>
+
     <div class="top-bar">
         <div class="top-bar-side">
             <button class="top-action-btn" onclick="navigateTo('page-map')" title="Mappa Sblocchi">🗺️</button>
@@ -291,6 +295,7 @@
         </div>
     </div>
 
+    <!-- Modale Alert Universale -->
     <div id="customModalOverlay" class="auth-modal" style="display:none; z-index: 20000;">
         <div class="auth-container" style="max-width: 350px;">
             <h3 id="customModalTitle" style="margin-top:0; color:var(--dark); font-size:22px;">Avviso</h3>
@@ -299,13 +304,49 @@
         </div>
     </div>
 
+    <!-- Scanner Modal (Barcode Fotografico / Spina) -->
+    <div id="scannerModalOverlay" class="auth-modal" style="display:none; z-index: 18000;">
+        <div class="auth-container" style="max-width: 400px; width: 95%; padding: 20px;">
+            <h3 style="margin-top:0; color:var(--dark); font-size:20px;">🔍 1. Codice a Barre</h3>
+            <p style="color:var(--text-muted); font-size:13px; margin-bottom:15px;">Scatta una foto chiara al codice a barre sul retro per verificare l'autenticità.</p>
+            
+            <label class="btn-main" style="display:block; text-align:center; padding: 14px; cursor:pointer;">
+                📷 Fotografa Codice a Barre
+                <input type="file" accept="image/*" capture="environment" style="display:none;" onchange="handleBarcodePhoto(event)">
+            </label>
+            
+            <hr style="border: 0; border-top: 1px solid var(--gray); margin: 20px 0;">
+            <p style="font-size: 12px; color: var(--dark); font-weight:bold; margin-top:0;">Stai bevendo una birra alla spina?</p>
+            <label class="btn-secondary" style="display:block; text-align:center; padding: 12px; margin-top:5px; cursor:pointer;">
+                È alla spina (Salta Scanner) 🍺
+                <input type="file" accept="image/*" capture="environment" style="display:none;" onchange="handlePhotoUpload(event, true)">
+            </label>
+
+            <button class="btn-secondary" onclick="closeScannerModal()" style="margin-top:15px; background:var(--danger); color:white; border:none;">Annulla</button>
+        </div>
+    </div>
+    
+    <!-- Modal per Scatto Foto (dopo Barcode approvato) -->
+    <div id="captureModalOverlay" class="auth-modal" style="display:none; z-index: 18000;">
+        <div class="auth-container" style="max-width: 400px; width: 95%;">
+            <h3 style="margin-top:0; color:var(--dark); font-size:20px;">✅ Codice Approvato!</h3>
+            <p style="color:var(--text-muted); font-size:14px; margin-bottom:20px;">Ora scatta la foto per il tuo feed social. Assicurati che si veda bene la birra!</p>
+            <label class="btn-main" style="display:block; text-align:center; padding: 14px; cursor:pointer;">
+                📸 Apri Fotocamera
+                <input type="file" accept="image/*" capture="environment" style="display:none;" onchange="handlePhotoUpload(event, false)">
+            </label>
+            <button class="btn-secondary" onclick="closeCaptureModal()">Annulla</button>
+        </div>
+    </div>
+
+    <!-- Modal Condivisione (Amici) -->
     <div id="shareModal" class="auth-modal" style="display:none; z-index: 20000;">
         <div class="auth-container" style="max-width: 350px;">
-            <h3 style="margin-top:0; color:var(--dark); font-size:22px;">🍻 Più bevande rilevate!</h3>
-            <p style="color:var(--text-muted); font-size:14px; margin-bottom:20px;">L'AI ha notato che non sei solo! Tagga il tuo amico e <strong>raddoppia i punti</strong> di questo sblocco.</p>
+            <h3 style="margin-top:0; color:var(--dark); font-size:22px;">🍻 Bevuta in Compagnia</h3>
+            <p style="color:var(--text-muted); font-size:14px; margin-bottom:20px;">Sei in compagnia? Tagga un amico e <strong>raddoppia i punti</strong> di questo sblocco.</p>
             <select id="shareFriendSelect" style="width: 100%; padding: 12px; border-radius: 10px; border: 2px solid var(--gray); margin-bottom: 20px; font-weight: bold; outline:none; cursor:pointer;"></select>
-            <button class="btn-main" onclick="submitSharedPost()">Pubblica Sblocco Condiviso</button>
-            <button class="btn-secondary" onclick="skipSharedPost()">Sono solo io (Nessun Bonus)</button>
+            <button class="btn-main" onclick="submitSharedPost()">Condividi Sblocco (+ Punti)</button>
+            <button class="btn-secondary" onclick="skipSharedPost()">Sono solo io</button>
         </div>
     </div>
 
@@ -348,7 +389,7 @@
     </div>
 
     <div class="main-content">
-        
+        <!-- Dashboard / Home -->
         <div id="page-home" class="page-view">
             <header class="hero">
                 <h1>Il tuo Passaporto 🍻</h1>
@@ -381,6 +422,7 @@
             </div>
         </div>
 
+        <!-- Esplora -->
         <div id="page-explore" class="page-view">
             <header class="hero">
                 <h1>🔍 Esplora Birre</h1>
@@ -420,6 +462,7 @@
             </div>
         </div>
 
+        <!-- Classifiche -->
         <div id="page-leaderboard" class="page-view">
             <header class="hero">
                 <h1>🏅 Classifiche</h1>
@@ -444,6 +487,7 @@
             </div>
         </div>
 
+        <!-- Profilo Privato -->
         <div id="page-profile" class="page-view">
             <header class="hero">
                 <h1>👤 Il Tuo Profilo</h1>
@@ -481,6 +525,7 @@
             </div>
         </div>
 
+        <!-- Profilo Pubblico -->
         <div id="page-public-profile" class="page-view">
             <header class="hero">
                 <button onclick="navigateTo('page-leaderboard')" style="position:absolute; top:15px; left:15px; background:rgba(255,255,255,0.2); border:none; padding:8px 12px; border-radius:10px; color:var(--dark); font-weight:bold; cursor:pointer; font-size:12px;">⬅ Indietro</button>
@@ -506,6 +551,7 @@
             </div>
         </div>
 
+        <!-- Mappa Sblocchi -->
         <div id="page-map" class="page-view">
             <header class="hero" style="margin-bottom: 0; padding-bottom: 30px; border-radius: 0; z-index: 10; position: relative; box-shadow: 0 5px 15px rgba(0,0,0,0.1);">
                 <h1>🗺️ Mappa Sblocchi</h1>
@@ -514,6 +560,7 @@
             <div id="mapContainer"></div>
         </div>
 
+        <!-- Social Feed Edge to Edge -->
         <div id="page-social" class="page-view">
             <header class="hero">
                 <h1>📸 Feed Amici</h1>
@@ -524,6 +571,7 @@
             </div>
         </div>
 
+        <!-- Gestione Amici -->
         <div id="page-friends" class="page-view">
             <header class="hero">
                 <h1>🤝 Gestione Amici</h1>
@@ -544,6 +592,7 @@
             </div>
         </div>
 
+        <!-- Regolamento -->
         <div id="page-rules" class="page-view">
             <header class="hero">
                 <h1>📜 Regolamento BeerDex</h1>
@@ -587,16 +636,17 @@
                     <p>Ogni volta che completi al 100% tutte le varianti di un singolo brand, ottieni un **Bonus di +10 Punti Extra** in classifica e sblocchi la prestigiosa medaglia dorata **"Maestro Brand"** all'interno della tua Bacheca!</p>
                 </div>
                 <div class="rules-section">
-                    <h3>✈️ Bonus Trasferta (Moltiplicatore x2)</h3>
-                    <p>Se sblocchi una birra tramite GPS all'interno della sua nazione d'origine, lo sblocco diventa <strong>Shiny</strong> e il suo punteggio **raddoppia istantaneamente**.</p>
+                    <h3>✈️ Bonus Trasferta e Shiny (Moltiplicatore x2)</h3>
+                    <p>Se sblocchi una birra tramite GPS all'interno della sua nazione d'origine, lo sblocco diventa <strong>Shiny</strong> e il suo punteggio raddoppia istantaneamente.</p>
+                    <p><strong>🇮🇹 Regola Italiana:</strong> Le birre italiane diventano Shiny SOLO se scansionate nella specifica Regione d'origine (es. Ichnusa in Sardegna, Menabrea in Piemonte).</p>
                 </div>
                 <div class="rules-section">
-                    <h3>👥 Bonus Bevuta di Gruppo (Moltiplicatore x2)</h3>
-                    <p>Se l'Intelligenza Artificiale rileva <strong>più di un bicchiere/bottiglia</strong> nella foto, potrai taggare l'amico con cui stai condividendo la birra. L'azione sblocca un moltiplicatore x2 dei punti!</p>
+                    <h3>👥 Bonus Bevuta in Compagnia (Moltiplicatore x2)</h3>
+                    <p>Puoi taggare un amico prima di pubblicare la foto. Facendolo, la bevuta diventa condivisa e sblocca un moltiplicatore x2 dei punti!</p>
                 </div>
                 <div class="rules-section" style="background:#fffcf0; padding:20px; border-radius:12px; border-left:4px solid var(--primary-dark);">
-                    <h3>📷 Lattine e Birre alla Spina</h3>
-                    <p style="margin:0 0 10px 0; line-height:1.5; font-size:14px; color:var(--dark);">L'Intelligenza Artificiale ora non richiede per forza una bottiglia di vetro. Se bevi una birra alla spina o in lattina, assicurati di inquadrare bene il logo sul bicchiere, il sottobicchiere o la latta!<br><br><strong>Attenzione:</strong> l'AI blocca automaticamente le foto scattate a schermi di PC o smartphone per prevenire i bari.</p>
+                    <h3>📷 Scanner Codice a Barre & Moderazione</h3>
+                    <p style="margin:0 0 10px 0; line-height:1.5; font-size:14px; color:var(--dark);">Per le bottiglie e lattine, inquadra il codice a barre sul retro per convalidare l'autenticità. <br><br>Se la birra è <strong>alla spina</strong>, salta lo scanner e usa la fiducia! Ma attenzione: se la <strong>Community segnala 🚩</strong> la tua foto come falsa, il post e i punti verranno rimossi permanentemente.</p>
                 </div>
                 <div class="rules-section" style="background:#fdf2f2; padding:20px; border-radius:12px; border-left:4px solid var(--danger);">
                     <h3>🛡️ Politica del Consumo Responsabile</h3>
@@ -812,9 +862,6 @@
         const ADMIN_EMAIL = "barcello.luca02@gmail.com".toLowerCase(); 
         let currentUserEmail = "";
         let isAdminUser = false; 
-
-        let aiModel = null;
-        try { cocoSsd.load().then(model => { aiModel = model; }).catch(e => console.log("Errore COCO", e)); } catch(e) {}
         
         let nsfwModel = null;
         try { if (typeof nsfwjs !== 'undefined') { nsfwjs.load().then(model => { nsfwModel = model; }).catch(e => console.log("Errore NSFW", e)); } } catch(e) { console.log("NSFWJS non caricato."); }
@@ -882,6 +929,8 @@
         function rejectAge() { window.location.href = "https://www.google.com"; }
 
         let currentUserNick = ""; 
+        let totalUsersCount = 1;
+
         function checkAuthentication() {
             auth.onAuthStateChanged(user => {
                 if (user) {
@@ -1126,66 +1175,66 @@
 
         // --- DATABASE BIRRE (60 Birre) ---
         const beers = [
-            { brand: "Augustiner", country: "Germania", flag: "🇩🇪", rarity: "media", desc: "Storico birrificio di Monaco di Baviera.", variants: ["Lagerbier Hell", "Edelstoff", "Maximator"] },
-            { brand: "Baladin", country: "Italia", flag: "🇮🇹", rarity: "rara", desc: "Pioniere della birra artigianale italiana.", variants: ["Isaac (Blanche)", "Wayan (Saison)", "Nora (Speziata)", "Super Bitter", "Leon", "Nazionale", "L'IPPA", "Rock'n'Roll"] },
-            { brand: "Bavaria", country: "Paesi Bassi", flag: "🇳🇱", rarity: "media", desc: "Marchio olandese noto per la linea 8.6.", variants: ["Premium Pilsner", "8.6 Original", "8.6 Red", "8.6 Gold", "8.6 Extreme"] },
-            { brand: "Beck's", country: "Germania", flag: "🇩🇪", rarity: "comune", desc: "Classica pilsner tedesca (Brema).", variants: ["Pilsner", "Blue (Analcolica)", "Lemon", "Green Lemon", "Unfiltered"] },
-            { brand: "Best Brau", country: "Germania", flag: "🇩🇪", rarity: "comune", desc: "Birra commerciale diffusa nei supermercati.", variants: ["Premium Pils", "Doppio Malto", "Rossa", "Weiss"] },
-            { brand: "Birrificio Italiano", country: "Italia", flag: "🇮🇹", rarity: "rara", desc: "Storico birrificio artigianale lombardo.", variants: ["Tipopils", "Bibock", "Nigredo", "Vudù", "Amber Shock"] },
-            { brand: "Birrificio Lambrate", country: "Italia", flag: "🇮🇹", rarity: "rara", desc: "Il birrificio simbolo di Milano e del fermento artigianale.", variants: ["Montestella", "Sant'Ambroeus", "Ghisa", "Porpora", "Quarantot"] },
-            { brand: "BrewDog", country: "Scozia", flag: "🏴󠁧󠁢󠁳󠁣󠁴󠁿", rarity: "media", desc: "Birrificio artigianale scozzese famoso in tutto il mondo.", variants: ["Punk IPA", "Elvis Juice", "Hazy Jane"] },
-            { brand: "Budweiser Budvar", country: "Repubblica Ceca", flag: "🇨🇿", rarity: "media", desc: "L'autentica lager ceca protetta.", variants: ["Original Lager", "Dark Lager", "Nealko"] },
-            { brand: "Carlsberg", country: "Danimarca", flag: "🇩🇰", rarity: "comune", desc: "Colosso industriale danese.", variants: ["Pilsner", "Elephant", "Special Brew"] },
-            { brand: "Castello", country: "Italia", flag: "🇮🇹", rarity: "media", desc: "Erede dello storico stabilimento di Udine.", variants: ["La Decisa", "L'Intensa", "La Forte", "Radler"] },
-            { brand: "Ceres", country: "Danimarca", flag: "🇩🇰", rarity: "media", desc: "Marchio danese diventato un cult in Italia per le strong ale.", variants: ["Strong Ale", "Red Erik", "Extreme Ten"] },
-            { brand: "Chimay", country: "Belgio", flag: "🇧🇪", rarity: "rara", desc: "Autentica birra trappista belga prodotta dai monaci.", variants: ["Première (Rossa)", "Cinq Cents (Tripel)", "Grande Réserve (Blu)"] },
-            { brand: "Chouffe", country: "Belgio", flag: "🇧🇪", rarity: "rara", desc: "La celebre birra artigianale belga dello gnomo.", variants: ["La Chouffe (Blonde)", "Mc Chouffe (Brune)", "Cherry Chouffe"] },
-            { brand: "Corona", country: "Messico", flag: "🇲🇽", rarity: "comune", desc: "La lager messicana famosa in tutto il mondo.", variants: ["Extra", "Cero"] },
-            { brand: "Crak Brewery", country: "Italia", flag: "🇮🇹", rarity: "rara", desc: "Rivoluzionario birrificio veneto, re indiscusso delle IPA.", variants: ["Guerrilla (IPA)", "Mundaka", "Mansueto", "After Summer"] },
-            { brand: "Del Borgo", country: "Italia", flag: "🇮🇹", rarity: "rara", desc: "Famoso birrificio laziale, noto per le sue ricette creative.", variants: ["ReAle", "Duchessa", "My Antonia", "Lisa", "Cortigiana"] },
-            { brand: "Delirium", country: "Belgio", flag: "🇧🇪", rarity: "rara", desc: "Famosissima Strong Ale belga.", variants: ["Tremens", "Nocturnum", "Red"] },
-            { brand: "Desperados", country: "Francia", flag: "🇫🇷", rarity: "media", desc: "Birra bionda aromatizzata alla tequila.", variants: ["Original", "Lime", "Mojito"] },
-            { brand: "Dreher", country: "Italia", flag: "🇮🇹", rarity: "comune", desc: "Uno dei marchi storici più antichi, fondato a Trieste.", variants: ["Classica", "Radler Limone"] },
-            { brand: "Duvel", country: "Belgio", flag: "🇧🇪", rarity: "rara", desc: "La leggendaria Strong Gold Ale belga.", variants: ["Original Blond", "Triple Hop", "6.66"] },
-            { brand: "Erdinger", country: "Germania", flag: "🇩🇪", rarity: "media", desc: "Il birrificio di frumento più grande del mondo.", variants: ["Weißbier", "Dunkel", "Pikantus"] },
-            { brand: "Estrella Damm", country: "Spagna", flag: "🇪🇸", rarity: "media", desc: "La bionda di Barcellona.", variants: ["Estrella Damm", "Inedit", "Daura"] },
-            { brand: "Finkbräu", country: "Germania", flag: "🇩🇪", rarity: "comune", desc: "Birra bionda commerciale molto popolare nei discount.", variants: ["Pilsner", "Analcolica"] },
-            { brand: "Flea", country: "Italia", flag: "🇮🇹", rarity: "rara", desc: "Birre artigianali umbre brassate con acqua di sorgente.", variants: ["Costanza", "Bianca Lancia", "Federico II", "Bastola", "Violante"] },
-            { brand: "Forst", country: "Italia", flag: "🇮🇹", rarity: "media", desc: "Birrificio indipendente del Trentino-Alto Adige.", variants: ["Kronen", "V.I.P. Pils", "1857", "Felsenkeller", "Sixtus (Doppelbock)", "0.0%"] },
-            { brand: "Franziskaner", country: "Germania", flag: "🇩🇪", rarity: "media", desc: "Eccellenza tedesca di birre di frumento.", variants: ["Weissbier Naturtrüb", "Weissbier Dunkel"] },
-            { brand: "Grolsch", country: "Paesi Bassi", flag: "🇳🇱", rarity: "media", desc: "Iconica lager olandese.", variants: ["Premium Pilsner", "Radler"] },
-            { brand: "Guinness", country: "Irlanda", flag: "🇮🇪", rarity: "media", desc: "La regina delle Stout irlandesi.", variants: ["Draught", "Extra Stout", "Hop House 13", "0.0"] },
-            { brand: "Hacker-Pschorr", country: "Germania", flag: "🇩🇪", rarity: "media", desc: "Storico marchio monacense dell'Oktoberfest.", variants: ["Münchner Hell", "Weisse", "Oktoberfest Märzen"] },
-            { brand: "Heineken", country: "Paesi Bassi", flag: "🇳🇱", rarity: "comune", desc: "Il colosso olandese di Amsterdam.", variants: ["Original", "Silver", "0.0"] },
-            { brand: "Hoegaarden", country: "Belgio", flag: "🇧🇪", rarity: "rara", desc: "La regina delle birre bianche belghe.", variants: ["Witbier", "Rosée"] },
-            { brand: "Hofbräu", country: "Germania", flag: "🇩🇪", rarity: "media", desc: "Il leggendario birrificio della HB di Monaco.", variants: ["Original", "Münchner Weisse", "Schwarze Weisse", "Dunkel"] },
-            { brand: "Ichnusa", country: "Italia", flag: "🇮🇹", rarity: "media", desc: "L'iconica birra sarda, amatissima in tutta Italia.", variants: ["Classica", "Non Filtrata", "Cruda", "Ambra Limpidissima", "Radler"] },
-            { brand: "Kozel", country: "Repubblica Ceca", flag: "🇨🇿", rarity: "media", desc: "Famosissima birra ceca.", variants: ["Premium Lager", "Dark (Cerna)"] },
-            { brand: "Kronenbourg 1664", country: "Francia", flag: "🇫🇷", rarity: "media", desc: "Il marchio francese più venduto al mondo.", variants: ["Blanc", "Lager"] },
-            { brand: "Kwak", country: "Belgio", flag: "🇧🇪", rarity: "rara", desc: "Famosa per il suo iconico bicchiere a clessidra e l'alto grado alcolico.", variants: ["Pauwel Kwak", "Rouge"] },
-            { brand: "Leffe", country: "Belgio", flag: "🇧🇪", rarity: "media", desc: "La storica birra d'abbazia belga.", variants: ["Blonde", "Brune", "Rituel 9°", "Rouge", "Triple"] },
-            { brand: "Löwenbräu", country: "Germania", flag: "🇩🇪", rarity: "media", desc: "Storica birra monacense del leone.", variants: ["Original", "Oktoberfestbier", "Triumphator"] },
-            { brand: "Mastri Birrai Umbri", country: "Italia", flag: "🇮🇹", rarity: "rara", desc: "Realtà umbra che esalta i cereali del territorio.", variants: ["Cotta 21 (Bionda)", "Cotta 37 (Rossa)", "Cotta 74 (Nera)", "Cotta 68 (IPA)", "Cotta 50 (Weiss)"] },
-            { brand: "Menabrea", country: "Italia", flag: "🇮🇹", rarity: "media", desc: "Pluripremiato birrificio di Biella (Piemonte).", variants: ["Bionda 150°", "Ambrata", "Non Filtrata", "Strong", "Weiss", "Rossa"] },
-            { brand: "Messina", country: "Italia", flag: "🇮🇹", rarity: "media", desc: "Storico marchio siciliano dai sapori del Mediterraneo.", variants: ["Ricetta Classica", "Cristalli di Sale", "Vivace"] },
-            { brand: "Moretti", country: "Italia", flag: "🇮🇹", rarity: "comune", desc: "Storico marchio nato in Friuli-Venezia Giulia.", variants: ["Ricetta Originale", "Baffo d'Oro", "La Rossa", "Filtrata a Freddo", "IPA", "Bianca", "Zero", "Lunga Maturazione"] },
-            { brand: "Paulaner", country: "Germania", flag: "🇩🇪", rarity: "media", desc: "Grande protagonista dell'Oktoberfest.", variants: ["Hefe-Weißbier Naturtrüb", "Oktoberfest Bier", "Münchner Hell", "Salvator"] },
-            { brand: "Pedavena", country: "Italia", flag: "🇮🇹", rarity: "media", desc: "Antica tradizione bellunese (Veneto).", variants: ["Pils", "Lager", "Speciale", "Bock", "8 Gradi"] },
-            { brand: "Peroni", country: "Italia", flag: "🇮🇹", rarity: "comune", desc: "Il colosso romano, celebre a livello internazionale.", variants: ["Classica", "Nastro Azzurro", "Nastro Azzurro 0.0", "Non Filtrata", "Cruda", "Gran Riserva Puro Malto", "Gran Riserva Doppio Malto", "Gran Riserva Rossa", "Gran Riserva Bianca", "Chill Lemon", "Capri"] },
-            { brand: "Pilsner Urquell", country: "Repubblica Ceca", flag: "🇨🇿", rarity: "media", desc: "La madre di tutte le birre bionde.", variants: ["Original Lager"] },
-            { brand: "Poretti", country: "Italia", flag: "🇮🇹", rarity: "comune", desc: "Realtà lombarda che classifica le birre coi luppoli.", variants: ["3 Luppoli", "4 Luppoli Originale", "4 Luppoli Non Filtrata", "5 Luppoli Bock", "6 Luppoli Rossa", "7 Luppoli", "8 Luppoli", "Le 9 Luppoli (IPA)"] },
-            { brand: "Raffo", country: "Italia", flag: "🇮🇹", rarity: "media", desc: "La 'birra dei due mari', simbolo della città di Taranto.", variants: ["Classica", "Lavorazione Grezza"] },
-            { brand: "Salento", country: "Italia", flag: "🇮🇹", rarity: "rara", desc: "Eccellenza artigianale pugliese, nata a Leverano (Lecce).", variants: ["Agricola (Lager)", "Nuda e Cruda", "Beggia", "Taranta (IPA)"] },
-            { brand: "San Miguel", country: "Spagna", flag: "🇪🇸", rarity: "comune", desc: "Marchio spagnolo popolarissimo.", variants: ["Especial", "Selecta", "0,0"] },
-            { brand: "Semedorato", country: "Italia", flag: "🇮🇹", rarity: "rara", desc: "Birra artigianale premium siciliana.", variants: ["Bionda Premium", "Rossa Doppio Malto", "Non Filtrata"] },
-            { brand: "Slalom", country: "Scozia", flag: "🏴󠁧󠁢󠁳󠁣󠁴󠁿", rarity: "media", desc: "Strong Lager scozzese, popolarissima nei pub italiani.", variants: ["Strong"] },
-            { brand: "Stella Artois", country: "Belgio", flag: "🇧🇪", rarity: "comune", desc: "Premium lager belga.", variants: ["Premium Lager", "Unfiltered", "0.0"] },
-            { brand: "Super Bock", country: "Portogallo", flag: "🇵🇹", rarity: "media", desc: "La birra più famosa del Portogallo.", variants: ["Original", "Abadia", "Stout"] },
-            { brand: "Tennent's", country: "Scozia", flag: "🏴󠁧󠁢󠁳󠁣󠁴󠁿", rarity: "media", desc: "Storico marchio scozzese.", variants: ["Super", "Extra", "1885 Lager", "Scotch Ale"] },
-            { brand: "Tripel Karmeliet", country: "Belgio", flag: "🇧🇪", rarity: "rara", desc: "Straordinaria birra belga ai tre cereali.", variants: ["Tripel"] },
-            { brand: "Tuborg", country: "Danimarca", flag: "🇩🇰", rarity: "comune", desc: "Lager danese leggera.", variants: ["Green", "Strong", "Red"] },
-            { brand: "Weihenstephaner", country: "Germania", flag: "🇩🇪", rarity: "rara", desc: "Il più antico marchio di birra al mondo (1040).", variants: ["Hefe Weissbier", "Vitus", "Original Hell"] },
-            { brand: "Wuhrer", country: "Italia", flag: "🇮🇹", rarity: "comune", desc: "Il più antico marchio di birra italiano (Brescia, 1829).", variants: ["La Classica"] }
+            { brand: "Augustiner", country: "Germania", flag: "🇩🇪", rarity: "media", desc: "Storico birrificio di Monaco di Baviera.", variants: ["Lagerbier Hell", "Edelstoff", "Maximator"], barcodes: [] },
+            { brand: "Baladin", country: "Italia", regione: "Piemonte", flag: "🇮🇹", rarity: "rara", desc: "Pioniere della birra artigianale italiana.", variants: ["Isaac (Blanche)", "Wayan (Saison)", "Nora (Speziata)", "Super Bitter", "Leon", "Nazionale", "L'IPPA", "Rock'n'Roll"], barcodes: [] },
+            { brand: "Bavaria", country: "Paesi Bassi", flag: "🇳🇱", rarity: "media", desc: "Marchio olandese noto per la linea 8.6.", variants: ["Premium Pilsner", "8.6 Original", "8.6 Red", "8.6 Gold", "8.6 Extreme"], barcodes: [] },
+            { brand: "Beck's", country: "Germania", flag: "🇩🇪", rarity: "comune", desc: "Classica pilsner tedesca (Brema).", variants: ["Pilsner", "Blue (Analcolica)", "Lemon", "Green Lemon", "Unfiltered"], barcodes: [] },
+            { brand: "Best Brau", country: "Germania", flag: "🇩🇪", rarity: "comune", desc: "Birra commerciale diffusa nei supermercati.", variants: ["Premium Pils", "Doppio Malto", "Rossa", "Weiss"], barcodes: [] },
+            { brand: "Birrificio Italiano", country: "Italia", regione: "Lombardia", flag: "🇮🇹", rarity: "rara", desc: "Storico birrificio artigianale lombardo.", variants: ["Tipopils", "Bibock", "Nigredo", "Vudù", "Amber Shock"], barcodes: [] },
+            { brand: "Birrificio Lambrate", country: "Italia", regione: "Lombardia", flag: "🇮🇹", rarity: "rara", desc: "Il birrificio simbolo di Milano e del fermento artigianale.", variants: ["Montestella", "Sant'Ambroeus", "Ghisa", "Porpora", "Quarantot"], barcodes: [] },
+            { brand: "BrewDog", country: "Scozia", flag: "🏴󠁧󠁢󠁳󠁣󠁴󠁿", rarity: "media", desc: "Birrificio artigianale scozzese famoso in tutto il mondo.", variants: ["Punk IPA", "Elvis Juice", "Hazy Jane"], barcodes: [] },
+            { brand: "Budweiser Budvar", country: "Repubblica Ceca", flag: "🇨🇿", rarity: "media", desc: "L'autentica lager ceca protetta.", variants: ["Original Lager", "Dark Lager", "Nealko"], barcodes: [] },
+            { brand: "Carlsberg", country: "Danimarca", flag: "🇩🇰", rarity: "comune", desc: "Colosso industriale danese.", variants: ["Pilsner", "Elephant", "Special Brew"], barcodes: [] },
+            { brand: "Castello", country: "Italia", regione: "Friuli-Venezia Giulia", flag: "🇮🇹", rarity: "media", desc: "Erede dello storico stabilimento di Udine.", variants: ["La Decisa", "L'Intensa", "La Forte", "Radler"], barcodes: [] },
+            { brand: "Ceres", country: "Danimarca", flag: "🇩🇰", rarity: "media", desc: "Marchio danese diventato un cult in Italia per le strong ale.", variants: ["Strong Ale", "Red Erik", "Extreme Ten"], barcodes: [] },
+            { brand: "Chimay", country: "Belgio", flag: "🇧🇪", rarity: "rara", desc: "Autentica birra trappista belga prodotta dai monaci.", variants: ["Première (Rossa)", "Cinq Cents (Tripel)", "Grande Réserve (Blu)"], barcodes: [] },
+            { brand: "Chouffe", country: "Belgio", flag: "🇧🇪", rarity: "rara", desc: "La celebre birra artigianale belga dello gnomo.", variants: ["La Chouffe (Blonde)", "Mc Chouffe (Brune)", "Cherry Chouffe"], barcodes: [] },
+            { brand: "Corona", country: "Messico", flag: "🇲🇽", rarity: "comune", desc: "La lager messicana famosa in tutto il mondo.", variants: ["Extra", "Cero"], barcodes: [] },
+            { brand: "Crak Brewery", country: "Italia", regione: "Veneto", flag: "🇮🇹", rarity: "rara", desc: "Rivoluzionario birrificio veneto, re indiscusso delle IPA.", variants: ["Guerrilla (IPA)", "Mundaka", "Mansueto", "After Summer"], barcodes: [] },
+            { brand: "Del Borgo", country: "Italia", regione: "Lazio", flag: "🇮🇹", rarity: "rara", desc: "Famoso birrificio laziale, noto per le sue ricette creative.", variants: ["ReAle", "Duchessa", "My Antonia", "Lisa", "Cortigiana"], barcodes: [] },
+            { brand: "Delirium", country: "Belgio", flag: "🇧🇪", rarity: "rara", desc: "Famosissima Strong Ale belga.", variants: ["Tremens", "Nocturnum", "Red"], barcodes: [] },
+            { brand: "Desperados", country: "Francia", flag: "🇫🇷", rarity: "media", desc: "Birra bionda aromatizzata alla tequila.", variants: ["Original", "Lime", "Mojito"], barcodes: [] },
+            { brand: "Dreher", country: "Italia", regione: "Friuli-Venezia Giulia", flag: "🇮🇹", rarity: "comune", desc: "Uno dei marchi storici più antichi, fondato a Trieste.", variants: ["Classica", "Radler Limone"], barcodes: [] },
+            { brand: "Duvel", country: "Belgio", flag: "🇧🇪", rarity: "rara", desc: "La leggendaria Strong Gold Ale belga.", variants: ["Original Blond", "Triple Hop", "6.66"], barcodes: [] },
+            { brand: "Erdinger", country: "Germania", flag: "🇩🇪", rarity: "media", desc: "Il birrificio di frumento più grande del mondo.", variants: ["Weißbier", "Dunkel", "Pikantus"], barcodes: [] },
+            { brand: "Estrella Damm", country: "Spagna", flag: "🇪🇸", rarity: "media", desc: "La bionda di Barcellona.", variants: ["Estrella Damm", "Inedit", "Daura"], barcodes: [] },
+            { brand: "Finkbräu", country: "Germania", flag: "🇩🇪", rarity: "comune", desc: "Birra bionda commerciale molto popolare nei discount.", variants: ["Pilsner", "Analcolica"], barcodes: [] },
+            { brand: "Flea", country: "Italia", regione: "Umbria", flag: "🇮🇹", rarity: "rara", desc: "Birre artigianali umbre brassate con acqua di sorgente.", variants: ["Costanza", "Bianca Lancia", "Federico II", "Bastola", "Violante"], barcodes: [] },
+            { brand: "Forst", country: "Italia", regione: "Trentino-Alto Adige", flag: "🇮🇹", rarity: "media", desc: "Birrificio indipendente del Trentino-Alto Adige.", variants: ["Kronen", "V.I.P. Pils", "1857", "Felsenkeller", "Sixtus (Doppelbock)", "0.0%"], barcodes: [] },
+            { brand: "Franziskaner", country: "Germania", flag: "🇩🇪", rarity: "media", desc: "Eccellenza tedesca di birre di frumento.", variants: ["Weissbier Naturtrüb", "Weissbier Dunkel"], barcodes: [] },
+            { brand: "Grolsch", country: "Paesi Bassi", flag: "🇳🇱", rarity: "media", desc: "Iconica lager olandese.", variants: ["Premium Pilsner", "Radler"], barcodes: [] },
+            { brand: "Guinness", country: "Irlanda", flag: "🇮🇪", rarity: "media", desc: "La regina delle Stout irlandesi.", variants: ["Draught", "Extra Stout", "Hop House 13", "0.0"], barcodes: [] },
+            { brand: "Hacker-Pschorr", country: "Germania", flag: "🇩🇪", rarity: "media", desc: "Storico marchio monacense dell'Oktoberfest.", variants: ["Münchner Hell", "Weisse", "Oktoberfest Märzen"], barcodes: [] },
+            { brand: "Heineken", country: "Paesi Bassi", flag: "🇳🇱", rarity: "comune", desc: "Il colosso olandese di Amsterdam.", variants: ["Original", "Silver", "0.0"], barcodes: [] },
+            { brand: "Hoegaarden", country: "Belgio", flag: "🇧🇪", rarity: "rara", desc: "La regina delle birre bianche belghe.", variants: ["Witbier", "Rosée"], barcodes: [] },
+            { brand: "Hofbräu", country: "Germania", flag: "🇩🇪", rarity: "media", desc: "Il leggendario birrificio della HB di Monaco.", variants: ["Original", "Münchner Weisse", "Schwarze Weisse", "Dunkel"], barcodes: [] },
+            { brand: "Ichnusa", country: "Italia", regione: "Sardegna", flag: "🇮🇹", rarity: "media", desc: "L'iconica birra sarda, amatissima in tutta Italia.", variants: ["Classica", "Non Filtrata", "Cruda", "Ambra Limpidissima", "Radler", "Metodo Lento"], barcodes: [] },
+            { brand: "Kozel", country: "Repubblica Ceca", flag: "🇨🇿", rarity: "media", desc: "Famosissima birra ceca.", variants: ["Premium Lager", "Dark (Cerna)"], barcodes: [] },
+            { brand: "Kronenbourg 1664", country: "Francia", flag: "🇫🇷", rarity: "media", desc: "Il marchio francese più venduto al mondo.", variants: ["Blanc", "Lager"], barcodes: [] },
+            { brand: "Kwak", country: "Belgio", flag: "🇧🇪", rarity: "rara", desc: "Famosa per il suo iconico bicchiere a clessidra e l'alto grado alcolico.", variants: ["Pauwel Kwak", "Rouge"], barcodes: [] },
+            { brand: "Leffe", country: "Belgio", flag: "🇧🇪", rarity: "media", desc: "La storica birra d'abbazia belga.", variants: ["Blonde", "Brune", "Rituel 9°", "Rouge", "Triple"], barcodes: [] },
+            { brand: "Löwenbräu", country: "Germania", flag: "🇩🇪", rarity: "media", desc: "Storica birra monacense del leone.", variants: ["Original", "Oktoberfestbier", "Triumphator"], barcodes: [] },
+            { brand: "Mastri Birrai Umbri", country: "Italia", regione: "Umbria", flag: "🇮🇹", rarity: "rara", desc: "Realtà umbra che esalta i cereali del territorio.", variants: ["Cotta 21 (Bionda)", "Cotta 37 (Rossa)", "Cotta 74 (Nera)", "Cotta 68 (IPA)", "Cotta 50 (Weiss)"], barcodes: [] },
+            { brand: "Menabrea", country: "Italia", regione: "Piemonte", flag: "🇮🇹", rarity: "media", desc: "Pluripremiato birrificio di Biella (Piemonte).", variants: ["Bionda 150°", "Ambrata", "Non Filtrata", "Strong", "Weiss", "Rossa"], barcodes: [] },
+            { brand: "Messina", country: "Italia", regione: "Sicilia", flag: "🇮🇹", rarity: "media", desc: "Storico marchio siciliano dai sapori del Mediterraneo.", variants: ["Ricetta Classica", "Cristalli di Sale", "Vivace"], barcodes: [] },
+            { brand: "Moretti", country: "Italia", regione: "Friuli-Venezia Giulia", flag: "🇮🇹", rarity: "comune", desc: "Storico marchio nato in Friuli-Venezia Giulia.", variants: ["Ricetta Originale", "Baffo d'Oro", "La Rossa", "Filtrata a Freddo", "IPA", "Bianca", "Zero", "Lunga Maturazione"], barcodes: [] },
+            { brand: "Paulaner", country: "Germania", flag: "🇩🇪", rarity: "media", desc: "Grande protagonista dell'Oktoberfest.", variants: ["Hefe-Weißbier Naturtrüb", "Oktoberfest Bier", "Münchner Hell", "Salvator"], barcodes: [] },
+            { brand: "Pedavena", country: "Italia", regione: "Veneto", flag: "🇮🇹", rarity: "media", desc: "Antica tradizione bellunese (Veneto).", variants: ["Pils", "Lager", "Speciale", "Bock", "8 Gradi"], barcodes: [] },
+            { brand: "Peroni", country: "Italia", regione: "Lazio", flag: "🇮🇹", rarity: "comune", desc: "Il colosso romano, celebre a livello internazionale.", variants: ["Classica", "Nastro Azzurro", "Nastro Azzurro 0.0", "Non Filtrata", "Cruda", "Gran Riserva Puro Malto", "Gran Riserva Doppio Malto", "Gran Riserva Rossa", "Gran Riserva Bianca", "Chill Lemon", "Capri"], barcodes: [] },
+            { brand: "Pilsner Urquell", country: "Repubblica Ceca", flag: "🇨🇿", rarity: "media", desc: "La madre di tutte le birre bionde.", variants: ["Original Lager"], barcodes: [] },
+            { brand: "Poretti", country: "Italia", regione: "Lombardia", flag: "🇮🇹", rarity: "comune", desc: "Realtà lombarda che classifica le birre coi luppoli.", variants: ["3 Luppoli", "4 Luppoli Originale", "4 Luppoli Non Filtrata", "5 Luppoli Bock", "6 Luppoli Rossa", "7 Luppoli", "8 Luppoli", "Le 9 Luppoli (IPA)"], barcodes: [] },
+            { brand: "Raffo", country: "Italia", regione: "Puglia", flag: "🇮🇹", rarity: "media", desc: "La 'birra dei due mari', simbolo della città di Taranto.", variants: ["Classica", "Lavorazione Grezza"], barcodes: [] },
+            { brand: "Salento", country: "Italia", regione: "Puglia", flag: "🇮🇹", rarity: "rara", desc: "Eccellenza artigianale pugliese, nata a Leverano (Lecce).", variants: ["Agricola (Lager)", "Nuda e Cruda", "Beggia", "Taranta (IPA)"], barcodes: [] },
+            { brand: "San Miguel", country: "Spagna", flag: "🇪🇸", rarity: "comune", desc: "Marchio spagnolo popolarissimo.", variants: ["Especial", "Selecta", "0,0"], barcodes: [] },
+            { brand: "Semedorato", country: "Italia", regione: "Sicilia", flag: "🇮🇹", rarity: "rara", desc: "Birra artigianale premium siciliana.", variants: ["Bionda Premium", "Rossa Doppio Malto", "Non Filtrata"], barcodes: [] },
+            { brand: "Slalom", country: "Scozia", flag: "🏴󠁧󠁢󠁳󠁣󠁴󠁿", rarity: "media", desc: "Strong Lager scozzese, popolarissima nei pub italiani.", variants: ["Strong"], barcodes: [] },
+            { brand: "Stella Artois", country: "Belgio", flag: "🇧🇪", rarity: "comune", desc: "Premium lager belga.", variants: ["Premium Lager", "Unfiltered", "0.0"], barcodes: [] },
+            { brand: "Super Bock", country: "Portogallo", flag: "🇵🇹", rarity: "media", desc: "La birra più famosa del Portogallo.", variants: ["Original", "Abadia", "Stout"], barcodes: [] },
+            { brand: "Tennent's", country: "Scozia", flag: "🏴󠁧󠁢󠁳󠁣󠁴󠁿", rarity: "media", desc: "Storico marchio scozzese.", variants: ["Super", "Extra", "1885 Lager", "Scotch Ale"], barcodes: [] },
+            { brand: "Tripel Karmeliet", country: "Belgio", flag: "🇧🇪", rarity: "rara", desc: "Straordinaria birra belga ai tre cereali.", variants: ["Tripel"], barcodes: [] },
+            { brand: "Tuborg", country: "Danimarca", flag: "🇩🇰", rarity: "comune", desc: "Lager danese leggera.", variants: ["Green", "Strong", "Red"], barcodes: [] },
+            { brand: "Weihenstephaner", country: "Germania", flag: "🇩🇪", rarity: "rara", desc: "Il più antico marchio di birra al mondo (1040).", variants: ["Hefe Weissbier", "Vitus", "Original Hell"], barcodes: [] },
+            { brand: "Wuhrer", country: "Italia", regione: "Lombardia", flag: "🇮🇹", rarity: "comune", desc: "Il più antico marchio di birra italiano (Brescia, 1829).", variants: ["La Classica"], barcodes: [] }
         ];
 
         function getBasePoints(brandName, variantName) {
@@ -1195,7 +1244,7 @@
                 if (beer.rarity === "media") base = 2;
                 if (beer.rarity === "rara") base = 5;
             }
-            if (brandName === "Ichnusa") { if (variantName === "Non Filtrata" || variantName === "Ambra Limpidissima") return 3; }
+            if (brandName === "Ichnusa") { if (variantName === "Non Filtrata" || variantName === "Ambra Limpidissima" || variantName === "Metodo Lento") return 3; }
             if (brandName === "Moretti") { if (variantName === "La Rossa" || variantName === "IPA" || variantName === "Bianca" || variantName === "Lunga Maturazione") return 2; }
             if (brandName === "Peroni") { if (variantName.includes("Gran Riserva")) return 3; if (variantName === "Non Filtrata" || variantName === "Cruda") return 2; }
             if (brandName === "Poretti") { if (variantName === "7 Luppoli" || variantName === "8 Luppoli" || variantName === "Le 9 Luppoli (IPA)") return 3; if (variantName === "5 Luppoli Bock" || variantName === "6 Luppoli Rossa") return 2; }
@@ -1268,6 +1317,143 @@
         }
 
         let pendingUploadData = null;
+        let currentTargetBrand = "";
+        let currentTargetVariant = "";
+
+        // GESTIONE SCANNER E CARICAMENTO
+        function initUnlock(event, brand, variant) {
+            event.stopPropagation();
+            currentTargetBrand = brand;
+            currentTargetVariant = variant;
+            document.getElementById('scannerModalOverlay').style.display = 'flex';
+        }
+
+        function closeScannerModal() {
+            document.getElementById('scannerModalOverlay').style.display = 'none';
+        }
+
+        function closeCaptureModal() {
+            document.getElementById('captureModalOverlay').style.display = 'none';
+        }
+
+        function handleBarcodePhoto(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            showCustomAlert("Lettura del codice a barre in corso...", "Analisi 🔍", false);
+            
+            const html5QrCode = new Html5Qrcode("hidden-reader-div");
+            html5QrCode.scanFile(file, true)
+                .then(decodedText => {
+                    document.getElementById('customModalOverlay').style.display = 'none';
+                    const targetBeer = beers.find(b => b.brand === currentTargetBrand);
+                    
+                    if(targetBeer.barcodes && targetBeer.barcodes.length > 0) {
+                        if(!targetBeer.barcodes.includes(decodedText)) {
+                            showCustomAlert("Il codice a barre non corrisponde a questa birra. Riprova!", "Codice Errato");
+                            return;
+                        }
+                    } else {
+                        console.log("Nessun EAN nel database. Sblocco fiduciario post-scansione.");
+                    }
+                    
+                    document.getElementById('scannerModalOverlay').style.display = 'none';
+                    document.getElementById('captureModalOverlay').style.display = 'flex';
+                })
+                .catch(err => {
+                    document.getElementById('customModalOverlay').style.display = 'none';
+                    showCustomAlert("Non sono riuscito a leggere chiaramente il codice a barre dalla foto. Riprova scattando una foto a fuoco e ben illuminata.", "Lettura Fallita");
+                });
+        }
+
+        // CHECK GPS & REGION (Nominatim) Async
+        async function checkShinyStatus(lat, lng, targetBeer) {
+            let isShiny = false;
+            if(targetBeer && countryCoordinates[targetBeer.country]) {
+                const bounds = countryCoordinates[targetBeer.country];
+                if(lat >= bounds.latMin && lat <= bounds.latMax && lng >= bounds.lngMin && lng <= bounds.lngMax) { 
+                    if(targetBeer.country === "Italia" && targetBeer.regione) {
+                        try {
+                            const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=10`);
+                            const data = await res.json();
+                            const currentRegion = data.address.state || data.address.region || "";
+                            if(normalizeStr(currentRegion).includes(normalizeStr(targetBeer.regione))) {
+                                isShiny = true;
+                            }
+                        } catch(e) { console.log("Errore Geocoding Nominatim"); }
+                    } else {
+                        isShiny = true; 
+                    }
+                }
+            }
+            return isShiny;
+        }
+
+        function handlePhotoUpload(event, isSpinaBypass) {
+            const file = event.target.files[0]; 
+            if (!file) return;
+            
+            if(isSpinaBypass) closeScannerModal();
+            else closeCaptureModal();
+
+            showCustomAlert("Analisi del contesto in corso...", "Sblocco 🍻", false);
+
+            let currentLat = null; let currentLng = null;
+            const targetBeer = beers.find(b => b.brand === currentTargetBrand);
+            
+            if(navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(async (position) => {
+                    currentLat = position.coords.latitude; currentLng = position.coords.longitude;
+                    let isShiny = await checkShinyStatus(currentLat, currentLng, targetBeer);
+                    processPhoto(file, isShiny, currentLat, currentLng);
+                }, () => { processPhoto(file, false, null, null); });
+            } else { processPhoto(file, false, null, null); }
+        }
+
+        function processPhoto(file, isShiny, currentLat, currentLng) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const img = new Image();
+                img.onload = function() {
+                    const canvas = document.createElement('canvas'); 
+                    const MAX_SIZE = 300; 
+                    let width = img.width; 
+                    let height = img.height;
+                    
+                    const targetRatio = 4 / 5;
+                    const imgRatio = width / height;
+                    
+                    let cropX = 0, cropY = 0, cropW = width, cropH = height;
+                    if(imgRatio > targetRatio) {
+                        cropW = height * targetRatio; cropX = (width - cropW) / 2;
+                    } else {
+                        cropH = width / targetRatio; cropY = (height - cropH) / 2;
+                    }
+                    
+                    let finalWidth = MAX_SIZE;
+                    let finalHeight = MAX_SIZE / targetRatio;
+                    
+                    canvas.width = finalWidth; canvas.height = finalHeight;
+                    const ctx = canvas.getContext('2d'); 
+                    ctx.drawImage(img, cropX, cropY, cropW, cropH, 0, 0, finalWidth, finalHeight);
+                    
+                    const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.4); 
+                    
+                    if (myFriendsList.length > 0) {
+                        pendingUploadData = {brand: currentTargetBrand, variant: currentTargetVariant, isShiny, canvasBase64: compressedDataUrl, currentLat, currentLng};
+                        let selectHtml = '<option value="">-- Nessun tag (Bevi da solo) --</option>';
+                        myFriendsList.forEach(f => { selectHtml += `<option value="${f}">${f}</option>`; });
+                        document.getElementById('shareFriendSelect').innerHTML = selectHtml;
+                        document.getElementById('customModalOverlay').style.display = 'none';
+                        document.getElementById('shareModal').style.display = 'flex';
+                    } else {
+                        finalizeUpload({brand: currentTargetBrand, variant: currentTargetVariant, isShiny, canvasBase64: compressedDataUrl, currentLat, currentLng}, null);
+                    }
+                };
+                img.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
 
         function submitSharedPost() {
             const taggedFriend = document.getElementById('shareFriendSelect').value;
@@ -1292,13 +1478,13 @@
                 
                 db.ref('pokedex_profiles/' + currentUserNick + '/' + uniqueId).set(pokedexEntry).then(() => {
                     const newPostRef = db.ref('social_timeline').push();
-                    let postData = { user: currentUserNick, brand: brand, variant: variant, photo: canvasBase64, time: new Date().getTime(), isShiny: isShiny, isShared: isShared, taggedFriend: taggedFriend };
+                    let postData = { user: currentUserNick, brand: brand, variant: variant, photo: canvasBase64, time: new Date().getTime(), isShiny: isShiny, isShared: isShared, taggedFriend: taggedFriend, fakeVotes: {} };
                     if(currentLat !== null && currentLng !== null) { postData.lat = currentLat; postData.lng = currentLng; }
                     
                     newPostRef.set(postData).then(() => {
                         recalculateTotalScore(currentUserNick);
                         let msg = `Birra sbloccata con successo! (+${getBeerPoints(brand, variant, isShiny, isShared)} Punti)`;
-                        if(isShiny) msg += "\n✨ SBLOCCO IN TRASFERTA!";
+                        if(isShiny) msg += "\n✨ SBLOCCO SHINY IN TRASFERTA!";
                         if(isShared) msg += `\n🍻 BEVUTA CON ${taggedFriend}!`;
                         showCustomAlert(msg, "✅ Conquistata!", true);
                     }).catch(err => showCustomAlert("Errore caricamento feed: " + err.message, "Errore di Rete", true));
@@ -1306,109 +1492,21 @@
             }, 100);
         }
 
-        function handlePhotoUpload(event, brand, variant) {
-            event.stopPropagation(); const file = event.target.files[0]; if (!file) return;
-            let currentLat = null; let currentLng = null; let isShiny = false;
-            const targetBeer = beers.find(b => b.brand === brand);
-            
-            if(navigator.geolocation) {
-                navigator.geolocation.getCurrentPosition((position) => {
-                    currentLat = position.coords.latitude; currentLng = position.coords.longitude;
-                    if(targetBeer && countryCoordinates[targetBeer.country]) {
-                        const bounds = countryCoordinates[targetBeer.country];
-                        if(currentLat >= bounds.latMin && currentLat <= bounds.latMax && currentLng >= bounds.lngMin && currentLng <= bounds.lngMax) { isShiny = true; }
-                    }
-                    processPhoto();
-                }, () => { processPhoto(); });
-            } else { processPhoto(); }
-
-            function processPhoto() {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    const img = new Image();
-                    img.onload = function() {
-                        const canvas = document.createElement('canvas'); 
-                        const MAX_SIZE = 300; 
-                        let width = img.width; 
-                        let height = img.height;
+        function reportFakePost(postId, postUser, brand, variant) {
+            showCustomConfirm(`Sei sicuro di voler segnalare la ${brand} di ${postUser} come falsa o contro le regole?`, "🚩 Segnala Fake", () => {
+                db.ref(`social_timeline/${postId}/fakeVotes/${currentUserNick}`).set(true).then(() => {
+                    db.ref(`social_timeline/${postId}/fakeVotes`).once('value').then(snap => {
+                        let votesCount = snap.exists() ? Object.keys(snap.val()).length : 0;
+                        let maxThreshold = Math.max(1, Math.ceil(totalUsersCount / 2));
                         
-                        if (width > height) { 
-                            if (width > MAX_SIZE) { height *= MAX_SIZE / width; width = MAX_SIZE; } 
-                        } else { 
-                            if (height > MAX_SIZE) { width *= MAX_SIZE / height; height = MAX_SIZE; } 
-                        }
-                        
-                        canvas.width = width; canvas.height = height;
-                        const ctx = canvas.getContext('2d'); 
-                        ctx.drawImage(img, 0, 0, width, height);
-                        
-                        const imgData = ctx.getImageData(0, 0, width, height); 
-                        const data = imgData.data; 
-                        let totalBrightness = 0;
-                        
-                        for (let i = 0; i < data.length; i += 4) { 
-                            totalBrightness += (data[i] + data[i+1] + data[i+2]) / 3; 
-                        }
-                        if ((totalBrightness / (data.length / 4)) < 20) { 
-                            showCustomAlert("🚨 Immagine troppo scura! Riprova con più luce.", "Foto Respinta", true); 
-                            return; 
-                        }
-
-                        const executeUploadBase64 = (drinkCount) => {
-                            Tesseract.recognize(canvas, 'ita+eng').then(({ data: { text } }) => {
-                                const extractedText = normalizeStr(text); 
-                                const brandWord = normalizeStr(brand).split(' ')[0];
-                                
-                                const hasText = extractedText.includes(brandWord) || extractedText.replace(/\s/g, '').includes(brandWord);
-                                const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.4); 
-                                
-                                if (hasText) {
-                                    if (drinkCount >= 2 && myFriendsList.length > 0) {
-                                        pendingUploadData = {brand, variant, isShiny, canvasBase64: compressedDataUrl, currentLat, currentLng};
-                                        let selectHtml = '<option value="">-- Seleziona un amico --</option>';
-                                        myFriendsList.forEach(f => { selectHtml += `<option value="${f}">${f}</option>`; });
-                                        document.getElementById('shareFriendSelect').innerHTML = selectHtml;
-                                        document.getElementById('shareModal').style.display = 'flex';
-                                    } else {
-                                        finalizeUpload({brand, variant, isShiny, canvasBase64: compressedDataUrl, currentLat, currentLng}, null);
-                                    }
-                                } else {
-                                    showCustomConfirm(`L'AI vede la bevanda, ma non riesce a leggere bene il logo "${brand}".\nConfermi che si tratta di questa birra?`, "Verifica Manuale", () => {
-                                        finalizeUpload({brand, variant, isShiny, canvasBase64: compressedDataUrl, currentLat, currentLng}, null);
-                                    });
-                                }
-                            });
-                        };
-
-                        if (aiModel) {
-                            aiModel.detect(canvas).then(predictions => {
-                                let isScreen = false; 
-                                let drinkCount = 0;
-                                predictions.forEach(p => { 
-                                    if(['tv', 'laptop', 'monitor', 'cell phone'].includes(p.class)) isScreen = true; 
-                                    if(['bottle', 'cup', 'wine glass', 'dining table'].includes(p.class)) drinkCount++;
-                                });
-                                
-                                if (isScreen) { 
-                                    showCustomAlert("🚨 L'AI ha rilevato uno schermo. È vietato fotografare PC o smartphone per barare!", "Frode Rilevata", true); 
-                                    updateStats(); 
-                                    return; 
-                                }
-                                if (drinkCount === 0) { 
-                                    showCustomAlert("🚨 L'AI non rileva né bottiglie né bicchieri. Inquadra bene la bevanda!", "AI Anti-Cheat", true); 
-                                    updateStats(); 
-                                    return; 
-                                }
-                                executeUploadBase64(drinkCount);
-                            });
+                        if(votesCount >= maxThreshold) {
+                            deletePost(postId, postUser, brand, variant, true);
                         } else {
-                            executeUploadBase64(1);
+                            showCustomAlert(`Segnalazione inviata. Se altri utenti confermano, il post verrà eliminato. (${votesCount}/${maxThreshold} voti necessari).`, "Grazie per la segnalazione!");
                         }
-                    };
-                    img.src = e.target.result;
-                };
-                reader.readAsDataURL(file);
-            }
+                    });
+                });
+            });
         }
 
         function recalculateTotalScore(username) {
@@ -1435,9 +1533,11 @@
             });
         }
 
-        function deletePost(postId, postUser, brand, variant) {
+        function deletePost(postId, postUser, brand, variant, viaModeration = false) {
             const uniqueId = brand + '-' + variant;
-            showCustomConfirm(`Vuoi davvero eliminare lo sblocco di ${postUser} per ${brand} - ${variant}?`, "Conferma Eliminazione", () => {
+            let msg = viaModeration ? `Il post è stato rimosso in automatico dalla moderazione di BeerDex.` : `Vuoi davvero eliminare lo sblocco di ${postUser} per ${brand} - ${variant}?`;
+            
+            let executeDelete = () => {
                 db.ref('pokedex_profiles/' + postUser + '/' + uniqueId).remove().then(() => { recalculateTotalScore(postUser); });
                 if(!postId) {
                     db.ref('social_timeline').once('value').then(snapshot => {
@@ -1447,7 +1547,14 @@
                         });
                     });
                 } else { db.ref('social_timeline/' + postId).remove(); }
-            });
+            };
+
+            if(viaModeration) {
+                showCustomAlert(msg, "Post Rimosso ❌", true);
+                executeDelete();
+            } else {
+                showCustomConfirm(msg, "Conferma Eliminazione", executeDelete);
+            }
         }
 
         function toggleLike(postId) {
@@ -1485,7 +1592,7 @@
                             <button class="btn-delete" onclick="deletePost(null, '${currentUserNick}', '${brand}', '${variant}')" title="Elimina foto">🗑️</button>
                         </div>
                     ` : `
-                        <label class="photo-btn" onclick="event.stopPropagation()">📷 Scatta<input type="file" accept="image/*" capture="environment" onclick="event.stopPropagation()" onchange="handlePhotoUpload(event, '${brand}', '${variant}')"></label>
+                        <button class="photo-btn" onclick="initUnlock(event, '${brand}', '${variant}')">📷 Sblocca</button>
                     `}
                 </div>`;
             });
@@ -1707,13 +1814,14 @@
                 let avatarContent = globalAvatars[post.user] ? `<img src="${globalAvatars[post.user]}" style="width:100%; height:100%; object-fit:cover;">` : post.user.charAt(0).toUpperCase();
                 let card = document.createElement('div'); card.className = 'post-card';
                 let canDelete = (post.user === currentUserNick) || isAdminUser;
+                let canReport = (post.user !== currentUserNick) && !isAdminUser; 
                 
                 let actionText = `ha trovato la <strong>${post.brand} - ${post.variant}</strong>! 🍻`;
                 if(post.isShared && post.taggedFriend) {
                     actionText = `sta bevendo una <strong>${post.brand} - ${post.variant}</strong> con <strong class="clickable-user" onclick="openPublicProfile('${post.taggedFriend}')">${post.taggedFriend}</strong>! 🍻`;
                 }
 
-                let shinyTag = post.isShiny ? ' <span style="color:var(--primary-dark); font-size:12px;">✨ Sblocco Shiny in Trasferta!</span>' : '';
+                let shinyTag = post.isShiny ? ' <span style="color:var(--primary-dark); font-size:12px;">✨ Sblocco Shiny!</span>' : '';
                 
                 let likesCount = post.likes ? Object.keys(post.likes).length : 0;
                 let isLiked = post.likes && post.likes[currentUserNick] ? true : false;
@@ -1732,6 +1840,7 @@
                     <img src="${post.photo}" class="post-image" alt="Foto">
                     <div class="post-actions">
                         <button class="btn-like ${isLiked ? 'liked' : ''}" onclick="toggleLike('${post.postId}')">🍻 ${likesCount}</button>
+                        ${canReport ? `<button class="btn-report" onclick="reportFakePost('${post.postId}', '${post.user}', '${post.brand}', '${post.variant}')" title="Segnala Fake">🚩</button>` : ''}
                     </div>
                     <div class="post-caption"><strong class="clickable-user" onclick="openPublicProfile('${post.user}')">${post.user}</strong> ${actionText}</div>
                 `;
@@ -1789,6 +1898,12 @@
         let globalAvatars = {};
 
         function loadRealtimeData() {
+            db.ref('users_directory').on('value', snap => {
+                if(snap.exists()) {
+                    totalUsersCount = Object.keys(snap.val()).length;
+                }
+            });
+
             db.ref('users_avatars').on('value', snap => {
                 globalAvatars = snap.val() || {};
                 const activeView = document.querySelector('.page-view.active');
