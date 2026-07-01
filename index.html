@@ -15,7 +15,6 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     
-    <!-- Aggiunta libreria icone professionali Google Material Symbols -->
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
 
     <style>
@@ -104,6 +103,10 @@
         #page-map .hero h1 { font-size: 24px; margin: 0 0 5px 0; }
         #page-map .hero p { font-size: 13px; margin: 0; }
         #mapContainer { flex-grow: 1; width: 100%; z-index: 1; background: #e0e6ed; }
+
+        /* Icone personalizzate Leaflet */
+        .custom-beer-icon { background: none; border: none; }
+        .user-loc-icon { background: none; border: none; }
 
         /* HEADER ANIMATO */
         header.hero { background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%); color: var(--dark); padding: 30px 20px 60px 20px; text-align: center; margin-bottom: 0; position: relative; overflow: hidden; z-index: 1; border-radius: 0; }
@@ -321,19 +324,19 @@
             </h3>
             <p style="color:var(--text-muted); font-size:13px; margin-bottom:15px;">Scatta una foto chiara al codice a barre sul retro per verificare l'autenticità.</p>
             
-            <label class="btn-main" style="display:flex; text-align:center; padding: 14px; cursor:pointer;">
+            <label class="btn-main" style="display:flex; text-align:center; padding: 14px; cursor:pointer; justify-content:center;">
                 <span class="material-symbols-outlined">photo_camera</span> Fotografa Codice a Barre
                 <input type="file" accept="image/*" capture="environment" style="display:none;" onchange="handleBarcodePhoto(event)">
             </label>
             
             <hr style="border: 0; border-top: 1px solid var(--gray); margin: 20px 0;">
             <p style="font-size: 12px; color: var(--dark); font-weight:bold; margin-top:0;">Stai bevendo una birra alla spina?</p>
-            <label class="btn-secondary" style="display:flex; text-align:center; padding: 12px; margin-top:5px; cursor:pointer;">
+            <label class="btn-secondary" style="display:flex; text-align:center; padding: 12px; margin-top:5px; cursor:pointer; justify-content:center;">
                 <span class="material-symbols-outlined">local_drink</span> È alla spina (Salta)
                 <input type="file" accept="image/*" capture="environment" style="display:none;" onchange="handlePhotoUpload(event, true)">
             </label>
 
-            <button class="btn-secondary" onclick="closeScannerModal()" style="margin-top:15px; background:var(--danger); color:white; border:none;">Annulla</button>
+            <button class="btn-secondary" onclick="closeScannerModal()" style="margin-top:15px; background:var(--danger); color:white; border:none; justify-content:center;">Annulla</button>
         </div>
     </div>
     
@@ -343,11 +346,11 @@
                 <span class="material-symbols-outlined" style="color: #27ae60;">check_circle</span> Codice Approvato
             </h3>
             <p style="color:var(--text-muted); font-size:14px; margin-bottom:20px;">Ora scatta la foto per il tuo feed social. Assicurati che si veda bene la birra!</p>
-            <label class="btn-main" style="display:flex; text-align:center; padding: 14px; cursor:pointer;">
+            <label class="btn-main" style="display:flex; text-align:center; padding: 14px; cursor:pointer; justify-content:center;">
                 <span class="material-symbols-outlined">photo_camera</span> Apri Fotocamera
                 <input type="file" accept="image/*" capture="environment" style="display:none;" onchange="handlePhotoUpload(event, false)">
             </label>
-            <button class="btn-secondary" onclick="closeCaptureModal()">Annulla</button>
+            <button class="btn-secondary" onclick="closeCaptureModal()" style="justify-content:center;">Annulla</button>
         </div>
     </div>
 
@@ -358,8 +361,8 @@
             </h3>
             <p style="color:var(--text-muted); font-size:14px; margin-bottom:20px;">Sei in compagnia? Tagga un amico e <strong>raddoppia i punti</strong> di questo sblocco.</p>
             <select id="shareFriendSelect" style="width: 100%; padding: 12px; border-radius: 10px; border: 2px solid var(--gray); margin-bottom: 20px; font-weight: bold; outline:none; cursor:pointer;"></select>
-            <button class="btn-main" onclick="submitSharedPost()">Condividi Sblocco (+ Punti)</button>
-            <button class="btn-secondary" onclick="skipSharedPost()">Sono solo io</button>
+            <button class="btn-main" onclick="submitSharedPost()" style="justify-content:center;">Condividi Sblocco (+ Punti)</button>
+            <button class="btn-secondary" onclick="skipSharedPost()" style="justify-content:center;">Sono solo io</button>
         </div>
     </div>
 
@@ -368,8 +371,8 @@
             <h1 style="font-size: 40px; margin: 0; color: var(--danger);"><span class="material-symbols-outlined" style="font-size: 60px;">no_drinks</span></h1>
             <h2 style="color: var(--dark);">Sei maggiorenne?</h2>
             <p style="color: var(--text-muted); font-size:14px; margin-bottom:20px;">L'accesso a questa applicazione è consentito solo alle persone in età legale per il consumo di alcolici nel proprio paese di residenza.</p>
-            <button class="btn-main" onclick="confirmAge()">SÌ, SONO MAGGIORENNE</button>
-            <button class="btn-secondary" onclick="rejectAge()">NO, NON LO SONO</button>
+            <button class="btn-main" onclick="confirmAge()" style="justify-content:center;">SÌ, SONO MAGGIORENNE</button>
+            <button class="btn-secondary" onclick="rejectAge()" style="justify-content:center;">NO, NON LO SONO</button>
         </div>
     </div>
 
@@ -394,7 +397,7 @@
                 <span class="eye-icon material-symbols-outlined" onclick="togglePasswordVisibility('authConfirmPassword')">visibility</span>
             </div>
             
-            <button class="btn-main" id="authBtn" onclick="handleAuthSubmit()">Entra nel Pub</button>
+            <button class="btn-main" id="authBtn" onclick="handleAuthSubmit()" style="justify-content:center;">Entra nel Pub</button>
             
             <div style="margin-top: 15px;">
                 <span class="auth-toggle" id="authToggle" onclick="toggleAuthMode()">Non hai un account? Registrati</span>
@@ -404,7 +407,6 @@
     </div>
 
     <div class="main-content">
-        <!-- Dashboard / Home -->
         <div id="page-home" class="page-view">
             <header class="hero">
                 <h1>Il tuo Passaporto</h1>
@@ -434,14 +436,13 @@
                 <div id="dashLastBeer"></div>
 
                 <div style="padding: 0 20px;">
-                    <button class="btn-main" style="margin-top: 30px; font-size: 18px; padding: 16px; background: linear-gradient(135deg, #f39c12, #e67e22);" onclick="navigateTo('page-explore')">
+                    <button class="btn-main" style="margin-top: 30px; font-size: 18px; padding: 16px; background: linear-gradient(135deg, #f39c12, #e67e22); justify-content:center;" onclick="navigateTo('page-explore')">
                         <span class="material-symbols-outlined">search</span> Vai a Esplorare e Scatta
                     </button>
                 </div>
             </div>
         </div>
 
-        <!-- Esplora -->
         <div id="page-explore" class="page-view">
             <header class="hero">
                 <h1>Esplora Birre</h1>
@@ -481,7 +482,6 @@
             </div>
         </div>
 
-        <!-- Classifiche -->
         <div id="page-leaderboard" class="page-view">
             <header class="hero">
                 <h1>Classifiche</h1>
@@ -506,7 +506,6 @@
             </div>
         </div>
 
-        <!-- Profilo Privato -->
         <div id="page-profile" class="page-view">
             <header class="hero">
                 <h1>Il Tuo Profilo</h1>
@@ -552,7 +551,6 @@
             </div>
         </div>
 
-        <!-- Profilo Pubblico -->
         <div id="page-public-profile" class="page-view">
             <header class="hero">
                 <button onclick="navigateTo('page-leaderboard')" style="position:absolute; top:15px; left:15px; background:rgba(255,255,255,0.2); border:none; padding:8px 12px; border-radius:10px; color:var(--dark); font-weight:bold; cursor:pointer; font-size:12px; display:flex; align-items:center; gap:4px;">
@@ -588,7 +586,6 @@
             </div>
         </div>
 
-        <!-- Mappa Sblocchi -->
         <div id="page-map" class="page-view">
             <header class="hero" style="margin-bottom: 0; padding-bottom: 30px; border-radius: 0; z-index: 10; position: relative; box-shadow: 0 5px 15px rgba(0,0,0,0.1);">
                 <h1>Mappa Sblocchi</h1>
@@ -597,7 +594,6 @@
             <div id="mapContainer"></div>
         </div>
 
-        <!-- Social Feed Edge to Edge -->
         <div id="page-social" class="page-view">
             <header class="hero">
                 <h1>Feed Amici</h1>
@@ -608,7 +604,6 @@
             </div>
         </div>
 
-        <!-- Gestione Amici -->
         <div id="page-friends" class="page-view">
             <header class="hero">
                 <h1>Gestione Amici</h1>
@@ -629,7 +624,6 @@
             </div>
         </div>
 
-        <!-- Regolamento -->
         <div id="page-rules" class="page-view">
             <header class="hero">
                 <h1>Regolamento BeerDex</h1>
@@ -708,7 +702,7 @@
                 <h4 style="margin:25px 0 10px 0; color:var(--dark); display:flex; align-items:center; gap:5px;"><span class="material-symbols-outlined">edit</span> Cambia Nickname</h4>
                 <p style="font-size:12px; color:var(--danger); font-weight:bold; margin-top:0;">Attenzione: L'aggiornamento modificherà i tuoi post passati e aggiornerà le liste dei tuoi amici automaticamente.</p>
                 <input type="text" id="newNicknameInput" placeholder="Nuovo Nickname...">
-                <button class="btn-main" onclick="changeUserNickname()" style="margin-top:0;">Salva Nuovo Nick</button>
+                <button class="btn-main" onclick="changeUserNickname()" style="margin-top:0; justify-content:center;">Salva Nuovo Nick</button>
 
                 <hr style="border:0; border-top:1px solid var(--gray); margin:25px 0;">
                 
@@ -717,7 +711,7 @@
                 <input type="password" id="oldPasswordInput" placeholder="Vecchia Password">
                 <input type="password" id="newPasswordInput" placeholder="Nuova Password">
                 <input type="password" id="confirmNewPasswordInput" placeholder="Conferma Nuova Password">
-                <button class="btn-main" onclick="changeUserPassword()" style="margin-top:0; background:var(--social-blue);">Aggiorna Password</button>
+                <button class="btn-main" onclick="changeUserPassword()" style="margin-top:0; background:var(--social-blue); justify-content:center;">Aggiorna Password</button>
 
                 <hr style="border:0; border-top:1px solid var(--gray); margin:25px 0;">
                 
@@ -811,7 +805,7 @@
             textEl.innerText = message;
             
             if(showOk) {
-                btnsEl.innerHTML = `<button class="btn-main" id="customAlertBtn" style="margin-top:0;">OK</button>`;
+                btnsEl.innerHTML = `<button class="btn-main" id="customAlertBtn" style="margin-top:0; justify-content:center;">OK</button>`;
                 document.getElementById('customAlertBtn').onclick = () => {
                     overlayEl.style.display = 'none';
                     if(callback) callback();
@@ -832,8 +826,8 @@
             titleEl.innerText = title;
             textEl.innerText = message;
             btnsEl.innerHTML = `
-                <button class="btn-secondary" id="customCancelBtn" style="margin-top:0; width:50%;">Annulla</button>
-                <button class="btn-main" id="customConfirmBtn" style="margin-top:0; width:50%; background:var(--danger);">Conferma</button>
+                <button class="btn-secondary" id="customCancelBtn" style="margin-top:0; width:50%; justify-content:center;">Annulla</button>
+                <button class="btn-main" id="customConfirmBtn" style="margin-top:0; width:50%; background:var(--danger); justify-content:center;">Conferma</button>
             `;
             overlayEl.style.display = 'flex';
             document.getElementById('customCancelBtn').onclick = () => overlayEl.style.display = 'none';
@@ -870,7 +864,6 @@
             if(pageId === 'page-profile') renderTrophies(); 
             if(pageId === 'page-map') {
                 renderMap();
-                setTimeout(() => { if(map) map.invalidateSize(); }, 300); 
             }
             if(pageId === 'page-social') renderSocialFeed();
             if(pageId === 'page-leaderboard') renderLeaderboard();
@@ -942,14 +935,39 @@
                 map = L.map('mapContainer').setView([41.9028, 12.4964], 5);
                 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '© OpenStreetMap' }).addTo(map);
                 markersGroup = L.layerGroup().addTo(map);
+
+                if (navigator.geolocation) {
+                    navigator.geolocation.getCurrentPosition(pos => {
+                        const lat = pos.coords.latitude;
+                        const lng = pos.coords.longitude;
+                        map.setView([lat, lng], 13);
+                        
+                        const userIcon = L.divIcon({
+                            html: '<div style="background:#3498db; width:16px; height:16px; border-radius:50%; border:3px solid #fff; box-shadow:0 0 5px rgba(0,0,0,0.5);"></div>',
+                            className: 'user-loc-icon',
+                            iconSize: [22, 22],
+                            iconAnchor: [11, 11]
+                        });
+                        L.marker([lat, lng], {icon: userIcon}).addTo(map).bindPopup("<b style='font-family:inherit;'>Sei qui!</b>");
+                    });
+                }
             }
             markersGroup.clearLayers();
             
+            const beerIcon = L.divIcon({
+                html: '<span class="material-symbols-outlined" style="font-size:36px; color:var(--primary-dark); text-shadow: 2px 2px 4px rgba(0,0,0,0.4);">sports_bar</span>',
+                className: 'custom-beer-icon',
+                iconSize: [36, 36],
+                iconAnchor: [18, 36],
+                popupAnchor: [0, -36]
+            });
+
             if(globalPosts && globalPosts.length > 0) {
                 let myPosts = globalPosts.filter(p => p.user === currentUserNick && p.lat && p.lng);
                 myPosts.forEach(p => {
-                    L.marker([p.lat, p.lng]).addTo(markersGroup)
-                     .bindPopup(`<b>${p.brand} - ${p.variant}</b><br><small>${p.isShiny ? 'Sblocco Shiny in Trasferta!' : ''}</small><br><img src="${p.photo}" style="width:100px; border-radius:5px; margin-top:5px;">`);
+                    let shinyBadge = p.isShiny ? '<span class="material-symbols-outlined" style="font-size:12px; color:var(--primary-dark); vertical-align:middle;">auto_awesome</span> Sblocco Shiny' : '';
+                    L.marker([p.lat, p.lng], {icon: beerIcon}).addTo(markersGroup)
+                     .bindPopup(`<div style="text-align:center; font-family:inherit;"><b>${p.brand}</b><br>${p.variant}<br><small style="font-weight:bold;">${shinyBadge}</small><br><img src="${p.photo}" style="width:100px; height:100px; object-fit:cover; border-radius:8px; margin-top:8px; border:2px solid var(--primary);"></div>`);
                 });
             }
             setTimeout(() => { map.invalidateSize(); }, 400); 
@@ -1235,7 +1253,7 @@
             { brand: "Chouffe", country: "Belgio", flag: "BE", rarity: "rara", desc: "La celebre birra artigianale belga dello gnomo.", variants: ["La Chouffe (Blonde)", "Mc Chouffe (Brune)", "Cherry Chouffe"], barcodes: [] },
             { brand: "Corona", country: "Messico", flag: "MX", rarity: "comune", desc: "La lager messicana famosa in tutto il mondo.", variants: ["Extra", "Cero"], barcodes: [] },
             { brand: "Crak Brewery", country: "Italia", regione: "Veneto", flag: "IT", rarity: "rara", desc: "Rivoluzionario birrificio veneto, re indiscusso delle IPA.", variants: ["Guerrilla (IPA)", "Mundaka", "Mansueto", "After Summer"], barcodes: [] },
-            { brand: "Del Borgo", country: "Italia", regione: "Lazio", flag: "IT", rarity: "rara", desc: "Famoso birrificio laziale, noto per le sue ricette creative.", variants: ["ReAle", "Duchessa", "My Antonia", "Lisa", "Cortigiana"], barcodes: [] },
+            { brand: "Del Borgo", country: "Italia", regione: "Lazio", flag: "IT", rarity: "rara", desc: "Famoso birrificio laziale, noto per le recursive ricette creative.", variants: ["ReAle", "Duchessa", "My Antonia", "Lisa", "Cortigiana"], barcodes: [] },
             { brand: "Delirium", country: "Belgio", flag: "BE", rarity: "rara", desc: "Famosissima Strong Ale belga.", variants: ["Tremens", "Nocturnum", "Red"], barcodes: [] },
             { brand: "Desperados", country: "Francia", flag: "FR", rarity: "media", desc: "Birra bionda aromatizzata alla tequila.", variants: ["Original", "Lime", "Mojito"], barcodes: [] },
             { brand: "Dreher", country: "Italia", regione: "Friuli-Venezia Giulia", flag: "IT", rarity: "comune", desc: "Uno dei marchi storici più antichi, fondato a Trieste.", variants: ["Classica", "Radler Limone"], barcodes: [] },
@@ -1964,6 +1982,29 @@
         let myFriendsList = []; let myReceivedRequests = []; let mySentRequests = []; let myRejectedRequests = [];
         let globalAvatars = {};
 
+        async function fixRetroactiveShiny() {
+            if (localStorage.getItem('beerdex_shiny_fixed_v1') === 'yes') return;
+            
+            let myItalianPosts = globalPosts.filter(p => p.user === currentUserNick && p.isShiny && p.lat && p.lng);
+            let needsUpdate = false;
+
+            for (let post of myItalianPosts) {
+                let targetBeer = beers.find(b => b.brand === post.brand);
+                if (targetBeer && targetBeer.country === "Italia") {
+                    let isReallyShiny = await checkShinyStatus(post.lat, post.lng, targetBeer);
+                    if (!isReallyShiny) {
+                        db.ref('social_timeline/' + post.postId + '/isShiny').set(false);
+                        db.ref('pokedex_profiles/' + currentUserNick + '/' + post.brand + '-' + post.variant + '/isShiny').set(false);
+                        needsUpdate = true;
+                    }
+                    await new Promise(r => setTimeout(r, 1500)); // Rispetta il Rate Limit di Nominatim
+                }
+            }
+            
+            if (needsUpdate) { recalculateTotalScore(currentUserNick); }
+            localStorage.setItem('beerdex_shiny_fixed_v1', 'yes');
+        }
+
         function loadRealtimeData() {
             db.ref('users_directory').on('value', snap => {
                 if(snap.exists()) {
@@ -2038,6 +2079,7 @@
                 if(snapshot.exists()) {
                     snapshot.forEach(child => { let p = child.val(); p.postId = child.key; globalPosts.push(p); });
                 }
+                fixRetroactiveShiny(); // Controllo automatico silenzioso per togliere vecchi Shiny non validi
                 const activeView = document.querySelector('.page-view.active');
                 if(activeView && activeView.id === 'page-home') renderDashboard();
                 if(activeView && activeView.id === 'page-social') renderSocialFeed();
