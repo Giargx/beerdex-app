@@ -32,15 +32,10 @@
             --danger: #e74c3c;
         }
         
-        body { font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: var(--light); color: var(--dark); margin: 0; padding-top: 60px; overflow-x: hidden; }
+        /* FIX SCROLLING: aggiunto padding-bottom al body per non far tagliare il fondo alla bottom-nav */
+        body { font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: var(--light); color: var(--dark); margin: 0; padding-top: 60px; padding-bottom: 110px; overflow-x: hidden; }
 
         .material-symbols-outlined { vertical-align: middle; font-size: inherit; }
-
-        /* OVERLAY BLOCCO ROTAZIONE (Solo Portrait) */
-        #orientation-overlay { display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: var(--dark); color: white; z-index: 9999999; flex-direction: column; justify-content: center; align-items: center; text-align: center; padding: 20px; box-sizing: border-box; }
-        @media screen and (min-width: 320px) and (max-width: 767px) and (orientation: landscape) {
-            #orientation-overlay { display: flex !important; }
-        }
 
         /* TOP BAR */
         .top-bar { position: fixed; top: 0; left: 0; width: 100%; height: 60px; background: var(--white); box-shadow: 0 2px 10px rgba(0,0,0,0.05); display: flex; justify-content: space-between; align-items: center; padding: 0 20px; box-sizing: border-box; z-index: 1000; }
@@ -80,11 +75,10 @@
         .controls input[type="text"], .controls input[type="password"] { width: 100%; padding: 12px 15px; border: 2px solid var(--gray); border-radius: 12px; font-size: 15px; outline: none; box-sizing: border-box; background: #fbfcfc; margin-bottom: 15px; transition: border-color 0.3s; }
         .controls input[type="text"]:focus, .controls input[type="password"]:focus { border-color: var(--primary-dark); }
         .filters-label { font-size: 12px; font-weight: bold; text-transform: uppercase; color: var(--text-muted); margin-bottom: 8px; display: block; letter-spacing: 1px; }
-        select#countryFilter, select#sortFilter, select#pubProfileSort, select#profileSort { width: 100%; padding: 12px 15px; border: 2px solid var(--gray); border-radius: 12px; font-size: 15px; font-weight: bold; color: var(--dark); background: var(--white); outline: none; cursor: pointer; transition: 0.3s; margin-bottom: 20px;}
-        select#countryFilter:focus, select#sortFilter:focus, select#pubProfileSort:focus, select#profileSort:focus { border-color: var(--primary-dark); }
+        select { width: 100%; padding: 12px 15px; border: 2px solid var(--gray); border-radius: 12px; font-size: 15px; font-weight: bold; color: var(--dark); background: var(--white); outline: none; cursor: pointer; transition: 0.3s; margin-bottom: 20px;}
+        select:focus { border-color: var(--primary-dark); }
 
-        /* SCROLLING FIX - Main Content gestisce lo spazio vuoto in fondo */
-        .main-content { width: 100%; min-height: 100vh; display: flex; flex-direction: column; position: relative; padding-bottom: 110px; box-sizing: border-box;}
+        .main-content { width: 100%; min-height: 100vh; display: flex; flex-direction: column; position: relative; box-sizing: border-box;}
         .page-view { display: none; flex-grow: 1; animation: fadeIn 0.4s; }
         .page-view.active { display: block; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
@@ -277,12 +271,6 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
 </head>
 <body>
-
-    <div id="orientation-overlay">
-        <span class="material-symbols-outlined" style="font-size: 60px; color: var(--primary); margin-bottom: 15px;">screen_rotation</span>
-        <h2 style="margin:0 0 10px 0;">Ruota il Telefono</h2>
-        <p style="margin:0; font-size: 14px; opacity: 0.8;">BeerDex è ottimizzato per l'uso in verticale (Ritratto).<br>Ruota il tuo dispositivo per continuare.</p>
-    </div>
 
     <div id="hidden-reader-div" style="display:none;"></div>
 
@@ -535,6 +523,17 @@
                     <h3 style="margin:0; color:var(--dark); display:flex; align-items:center; gap:8px;">
                         <span class="material-symbols-outlined" style="color:var(--gold);">workspace_premium</span> Medaglie Brand
                     </h3>
+                    <div style="display:flex; align-items:center; gap:5px;">
+                        <select id="profileMedalSort" onchange="renderTrophies()" style="padding: 6px; border-radius: 8px; border: 1px solid var(--gray); font-size: 11px; font-weight:bold; color: var(--dark); background: #fbfcfc; outline: none; cursor:pointer; margin-bottom:0;">
+                            <option value="alpha">Alfabetico</option>
+                            <option value="nation">Nazione</option>
+                            <option value="rarity">Rarità</option>
+                            <option value="unlocked" selected>Sbloccate</option>
+                        </select>
+                        <button id="profileMedalSortDirBtn" onclick="toggleProfileMedalSortDir()" style="border:1px solid var(--gray); background:#fbfcfc; border-radius:8px; padding:4px; cursor:pointer; color:var(--dark); display:flex; align-items:center; justify-content:center;">
+                            <span class="material-symbols-outlined" style="font-size:16px;">arrow_downward</span>
+                        </button>
+                    </div>
                 </div>
                 <div class="trophy-grid" id="brandMedalsGrid"></div>
 
@@ -544,12 +543,12 @@
                     </h3>
                     <div style="display:flex; align-items:center; gap:5px;">
                         <select id="profileSort" onchange="renderTrophies()" style="padding: 6px; border-radius: 8px; border: 1px solid var(--gray); font-size: 11px; font-weight:bold; color: var(--dark); background: #fbfcfc; outline: none; cursor:pointer; margin-bottom:0;">
-                            <option value="unlocked">Sbloccate</option>
                             <option value="alpha">Alfabetico</option>
-                            <option value="rarity">Rarità</option>
                             <option value="nation">Nazione</option>
+                            <option value="rarity">Rarità</option>
+                            <option value="unlocked" selected>Sbloccate</option>
                         </select>
-                        <button id="profileSortDirBtn" onclick="toggleProfileSortDir()" style="border:1px solid var(--gray); background:#fbfcfc; border-radius:8px; padding:4px; cursor:pointer; color:var(--dark);">
+                        <button id="profileSortDirBtn" onclick="toggleProfileSortDir()" style="border:1px solid var(--gray); background:#fbfcfc; border-radius:8px; padding:4px; cursor:pointer; color:var(--dark); display:flex; align-items:center; justify-content:center;">
                             <span class="material-symbols-outlined" style="font-size:16px;">arrow_downward</span>
                         </button>
                     </div>
@@ -577,6 +576,17 @@
                     <h3 style="margin:0; color:var(--dark); display:flex; align-items:center; gap:8px;">
                         <span class="material-symbols-outlined" style="color:var(--gold);">workspace_premium</span> Medaglie Brand
                     </h3>
+                    <div style="display:flex; align-items:center; gap:5px;">
+                        <select id="pubProfileMedalSort" onchange="renderPublicTrophiesSort()" style="padding: 6px; border-radius: 8px; border: 1px solid var(--gray); font-size: 11px; font-weight:bold; color: var(--dark); background: #fbfcfc; outline: none; cursor:pointer; margin-bottom:0;">
+                            <option value="alpha">Alfabetico</option>
+                            <option value="nation">Nazione</option>
+                            <option value="rarity">Rarità</option>
+                            <option value="unlocked" selected>Sbloccate</option>
+                        </select>
+                        <button id="pubProfileMedalSortDirBtn" onclick="togglePubProfileMedalSortDir()" style="border:1px solid var(--gray); background:#fbfcfc; border-radius:8px; padding:4px; cursor:pointer; color:var(--dark); display:flex; align-items:center; justify-content:center;">
+                            <span class="material-symbols-outlined" style="font-size:16px;">arrow_downward</span>
+                        </button>
+                    </div>
                 </div>
                 <div class="trophy-grid" id="pubBrandMedalsGrid"></div>
 
@@ -586,12 +596,12 @@
                     </h3>
                     <div style="display:flex; align-items:center; gap:5px;">
                         <select id="pubProfileSort" onchange="renderPublicTrophiesSort()" style="padding: 6px; border-radius: 8px; border: 1px solid var(--gray); font-size: 11px; font-weight:bold; color: var(--dark); background: #fbfcfc; outline: none; cursor:pointer; margin-bottom:0;">
-                            <option value="unlocked">Sbloccate</option>
                             <option value="alpha">Alfabetico</option>
-                            <option value="rarity">Rarità</option>
                             <option value="nation">Nazione</option>
+                            <option value="rarity">Rarità</option>
+                            <option value="unlocked" selected>Sbloccate</option>
                         </select>
-                        <button id="pubProfileSortDirBtn" onclick="togglePubProfileSortDir()" style="border:1px solid var(--gray); background:#fbfcfc; border-radius:8px; padding:4px; cursor:pointer; color:var(--dark);">
+                        <button id="pubProfileSortDirBtn" onclick="togglePubProfileSortDir()" style="border:1px solid var(--gray); background:#fbfcfc; border-radius:8px; padding:4px; cursor:pointer; color:var(--dark); display:flex; align-items:center; justify-content:center;">
                             <span class="material-symbols-outlined" style="font-size:16px;">arrow_downward</span>
                         </button>
                     </div>
@@ -854,19 +864,35 @@
         let currentLeaderboardTab = 'friends'; 
         let currentFriendsTab = 'received';
         
-        let profileSortDir = -1; 
+        let profileSortDir = 1; 
         function toggleProfileSortDir() {
             profileSortDir *= -1;
             const btn = document.getElementById('profileSortDirBtn');
-            btn.innerHTML = profileSortDir === 1 ? '<span class="material-symbols-outlined" style="font-size:16px;">arrow_upward</span>' : '<span class="material-symbols-outlined" style="font-size:16px;">arrow_downward</span>';
+            btn.innerHTML = profileSortDir === -1 ? '<span class="material-symbols-outlined" style="font-size:16px;">arrow_upward</span>' : '<span class="material-symbols-outlined" style="font-size:16px;">arrow_downward</span>';
             renderTrophies();
         }
 
-        let pubProfileSortDir = -1;
+        let profileMedalSortDir = 1; 
+        function toggleProfileMedalSortDir() {
+            profileMedalSortDir *= -1;
+            const btn = document.getElementById('profileMedalSortDirBtn');
+            btn.innerHTML = profileMedalSortDir === -1 ? '<span class="material-symbols-outlined" style="font-size:16px;">arrow_upward</span>' : '<span class="material-symbols-outlined" style="font-size:16px;">arrow_downward</span>';
+            renderTrophies();
+        }
+
+        let pubProfileSortDir = 1;
         function togglePubProfileSortDir() {
             pubProfileSortDir *= -1;
             const btn = document.getElementById('pubProfileSortDirBtn');
-            btn.innerHTML = pubProfileSortDir === 1 ? '<span class="material-symbols-outlined" style="font-size:16px;">arrow_upward</span>' : '<span class="material-symbols-outlined" style="font-size:16px;">arrow_downward</span>';
+            btn.innerHTML = pubProfileSortDir === -1 ? '<span class="material-symbols-outlined" style="font-size:16px;">arrow_upward</span>' : '<span class="material-symbols-outlined" style="font-size:16px;">arrow_downward</span>';
+            renderPublicTrophiesSort();
+        }
+
+        let pubProfileMedalSortDir = 1;
+        function togglePubProfileMedalSortDir() {
+            pubProfileMedalSortDir *= -1;
+            const btn = document.getElementById('pubProfileMedalSortDirBtn');
+            btn.innerHTML = pubProfileMedalSortDir === -1 ? '<span class="material-symbols-outlined" style="font-size:16px;">arrow_upward</span>' : '<span class="material-symbols-outlined" style="font-size:16px;">arrow_downward</span>';
             renderPublicTrophiesSort();
         }
 
@@ -1265,7 +1291,6 @@
             reader.readAsDataURL(file);
         }
 
-        // --- DATABASE BIRRE (60 Birre) ---
         const beers = [
             { brand: "Augustiner", country: "Germania", flag: "DE", rarity: "media", desc: "Storico birrificio di Monaco di Baviera.", variants: ["Lagerbier Hell", "Edelstoff", "Maximator"], barcodes: [] },
             { brand: "Baladin", country: "Italia", regione: "Piemonte", flag: "IT", rarity: "rara", desc: "Pioniere della birra artigianale italiana.", variants: ["Isaac (Blanche)", "Wayan (Saison)", "Nora (Speziata)", "Super Bitter", "Leon", "Nazionale", "L'IPPA", "Rock'n'Roll"], barcodes: [] },
@@ -1782,7 +1807,7 @@
             });
         }
 
-        function renderTrophyGrid(pokedex, gridId, medalsId, sortVal) {
+        function renderTrophyGrid(pokedex, gridId, medalsId, isPub) {
             const grid = document.getElementById(gridId); 
             const medalsGrid = document.getElementById(medalsId);
             if(!grid || !medalsGrid) return;
@@ -1793,9 +1818,11 @@
             beers.forEach(b => { brandUnlockCounts[b.brand] = 0; });
             let allVariantsList = [];
 
-            // Determina la direzione (valida per griglia e medaglie)
-            let isPub = gridId === 'pubTrophyGrid';
-            let sortDir = isPub ? pubProfileSortDir : profileSortDir;
+            let variantSortVal = isPub ? (document.getElementById('pubProfileSort') ? document.getElementById('pubProfileSort').value : 'unlocked') : (document.getElementById('profileSort') ? document.getElementById('profileSort').value : 'unlocked');
+            let variantSortDir = isPub ? pubProfileSortDir : profileSortDir;
+            
+            let medalSortVal = isPub ? (document.getElementById('pubProfileMedalSort') ? document.getElementById('pubProfileMedalSort').value : 'unlocked') : (document.getElementById('profileMedalSort') ? document.getElementById('profileMedalSort').value : 'unlocked');
+            let medalSortDir = isPub ? pubProfileMedalSortDir : profileMedalSortDir;
 
             beers.forEach(beer => {
                 beer.variants.forEach(variant => {
@@ -1834,11 +1861,11 @@
 
             allVariantsList.sort((a, b) => {
                 let res = 0;
-                if (sortVal === 'alpha') res = a.brand.localeCompare(b.brand) || a.variant.localeCompare(b.variant);
-                else if (sortVal === 'unlocked') res = (a.isUnlocked === b.isUnlocked ? 0 : a.isUnlocked ? -1 : 1) || a.brand.localeCompare(b.brand);
-                else if (sortVal === 'rarity') res = (rarityMap[a.rarity] || 0) - (rarityMap[b.rarity] || 0) || a.brand.localeCompare(b.brand);
-                else if (sortVal === 'nation') res = a.country.localeCompare(b.country) || a.brand.localeCompare(b.brand);
-                return res * sortDir;
+                if (variantSortVal === 'alpha') res = a.brand.localeCompare(b.brand) || a.variant.localeCompare(b.variant);
+                else if (variantSortVal === 'unlocked') res = (a.isUnlocked === b.isUnlocked ? 0 : a.isUnlocked ? -1 : 1) || a.brand.localeCompare(b.brand);
+                else if (variantSortVal === 'rarity') res = (rarityMap[a.rarity] || 0) - (rarityMap[b.rarity] || 0) || a.brand.localeCompare(b.brand);
+                else if (variantSortVal === 'nation') res = a.country.localeCompare(b.country) || a.brand.localeCompare(b.brand);
+                return res * variantSortDir;
             });
 
             allVariantsList.forEach(item => {
@@ -1865,11 +1892,11 @@
 
             sortedBrandsForMedals.sort((a, b) => {
                 let res = 0;
-                if (sortVal === 'alpha') res = a.brand.localeCompare(b.brand);
-                else if (sortVal === 'unlocked') res = (a.isCompleted === b.isCompleted ? 0 : a.isCompleted ? -1 : 1) || a.brand.localeCompare(b.brand);
-                else if (sortVal === 'rarity') res = (rarityMap[a.rarity] || 0) - (rarityMap[b.rarity] || 0) || a.brand.localeCompare(b.brand);
-                else if (sortVal === 'nation') res = a.country.localeCompare(b.country) || a.brand.localeCompare(b.brand);
-                return res * sortDir;
+                if (medalSortVal === 'alpha') res = a.brand.localeCompare(b.brand);
+                else if (medalSortVal === 'unlocked') res = (a.isCompleted === b.isCompleted ? 0 : a.isCompleted ? -1 : 1) || a.brand.localeCompare(b.brand);
+                else if (medalSortVal === 'rarity') res = (rarityMap[a.rarity] || 0) - (rarityMap[b.rarity] || 0) || a.brand.localeCompare(b.brand);
+                else if (medalSortVal === 'nation') res = a.country.localeCompare(b.country) || a.brand.localeCompare(b.brand);
+                return res * medalSortDir;
             });
 
             sortedBrandsForMedals.forEach(beerObj => {
@@ -1890,16 +1917,12 @@
         }
 
         function renderTrophies() {
-            const sortVal = document.getElementById('profileSort') ? document.getElementById('profileSort').value : 'unlocked';
-            renderTrophyGrid(myPokedex, 'trophyGrid', 'brandMedalsGrid', sortVal);
+            renderTrophyGrid(myPokedex, 'trophyGrid', 'brandMedalsGrid', false);
         }
 
+        let currentPubDex = {};
         function renderPublicTrophiesSort() {
-            const sortVal = document.getElementById('pubProfileSort') ? document.getElementById('pubProfileSort').value : 'unlocked';
-            const username = document.getElementById('pubProfileName').innerText;
-            db.ref('pokedex_profiles/' + username).once('value').then(snap => {
-                renderTrophyGrid(snap.val() || {}, 'pubTrophyGrid', 'pubBrandMedalsGrid', sortVal);
-            });
+            renderTrophyGrid(currentPubDex, 'pubTrophyGrid', 'pubBrandMedalsGrid', true);
         }
 
         function openPublicProfile(username) {
@@ -1908,8 +1931,8 @@
                 return;
             }
             db.ref('pokedex_profiles/' + username).once('value').then(snap => {
-                const pubDex = snap.val() || {};
-                renderTrophyGrid(pubDex, 'pubTrophyGrid', 'pubBrandMedalsGrid', 'unlocked');
+                currentPubDex = snap.val() || {};
+                renderTrophyGrid(currentPubDex, 'pubTrophyGrid', 'pubBrandMedalsGrid', true);
                 
                 db.ref('leaderboard_scores/' + username).once('value').then(scoreSnap => {
                     let score = scoreSnap.val() || 0;
@@ -2049,7 +2072,7 @@
                         db.ref('pokedex_profiles/' + currentUserNick + '/' + post.brand + '-' + post.variant + '/isShiny').set(false);
                         needsUpdate = true;
                     }
-                    await new Promise(r => setTimeout(r, 1500));
+                    await new Promise(r => setTimeout(r, 1500)); 
                 }
             }
             
