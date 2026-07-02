@@ -32,9 +32,15 @@
             --danger: #e74c3c;
         }
         
-        body { font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: var(--light); color: var(--dark); margin: 0; padding-top: 60px; padding-bottom: 120px; overflow-x: hidden; }
+        body { font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: var(--light); color: var(--dark); margin: 0; padding-top: 60px; overflow-x: hidden; }
 
         .material-symbols-outlined { vertical-align: middle; font-size: inherit; }
+
+        /* OVERLAY BLOCCO ROTAZIONE (Solo Portrait) */
+        #orientation-overlay { display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: var(--dark); color: white; z-index: 9999999; flex-direction: column; justify-content: center; align-items: center; text-align: center; padding: 20px; box-sizing: border-box; }
+        @media screen and (min-width: 320px) and (max-width: 767px) and (orientation: landscape) {
+            #orientation-overlay { display: flex !important; }
+        }
 
         /* TOP BAR */
         .top-bar { position: fixed; top: 0; left: 0; width: 100%; height: 60px; background: var(--white); box-shadow: 0 2px 10px rgba(0,0,0,0.05); display: flex; justify-content: space-between; align-items: center; padding: 0 20px; box-sizing: border-box; z-index: 1000; }
@@ -45,7 +51,7 @@
         .top-action-btn:hover { transform: scale(1.1); }
         .top-badge { position: absolute; top: -5px; right: -8px; font-size: 10px; background: var(--danger); color: white; border-radius: 50%; padding: 2px 5px; font-weight: bold; animation: bounce 1s infinite; display: none;}
 
-        /* BOTTOM NAV BLINDATA CON VALORI FISSI */
+        /* BOTTOM NAV BLINDATA */
         .bottom-nav { 
             position: fixed; 
             bottom: 0; 
@@ -60,23 +66,8 @@
             box-sizing: border-box;
             flex-direction: row;
         }
-        .nav-item { 
-            flex: 1; 
-            display: flex; 
-            flex-direction: column; 
-            align-items: center; 
-            justify-content: center; 
-            height: 100%; 
-            color: var(--text-muted); 
-            cursor: pointer; 
-            transition: 0.3s; 
-            user-select: none; 
-        }
-        .nav-item.active { 
-            background-color: #f8f9f9; 
-            color: var(--primary-dark); 
-            border-top: 3px solid var(--primary-dark); 
-        }
+        .nav-item { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; color: var(--text-muted); cursor: pointer; transition: 0.3s; user-select: none; }
+        .nav-item.active { background-color: #f8f9f9; color: var(--primary-dark); border-top: 3px solid var(--primary-dark); }
         .nav-icon { font-size: 24px; margin-bottom: 2px; }
         .nav-text { font-size: 9px; font-weight: 800; text-transform: uppercase; }
 
@@ -92,23 +83,20 @@
         select#countryFilter, select#sortFilter, select#pubProfileSort, select#profileSort { width: 100%; padding: 12px 15px; border: 2px solid var(--gray); border-radius: 12px; font-size: 15px; font-weight: bold; color: var(--dark); background: var(--white); outline: none; cursor: pointer; transition: 0.3s; margin-bottom: 20px;}
         select#countryFilter:focus, select#sortFilter:focus, select#pubProfileSort:focus, select#profileSort:focus { border-color: var(--primary-dark); }
 
-        .main-content { width: 100%; min-height: calc(100vh - 140px); display: flex; flex-direction: column; position: relative;}
+        /* SCROLLING FIX - Main Content gestisce lo spazio vuoto in fondo */
+        .main-content { width: 100%; min-height: 100vh; display: flex; flex-direction: column; position: relative; padding-bottom: 110px; box-sizing: border-box;}
         .page-view { display: none; flex-grow: 1; animation: fadeIn 0.4s; }
         .page-view.active { display: block; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* FIX MAPPA INCASSATA */
         #page-map.active { display: flex !important; flex-direction: column; position: fixed; top: 60px; bottom: 80px; left: 0; width: 100%; margin: 0; padding: 0; overflow: hidden; z-index: 500; background: var(--light); }
         #page-map .hero { margin-bottom: 0; padding: 15px 20px 20px 20px; border-radius: 0; z-index: 10; position: relative; box-shadow: 0 5px 15px rgba(0,0,0,0.1); flex-shrink: 0; }
         #page-map .hero h1 { font-size: 24px; margin: 0 0 5px 0; }
         #page-map .hero p { font-size: 13px; margin: 0; }
         #mapContainer { flex-grow: 1; width: 100%; z-index: 1; background: #e0e6ed; }
-
-        /* Icone personalizzate Leaflet */
         .custom-beer-icon { background: none; border: none; }
         .user-loc-icon { background: none; border: none; }
 
-        /* HEADER ANIMATO */
         header.hero { background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%); color: var(--dark); padding: 30px 20px 60px 20px; text-align: center; margin-bottom: 0; position: relative; overflow: hidden; z-index: 1; border-radius: 0; }
         header.hero h1 { margin: 10px 0 10px 0; font-size: 32px; font-weight: 800; letter-spacing: -1px; position: relative; z-index: 5; }
         header.hero p { margin: 0; font-size: 15px; opacity: 0.85; font-weight: 500; position: relative; z-index: 5; }
@@ -118,7 +106,7 @@
         .bubble { position: absolute; bottom: -20px; background: rgba(255, 255, 255, 0.4); border-radius: 50%; animation: rise infinite ease-in; }
         @keyframes rise { 0% { bottom: -20px; transform: translateX(0); opacity: 0; } 50% { opacity: 1; } 100% { bottom: 100%; transform: translateX(-20px); opacity: 0; } }
 
-        .page-container { width: 100%; max-width: 900px; margin: -30px auto 0 auto; padding: 30px 20px 40px 20px; background: var(--white); border-radius: 30px 30px 0 0; box-shadow: 0 -10px 25px rgba(0,0,0,0.05); position: relative; z-index: 5; box-sizing: border-box; }
+        .page-container { width: 100%; max-width: 900px; margin: -30px auto 0 auto; padding: 30px 20px 0px 20px; background: var(--white); border-radius: 30px 30px 0 0; box-shadow: 0 -10px 25px rgba(0,0,0,0.05); position: relative; z-index: 5; box-sizing: border-box; }
 
         .container { display: flex; flex-wrap: wrap; justify-content: center; gap: 20px; width: 100%; position: relative; z-index: 5; padding: 0 20px; box-sizing: border-box;}
         
@@ -257,22 +245,25 @@
         .rules-section ul { padding-left: 20px; }
         .rules-section li { margin-bottom: 8px; line-height: 1.4; }
 
-        .trophy-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 15px; text-align: center; margin-bottom: 30px; padding: 0 20px;}
-        .trophy-card { background: var(--white); padding: 12px 8px; border-radius: 12px; display: flex; flex-direction: column; align-items: center; transition: 0.2s; position: relative; box-shadow: 0 4px 10px rgba(0,0,0,0.05);}
+        /* GRIGLIA TROFEI 3x RIGA SU MOBILE */
+        .trophy-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; text-align: center; margin-bottom: 30px; padding: 0 10px;}
+        @media (min-width: 600px) { .trophy-grid { grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 15px; } }
+        
+        .trophy-card { background: var(--white); padding: 10px 4px; border-radius: 12px; display: flex; flex-direction: column; align-items: center; transition: 0.2s; position: relative; box-shadow: 0 4px 10px rgba(0,0,0,0.05);}
         .trophy-card.shiny-card { background: linear-gradient(135deg, #fffdeb 0%, #fff0b3 100%); border: 2px solid var(--gold); box-shadow: 0 0 15px rgba(241,196,15,0.4); }
         
-        .pts-badge { background: var(--primary-dark); color: white; border-radius: 10px; padding: 3px 6px; font-size: 10px; font-weight: bold; position: absolute; top: 6px; right: 6px; z-index: 10; box-shadow: 0 2px 5px rgba(0,0,0,0.2);}
-        .mul-badge { background: #9b59b6; color: white; border-radius: 10px; padding: 3px 6px; font-size: 10px; font-weight: bold; position: absolute; top: 6px; left: 6px; z-index: 10; box-shadow: 0 2px 5px rgba(0,0,0,0.2); display: flex; align-items: center; gap: 2px;}
+        .pts-badge { background: var(--primary-dark); color: white; border-radius: 10px; padding: 3px 6px; font-size: 10px; font-weight: bold; position: absolute; top: 4px; right: 4px; z-index: 10; box-shadow: 0 2px 5px rgba(0,0,0,0.2);}
+        .mul-badge { background: #9b59b6; color: white; border-radius: 10px; padding: 3px 6px; font-size: 10px; font-weight: bold; position: absolute; top: 4px; left: 4px; z-index: 10; box-shadow: 0 2px 5px rgba(0,0,0,0.2); display: flex; align-items: center; gap: 2px;}
         
-        .trophy-img-container { width: 70px; height: 70px; border-radius: 50%; overflow: hidden; background: #e0e6ed; display: flex; align-items: center; justify-content: center; font-size: 32px; border: 3px solid #ccc; margin-bottom: 10px; transition: 0.3s; filter: grayscale(100%) opacity(40%); color: var(--text-muted); }
+        .trophy-img-container { width: 55px; height: 55px; border-radius: 50%; overflow: hidden; background: #e0e6ed; display: flex; align-items: center; justify-content: center; font-size: 26px; border: 3px solid #ccc; margin-bottom: 8px; transition: 0.3s; filter: grayscale(100%) opacity(40%); color: var(--text-muted); }
         .trophy-card.unlocked .trophy-img-container { border-color: var(--gold); background: var(--white); box-shadow: 0 0 10px rgba(241, 196, 15, 0.4); filter: none; opacity: 1; }
         .trophy-card.unlocked img { width: 100%; height: 100%; object-fit: cover; }
-        .trophy-name { font-size: 12px; font-weight: bold; line-height: 1.2; color: var(--dark); }
-        .trophy-brand { font-size: 10px; color: var(--text-muted); text-transform: uppercase; margin-bottom: 4px;}
+        .trophy-name { font-size: 11px; font-weight: bold; line-height: 1.2; color: var(--dark); }
+        .trophy-brand { font-size: 9px; color: var(--text-muted); text-transform: uppercase; margin-bottom: 4px;}
 
-        .medal-badge-card { background: #fcf8e3; border: 2px solid var(--gold); border-radius: 12px; padding: 10px; display: flex; flex-direction: column; align-items: center; text-align: center; transition: 0.3s; opacity: 0.4; filter: grayscale(100%); position: relative; }
+        .medal-badge-card { background: #fcf8e3; border: 2px solid var(--gold); border-radius: 12px; padding: 10px 4px; display: flex; flex-direction: column; align-items: center; text-align: center; transition: 0.3s; opacity: 0.4; filter: grayscale(100%); position: relative; }
         .medal-badge-card.unlocked { opacity: 1; filter: none; box-shadow: 0 4px 10px rgba(241,196,15,0.2); }
-        .medal-icon-container { font-size: 35px; margin-bottom: 5px; color: var(--gold); }
+        .medal-icon-container { font-size: 30px; margin-bottom: 5px; color: var(--gold); }
         
         .profile-user-box { text-align: center; padding: 25px; background: var(--white); border-radius: 16px; position: relative; box-shadow: 0 5px 15px rgba(0,0,0,0.05); border: 2px solid var(--primary); margin: 0 20px 20px 20px; }
         
@@ -286,6 +277,12 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
 </head>
 <body>
+
+    <div id="orientation-overlay">
+        <span class="material-symbols-outlined" style="font-size: 60px; color: var(--primary); margin-bottom: 15px;">screen_rotation</span>
+        <h2 style="margin:0 0 10px 0;">Ruota il Telefono</h2>
+        <p style="margin:0; font-size: 14px; opacity: 0.8;">BeerDex è ottimizzato per l'uso in verticale (Ritratto).<br>Ruota il tuo dispositivo per continuare.</p>
+    </div>
 
     <div id="hidden-reader-div" style="display:none;"></div>
 
@@ -435,9 +432,12 @@
                 <h3 class="hero-section-title" style="margin-top: 30px; color: var(--dark); text-align:center;">Ultima Conquista</h3>
                 <div id="dashLastBeer"></div>
 
-                <div style="padding: 0 20px;">
-                    <button class="btn-main" style="margin-top: 30px; font-size: 18px; padding: 16px; background: linear-gradient(135deg, #f39c12, #e67e22); justify-content:center;" onclick="navigateTo('page-explore')">
+                <div style="padding: 0 20px; display: flex; flex-direction: column; gap: 10px; margin-top: 30px;">
+                    <button class="btn-main" style="margin-top: 0; font-size: 16px; padding: 14px; background: linear-gradient(135deg, #f39c12, #e67e22); justify-content:center;" onclick="navigateTo('page-explore')">
                         <span class="material-symbols-outlined">search</span> Vai a Esplorare e Scatta
+                    </button>
+                    <button class="btn-secondary" style="margin-top: 0; font-size: 16px; padding: 14px; justify-content:center;" onclick="navigateTo('page-profile')">
+                        <span class="material-symbols-outlined">collections_bookmark</span> La Mia Collezione
                     </button>
                 </div>
             </div>
@@ -449,7 +449,7 @@
                 <p>Cerca, scopri e scatta per catturare nuove birre.</p>
             </header>
             
-            <div class="page-container" style="margin-top: -30px; margin-bottom: 20px;">
+            <div class="page-container" style="margin-top: -30px;">
                 <div class="controls">
                     <input type="text" id="searchBar" placeholder="Cerca marca o variante..." onkeyup="filterBeers()">
                     <span class="filters-label">Esplora per nazione</span>
@@ -511,7 +511,7 @@
                 <h1>Il Tuo Profilo</h1>
                 <p>La tua bacheca personale e i tuoi dati.</p>
             </header>
-            <div class="page-container" style="margin-top: -30px; margin-bottom: 20px;">
+            <div class="page-container" style="margin-top: -30px;">
                 
                 <div class="profile-user-box">
                     <button id="btnProfileMenu" onclick="toggleProfileSettings()" style="position:absolute; top:15px; right:15px; background:none; border:none; cursor:pointer; color:var(--dark); transition:0.2s;">
@@ -531,21 +531,28 @@
                     <div id="settingsUserBoxContent">Caricamento...</div>
                 </div>
 
-                <h3 class="hero-section-title" style="margin-top:40px; color:var(--dark); border-bottom: 2px solid var(--gray); padding-bottom:8px; display:flex; align-items:center; gap:8px;">
-                    <span class="material-symbols-outlined" style="color:var(--gold);">workspace_premium</span> Medaglie Maestro Brand
-                </h3>
-                <div class="trophy-grid" id="brandMedalsGrid" style="padding: 0 20px;"></div>
+                <div style="display:flex; justify-content:space-between; align-items:center; border-bottom: 2px solid var(--gray); padding-bottom:8px; margin: 40px 20px 15px 20px;">
+                    <h3 style="margin:0; color:var(--dark); display:flex; align-items:center; gap:8px;">
+                        <span class="material-symbols-outlined" style="color:var(--gold);">workspace_premium</span> Medaglie Brand
+                    </h3>
+                </div>
+                <div class="trophy-grid" id="brandMedalsGrid"></div>
 
                 <div style="display:flex; justify-content:space-between; align-items:center; border-bottom: 2px solid var(--gray); padding-bottom:8px; margin: 40px 20px 15px 20px;">
                     <h3 style="margin:0; color:var(--dark); display:flex; align-items:center; gap:8px;">
-                        <span class="material-symbols-outlined">collections_bookmark</span> Varianti Sbloccate
+                        <span class="material-symbols-outlined">collections_bookmark</span> Varianti
                     </h3>
-                    <select id="profileSort" onchange="renderTrophies()" style="padding: 6px 10px; border-radius: 8px; border: 1px solid var(--gray); font-size: 12px; font-weight:bold; color: var(--dark); background: #fbfcfc; outline: none; cursor:pointer;">
-                        <option value="alpha">Alfabetico</option>
-                        <option value="nation">Nazione</option>
-                        <option value="rarityAsc">Rarità (Cresc.)</option>
-                        <option value="rarityDesc">Rarità (Decresc.)</option>
-                    </select>
+                    <div style="display:flex; align-items:center; gap:5px;">
+                        <select id="profileSort" onchange="renderTrophies()" style="padding: 6px; border-radius: 8px; border: 1px solid var(--gray); font-size: 11px; font-weight:bold; color: var(--dark); background: #fbfcfc; outline: none; cursor:pointer; margin-bottom:0;">
+                            <option value="unlocked">Sbloccate</option>
+                            <option value="alpha">Alfabetico</option>
+                            <option value="rarity">Rarità</option>
+                            <option value="nation">Nazione</option>
+                        </select>
+                        <button id="profileSortDirBtn" onclick="toggleProfileSortDir()" style="border:1px solid var(--gray); background:#fbfcfc; border-radius:8px; padding:4px; cursor:pointer; color:var(--dark);">
+                            <span class="material-symbols-outlined" style="font-size:16px;">arrow_downward</span>
+                        </button>
+                    </div>
                 </div>
                 <div class="trophy-grid" id="trophyGrid"></div>
             </div>
@@ -565,22 +572,29 @@
                     0 <span class="material-symbols-outlined" style="color:var(--primary-dark);">emoji_events</span>
                 </div>
             </header>
-            <div class="page-container" style="margin-top: -30px; margin-bottom: 20px;">
-                <h3 class="hero-section-title" style="margin-top:20px; color:var(--dark); border-bottom: 2px solid var(--gray); padding-bottom:8px; display:flex; align-items:center; gap:8px;">
-                    <span class="material-symbols-outlined" style="color:var(--gold);">workspace_premium</span> Medaglie Maestro Brand
-                </h3>
-                <div class="trophy-grid" id="pubBrandMedalsGrid" style="padding: 0 20px;"></div>
+            <div class="page-container" style="margin-top: -30px;">
+                <div style="display:flex; justify-content:space-between; align-items:center; border-bottom: 2px solid var(--gray); padding-bottom:8px; margin: 40px 20px 15px 20px;">
+                    <h3 style="margin:0; color:var(--dark); display:flex; align-items:center; gap:8px;">
+                        <span class="material-symbols-outlined" style="color:var(--gold);">workspace_premium</span> Medaglie Brand
+                    </h3>
+                </div>
+                <div class="trophy-grid" id="pubBrandMedalsGrid"></div>
 
                 <div style="display:flex; justify-content:space-between; align-items:center; border-bottom: 2px solid var(--gray); padding-bottom:8px; margin: 40px 20px 15px 20px;">
                     <h3 style="margin:0; color:var(--dark); display:flex; align-items:center; gap:8px;">
-                        <span class="material-symbols-outlined">collections_bookmark</span> Varianti Sbloccate
+                        <span class="material-symbols-outlined">collections_bookmark</span> Varianti
                     </h3>
-                    <select id="pubProfileSort" onchange="renderPublicTrophiesSort()" style="padding: 6px 10px; border-radius: 8px; border: 1px solid var(--gray); font-size: 12px; font-weight:bold; color: var(--dark); background: #fbfcfc; outline: none; cursor:pointer;">
-                        <option value="alpha">Alfabetico</option>
-                        <option value="nation">Nazione</option>
-                        <option value="rarityAsc">Rarità (Cresc.)</option>
-                        <option value="rarityDesc">Rarità (Decresc.)</option>
-                    </select>
+                    <div style="display:flex; align-items:center; gap:5px;">
+                        <select id="pubProfileSort" onchange="renderPublicTrophiesSort()" style="padding: 6px; border-radius: 8px; border: 1px solid var(--gray); font-size: 11px; font-weight:bold; color: var(--dark); background: #fbfcfc; outline: none; cursor:pointer; margin-bottom:0;">
+                            <option value="unlocked">Sbloccate</option>
+                            <option value="alpha">Alfabetico</option>
+                            <option value="rarity">Rarità</option>
+                            <option value="nation">Nazione</option>
+                        </select>
+                        <button id="pubProfileSortDirBtn" onclick="togglePubProfileSortDir()" style="border:1px solid var(--gray); background:#fbfcfc; border-radius:8px; padding:4px; cursor:pointer; color:var(--dark);">
+                            <span class="material-symbols-outlined" style="font-size:16px;">arrow_downward</span>
+                        </button>
+                    </div>
                 </div>
                 <div class="trophy-grid" id="pubTrophyGrid"></div>
             </div>
@@ -840,13 +854,29 @@
         let currentLeaderboardTab = 'friends'; 
         let currentFriendsTab = 'received';
         
+        let profileSortDir = -1; 
+        function toggleProfileSortDir() {
+            profileSortDir *= -1;
+            const btn = document.getElementById('profileSortDirBtn');
+            btn.innerHTML = profileSortDir === 1 ? '<span class="material-symbols-outlined" style="font-size:16px;">arrow_upward</span>' : '<span class="material-symbols-outlined" style="font-size:16px;">arrow_downward</span>';
+            renderTrophies();
+        }
+
+        let pubProfileSortDir = -1;
+        function togglePubProfileSortDir() {
+            pubProfileSortDir *= -1;
+            const btn = document.getElementById('pubProfileSortDirBtn');
+            btn.innerHTML = pubProfileSortDir === 1 ? '<span class="material-symbols-outlined" style="font-size:16px;">arrow_upward</span>' : '<span class="material-symbols-outlined" style="font-size:16px;">arrow_downward</span>';
+            renderPublicTrophiesSort();
+        }
+
         function navigateTo(pageId) {
             document.querySelectorAll('.page-view').forEach(p => p.classList.remove('active'));
             
             const targetPage = document.getElementById(pageId);
             if(targetPage) { 
                 targetPage.classList.add('active'); 
-                localStorage.setItem('beerdex_currentPage', pageId); 
+                sessionStorage.setItem('beerdex_currentPage', pageId); 
             } else { 
                 document.getElementById('page-home').classList.add('active'); 
                 pageId = 'page-home';
@@ -1005,7 +1035,7 @@
                         
                         loadRealtimeData(); 
                         
-                        const lastPage = localStorage.getItem('beerdex_currentPage') || 'page-home';
+                        const lastPage = sessionStorage.getItem('beerdex_currentPage') || 'page-home';
                         navigateTo(lastPage);
                     }).catch(err => {
                         showCustomAlert("Errore di caricamento: " + err.message, "Falla di Rete");
@@ -1125,7 +1155,7 @@
                 }
             }
         }
-        function logoutUser() { localStorage.removeItem('beerdex_currentPage'); auth.signOut().then(() => { window.location.reload(); }); }
+        function logoutUser() { sessionStorage.removeItem('beerdex_currentPage'); auth.signOut().then(() => { window.location.reload(); }); }
 
         function changeUserNickname() {
             const newNick = document.getElementById("newNicknameInput").value.trim();
@@ -1253,7 +1283,7 @@
             { brand: "Chouffe", country: "Belgio", flag: "BE", rarity: "rara", desc: "La celebre birra artigianale belga dello gnomo.", variants: ["La Chouffe (Blonde)", "Mc Chouffe (Brune)", "Cherry Chouffe"], barcodes: [] },
             { brand: "Corona", country: "Messico", flag: "MX", rarity: "comune", desc: "La lager messicana famosa in tutto il mondo.", variants: ["Extra", "Cero"], barcodes: [] },
             { brand: "Crak Brewery", country: "Italia", regione: "Veneto", flag: "IT", rarity: "rara", desc: "Rivoluzionario birrificio veneto, re indiscusso delle IPA.", variants: ["Guerrilla (IPA)", "Mundaka", "Mansueto", "After Summer"], barcodes: [] },
-            { brand: "Del Borgo", country: "Italia", regione: "Lazio", flag: "IT", rarity: "rara", desc: "Famoso birrificio laziale, noto per le recursive ricette creative.", variants: ["ReAle", "Duchessa", "My Antonia", "Lisa", "Cortigiana"], barcodes: [] },
+            { brand: "Del Borgo", country: "Italia", regione: "Lazio", flag: "IT", rarity: "rara", desc: "Famoso birrificio laziale, noto per le sue ricette creative.", variants: ["ReAle", "Duchessa", "My Antonia", "Lisa", "Cortigiana"], barcodes: [] },
             { brand: "Delirium", country: "Belgio", flag: "BE", rarity: "rara", desc: "Famosissima Strong Ale belga.", variants: ["Tremens", "Nocturnum", "Red"], barcodes: [] },
             { brand: "Desperados", country: "Francia", flag: "FR", rarity: "media", desc: "Birra bionda aromatizzata alla tequila.", variants: ["Original", "Lime", "Mojito"], barcodes: [] },
             { brand: "Dreher", country: "Italia", regione: "Friuli-Venezia Giulia", flag: "IT", rarity: "comune", desc: "Uno dei marchi storici più antichi, fondato a Trieste.", variants: ["Classica", "Radler Limone"], barcodes: [] },
@@ -1403,7 +1433,8 @@
             
             showCustomAlert("Lettura del codice a barre in corso...", "Analisi in corso", false);
             
-            const html5QrCode = new Html5Qrcode("hidden-reader-div");
+            const html5QrCode = new Html5Qrcode("hidden-reader-div", { formatsToSupport: [ Html5QrcodeSupportedFormats.EAN_13, Html5QrcodeSupportedFormats.EAN_8, Html5QrcodeSupportedFormats.UPC_A, Html5QrcodeSupportedFormats.UPC_E ] });
+            
             html5QrCode.scanFile(file, true)
                 .then(decodedText => {
                     document.getElementById('customModalOverlay').style.display = 'none';
@@ -1762,6 +1793,10 @@
             beers.forEach(b => { brandUnlockCounts[b.brand] = 0; });
             let allVariantsList = [];
 
+            // Determina la direzione (valida per griglia e medaglie)
+            let isPub = gridId === 'pubTrophyGrid';
+            let sortDir = isPub ? pubProfileSortDir : profileSortDir;
+
             beers.forEach(beer => {
                 beer.variants.forEach(variant => {
                     let uniqueId = beer.brand + '-' + variant; 
@@ -1798,11 +1833,12 @@
             });
 
             allVariantsList.sort((a, b) => {
-                if (sortVal === 'alpha') return a.brand.localeCompare(b.brand) || a.variant.localeCompare(b.variant);
-                if (sortVal === 'nation') return a.country.localeCompare(b.country) || a.brand.localeCompare(b.brand);
-                if (sortVal === 'rarityAsc') return (rarityMap[a.rarity] || 0) - (rarityMap[b.rarity] || 0) || a.brand.localeCompare(b.brand);
-                if (sortVal === 'rarityDesc') return (rarityMap[b.rarity] || 0) - (rarityMap[a.rarity] || 0) || a.brand.localeCompare(b.brand);
-                return 0;
+                let res = 0;
+                if (sortVal === 'alpha') res = a.brand.localeCompare(b.brand) || a.variant.localeCompare(b.variant);
+                else if (sortVal === 'unlocked') res = (a.isUnlocked === b.isUnlocked ? 0 : a.isUnlocked ? -1 : 1) || a.brand.localeCompare(b.brand);
+                else if (sortVal === 'rarity') res = (rarityMap[a.rarity] || 0) - (rarityMap[b.rarity] || 0) || a.brand.localeCompare(b.brand);
+                else if (sortVal === 'nation') res = a.country.localeCompare(b.country) || a.brand.localeCompare(b.brand);
+                return res * sortDir;
             });
 
             allVariantsList.forEach(item => {
@@ -1818,32 +1854,48 @@
                 grid.appendChild(trophyDiv);
             });
 
-            let sortedBrandsForMedals = [...beers].sort((a, b) => a.brand.localeCompare(b.brand));
-            sortedBrandsForMedals.forEach(beer => {
-                let isCompleted = brandUnlockCounts[beer.brand] === beer.variants.length && beer.variants.length > 0;
+            let sortedBrandsForMedals = [...beers].map(beer => {
+                return {
+                    brand: beer.brand,
+                    isCompleted: brandUnlockCounts[beer.brand] === beer.variants.length && beer.variants.length > 0,
+                    country: beer.country,
+                    rarity: beer.rarity
+                };
+            });
+
+            sortedBrandsForMedals.sort((a, b) => {
+                let res = 0;
+                if (sortVal === 'alpha') res = a.brand.localeCompare(b.brand);
+                else if (sortVal === 'unlocked') res = (a.isCompleted === b.isCompleted ? 0 : a.isCompleted ? -1 : 1) || a.brand.localeCompare(b.brand);
+                else if (sortVal === 'rarity') res = (rarityMap[a.rarity] || 0) - (rarityMap[b.rarity] || 0) || a.brand.localeCompare(b.brand);
+                else if (sortVal === 'nation') res = a.country.localeCompare(b.country) || a.brand.localeCompare(b.brand);
+                return res * sortDir;
+            });
+
+            sortedBrandsForMedals.forEach(beerObj => {
                 let medalCard = document.createElement('div');
-                medalCard.className = `medal-badge-card ${isCompleted ? 'unlocked' : ''}`;
-                let ptsHtml = isCompleted ? `<div class="pts-badge" style="background:#e67e22;">+10pt</div>` : '';
+                medalCard.className = `medal-badge-card ${beerObj.isCompleted ? 'unlocked' : ''}`;
+                let ptsHtml = beerObj.isCompleted ? `<div class="pts-badge" style="background:#e67e22;">+10pt</div>` : '';
                 
-                let medalIcon = isCompleted ? 'workspace_premium' : 'circle';
-                let iconColor = isCompleted ? 'var(--gold)' : 'var(--text-muted)';
+                let medalIcon = beerObj.isCompleted ? 'workspace_premium' : 'circle';
+                let iconColor = beerObj.isCompleted ? 'var(--gold)' : 'var(--text-muted)';
                 
                 medalCard.innerHTML = `
                     ${ptsHtml}
                     <div class="medal-icon-container" style="color: ${iconColor};"><span class="material-symbols-outlined" style="font-size:40px;">${medalIcon}</span></div>
-                    <div style="font-size:11px; font-weight:bold; color:var(--dark); line-height:1.2;">Maestro<br>${beer.brand}</div>
+                    <div style="font-size:11px; font-weight:bold; color:var(--dark); line-height:1.2;">Maestro<br>${beerObj.brand}</div>
                 `;
                 medalsGrid.appendChild(medalCard);
             });
         }
 
         function renderTrophies() {
-            const sortVal = document.getElementById('profileSort') ? document.getElementById('profileSort').value : 'alpha';
+            const sortVal = document.getElementById('profileSort') ? document.getElementById('profileSort').value : 'unlocked';
             renderTrophyGrid(myPokedex, 'trophyGrid', 'brandMedalsGrid', sortVal);
         }
 
         function renderPublicTrophiesSort() {
-            const sortVal = document.getElementById('pubProfileSort') ? document.getElementById('pubProfileSort').value : 'alpha';
+            const sortVal = document.getElementById('pubProfileSort') ? document.getElementById('pubProfileSort').value : 'unlocked';
             const username = document.getElementById('pubProfileName').innerText;
             db.ref('pokedex_profiles/' + username).once('value').then(snap => {
                 renderTrophyGrid(snap.val() || {}, 'pubTrophyGrid', 'pubBrandMedalsGrid', sortVal);
@@ -1857,7 +1909,7 @@
             }
             db.ref('pokedex_profiles/' + username).once('value').then(snap => {
                 const pubDex = snap.val() || {};
-                renderTrophyGrid(pubDex, 'pubTrophyGrid', 'pubBrandMedalsGrid', 'alpha');
+                renderTrophyGrid(pubDex, 'pubTrophyGrid', 'pubBrandMedalsGrid', 'unlocked');
                 
                 db.ref('leaderboard_scores/' + username).once('value').then(scoreSnap => {
                     let score = scoreSnap.val() || 0;
@@ -1997,7 +2049,7 @@
                         db.ref('pokedex_profiles/' + currentUserNick + '/' + post.brand + '-' + post.variant + '/isShiny').set(false);
                         needsUpdate = true;
                     }
-                    await new Promise(r => setTimeout(r, 1500)); // Rispetta il Rate Limit di Nominatim
+                    await new Promise(r => setTimeout(r, 1500));
                 }
             }
             
@@ -2079,7 +2131,7 @@
                 if(snapshot.exists()) {
                     snapshot.forEach(child => { let p = child.val(); p.postId = child.key; globalPosts.push(p); });
                 }
-                fixRetroactiveShiny(); // Controllo automatico silenzioso per togliere vecchi Shiny non validi
+                fixRetroactiveShiny(); 
                 const activeView = document.querySelector('.page-view.active');
                 if(activeView && activeView.id === 'page-home') renderDashboard();
                 if(activeView && activeView.id === 'page-social') renderSocialFeed();
