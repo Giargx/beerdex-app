@@ -66,3 +66,39 @@ Ecco il riepilogo dettagliato di tutte le migliorie, funzionalità e modifiche g
 * **Antiscanner per Non-Birre**: Se l'utente inquadra un prodotto che non corrisponde a una birra nel database (es: acqua o bibite), l'applicazione mostra un messaggio di errore ed esce automaticamente dallo scanner riportando l'utente alla Home.
 * **Gestione Permessi Pubblici**: Rimossi i vincoli e le notifiche di permesso negato per i like e il caricamento delle foto profilo. Ora chiunque può mettere like liberamente.
 * **Camera e Ritaglio Foto Profilo**: Aggiunta la possibilità di impostare la foto profilo scattandola direttamente sul momento con la fotocamera frontale o scegliendola dalla galleria, con l'integrazione di un cropper per zoomare, ruotare e trascinare l'immagine prima di salvarla.
+
+---
+
+## 🍾 9. "Codice di Stappo" e Animazione di Benvenuto
+* **Nuova Terminologia**: Rimosso completamente il termine "Password" in favore del più tematico **"Codice di stappo"** (presente nei placeholder di login/registrazione, impostazioni di modifica, messaggi di errore e prompt di recupero).
+* **Effetto "Stappo Bottle Pop"**: Implementato un overlay animato in CSS e JS. All'accesso, alla registrazione o al cambio credenziali, **una bottiglia (`🍾`) trema per poi stappare il proprio tappo dorato (`🪙`) che vola in aria spruzzando schiuma (`🫧💦✨`)** prima di caricare la schermata di gioco.
+
+---
+
+## 🔄 10. Navigazione Slide Direzionale & Gestures Touch (Swipe)
+* **Scorrimento Orizzontale a 60fps**: La navigazione tra le schede è stata riscritta con transizioni hardware-accelerate (`transform: translateX`).
+* **Rilevamento Direzione**: L'animazione riconosce la direzione dello spostamento:
+  * Muovendosi verso destra (es. da Home a Esplora), la pagina corrente scorre a sinistra (`slide-out-left`) e la nuova entra da destra (`slide-in-right`).
+  * Muovendosi verso sinistra, l'animazione si inverte in modo simmetrico.
+* **Controllo Altezze (Zero Spazi Vuoti)**: Per evitare che le pagine più corte (come la Home) venissero allungate verticalmente per eguagliare la pagina social più lunga, le schede non attive vengono impostate su `display: none` appena termina la transizione, facendo adattare l'altezza totale del documento all'esatto contenuto visualizzato.
+* **Swipe Touch Gestures**: Aggiunto il supporto al trascinamento orizzontale col dito. Lo scorrimento è disattivato ai confini (non si può scorrere a sinistra nella Home né a destra nel Profilo) e viene ignorato quando si tocca la Mappa, il crop dell'avatar o le barre di scorrimento, evitando conflitti di tocco.
+
+---
+
+## 🍺 11. Brindisi Realistico con Boccali SVG e Gocce di Birra
+* **Addio Emoji Standard**: I boccali del "Like" sono stati ridisegnati da zero come **icone SVG vettoriali personalizzate**, con riflessi interni e profili in vetro smerigliato.
+* **Brindisi Rispettato (Rims Collision)**: I manici sono stati posizionati sui lati esterni (sinistra per il boccale sinistro, destra per il destro). Durante l'animazione, i boccali **si scontrano toccandosi sul bordo superiore (il vetro)** anziché scontrarsi sui manici.
+* **Gocce che Colano**: Al momento del contatto, **quattro gocce di birra dorata** schizzano in aria per poi cadere verso il basso seguendo una traiettoria a gravità parabolica prima di sfumare.
+* **Aggiornamento In-Place (Zero Interruzioni)**: Modificata la funzione `renderSocialFeed` con un algoritmo di diffing del DOM. Quando un utente mette o toglie il like, la card non viene ricreata da zero, ma viene aggiornata sul posto. Questo evita il flash della bacheca e consente all'animazione del brindisi di completarsi senza interrompersi.
+
+---
+
+## 🏠 12. "Il mio Bancone" e "Pub"
+* **Nuovo Titolo Home**: La Home page non mostra più la scritta "Il tuo Passaporto", sostituita dal titolo più accattivante e caloroso **"Il mio Bancone"**.
+* **Scheda Pub**: La scheda "Social" della barra inferiore è stata ribattezzata **"Pub"** (sia nelle icone che nel titolo "Al Pub" della bacheca), con un'icona tematica a forma di boccali che brindano (`sports_bar`).
+
+---
+
+## ⚙️ 13. Service Worker e PWA Fix
+* **Deploy e Aggiornamento**: Corretto il percorso di registrazione del Service Worker in `index.html` da `/sw.js` (che falliva su GitHub Pages) a `sw.js` (relativo). 
+* **Aggiornamento Cache**: Incrementata la versione della cache in `sw.js` a `beerdex-v2.3` per forzare i telefoni cellulari che hanno installato l'app a scaricare immediatamente il codice aggiornato.
