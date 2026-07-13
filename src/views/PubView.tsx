@@ -1,4 +1,5 @@
 import React from 'react';
+import { playClinkSound } from '../utils/audio';
 
 interface Post {
   postId: string;
@@ -51,6 +52,8 @@ export const PubView: React.FC<PubViewProps> = ({
     
     // Check if there is already a toast container to avoid multiple overlaps
     if (targetContainer.querySelector('.cin-toast-container')) return;
+
+    playClinkSound();
 
     const container = document.createElement('div');
     container.className = 'cin-toast-container';

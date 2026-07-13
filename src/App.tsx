@@ -4,6 +4,7 @@ import { ref, onValue, set, get, update, push, remove } from 'firebase/database'
 import { auth, db } from './firebase';
 
 import { beers, getBeerPoints, countryCoordinates, normalizeStr } from './beers';
+import { playPopSound } from './utils/audio';
 
 // Import Views
 import { HomeView } from './views/HomeView';
@@ -116,6 +117,37 @@ export default function App() {
       style: { cursor: 'zoom-in' }
     };
   };
+
+  // Load and apply interface brewery themes
+  const [currentTheme, setCurrentTheme] = useState<string>(() => {
+    return localStorage.getItem('beerdex_theme') || 'classic';
+  });
+
+  useEffect(() => {
+    localStorage.setItem('beerdex_theme', currentTheme);
+    const root = document.documentElement;
+    if (currentTheme === 'amber') {
+      root.style.setProperty('--primary', '#D35400');
+      root.style.setProperty('--primary-dark', '#A04000');
+      root.style.setProperty('--accent', '#E67E22');
+      root.style.setProperty('--gold', '#F39C12');
+    } else if (currentTheme === 'dark') {
+      root.style.setProperty('--primary', '#5C3D2E');
+      root.style.setProperty('--primary-dark', '#3D2C24');
+      root.style.setProperty('--accent', '#865D36');
+      root.style.setProperty('--gold', '#BCA374');
+    } else if (currentTheme === 'ipa') {
+      root.style.setProperty('--primary', '#2D8A4E');
+      root.style.setProperty('--primary-dark', '#1E5F34');
+      root.style.setProperty('--accent', '#3B9E62');
+      root.style.setProperty('--gold', '#D4AC0D');
+    } else { // classic
+      root.style.setProperty('--primary', '#FFB300');
+      root.style.setProperty('--primary-dark', '#FF6F00');
+      root.style.setProperty('--accent', '#E65100');
+      root.style.setProperty('--gold', '#FFB300');
+    }
+  }, [currentTheme]);
 
   // UI Modals State
   const [alertConfig, setAlertConfig] = useState<{
@@ -593,6 +625,7 @@ export default function App() {
 
       await set(newPostRef, postData);
       await recalculateTotalScore(currentUserNick);
+      playPopSound();
 
       let msg = `Birra sbloccata con successo! (+${getBeerPoints(brand, variant, isShiny, isShared)} Punti)`;
       if (isShiny) msg += '\nSBLOCCO SHINY IN TRASFERTA!';
@@ -1291,6 +1324,8 @@ export default function App() {
               onDeleteVariant={handleDeleteVariant}
               getUserRankTitle={getUserRankTitle}
               getAvatarZoomProps={getAvatarZoomProps}
+              currentTheme={currentTheme}
+              onChangeTheme={setCurrentTheme}
             />
           ) : null}
         </div>
