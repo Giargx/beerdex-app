@@ -901,16 +901,45 @@
             position: relative;
         }
         .cin-mug {
-            font-size: 64px;
             display: inline-block;
             transition: all 0.2s;
-            filter: drop-shadow(0 4px 12px rgba(15, 23, 42, 0.4));
+            filter: drop-shadow(0 4px 12px rgba(15, 23, 42, 0.35));
         }
         .left-mug {
             animation: swingLeftMug 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.1) forwards;
         }
         .right-mug {
             animation: swingRightMug 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.1) forwards;
+        }
+
+        /* Beer splash droplets */
+        .beer-splash-container {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .beer-drop {
+            position: absolute;
+            width: 6px;
+            height: 9px;
+            background: #FFB300;
+            border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+            opacity: 0;
+        }
+        .drop-1 {
+            animation: splashDrop1 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) 0.22s forwards;
+        }
+        .drop-2 {
+            animation: splashDrop2 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) 0.22s forwards;
+        }
+        .drop-3 {
+            animation: splashDrop3 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) 0.22s forwards;
+        }
+        .drop-4 {
+            animation: splashDrop4 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) 0.22s forwards;
         }
 
         @keyframes cinPopIn {
@@ -922,16 +951,36 @@
             100% { transform: translate(-50%, -50%) scale(0.8); opacity: 0; }
         }
         @keyframes swingLeftMug {
-            0% { transform: translateX(-80px) rotate(-35deg) scale(0.7); opacity: 0; }
+            0% { transform: translateX(-85px) rotate(-25deg) scale(0.75); opacity: 0; }
             30% { opacity: 1; }
-            70% { transform: translateX(-4px) rotate(15deg) scale(1.05); }
-            100% { transform: translateX(-8px) rotate(8deg) scale(1); }
+            70% { transform: translateX(-2px) rotate(12deg) scale(1.05); }
+            100% { transform: translateX(-5px) rotate(5deg) scale(1); }
         }
         @keyframes swingRightMug {
-            0% { transform: scaleX(-1) translateX(-80px) rotate(-35deg) scale(0.7); opacity: 0; }
+            0% { transform: translateX(85px) rotate(25deg) scale(0.75); opacity: 0; }
             30% { opacity: 1; }
-            70% { transform: scaleX(-1) translateX(-4px) rotate(15deg) scale(1.05); }
-            100% { transform: scaleX(-1) translateX(-8px) rotate(8deg) scale(1); }
+            70% { transform: translateX(2px) rotate(-12deg) scale(1.05); }
+            100% { transform: translateX(5px) rotate(-5deg) scale(1); }
+        }
+        @keyframes splashDrop1 {
+            0% { transform: translate(0, -15px) scale(0.3); opacity: 0; }
+            20% { opacity: 1; }
+            100% { transform: translate(-18px, 20px) scale(1); opacity: 0; }
+        }
+        @keyframes splashDrop2 {
+            0% { transform: translate(0, -15px) scale(0.3); opacity: 0; }
+            20% { opacity: 1; }
+            100% { transform: translate(18px, 20px) scale(1); opacity: 0; }
+        }
+        @keyframes splashDrop3 {
+            0% { transform: translate(-4px, -18px) scale(0.3); opacity: 0; }
+            20% { opacity: 1; }
+            100% { transform: translate(-6px, 35px) scale(0.8); opacity: 0; }
+        }
+        @keyframes splashDrop4 {
+            0% { transform: translate(4px, -18px) scale(0.3); opacity: 0; }
+            20% { opacity: 1; }
+            100% { transform: translate(6px, 35px) scale(0.8); opacity: 0; }
         }
 
         .rules-section { margin-bottom: 24px; border-bottom: 1px solid rgba(226, 232, 240, 0.8); padding-bottom: 20px; }
@@ -2977,9 +3026,50 @@
             container.className = 'cin-toast-container';
             container.innerHTML = `
                 <div class="cin-toast-content">
-                    <div style="display:flex; align-items:center; gap:5px; position:relative; z-index: 10;">
-                        <span class="cin-mug left-mug">🍺</span>
-                        <span class="cin-mug right-mug">🍺</span>
+                    <div style="display:flex; align-items:center; gap:0px; position:relative; z-index: 10;">
+                        <!-- Left beer mug: handle on left, mouth on right -->
+                        <div class="cin-mug left-mug">
+                            <svg viewBox="0 0 100 100" width="80" height="80">
+                                <!-- Handle -->
+                                <path d="M35,38 C20,38 20,68 35,68" fill="none" stroke="#F8FAFC" stroke-width="7" stroke-linecap="round"/>
+                                <path d="M35,38 C20,38 20,68 35,68" fill="none" stroke="#E2E8F0" stroke-width="3" stroke-linecap="round"/>
+                                <!-- Mug glass container -->
+                                <path d="M35,28 L72,28 C77,28 77,78 72,78 L35,78 C30,78 30,28 35,28 Z" fill="rgba(255,255,255,0.18)" stroke="#F8FAFC" stroke-width="3.5"/>
+                                <!-- Beer Liquid inside -->
+                                <path d="M36,44 L70,44 C73,44 73,76 70,76 L36,76 C33,76 33,44 36,44 Z" fill="#FFB300"/>
+                                <!-- Foam top overflow -->
+                                <path d="M30,30 C30,18 43,14 52,22 C60,14 74,18 74,30 C74,34 30,34 30,30 Z" fill="#FFFFFF"/>
+                                <!-- Glass reflection stripes -->
+                                <rect x="42" y="48" width="5" height="24" rx="2" fill="#FFE082" opacity="0.75"/>
+                                <rect x="52" y="48" width="5" height="24" rx="2" fill="#FFE082" opacity="0.75"/>
+                                <rect x="62" y="48" width="5" height="24" rx="2" fill="#FFE082" opacity="0.75"/>
+                            </svg>
+                        </div>
+                        <!-- Right beer mug: handle on right, mouth on left -->
+                        <div class="cin-mug right-mug">
+                            <svg viewBox="0 0 100 100" width="80" height="80">
+                                <!-- Handle -->
+                                <path d="M65,38 C80,38 80,68 65,68" fill="none" stroke="#F8FAFC" stroke-width="7" stroke-linecap="round"/>
+                                <path d="M65,38 C80,38 80,68 65,68" fill="none" stroke="#E2E8F0" stroke-width="3" stroke-linecap="round"/>
+                                <!-- Mug glass container -->
+                                <path d="M65,28 L28,28 C23,28 23,78 28,78 L65,78 C70,78 70,28 65,28 Z" fill="rgba(255,255,255,0.18)" stroke="#F8FAFC" stroke-width="3.5"/>
+                                <!-- Beer Liquid inside -->
+                                <path d="M64,44 L30,44 C27,44 27,76 30,76 L64,76 C67,76 67,44 64,44 Z" fill="#FFB300"/>
+                                <!-- Foam top overflow -->
+                                <path d="M70,30 C70,18 57,14 48,22 C40,14 26,18 26,30 C26,34 70,34 70,30 Z" fill="#FFFFFF"/>
+                                <!-- Glass reflection stripes -->
+                                <rect x="53" y="48" width="5" height="24" rx="2" fill="#FFE082" opacity="0.75"/>
+                                <rect x="43" y="48" width="5" height="24" rx="2" fill="#FFE082" opacity="0.75"/>
+                                <rect x="33" y="48" width="5" height="24" rx="2" fill="#FFE082" opacity="0.75"/>
+                            </svg>
+                        </div>
+                    </div>
+                    <!-- Splash drops container -->
+                    <div class="beer-splash-container">
+                        <div class="beer-drop drop-1"></div>
+                        <div class="beer-drop drop-2"></div>
+                        <div class="beer-drop drop-3"></div>
+                        <div class="beer-drop drop-4"></div>
                     </div>
                 </div>
             `;
