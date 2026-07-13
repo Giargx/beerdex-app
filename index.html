@@ -483,9 +483,9 @@
             <h3 style="margin-top:0; color:var(--dark); font-size:22px; display:flex; align-items:center; justify-content:center; gap:8px;">
                 <span class="material-symbols-outlined">group</span> Bevuta in Compagnia
             </h3>
-            <p style="color:var(--text-muted); font-size:14px; margin-bottom:20px;">Sei in compagnia? Tagga un amico e <strong>raddoppia i punti</strong> di questo sblocco.</p>
+            <p style="color:var(--text-muted); font-size:14px; margin-bottom:20px;">Sei in compagnia? Tagga un amico per condividere questa bevuta con lui sul feed.</p>
             <select id="shareFriendSelect" style="width: 100%; padding: 12px; border-radius: 10px; border: 2px solid var(--gray); margin-bottom: 20px; font-weight: bold; outline:none; cursor:pointer;"></select>
-            <button class="btn-main" onclick="submitSharedPost()" style="justify-content:center;">Condividi Sblocco (+ Punti)</button>
+            <button class="btn-main" onclick="submitSharedPost()" style="justify-content:center;">Condividi Sblocco</button>
             <button class="btn-secondary" onclick="skipSharedPost()" style="justify-content:center;">Sono solo io</button>
         </div>
     </div>
@@ -834,10 +834,7 @@
                     <p>Se sblocchi una birra tramite GPS all'interno della sua nazione d'origine, lo sblocco diventa <strong>Shiny</strong> e il suo punteggio raddoppia istantaneamente.</p>
                     <p><strong>Regola Italiana:</strong> Le birre italiane diventano Shiny SOLO se scansionate nella specifica Regione d'origine (es. Ichnusa in Sardegna, Menabrea in Piemonte).</p>
                 </div>
-                <div class="rules-section">
-                    <h3>Bonus Bevuta in Compagnia (Moltiplicatore x2)</h3>
-                    <p>Puoi taggare un amico prima di pubblicare la foto. Facendolo, la bevuta diventa condivisa e sblocca un moltiplicatore x2 dei punti!</p>
-                </div>
+
                 <div class="rules-section" style="background:#fffcf0; padding:20px; border-radius:12px; border-left:4px solid var(--primary-dark);">
                     <h3>Scanner Codice a Barre & Moderazione</h3>
                     <p style="margin:0 0 10px 0; line-height:1.5; font-size:14px; color:var(--dark);">Per le bottiglie e lattine, inquadra il codice a barre sul retro per convalidare l'autenticità. <br><br>Se la birra è <strong>alla spina</strong>, salta lo scanner e usa la fiducia! Ma attenzione: se la <strong>Community segnala</strong> la tua foto come falsa, il post e i punti verranno rimossi permanentemente.</p>
@@ -1127,8 +1124,17 @@
             if(!container) return; 
             
             if(!map) {
-                map = L.map('mapContainer').setView([41.9028, 12.4964], 5);
-                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '© OpenStreetMap' }).addTo(map);
+                map = L.map('mapContainer', {
+                    maxBounds: [[-90, -180], [90, 180]],
+                    maxBoundsViscosity: 1.0,
+                    minZoom: 2
+                }).setView([41.9028, 12.4964], 5);
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { 
+                    maxZoom: 19, 
+                    noWrap: true, 
+                    bounds: [[-90, -180], [90, 180]], 
+                    attribution: '© OpenStreetMap' 
+                }).addTo(map);
                 markersGroup = L.layerGroup().addTo(map);
 
                 if (navigator.geolocation) {
@@ -1512,7 +1518,6 @@
         function getBeerPoints(brandName, variantName, isShiny, isShared) {
             let base = getBasePoints(brandName, variantName);
             if(isShiny) base *= 2;
-            if(isShared) base *= 2; 
             return base;
         }
 
@@ -1641,7 +1646,10 @@
                                 const isBeer = isBeerByTag || isBeerByKeyword;
                                 
                                 if (!isBeer) {
-                                    showCustomAlert(`Questo codice a barre corrisponde a "${prodName}", che non sembra essere una birra. Puoi scansionare solo birre!`, "Prodotto non valido");
+                                    showCustomAlert("Impossibile caricare la foto: il codice non corrisponde a una birra.", "Errore", true, () => {
+                                        closeScannerModal();
+                                        navigateTo('page-home');
+                                    });
                                     return;
                                 }
                                 
@@ -1888,25 +1896,7 @@
         function toggleLike(postId) {
             const ref = db.ref('social_timeline/' + postId + '/likes/' + currentUserNick);
             ref.once('value').then(snap => {
-                if(snap.exists()) {
-                    ref.remove().catch(err => {
-                        if (err.message.includes("PERMISSION_DENIED")) {
-                            showCustomAlert("Non hai i permessi per rimuovere il like da questo post. Per favore, assicurati che le Regole di Sicurezza su Firebase permettano la scrittura su 'likes'.", "Permesso Negato");
-                        } else {
-                            showCustomAlert("Errore Like: " + err.message, "Errore");
-                        }
-                    });
-                } else {
-                    ref.set(true).catch(err => {
-                        if (err.message.includes("PERMISSION_DENIED")) {
-                            showCustomAlert("Non hai i permessi per mettere like ai post di altri utenti. Per favore, assicurati che le Regole di Sicurezza su Firebase permettano la scrittura su 'likes'.", "Permesso Negato");
-                        } else {
-                            showCustomAlert("Errore Like: " + err.message, "Errore");
-                        }
-                    });
-                }
-            }).catch(err => {
-                console.error("Errore lettura like:", err);
+                if(snap.exists()) { ref.remove(); } else { ref.set(true); }
             });
         }
 
@@ -2297,7 +2287,7 @@
                     <div style="display:flex; align-items:center; flex-grow:1;">
                         <div class="rank">${medalHtml}</div>
                         <div class="post-avatar" style="width:40px; height:40px; margin: 0 10px 0 5px;">${avatarContent}</div>
-                        <div class="lb-user clickable-user" onclick="openPublicProfile('${player.name}')">${player.name} <br><small style="font-size:11px;color:var(--text-muted);font-weight:normal;">${rankLabel}</small></div>
+                        <div class="lb-user"><span class="clickable-user" onclick="openPublicProfile('${player.name}')">${player.name}</span><br><small style="font-size:11px;color:var(--text-muted);font-weight:normal;">${rankLabel}</small></div>
                     </div>
                     <div style="display:flex; align-items:center; gap:15px;">
                         <div class="lb-score">${player.score} <span class="material-symbols-outlined" style="font-size:24px;">emoji_events</span></div>
