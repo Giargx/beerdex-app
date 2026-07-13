@@ -294,7 +294,32 @@
         .foam-container { position: absolute; top: 0; left: -10%; width: 120%; height: 100%; z-index: 0; pointer-events: none; }
         .foam-wave { position: absolute; bottom: -2px; left: 0; width: 100%; height: 40px; background: url('data:image/svg+xml;utf8,<svg viewBox="0 0 1200 120" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg"><path d="M0,30 C300,70 900,-10 1200,30 L1200,120 L0,120 Z" fill="%23FAF9F6"/></svg>') no-repeat; background-size: 100% 100%; }
         .foam-wave.layer2 { bottom: 5px; opacity: 0.3; background: url('data:image/svg+xml;utf8,<svg viewBox="0 0 1200 120" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg"><path d="M0,50 C400,-10 800,70 1200,30 L1200,120 L0,120 Z" fill="%23FAF9F6"/></svg>') no-repeat; background-size: 100% 100%; }
-        .bubble { position: absolute; bottom: -20px; background: rgba(245, 158, 11, 0.15); border-radius: 50%; animation: rise infinite ease-in; }
+        .bubble { 
+            position: absolute; 
+            bottom: -20px; 
+            background: rgba(255, 179, 0, 0.35); 
+            border: 1px solid rgba(255, 111, 0, 0.15);
+            border-radius: 50%; 
+            animation: rise infinite ease-in; 
+        }
+        @keyframes rise {
+            0% {
+                bottom: -20px;
+                transform: translateX(0) scale(0.8);
+                opacity: 0;
+            }
+            15% {
+                opacity: 0.8;
+            }
+            85% {
+                opacity: 0.8;
+            }
+            100% {
+                bottom: 110%;
+                transform: translateX(25px) scale(1.2);
+                opacity: 0;
+            }
+        }
 
         .page-container { 
             width: 100%; 
@@ -1378,13 +1403,13 @@
                     <div class="foam-wave layer2"></div>
                     <div class="foam-wave layer1"></div>
                 `;
-                for(let i=0; i<6; i++) {
+                for(let i=0; i<15; i++) {
                     let b = document.createElement('div');
                     b.className = 'bubble';
                     b.style.left = (Math.random() * 100) + '%';
-                    b.style.width = b.style.height = (Math.random() * 15 + 10) + 'px';
-                    b.style.animationDuration = (Math.random() * 3 + 2) + 's';
-                    b.style.animationDelay = (Math.random() * 2) + 's';
+                    b.style.width = b.style.height = (Math.random() * 12 + 8) + 'px';
+                    b.style.animationDuration = (Math.random() * 4 + 3) + 's';
+                    b.style.animationDelay = (Math.random() * 3) + 's';
                     foam.appendChild(b);
                 }
                 hero.insertBefore(foam, hero.firstChild);
