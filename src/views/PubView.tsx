@@ -23,6 +23,7 @@ interface PubViewProps {
   onDeletePost: (postId: string, postUser: string, brand: string, variant: string) => void;
   onReportFakePost: (postId: string, postUser: string, brand: string, variant: string) => void;
   onOpenPublicProfile: (username: string) => void;
+  getAvatarZoomProps?: (url: string | undefined) => any;
 }
 
 export const PubView: React.FC<PubViewProps> = ({
@@ -35,6 +36,7 @@ export const PubView: React.FC<PubViewProps> = ({
   onDeletePost,
   onReportFakePost,
   onOpenPublicProfile,
+  getAvatarZoomProps,
 }) => {
   // Filter visible posts (only user's posts, their friends' posts, or all posts if admin)
   const visiblePosts = posts.filter(
@@ -174,7 +176,10 @@ export const PubView: React.FC<PubViewProps> = ({
                 <div key={post.postId} className="post-card" data-post-id={post.postId}>
                   <div className="post-header">
                     <div style={{ display: 'flex', alignItems: 'center' }}>
-                      <div className="post-avatar">
+                      <div
+                        className="post-avatar"
+                        {...(getAvatarZoomProps ? getAvatarZoomProps(avatar) : {})}
+                      >
                         {avatar ? (
                           <img src={avatar} alt={post.user} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                         ) : (

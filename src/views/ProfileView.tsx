@@ -12,6 +12,7 @@ interface ProfileViewProps {
   onToggleSettings: () => void;
   onDeleteVariant: (brand: string, variant: string) => void;
   getUserRankTitle: (score: number) => string;
+  getAvatarZoomProps?: (url: string | undefined) => any;
 }
 
 export const ProfileView: React.FC<ProfileViewProps> = ({
@@ -24,6 +25,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
   onToggleSettings,
   onDeleteVariant,
   getUserRankTitle,
+  getAvatarZoomProps,
 }) => {
   const [variantSort, setVariantSort] = useState<'alpha' | 'unlocked' | 'rarity' | 'nation'>('unlocked');
   const [variantSortDir, setVariantSortDir] = useState<number>(1);
@@ -72,6 +74,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
           >
             <div
               id="profileAvatarDisplay"
+              {...(getAvatarZoomProps ? getAvatarZoomProps(avatar) : {})}
               style={{
                 width: '90px',
                 height: '90px',

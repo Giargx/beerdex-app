@@ -83,6 +83,40 @@ export default function App() {
   const [globalAvatars, setGlobalAvatars] = useState<Record<string, string>>({});
   const [totalUsersCount, setTotalUsersCount] = useState<number>(1);
 
+  // Zoomed Avatar State
+  const [zoomedAvatarUrl, setZoomedAvatarUrl] = useState<string | null>(null);
+  const longPressTimeout = useRef<number | null>(null);
+
+  const handleAvatarPressStart = (avatarUrl: string | undefined) => {
+    if (longPressTimeout.current) {
+      window.clearTimeout(longPressTimeout.current);
+    }
+    longPressTimeout.current = window.setTimeout(() => {
+      setZoomedAvatarUrl(avatarUrl || 'generic');
+    }, 200);
+  };
+
+  const handleAvatarPressEnd = () => {
+    if (longPressTimeout.current) {
+      window.clearTimeout(longPressTimeout.current);
+      longPressTimeout.current = null;
+    }
+    setZoomedAvatarUrl(null);
+  };
+
+  const getAvatarZoomProps = (avatarUrl: string | undefined) => {
+    return {
+      onMouseDown: () => handleAvatarPressStart(avatarUrl),
+      onTouchStart: () => {
+        handleAvatarPressStart(avatarUrl);
+      },
+      onMouseUp: handleAvatarPressEnd,
+      onTouchEnd: handleAvatarPressEnd,
+      onMouseLeave: handleAvatarPressEnd,
+      style: { cursor: 'zoom-in' }
+    };
+  };
+
   // UI Modals State
   const [alertConfig, setAlertConfig] = useState<{
     open: boolean;
@@ -129,6 +163,19 @@ export default function App() {
   const [pubProfileScore, setPubProfileScore] = useState<number>(0);
 
   const touchStartX = useRef<number>(0);
+
+  const isAnyModalOpen =
+    authOpen ||
+    ageGateOpen ||
+    settingsOpen ||
+    scannerConfig.open ||
+    captureOpen ||
+    shareOpen ||
+    avatarSelectorOpen ||
+    cropOpen ||
+    alertConfig.open ||
+    confirmConfig.open ||
+    zoomedAvatarUrl !== null;
 
   // check age gate on mount
   useEffect(() => {
@@ -316,6 +363,10 @@ export default function App() {
 
   useEffect(() => {
     const handleTouchStart = (e: TouchEvent) => {
+      if (isAnyModalOpen) {
+        touchStartX.current = 0;
+        return;
+      }
       const target = e.target as HTMLElement;
       if (
         target.closest('#mapContainer') ||
@@ -342,7 +393,7 @@ export default function App() {
       document.removeEventListener('touchstart', handleTouchStart);
       document.removeEventListener('touchend', handleTouchEnd);
     };
-  }, [currentPage]);
+  }, [currentPage, isAnyModalOpen]);
 
   // Alert and Confirm Utilities
   const showAlert = (message: string, title = 'Avviso', showOk = true, callback?: () => void) => {
@@ -1197,6 +1248,7 @@ export default function App() {
               onOpenPublicProfile={handleOpenPublicProfile}
               onNavigateToFriends={() => navigateTo('page-friends')}
               getUserRankTitle={getUserRankTitle}
+              getAvatarZoomProps={getAvatarZoomProps}
             />
           ) : null}
         </div>
@@ -1214,6 +1266,7 @@ export default function App() {
               onDeletePost={handleDeletePost}
               onReportFakePost={handleReportFakePost}
               onOpenPublicProfile={handleOpenPublicProfile}
+              getAvatarZoomProps={getAvatarZoomProps}
             />
           ) : null}
         </div>
@@ -1237,6 +1290,7 @@ export default function App() {
               }}
               onDeleteVariant={handleDeleteVariant}
               getUserRankTitle={getUserRankTitle}
+              getAvatarZoomProps={getAvatarZoomProps}
             />
           ) : null}
         </div>
@@ -1251,6 +1305,7 @@ export default function App() {
               avatar={globalAvatars[pubProfileUser]}
               onBack={() => navigateTo('page-leaderboard')}
               getUserRankTitle={getUserRankTitle}
+              getAvatarZoomProps={getAvatarZoomProps}
             />
           ) : null}
         </div>
@@ -1347,6 +1402,55 @@ export default function App() {
             <div className="nav-text">Profilo</div>
           </div>
         </nav>
+      )}
+
+      {/* Zoomed Profile Avatar modal */}
+      {zoomedAvatarUrl && (
+        <div
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            width: '100vw',
+            height: '100vh',
+            background: 'rgba(0, 0, 0, 0.75)',
+            backdropFilter: 'blur(10px)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 99999,
+            pointerEvents: 'none',
+            animation: 'fadeIn 0.2s ease-out',
+          }}
+        >
+          <div
+            style={{
+              width: '280px',
+              height: '280px',
+              borderRadius: '24px',
+              overflow: 'hidden',
+              boxShadow: '0 10px 30px rgba(0,0,0,0.5)',
+              border: '4px solid var(--white)',
+              background: '#e0e6ed',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              animation: 'zoomIn 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275)',
+            }}
+          >
+            {zoomedAvatarUrl.startsWith('data:') ? (
+              <img
+                src={zoomedAvatarUrl}
+                alt="Zoomed Avatar"
+                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+              />
+            ) : (
+              <span className="material-symbols-outlined" style={{ fontSize: '120px', color: 'var(--text-muted)' }}>
+                person
+              </span>
+            )}
+          </div>
+        </div>
       )}
     </>
   );

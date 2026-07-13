@@ -12,6 +12,7 @@ interface LeaderboardViewProps {
   onOpenPublicProfile: (name: string) => void;
   onNavigateToFriends: () => void;
   getUserRankTitle: (score: number) => string;
+  getAvatarZoomProps?: (url: string | undefined) => any;
 }
 
 export const LeaderboardView: React.FC<LeaderboardViewProps> = ({
@@ -25,6 +26,7 @@ export const LeaderboardView: React.FC<LeaderboardViewProps> = ({
   onOpenPublicProfile,
   onNavigateToFriends,
   getUserRankTitle,
+  getAvatarZoomProps,
 }) => {
   const [activeTab, setActiveTab] = useState<'friends' | 'global'>('friends');
   const [searchQuery, setSearchQuery] = useState('');
@@ -242,7 +244,11 @@ export const LeaderboardView: React.FC<LeaderboardViewProps> = ({
                 >
                   <div style={{ display: 'flex', alignItems: 'center', flexGrow: 1 }}>
                     <div className="rank">{medalHtml}</div>
-                    <div className="post-avatar" style={{ width: '40px', height: '40px', margin: '0 10px 0 5px' }}>
+                    <div
+                      className="post-avatar"
+                      style={{ width: '40px', height: '40px', margin: '0 10px 0 5px' }}
+                      {...(getAvatarZoomProps ? getAvatarZoomProps(avatar) : {})}
+                    >
                       {avatar ? (
                         <img src={avatar} alt={player.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                       ) : (

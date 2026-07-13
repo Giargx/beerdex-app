@@ -9,6 +9,7 @@ interface PublicProfileViewProps {
   avatar: string | undefined;
   onBack: () => void;
   getUserRankTitle: (score: number) => string;
+  getAvatarZoomProps?: (url: string | undefined) => any;
 }
 
 export const PublicProfileView: React.FC<PublicProfileViewProps> = ({
@@ -18,6 +19,7 @@ export const PublicProfileView: React.FC<PublicProfileViewProps> = ({
   avatar,
   onBack,
   getUserRankTitle,
+  getAvatarZoomProps,
 }) => {
   const [variantSort, setVariantSort] = useState<'alpha' | 'unlocked' | 'rarity' | 'nation'>('unlocked');
   const [variantSortDir, setVariantSortDir] = useState<number>(1);
@@ -56,6 +58,7 @@ export const PublicProfileView: React.FC<PublicProfileViewProps> = ({
         
         <div
           id="pubAvatarDisplay"
+          {...(getAvatarZoomProps ? getAvatarZoomProps(avatar) : {})}
           style={{
             width: '70px',
             height: '70px',
