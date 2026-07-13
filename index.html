@@ -645,18 +645,54 @@
         .list-item { display: flex; align-items: center; justify-content: space-between; background: var(--white); box-shadow: var(--card-shadow); padding: 18px 24px; border-radius: 20px; border: 1px solid rgba(226, 232, 240, 0.6); }
         .list-item .lb-user { flex-grow: 1; font-weight: 700; font-size: 16px; display:flex; flex-direction:column; }
 
-        /* CLASSIFICA GORGEOUS GRADIENTS */
-        .leaderboard-item:nth-child(1) { background: linear-gradient(135deg, #FCD34D 0%, #F59E0B 100%); color: var(--dark); transform: scale(1.01); box-shadow: 0 8px 25px rgba(245, 158, 11, 0.3); border: none; }
-        .leaderboard-item:nth-child(1) .clickable-user, .leaderboard-item:nth-child(1) small, .leaderboard-item:nth-child(1) .lb-score { color: #451A03 !important; }
-        .leaderboard-item:nth-child(1) .rank span { color: #451A03 !important; }
+        /* LEADERBOARD REFINED STYLE & PODIUM */
+        .leaderboard-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: var(--white);
+            padding: 16px 20px;
+            border-radius: 20px;
+            margin-bottom: 12px;
+            border: 1px solid rgba(226, 232, 240, 0.8);
+            box-shadow: var(--card-shadow);
+            transition: all 0.2s ease;
+        }
+        .leaderboard-item:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--card-shadow-hover);
+        }
+        .leaderboard-item.is-current-user {
+            border: 2px solid var(--primary-dark) !important;
+            background: linear-gradient(90deg, #FFFFFF 0%, #FFFBEB 100%) !important;
+        }
 
-        .leaderboard-item:nth-child(2) { background: linear-gradient(135deg, #E2E8F0 0%, #CBD5E1 100%); color: var(--dark); border: none; }
-        .leaderboard-item:nth-child(2) .clickable-user, .leaderboard-item:nth-child(2) small, .leaderboard-item:nth-child(2) .lb-score { color: #1E293B !important; }
-        .leaderboard-item:nth-child(2) .rank span { color: #1E293B !important; }
+        .leaderboard-item:nth-child(1) { 
+            background: linear-gradient(135deg, #FFFDF0 0%, #FFF9D6 100%); 
+            border: 1.5px solid #F59E0B; 
+            box-shadow: 0 8px 20px rgba(245, 158, 11, 0.12);
+        }
+        .leaderboard-item:nth-child(1) .clickable-user { color: #854D0E !important; }
+        .leaderboard-item:nth-child(1) .lb-score { color: #854D0E !important; }
+        .leaderboard-item:nth-child(1) .rank span { color: #F59E0B !important; }
 
-        .leaderboard-item:nth-child(3) { background: linear-gradient(135deg, #FDBA74 0%, #D97706 100%); color: white; border: none; }
-        .leaderboard-item:nth-child(3) .clickable-user, .leaderboard-item:nth-child(3) small, .leaderboard-item:nth-child(3) .lb-score { color: white !important; }
-        .leaderboard-item:nth-child(3) .rank span { color: white !important; }
+        .leaderboard-item:nth-child(2) { 
+            background: linear-gradient(135deg, #F8FAFC 0%, #F1F5F9 100%); 
+            border: 1.5px solid #94A3B8; 
+            box-shadow: 0 8px 20px rgba(148, 163, 184, 0.1);
+        }
+        .leaderboard-item:nth-child(2) .clickable-user { color: #1E293B !important; }
+        .leaderboard-item:nth-child(2) .lb-score { color: #1E293B !important; }
+        .leaderboard-item:nth-child(2) .rank span { color: #64748B !important; }
+
+        .leaderboard-item:nth-child(3) { 
+            background: linear-gradient(135deg, #FFF7ED 0%, #FFEDD5 100%); 
+            border: 1.5px solid #D97706; 
+            box-shadow: 0 8px 20px rgba(217, 119, 6, 0.08);
+        }
+        .leaderboard-item:nth-child(3) .clickable-user { color: #9A3412 !important; }
+        .leaderboard-item:nth-child(3) .lb-score { color: #9A3412 !important; }
+        .leaderboard-item:nth-child(3) .rank span { color: #D97706 !important; }
 
         .rank { font-weight: 800; font-size: 20px; width: 36px; display: flex; align-items: center; justify-content: center; }
         .lb-score { font-size: 20px; font-weight: 800; display: flex; align-items: center; gap: 4px; }
@@ -664,50 +700,182 @@
         .clickable-user { cursor: pointer; color: var(--primary-dark); transition: all 0.2s; font-weight: 800; }
         .clickable-user:hover { text-decoration: underline; color: var(--accent) !important; }
 
-        .post-avatar { width: 40px; height: 40px; flex-shrink: 0; background: linear-gradient(135deg, var(--social-blue), #8B5CF6); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: var(--white); font-weight: bold; font-size: 16px; text-transform: uppercase; overflow: hidden; }
+        .post-avatar {
+            width: 42px;
+            height: 42px;
+            flex-shrink: 0;
+            border-radius: 50%;
+            border: 2px solid var(--primary);
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white;
+            font-weight: 800;
+            text-transform: uppercase;
+        }
         
-        /* SOCIAL FEED ELEVATED */
+        /* SOCIAL FEED ELEVATED (INSTAGRAM/UNTAPPD STYLE) */
         .social-page-container { width: 100%; max-width: 600px; margin: 0 auto; background: var(--light); position: relative; z-index: 5; padding-top: 15px; }
-        .social-feed { display: flex; flex-direction: column; gap: 18px; margin-top: 0; padding-bottom: 20px; }
-        .post-card { background: var(--white); border-radius: 0; border: none; border-top: 1px solid rgba(226, 232, 240, 0.8); border-bottom: 1px solid rgba(226, 232, 240, 0.8); overflow: hidden; margin-bottom: 0; }
-        .post-header { display: flex; align-items: center; padding: 14px 18px; justify-content: space-between;}
+        .social-feed { display: flex; flex-direction: column; gap: 20px; margin-top: 0; padding-bottom: 30px; padding-left: 12px; padding-right: 12px; box-sizing: border-box; }
         
-        .post-user { font-weight: 800; font-size: 15px; color: var(--dark); margin-left: 12px; } 
-        .post-time { font-size: 12px; color: var(--text-muted); margin-left: 12px; } 
-        
-        .post-image { width: 100%; height: 50vh; object-fit: cover; background: #f0f0f0; display: block; }
-        
-        .post-actions { display: flex; align-items: center; padding: 12px 18px 6px 18px; }
-        .btn-like { 
-            background: var(--light); 
-            border: 1px solid var(--gray); 
+        .post-card { 
+            background: var(--white); 
             border-radius: 24px; 
+            border: 1px solid rgba(226, 232, 240, 0.8); 
+            overflow: hidden; 
+            margin-bottom: 0; 
+            box-shadow: var(--card-shadow);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        .post-card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--card-shadow-hover);
+        }
+        
+        .post-header { display: flex; align-items: center; padding: 16px 20px; justify-content: space-between; border-bottom: 1px solid rgba(226, 232, 240, 0.4); }
+        .post-user { font-weight: 800; font-size: 15px; color: var(--dark); margin-left: 12px; } 
+        .post-time { font-size: 11px; color: var(--text-muted); margin-left: 12px; } 
+        
+        .post-image { width: 100%; height: 45vh; object-fit: cover; background: #F1F5F9; display: block; border-bottom: 1px solid rgba(226, 232, 240, 0.4); }
+        
+        .post-actions { display: flex; align-items: center; padding: 12px 20px 8px 20px; }
+        .btn-like { 
+            background: #F8FAFC; 
+            border: 1px solid var(--gray); 
+            border-radius: 20px; 
             padding: 8px 18px; 
             font-weight: 700; 
             cursor: pointer; 
-            display:flex; 
-            align-items:center; 
-            gap:6px; 
-            transition: all 0.2s; 
+            display: flex; 
+            align-items: center; 
+            gap: 6px; 
+            transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
             color: var(--text-muted); 
-            font-size:14px; 
+            font-size: 14px; 
             outline: none; 
         }
+        .btn-like:hover {
+            transform: scale(1.05);
+            background: #F1F5F9;
+        }
         .btn-like.liked { 
-            background: rgba(255, 79, 0, 0.08); 
-            border-color: rgba(255, 79, 0, 0.2); 
+            background: rgba(255, 111, 0, 0.08); 
+            border-color: rgba(255, 111, 0, 0.2); 
             color: var(--accent); 
         }
         .btn-like.liked span {
             font-variation-settings: 'FILL' 1;
+            animation: heartBeat 0.3s ease-out;
         }
-        .btn-like:hover { transform: translateY(-1px); }
-        .post-caption { padding: 6px 18px 18px 18px; font-size: 14px; line-height: 1.6; color: var(--dark); }
+        @keyframes heartBeat {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.3); }
+            100% { transform: scale(1); }
+        }
+
+        .post-caption { padding: 4px 20px 20px 20px; font-size: 14px; line-height: 1.6; color: var(--dark); }
+        .beer-highlight {
+            color: var(--primary-dark);
+            background: rgba(255, 111, 0, 0.06);
+            padding: 2px 6px;
+            border-radius: 6px;
+            font-weight: 800;
+        }
 
         @media (min-width: 600px) {
             .social-page-container { border-radius: 28px 28px 0 0; box-shadow: 0 -10px 30px rgba(0,0,0,0.02); background: var(--white); padding: 30px 20px; margin-top: -35px; }
             .post-card { border-radius: 24px; border: 1px solid rgba(226, 232, 240, 0.8); margin-bottom: 24px; box-shadow: var(--card-shadow); }
             .post-image { height: 480px; }
+        }
+
+        /* CIN ANIMATION TOAST */
+        .cin-toast-container {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 100000;
+            pointer-events: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: cinPopIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        }
+        .cin-toast-container.fade-out {
+            animation: cinFadeOut 0.4s ease forwards;
+        }
+        .cin-toast-content {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            border: 2px solid var(--primary);
+            padding: 30px 40px;
+            border-radius: 28px;
+            box-shadow: 0 20px 50px rgba(15, 23, 42, 0.15);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+        }
+        .cin-mug {
+            font-size: 50px;
+            display: inline-block;
+            transition: all 0.2s;
+        }
+        .left-mug {
+            animation: swingLeftMug 0.5s cubic-bezier(0.25, 0.8, 0.25, 1) forwards;
+        }
+        .right-mug {
+            animation: swingRightMug 0.5s cubic-bezier(0.25, 0.8, 0.25, 1) forwards;
+            transform: scaleX(-1);
+        }
+        .cin-splash {
+            position: absolute;
+            font-size: 30px;
+            top: 15px;
+            opacity: 0;
+            animation: splashSparkle 0.4s ease 0.4s forwards;
+        }
+        .cin-text {
+            font-family: 'Outfit', sans-serif;
+            font-size: 20px;
+            font-weight: 900;
+            color: var(--primary-dark);
+            margin-top: 10px;
+            letter-spacing: 1px;
+            animation: textBounce 0.4s ease 0.3s forwards;
+            opacity: 0;
+        }
+
+        @keyframes cinPopIn {
+            0% { transform: translate(-50%, -50%) scale(0.5); opacity: 0; }
+            100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+        }
+        @keyframes cinFadeOut {
+            0% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+            100% { transform: translate(-50%, -50%) scale(0.8); opacity: 0; }
+        }
+        @keyframes swingLeftMug {
+            0% { transform: rotate(-35deg) translateX(-30px); }
+            70% { transform: rotate(15deg) translateX(5px); }
+            100% { transform: rotate(0deg) translateX(0px); }
+        }
+        @keyframes swingRightMug {
+            0% { transform: scaleX(-1) rotate(-35deg) translateX(-30px); }
+            70% { transform: scaleX(-1) rotate(15deg) translateX(5px); }
+            100% { transform: scaleX(-1) rotate(0deg) translateX(0px); }
+        }
+        @keyframes splashSparkle {
+            0% { opacity: 0; transform: scale(0.5); }
+            50% { opacity: 1; transform: scale(1.4); }
+            100% { opacity: 0; transform: scale(1); }
+        }
+        @keyframes textBounce {
+            0% { opacity: 0; transform: translateY(10px); }
+            50% { opacity: 1; transform: translateY(-5px); }
+            100% { opacity: 1; transform: translateY(0); }
         }
 
         .rules-section { margin-bottom: 24px; border-bottom: 1px solid rgba(226, 232, 240, 0.8); padding-bottom: 20px; }
@@ -1270,63 +1438,62 @@
                     <p style="text-align:center;">Caricamento...</p>
                 </div>
             </div>
-        </div>
-
-        <div id="page-rules" class="page-view">
+               <div id="page-rules" class="page-view">
             <header class="hero">
-                <h1>Regolamento BeerDex</h1>
-                <p>Tutto quello che c'è da sapere sulla caccia ai luppoli.</p>
+                <h1>Regolamento del Pub</h1>
+                <p>Tutte le regole per la sfida a colpi di pinte tra amici.</p>
             </header>
             <div class="page-container">
                 <div class="rules-section">
-                    <h3>Cos'è BeerDex?</h3>
-                    <p>BeerDex è un social network interamente basato sulla gamification e sul completamento per veri appassionati. Lo scopo del gioco è completare il proprio catalogo "catturando" fotograficamente le varianti delle marche presenti nel database.</p>
+                    <h3>🍻 Cos'è BeerDex?</h3>
+                    <p>BeerDex è il nostro album delle figurine personale, solo che al posto dei calciatori collezioniamo birre. Lo scopo del gioco è scovare, bere e fotografare tutte le varianti delle marche che trovi nel catalogo per riempire la tua bacheca e scalare la classifica del pub.</p>
                 </div>
                 <div class="rules-section">
-                    <h3>Gradi di Evoluzione Utente</h3>
-                    <p>In base al tuo punteggio totale sbloccherai dei titoli ufficiali che testimoniano la tua esperienza:</p>
+                    <h3>🏆 Il tuo Grado al Bancone</h3>
+                    <p>In base a quanti punti accumuli, ti verrà assegnato un titolo d'onore. Guarda dove sei arrivato:</p>
                     <ul>
-                        <li><strong>Novizio del Pub:</strong> Meno di 10 punti. L'avventura è appena iniziata.</li>
-                        <li><strong>Apprendista Bevitore:</strong> Da 10 a 49 punti. Inizi a conoscere gli stili.</li>
-                        <li><strong>Esploratore di Luppoli:</strong> Da 50 a 99 punti. Cerchi marchi sempre nuovi.</li>
-                        <li><strong>Sommelier del Bancone:</strong> Da 100 a 199 punti. Una guida per i tuoi amici.</li>
-                        <li><strong>Maestro Birraio:</strong> Da 200 punti in su. Hall of fame dei collezionisti.</li>
+                        <li><strong>Novizio del Pub:</strong> Meno di 10 punti. Hai appena iniziato a bagnarti le labbra.</li>
+                        <li><strong>Apprendista Bevitore:</strong> Da 10 a 49 punti. Inizi a distinguere una bionda da una rossa.</li>
+                        <li><strong>Esploratore di Luppoli:</strong> Da 50 a 99 punti. Non ti accontenti della solita birra del supermercato.</li>
+                        <li><strong>Sommelier del Bancone:</strong> Da 100 a 199 punti. Ormai offri consigli a tutti al pub.</li>
+                        <li><strong>Maestro Birraio:</strong> Da 200 punti in su. Leggenda vivente. Il bancone è casa tua.</li>
                     </ul>
                 </div>
                 <div class="rules-section">
-                    <h3>Eventi a Tempo Limitato & Event Badges</h3>
-                    <p>Durante l'anno si attivano automaticamente dei trofei speciali legati al calendario reale:</p>
+                    <h3>🏅 Trofei Speciali e Stagionali</h3>
+                    <p>Ci sono delle medaglie speciali che puoi sbloccare solo in determinati periodi dell'anno o compiendo imprese specifiche:</p>
                     <ul>
-                        <li><strong>Medaglia San Patrizio (Marzo):</strong> Si ottiene sbloccando almeno 2 varianti di Guinness o birre cerchiate come Stout/Irlandesi durante il mese di marzo.</li>
-                        <li><strong>Solstizio d'Estate (Giu-Lug-Ago):</strong> Si sblocca catturando almeno 3 birre chiare o IPA per rinfrescare l'estate.</li>
-                        <li><strong>Medaglia Oktoberfest (Settembre - Ottobre):</strong> Si sblocca catturando almeno 3 varianti di qualsiasi birra tedesca nel periodo compreso tra il 1° settembre e il 31 ottobre.</li>
+                        <li><strong>Medaglia San Patrizio (a Marzo):</strong> Bevi e sblocca almeno 2 varianti di Guinness o altre Stout/Scure durante il mese di marzo.</li>
+                        <li><strong>Solstizio d'Estate (Giugno-Agosto):</strong> Trova e registra almeno 3 birre chiare fresche o IPA per combattere la calura estiva.</li>
+                        <li><strong>Medaglia Oktoberfest (Settembre - Ottobre):</strong> Registra almeno 3 varianti di birre tedesche (es. Paulaner, Franziskaner, HB) tra il 1° settembre e il 31 ottobre.</li>
                     </ul>
                 </div>
                 <div class="rules-section">
-                    <h3>Il Sistema dei Punti & Rarità</h3>
+                    <h3>⭐ Punti e Rarità</h3>
+                    <p>Ogni birra sbloccata ti dà dei punti in classifica in base a quanto è difficile da trovare:</p>
                     <ul>
-                        <li><strong>Comune (1 Punto):</strong> Commerciali e industriali (es. Heineken, Moretti, Peroni, Best Brau).</li>
-                        <li><strong>Media (2 Punti):</strong> Speciali o artigianali diffuse (es. Ceres, Leffe, Ichnusa).</li>
-                        <li><strong>Rara (5 Punti):</strong> Eccellenze territoriali o trappiste (es. Baladin, Tripel Karmeliet, Chimay, Crak).</li>
+                        <li><strong>Comune (1 Punto):</strong> Birre commerciali che trovi ovunque, anche al discount (es. Heineken, Moretti, Peroni, Best Brau).</li>
+                        <li><strong>Media (2 Punti):</strong> Birre speciali o artigianali mediamente diffuse (es. Ceres, Leffe, Ichnusa).</li>
+                        <li><strong>Rara (5 Punti):</strong> Birre trappiste o artigianali di nicchia (es. Baladin, Tripel Karmeliet, Chimay, Crak).</li>
                     </ul>
                 </div>
                 <div class="rules-section">
-                    <h3>Bonus Completamento Brand (+10 Punti)</h3>
-                    <p>Ogni volta che completi al 100% tutte le varianti di un singolo brand, ottieni un Bonus di +10 Punti Extra in classifica e sblocchi la prestigiosa medaglia dorata "Maestro Brand" all'interno della tua Bacheca!</p>
+                    <h3>🎯 Completamento Brand (+10 Punti)</h3>
+                    <p>Se riesci a sbloccare tutte le varianti indicate per un singolo marchio (ad esempio, trovi tutte le varianti di Menabrea), ottieni un super bonus di **+10 Punti Extra** e la medaglia d'oro "Maestro Brand" sul tuo profilo!</p>
                 </div>
                 <div class="rules-section">
-                    <h3>Bonus Trasferta e Shiny (Moltiplicatore x2)</h3>
-                    <p>Se sblocchi una birra tramite GPS all'interno della sua nazione d'origine, lo sblocco diventa <strong>Shiny</strong> e il suo punteggio raddoppia istantaneamente.</p>
-                    <p><strong>Regola Italiana:</strong> Le birre italiane diventano Shiny SOLO se scansionate nella specifica Regione d'origine (es. Ichnusa in Sardegna, Menabrea in Piemonte).</p>
+                    <h3>✨ Birre Shiny (Punteggio Raddoppiato!)</h3>
+                    <p>Se bevi una birra all'estero, nella sua nazione d'origine (rilevata tramite GPS), lo sblocco diventa **Shiny** e vale il doppio dei punti!</p>
+                    <p>⚠️ **Regola Speciale per l'Italia:** Visto che siamo a casa nostra, le birre italiane diventano Shiny solo se le scansioniamo nella loro specifica **Regione d'origine** (ad esempio: devi bere la Ichnusa in Sardegna, o la Menabrea in Piemonte!).</p>
                 </div>
 
-                <div class="rules-section" style="background:#fffcf0; padding:20px; border-radius:12px; border-left:4px solid var(--primary-dark);">
-                    <h3>Scanner Codice a Barre & Moderazione</h3>
-                    <p style="margin:0 0 10px 0; line-height:1.5; font-size:14px; color:var(--dark);">Per le bottiglie e lattine, inquadra il codice a barre sul retro per convalidare l'autenticità. <br><br>Se la birra è <strong>alla spina</strong>, salta lo scanner e usa la fiducia! Ma attenzione: se la <strong>Community segnala</strong> la tua foto come falsa, il post e i punti verranno rimossi permanentemente.</p>
+                <div class="rules-section" style="background:#FFFDF5; padding:20px; border-radius:18px; border-left:4px solid var(--primary-dark); border: 1px solid rgba(255, 179, 0, 0.15);">
+                    <h3>📷 Codici a Barre e Spille (Fiducia & Segnalazioni)</h3>
+                    <p style="margin:0; line-height:1.6; font-size:14px; color:var(--dark);">Se compri una bottiglia o una lattina, usa la fotocamera per scansionare il codice a barre sul retro per convalidarla. <br><br>Se prendi una **birra alla spina**, non c'è codice a barre: saltalo e scatta direttamente la foto, andiamo a fiducia! Però attenzione: se qualcuno fa il furbo e la community segnala una foto come falsa, il post e tutti i punti associati spariranno per sempre.</p>
                 </div>
-                <div class="rules-section" style="background:#fdf2f2; padding:20px; border-radius:12px; border-left:4px solid var(--danger);">
-                    <h3>Politica del Consumo Responsabile</h3>
-                    <p style="margin:0; line-height:1.5; font-size:14px; color:var(--dark);"><strong>BeerDex non assegna premi basati sulla quantità totale di alcol consumata</strong>. Riteniamo che incentivare il consumo quantitativo promuova comportamenti dannosi. Degusta responsabilmente.</p>
+                <div class="rules-section" style="background:#FFF5F5; padding:20px; border-radius:18px; border-left:4px solid var(--danger); border: 1px solid rgba(239, 68, 68, 0.15); margin-top:20px;">
+                    <h3>❤️ Bevi con la testa!</h3>
+                    <p style="margin:0; line-height:1.6; font-size:14px; color:var(--dark);">BeerDex serve a scoprire nuovi sapori, viaggiare e divertirsi in compagnia. **Non diamo punti in base alla quantità totale di alcol che scoli**, ma solo per la varietà delle birre provate. Degusta, sperimenta e non esagerare!</p>
                 </div>
             </div>
         </div>
@@ -2511,10 +2678,37 @@
             }
         }
 
+        function triggerCinAnimation() {
+            const container = document.createElement('div');
+            container.className = 'cin-toast-container';
+            container.innerHTML = `
+                <div class="cin-toast-content">
+                    <div style="display:flex; align-items:center; gap:5px; position:relative; z-index: 10;">
+                        <span class="cin-mug left-mug">🍺</span>
+                        <span class="cin-mug right-mug">🍺</span>
+                    </div>
+                    <div class="cin-splash">💥</div>
+                    <div class="cin-text">CIN!</div>
+                </div>
+            `;
+            document.body.appendChild(container);
+            setTimeout(() => {
+                container.classList.add('fade-out');
+                setTimeout(() => {
+                    container.remove();
+                }, 400);
+            }, 1200);
+        }
+
         function toggleLike(postId) {
             const ref = db.ref('social_timeline/' + postId + '/likes/' + currentUserNick);
             ref.once('value').then(snap => {
-                if(snap.exists()) { ref.remove(); } else { ref.set(true); }
+                if(snap.exists()) { 
+                    ref.remove(); 
+                } else { 
+                    ref.set(true); 
+                    triggerCinAnimation();
+                }
             });
         }
 
@@ -2567,10 +2761,16 @@
                 let realIndex = beers.findIndex(b => b.brand === beer.brand);
                 const card = document.createElement('div'); card.className = 'card'; card.id = 'card-' + realIndex; card.setAttribute('onclick', 'toggleCard(this)');
                 let rClass = `rarity-${beer.rarity}`;
+                
+                let regionLabel = `${beer.flag} ${beer.country}`;
+                if (beer.country === "Italia" && beer.regione) {
+                    regionLabel += ` (${beer.regione})`;
+                }
+
                 card.innerHTML = `
                     <div class="toggle-icon"><span class="material-symbols-outlined">expand_more</span></div>
                     <div class="card-badges">
-                        <span class="region">${beer.flag} ${beer.country}</span>
+                        <span class="region">${regionLabel}</span>
                         <span class="rarity-badge ${rClass}">${beer.rarity}</span>
                     </div>
                     <h2 style="margin-top:0;">${beer.brand} <span class="trophy" style="display:none; color:var(--primary-dark); font-size:24px;"><span class="material-symbols-outlined">workspace_premium</span></span></h2><div class="desc">${beer.desc}</div>
@@ -2839,13 +3039,16 @@
                 let canDelete = (post.user === currentUserNick) || isAdminUser;
                 let canReport = (post.user !== currentUserNick) && !isAdminUser; 
                 
-                let actionText = `ha trovato la <strong>${post.brand} - ${post.variant}</strong>!`;
+                let actionText = `ha sbloccato la 🍺 <strong class="beer-highlight">${post.brand}</strong> (${post.variant})`;
                 if(post.isShared && post.taggedFriend) {
-                    actionText = `sta bevendo una <strong>${post.brand} - ${post.variant}</strong> con <strong class="clickable-user" onclick="openPublicProfile('${post.taggedFriend}')">${post.taggedFriend}</strong>!`;
+                    actionText = `sta bevendo una 🍻 <strong class="beer-highlight">${post.brand}</strong> (${post.variant}) con <strong class="clickable-user" onclick="openPublicProfile('${post.taggedFriend}')">${post.taggedFriend}</strong>`;
                 }
 
-                let shinyTag = post.isShiny ? ' <span style="color:var(--primary-dark); font-size:12px; display:inline-flex; align-items:center; gap:2px;"><span class="material-symbols-outlined" style="font-size:14px;">auto_awesome</span> Sblocco Shiny!</span>' : '';
+                let shinyTag = post.isShiny ? ' <span style="color:var(--primary-dark); font-size:11px; display:inline-flex; align-items:center; gap:2px; margin-left:4px;"><span class="material-symbols-outlined" style="font-size:13px;">auto_awesome</span> Shiny!</span>' : '';
                 
+                let date = new Date(post.time);
+                let timeStr = date.toLocaleDateString('it-IT', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
+
                 let likesCount = post.likes ? Object.keys(post.likes).length : 0;
                 let isLiked = post.likes && post.likes[currentUserNick] ? true : false;
 
@@ -2855,7 +3058,7 @@
                             <div class="post-avatar">${avatarContent}</div>
                             <div>
                                 <div class="post-user clickable-user" onclick="openPublicProfile('${post.user}')">${post.user}</div>
-                                <div class="post-time" style="display:flex; align-items:center;">Nuovo sblocco!${shinyTag}</div>
+                                <div class="post-time" style="display:flex; align-items:center; gap:4px;">${timeStr}${shinyTag}</div>
                             </div>
                         </div>
                         ${canDelete ? `<button class="btn-delete" onclick="deletePost('${post.postId}', '${post.user}', '${post.brand}', '${post.variant}')" title="Elimina post e punti"><span class="material-symbols-outlined">delete</span></button>` : ''}
@@ -2884,7 +3087,11 @@
             players.sort((a, b) => b.score - a.score);
             if(players.length === 0) { list.innerHTML = '<p style="text-align:center;">Nessun punteggio.</p>'; return; }
             players.forEach((player, index) => {
-                let item = document.createElement('div'); item.className = 'leaderboard-item';
+                let item = document.createElement('div'); 
+                item.className = 'leaderboard-item';
+                if (player.name === currentUserNick) {
+                    item.classList.add('is-current-user');
+                }
                 
                 let medalHtml = `<span style="font-size:16px;">${index + 1}</span>`; 
                 if(index === 0) medalHtml = `<span class="material-symbols-outlined" style="font-size: 28px;">looks_one</span>`;
