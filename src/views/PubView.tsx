@@ -230,6 +230,9 @@ export const PubView: React.FC<PubViewProps> = ({
                       className={`btn-like ${isLiked ? 'liked' : ''}`}
                       onClick={(e) => {
                         const imgContainer = e.currentTarget.closest('.post-card')?.querySelector('.post-image-container') as HTMLElement;
+                        if (!isLiked && imgContainer) {
+                          triggerCinAnimation(imgContainer);
+                        }
                         onToggleLike(post.postId, imgContainer);
                       }}
                     >
