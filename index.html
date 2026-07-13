@@ -245,25 +245,41 @@
 
         .main-content { 
             width: 100%; 
-            min-height: 100vh; 
-            display: flex; 
-            flex-direction: row; 
+            min-height: calc(100vh - 165px); 
             position: relative; 
             box-sizing: border-box;
-            transition: transform 0.45s cubic-bezier(0.16, 1, 0.3, 1);
-            align-items: flex-start;
-            overflow-x: visible;
         }
-        .page-view { 
+        
+        /* TRANSITIONING: Place pages side-by-side and slide */
+        .main-content.transitioning {
+            display: flex;
+            flex-direction: row;
+            transition: transform 0.45s cubic-bezier(0.16, 1, 0.3, 1);
+            overflow-x: visible;
+            align-items: flex-start;
+        }
+        
+        .main-content.transitioning .page-view {
+            display: block !important;
             width: 100%;
             flex-shrink: 0;
-            display: block !important;
             opacity: 0.15;
-            transition: opacity 0.45s ease;
+            height: auto !important;
+            overflow: visible !important;
+        }
+        .main-content.transitioning .page-view.active {
+            opacity: 1;
+        }
+        
+        /* IDLE: Show only the active page-view so height and width shrink to fit */
+        .page-view { 
+            display: none;
+            width: 100%;
             box-sizing: border-box;
-            min-height: calc(100vh - 165px);
+            opacity: 0;
         }
         .page-view.active { 
+            display: block; 
             opacity: 1; 
         }
         
@@ -1815,29 +1831,18 @@
             'page-rules'
         ];
 
+        let isTransitioningPages = false;
+
         function navigateTo(pageId) {
+            if (isTransitioningPages) return;
             const index = pagesMapList.indexOf(pageId);
             if(index === -1) return;
             
-            document.querySelectorAll('.page-view').forEach(p => p.classList.remove('active'));
-            
-            const targetPage = document.getElementById(pageId);
-            if(targetPage) { 
-                targetPage.classList.add('active'); 
-                sessionStorage.setItem('beerdex_currentPage', pageId); 
-            } else { 
-                document.getElementById('page-home').classList.add('active'); 
-                pageId = 'page-home';
-            }
-            
             const mainContent = document.querySelector('.main-content');
-            if (mainContent) {
-                const idx = pagesMapList.indexOf(pageId);
-                mainContent.style.transform = `translateX(-${idx * 100}%)`;
-            }
+            const currentPage = document.querySelector('.page-view.active');
             
+            // Highlight navigation item
             document.querySelectorAll('.nav-item').forEach(nav => nav.classList.remove('active'));
-            
             let navId = 'nav-' + pageId;
             if (pageId === 'page-friends' || pageId === 'page-rules') {
                 navId = 'nav-page-profile';
@@ -1846,10 +1851,52 @@
             } else if (pageId === 'page-public-profile') {
                 navId = 'nav-page-leaderboard';
             }
-            
             const activeNav = document.getElementById(navId);
             if(activeNav) activeNav.classList.add('active');
 
+            if (currentPage && currentPage.id !== pageId && mainContent) {
+                isTransitioningPages = true;
+                const currIdx = pagesMapList.indexOf(currentPage.id);
+                const targetIdx = index;
+                
+                // 1. Prepare transition: position pages side-by-side
+                mainContent.style.transform = `translateX(-${currIdx * 100}%)`;
+                mainContent.classList.add('transitioning');
+                
+                // Force layout reflow
+                void mainContent.offsetWidth;
+                
+                // 2. Start transition
+                currentPage.classList.remove('active');
+                const targetPage = document.getElementById(pageId);
+                if (targetPage) targetPage.classList.add('active');
+                
+                mainContent.style.transform = `translateX(-${targetIdx * 100}%)`;
+                sessionStorage.setItem('beerdex_currentPage', pageId);
+                
+                // 3. Clean up after transition
+                setTimeout(() => {
+                    mainContent.classList.remove('transitioning');
+                    mainContent.style.transform = 'none';
+                    isTransitioningPages = false;
+                    
+                    // Trigger specific page renders after slide completes
+                    triggerPageLoadActions(pageId);
+                }, 450);
+            } else {
+                // Direct activation (e.g. first load)
+                document.querySelectorAll('.page-view').forEach(p => p.classList.remove('active'));
+                const targetPage = document.getElementById(pageId);
+                if(targetPage) { 
+                    targetPage.classList.add('active'); 
+                    sessionStorage.setItem('beerdex_currentPage', pageId); 
+                }
+                triggerPageLoadActions(pageId);
+            }
+            window.scrollTo(0, 0);
+        }
+
+        function triggerPageLoadActions(pageId) {
             if(pageId === 'page-home') {
                 checkTimedEvents(); 
                 renderDashboard(); 
@@ -1857,12 +1904,11 @@
             if(pageId === 'page-explore') filterBeers();
             if(pageId === 'page-profile') renderTrophies(); 
             if(pageId === 'page-map') {
-                setTimeout(() => { renderMap(); }, 450);
+                renderMap();
             }
             if(pageId === 'page-social') renderSocialFeed();
             if(pageId === 'page-leaderboard') renderLeaderboard();
             if(pageId === 'page-friends') renderFriendsManager();
-            window.scrollTo(0, 0);
         }
 
         function switchLeaderboardTab(tabName) { currentLeaderboardTab = tabName; document.getElementById('tab-friends').classList.toggle('active', tabName === 'friends'); document.getElementById('tab-global').classList.toggle('active', tabName === 'global'); document.getElementById('friendSearchWrapper').style.display = (tabName === 'global') ? 'block' : 'none'; renderLeaderboard(); }
