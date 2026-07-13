@@ -10,7 +10,7 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
 
     <script src="https://unpkg.com/html5-qrcode"></script>
-    <script src="https://unpkg.com/nsfwjs"></script>
+
 
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -1085,8 +1085,7 @@
         let currentUserEmail = "";
         let isAdminUser = false; 
         
-        let nsfwModel = null;
-        try { if (typeof nsfwjs !== 'undefined') { nsfwjs.load().then(model => { nsfwModel = model; }).catch(e => console.log("Errore NSFW", e)); } } catch(e) { console.log("NSFWJS non caricato."); }
+
 
         const firebaseConfig = {
             apiKey: "AIzaSyC6uxvnl8LUyUGqH_fZwG0AVqoKnK6HZEw",
@@ -1401,35 +1400,14 @@
                     const ctx = canvas.getContext('2d');
                     ctx.drawImage(img, startX, startY, size, size, 0, 0, MAX_SIZE, MAX_SIZE);
                     
-                    const saveAvatarToDB = () => {
-                        showCustomAlert("Caricamento avatar in corso...", "Attendere", false);
-                        const avatarBase64 = canvas.toDataURL('image/jpeg', 0.8);
-                        document.getElementById('customModalOverlay').style.display = 'none';
-                        db.ref('users_avatars/' + currentUserNick).set(avatarBase64).then(() => {
-                            showCustomAlert("Foto profilo aggiornata con successo!", "Fatto", true);
-                        }).catch(err => showCustomAlert("Errore di rete: " + err.message, "Errore", true));
-                    };
-
-                    if (nsfwModel) {
-                        nsfwModel.classify(canvas).then(predictions => {
-                            let isSafe = true;
-                            predictions.forEach(p => {
-                                if ((p.className === 'Porn' || p.className === 'Hentai' || p.className === 'Sexy') && p.probability > 0.60) {
-                                    isSafe = false;
-                                }
-                            });
-                            if (!isSafe) {
-                                showCustomAlert("La foto selezionata è stata bloccata perché potrebbe contenere contenuti inappropriati.", "Sicurezza Profilo", true);
-                                return;
-                            }
-                            saveAvatarToDB();
-                        }).catch(err => {
-                            console.log("Errore durante la scansione NSFW", err);
-                            saveAvatarToDB(); 
-                        });
-                    } else {
-                        saveAvatarToDB(); 
-                    }
+                    showCustomAlert("Caricamento avatar in corso...", "Attendere", false);
+                    const avatarBase64 = canvas.toDataURL('image/jpeg', 0.8);
+                    document.getElementById('customModalOverlay').style.display = 'none';
+                    db.ref('users_avatars/' + currentUserNick).set(avatarBase64).then(() => {
+                        showCustomAlert("Foto profilo aggiornata con successo!", "Fatto", true);
+                    }).catch(err => {
+                        showCustomAlert("Errore di caricamento: " + err.message, "Errore", true);
+                    });
                 };
                 img.src = e.target.result;
             };
