@@ -790,13 +790,13 @@
             .post-image { height: 480px; }
         }
 
-        /* CIN ANIMATION TOAST */
+        /* CIN ANIMATION ON POST IMAGE */
         .cin-toast-container {
-            position: fixed;
+            position: absolute;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            z-index: 100000;
+            z-index: 20;
             pointer-events: none;
             display: flex;
             align-items: center;
@@ -807,22 +807,22 @@
             animation: cinFadeOut 0.4s ease forwards;
         }
         .cin-toast-content {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(8px);
-            -webkit-backdrop-filter: blur(8px);
-            border: 2px solid var(--primary);
-            padding: 30px 40px;
-            border-radius: 28px;
-            box-shadow: 0 20px 50px rgba(15, 23, 42, 0.15);
+            background: none;
+            backdrop-filter: none;
+            -webkit-backdrop-filter: none;
+            border: none;
+            box-shadow: none;
+            padding: 0;
             display: flex;
             flex-direction: column;
             align-items: center;
             position: relative;
         }
         .cin-mug {
-            font-size: 50px;
+            font-size: 64px;
             display: inline-block;
             transition: all 0.2s;
+            filter: drop-shadow(0 4px 12px rgba(15, 23, 42, 0.4));
         }
         .left-mug {
             animation: swingLeftMug 0.5s cubic-bezier(0.25, 0.8, 0.25, 1) forwards;
@@ -833,20 +833,11 @@
         }
         .cin-splash {
             position: absolute;
-            font-size: 30px;
-            top: 15px;
+            font-size: 40px;
+            top: -10px;
             opacity: 0;
             animation: splashSparkle 0.4s ease 0.4s forwards;
-        }
-        .cin-text {
-            font-family: 'Outfit', sans-serif;
-            font-size: 20px;
-            font-weight: 900;
-            color: var(--primary-dark);
-            margin-top: 10px;
-            letter-spacing: 1px;
-            animation: textBounce 0.4s ease 0.3s forwards;
-            opacity: 0;
+            filter: drop-shadow(0 2px 8px rgba(15, 23, 42, 0.3));
         }
 
         @keyframes cinPopIn {
@@ -871,11 +862,6 @@
             0% { opacity: 0; transform: scale(0.5); }
             50% { opacity: 1; transform: scale(1.4); }
             100% { opacity: 0; transform: scale(1); }
-        }
-        @keyframes textBounce {
-            0% { opacity: 0; transform: translateY(10px); }
-            50% { opacity: 1; transform: translateY(-5px); }
-            100% { opacity: 1; transform: translateY(0); }
         }
 
         .rules-section { margin-bottom: 24px; border-bottom: 1px solid rgba(226, 232, 240, 0.8); padding-bottom: 20px; }
@@ -2678,7 +2664,8 @@
             }
         }
 
-        function triggerCinAnimation() {
+        function triggerCinAnimation(targetContainer) {
+            if (!targetContainer) return;
             const container = document.createElement('div');
             container.className = 'cin-toast-container';
             container.innerHTML = `
@@ -2688,10 +2675,9 @@
                         <span class="cin-mug right-mug">🍺</span>
                     </div>
                     <div class="cin-splash">💥</div>
-                    <div class="cin-text">CIN!</div>
                 </div>
             `;
-            document.body.appendChild(container);
+            targetContainer.appendChild(container);
             setTimeout(() => {
                 container.classList.add('fade-out');
                 setTimeout(() => {
@@ -2700,14 +2686,32 @@
             }, 1200);
         }
 
-        function toggleLike(postId) {
+        function handlePostDoubleTap(postId, imgElement) {
+            const postCard = imgElement.closest('.post-card');
+            const likeBtn = postCard.querySelector('.btn-like');
+            const imgContainer = imgElement.parentElement;
+            
+            triggerCinAnimation(imgContainer);
+
+            if (likeBtn && !likeBtn.classList.contains('liked')) {
+                toggleLike(postId, false);
+            }
+        }
+
+        function toggleLike(postId, shouldAnimate = true) {
             const ref = db.ref('social_timeline/' + postId + '/likes/' + currentUserNick);
             ref.once('value').then(snap => {
                 if(snap.exists()) { 
                     ref.remove(); 
                 } else { 
                     ref.set(true); 
-                    triggerCinAnimation();
+                    if (shouldAnimate) {
+                        const card = document.querySelector(`.post-card[data-post-id="${postId}"]`);
+                        if (card) {
+                            const imgContainer = card.querySelector('.post-image-container');
+                            triggerCinAnimation(imgContainer);
+                        }
+                    }
                 }
             });
         }
@@ -3036,6 +3040,7 @@
             [...visiblePosts].reverse().forEach(post => {
                 let avatarContent = globalAvatars[post.user] ? `<img src="${globalAvatars[post.user]}" style="width:100%; height:100%; object-fit:cover;">` : `<span class="material-symbols-outlined" style="font-size: 24px;">person</span>`;
                 let card = document.createElement('div'); card.className = 'post-card';
+                card.setAttribute('data-post-id', post.postId);
                 let canDelete = (post.user === currentUserNick) || isAdminUser;
                 let canReport = (post.user !== currentUserNick) && !isAdminUser; 
                 
@@ -3063,7 +3068,9 @@
                         </div>
                         ${canDelete ? `<button class="btn-delete" onclick="deletePost('${post.postId}', '${post.user}', '${post.brand}', '${post.variant}')" title="Elimina post e punti"><span class="material-symbols-outlined">delete</span></button>` : ''}
                     </div>
-                    <img src="${post.photo}" class="post-image" alt="Foto">
+                    <div class="post-image-container" style="position: relative; overflow: hidden; width: 100%; display: block;">
+                        <img src="${post.photo}" class="post-image" alt="Foto" ondblclick="handlePostDoubleTap('${post.postId}', this)">
+                    </div>
                     <div class="post-actions">
                         <button class="btn-like ${isLiked ? 'liked' : ''}" onclick="toggleLike('${post.postId}')">
                             <span class="material-symbols-outlined" style="font-size: 20px;">sports_bar</span> ${likesCount}
