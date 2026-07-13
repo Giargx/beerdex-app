@@ -12,6 +12,210 @@ interface ScannerModalProps {
   hideAlert: () => void;
 }
 
+// Synonyms map to resolve parent companies, spelling variations, and cataloging anomalies in Open Food Facts
+const brandSynonyms: Record<string, string[]> = {
+  "affligem": ["affligem", "heineken"],
+  "asahi": ["asahi"],
+  "augustiner": ["augustiner", "augustiner-bräu", "augustiner-brau"],
+  "baladin": ["baladin", "birra baladin"],
+  "bavaria": ["bavaria", "swinkels", "8.6", "eight point six"],
+  "beck's": ["beck", "becks", "beck's"],
+  "best brau": ["best brau", "best bräu", "best braeu"],
+  "birrificio italiano": ["birrificio italiano"],
+  "birrificio lambrate": ["lambrate", "birrificio lambrate"],
+  "birrificio messina": ["messina", "birra dello stretto", "stretto"],
+  "brewdog": ["brewdog", "punk ipa"],
+  "budweiser (usa)": ["bud", "budweiser", "anheuser-busch", "anheuser busch"],
+  "budweiser budvar": ["budvar", "budweiser budvar", "budweiser czech", "budejovicky"],
+  "carlsberg": ["carlsberg", "carls berg"],
+  "castello": ["castello", "birra castello"],
+  "ceres": ["ceres", "royal unibrew"],
+  "chimay": ["chimay"],
+  "chouffe": ["chouffe", "la chouffe", "duvel moortgat"],
+  "corona": ["corona", "coronita", "modelo"],
+  "crak brewery": ["crak", "crak brewery"],
+  "del borgo": ["del borgo", "birra del borgo"],
+  "delirium": ["delirium", "huyghe"],
+  "desperados": ["desperados", "heineken"],
+  "dreher": ["dreher", "heineken"],
+  "duvel": ["duvel", "duvel moortgat"],
+  "erdinger": ["erdinger"],
+  "estrella damm": ["estrella damm", "damm"],
+  "finkbräu": ["finkbräu", "finkbrau", "fink brau"],
+  "fischer": ["fischer", "fischer tradition"],
+  "flea": ["flea", "birra flea"],
+  "forst": ["forst"],
+  "franziskaner": ["franziskaner", "spaten-franziskaner", "spaten franziskaner"],
+  "grimbergen": ["grimbergen"],
+  "grolsch": ["grolsch"],
+  "guinness": ["guinness", "diageo"],
+  "hacker-pschorr": ["hacker", "pschorr", "hacker-pschorr", "hacker pschorr"],
+  "heineken": ["heineken"],
+  "hoegaarden": ["hoegaarden"],
+  "hofbräu": ["hb", "hofbräu", "hofbrau", "staatliches hofbräuhaus"],
+  "ichnusa": ["ichnusa", "heineken"],
+  "kozel": ["kozel", "velkopopovicky kozel"],
+  "krombacher": ["krombacher"],
+  "kronenbourg 1664": ["kronenbourg", "1664"],
+  "kwak": ["kwak", "pauwel kwak"],
+  "la trappe": ["la trappe", "koningshoeven"],
+  "leffe": ["leffe"],
+  "löwenbräu": ["lowenbrau", "löwenbräu", "loewenbrau"],
+  "mastri birrai umbri": ["mastri birrai", "umbri"],
+  "menabrea": ["menabrea", "forst"],
+  "miller": ["miller", "molsen coors", "molson coors"],
+  "moretti": ["moretti", "birra moretti", "heineken"],
+  "nastro azzurro": ["nastro azzurro", "peroni", "asahi"],
+  "orval": ["orval"],
+  "paulaner": ["paulaner"],
+  "pedavena": ["pedavena", "castello"],
+  "peroni": ["peroni", "nastro azzurro", "asahi"],
+  "pilsner urquell": ["pilsner urquell", "urquell", "plzensky prazdroj"],
+  "rochefort": ["rochefort", "trappistes rochefort"],
+  "sagres": ["sagres", "heineken"],
+  "samuel adams": ["samuel adams", "boston beer"],
+  "san miguel": ["san miguel", "mahou"],
+  "schneider weisse": ["schneider weisse", "schneider"],
+  "sierra nevada": ["sierra nevada"],
+  "spaten": ["spaten", "spaten-franziskaner", "spaten franziskaner"],
+  "stella artois": ["stella artois", "stella"],
+  "super bock": ["super bock"],
+  "tennent's": ["tennent", "tennents", "tennent's"],
+  "theresianer": ["theresianer"],
+  "tripel karmeliet": ["karmeliet", "tripel karmeliet", "bosteels"],
+  "tuborg": ["tuborg", "carlsberg"],
+  "voll-damm": ["voll-damm", "damm"],
+  "warsteiner": ["warsteiner"],
+  "westmalle": ["westmalle"],
+};
+
+// Normalize helper: removes punctuation, spaces, accents, and converts to lowercase
+const normalize = (s: string) =>
+  s
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]/g, "");
+
+// Check if the scanned brand matches the target brand, including synonyms
+const checkBrandMatch = (targetBrand: string, scannedBrand: string, productName: string): boolean => {
+  const targetLower = targetBrand.toLowerCase();
+  const scannedLower = scannedBrand.toLowerCase();
+  const prodNameLower = productName.toLowerCase();
+
+  const targetNorm = normalize(targetLower);
+  const scannedNorm = normalize(scannedLower);
+  const prodNameNorm = normalize(prodNameLower);
+
+  // 1. Direct normalized match
+  if (scannedNorm.includes(targetNorm) || targetNorm.includes(scannedNorm) || prodNameNorm.includes(targetNorm)) {
+    return true;
+  }
+
+  // 2. Synonyms lookup
+  const synonyms = brandSynonyms[targetLower] || [targetLower];
+  for (const syn of synonyms) {
+    const synNorm = normalize(syn);
+    if (scannedNorm.includes(synNorm) || synNorm.includes(scannedNorm) || prodNameNorm.includes(synNorm)) {
+      return true;
+    }
+  }
+
+  return false;
+};
+
+// Checks if the scanned product is a known different beer brand from our list
+const getIdentifiedBrand = (scannedBrand: string, productName: string, targetBrand: string): string | null => {
+  const targetLower = targetBrand.toLowerCase();
+  const scannedLower = scannedBrand.toLowerCase();
+  const prodNameLower = productName.toLowerCase();
+
+  const scannedNorm = normalize(scannedLower);
+  const prodNameNorm = normalize(prodNameLower);
+
+  for (const brandKey of Object.keys(brandSynonyms)) {
+    // Skip the target brand itself (we already know it doesn't match if this is called)
+    if (brandKey === targetLower) continue;
+
+    const synonyms = brandSynonyms[brandKey];
+    for (const syn of synonyms) {
+      const synNorm = normalize(syn);
+      
+      // Strict matching for other brands to avoid false flags
+      if (scannedNorm === synNorm || (scannedNorm.length > 3 && scannedNorm.includes(synNorm)) || prodNameNorm.includes(synNorm)) {
+        // Return the user-friendly name of the identified brand
+        return beers.find((b) => b.brand.toLowerCase() === brandKey)?.brand || brandKey;
+      }
+    }
+  }
+
+  return null;
+};
+
+// Multi-criteria verification to check if a product is a beer
+const isProductBeer = (prod: any): boolean => {
+  const prodName = prod.product_name || prod.product_name_it || prod.product_name_en || "";
+  const prodNameLower = prodName.toLowerCase();
+  const categoriesTags = prod.categories_tags || [];
+  const categories = (prod.categories || "").toLowerCase();
+
+  // 1. Check categories tags
+  const beerTags = [
+    "en:beers",
+    "en:beers-with-alcohol",
+    "en:alcohol-free-beers",
+    "en:radlers",
+    "en:beers-of-the-world",
+    "en:stouts",
+    "en:ales",
+    "en:lagers",
+    "en:ipas"
+  ];
+  const isBeerByTag = categoriesTags.some((tag: string) => beerTags.includes(tag));
+  if (isBeerByTag) return true;
+
+  // 2. Check keywords in categories or name
+  const beerKeywords = [
+    "beer", "birra", "bière", "bier", "cerveza", "stout", "ipa", 
+    "lager", "ale", "pils", "pilsner", "weisse", "radler", 
+    "tripel", "dubbel", "trappist", "bock", "doppelbock"
+  ];
+  const isBeerByKeyword = beerKeywords.some((kw) => categories.includes(kw) || prodNameLower.includes(kw));
+  if (isBeerByKeyword) return true;
+
+  // 3. Check if it matches any of our known beer brands
+  const scannedBrandNorm = normalize((prod.brands || "").toLowerCase());
+  const prodNameNorm = normalize(prodNameLower);
+
+  for (const brandKey of Object.keys(brandSynonyms)) {
+    const brandNorm = normalize(brandKey);
+    if (scannedBrandNorm === brandNorm || prodNameNorm.includes(brandNorm)) {
+      return true;
+    }
+    for (const syn of brandSynonyms[brandKey]) {
+      const synNorm = normalize(syn);
+      if (scannedBrandNorm === synNorm || prodNameNorm.includes(synNorm)) {
+        return true;
+      }
+    }
+  }
+
+  // 4. Check alcohol content in nutriment fields
+  if (prod.nutriments && (prod.nutriments.alcohol !== undefined || prod.nutriments.alcohol_100g !== undefined)) {
+    const alcVal = parseFloat(prod.nutriments.alcohol || prod.nutriments.alcohol_100g || "0");
+    if (alcVal > 0) {
+      // Exclude wine/liquors to avoid false positives
+      const nonBeerKeywords = ["wine", "vino", "liquore", "gin", "vodka", "rum", "whisky", "whiskey", "grappa", "amaro"];
+      const isNotBeer = nonBeerKeywords.some((kw) => categories.includes(kw) || prodNameLower.includes(kw));
+      if (!isNotBeer) {
+        return true;
+      }
+    }
+  }
+
+  return false;
+};
+
 export const ScannerModal: React.FC<ScannerModalProps> = ({
   isOpen,
   onClose,
@@ -73,22 +277,12 @@ export const ScannerModal: React.FC<ScannerModalProps> = ({
             if (data.status === 1) {
               const prod = data.product;
               const prodName = prod.product_name || prod.product_name_it || prod.product_name_en || "Prodotto sconosciuto";
-              const categoriesTags = prod.categories_tags || [];
-              const categories = (prod.categories || "").toLowerCase();
-              const prodNameLower = prodName.toLowerCase();
 
-              const beerTags = ["en:beers", "en:beers-with-alcohol", "en:alcohol-free-beers", "en:radlers", "en:beers-of-the-world"];
-              const isBeerByTag = categoriesTags.some((tag: string) => beerTags.includes(tag));
-
-              const beerKeywords = ["beer", "birra", "bière", "bier", "cerveza", "stout", "ipa", "lager", "ale", "pils", "pilsner", "weisse", "radler", "tripel", "dubbel"];
-              const isBeerByKeyword = beerKeywords.some((kw) => categories.includes(kw) || prodNameLower.includes(kw));
-
-              const isBeer = isBeerByTag || isBeerByKeyword;
-
-              if (!isBeer) {
+              // 1. Strict anti-cheat: verify it is actually a beer
+              if (!isProductBeer(prod)) {
                 showAlert(
-                  "Impossibile caricare la foto: il codice non corrisponde a una birra.",
-                  "Errore",
+                  `Rilevato: "${prodName}". Sblocco annullato: questo codice a barre non appartiene a una birra.`,
+                  "Prodotto Non Valido",
                   true,
                   () => {
                     onClose();
@@ -97,23 +291,36 @@ export const ScannerModal: React.FC<ScannerModalProps> = ({
                 return;
               }
 
-              const scannedBrand = (prod.brands || "").toLowerCase();
-              const targetBrandNormalized = currentTargetBrand.toLowerCase();
-              const isBrandMatch =
-                scannedBrand.includes(targetBrandNormalized) ||
-                targetBrandNormalized.includes(scannedBrand) ||
-                prodNameLower.includes(targetBrandNormalized) ||
-                (scannedBrand === "" && prodNameLower.includes(targetBrandNormalized));
+              // 2. Strict anti-cheat: check if the brand matches
+              const matchesTarget = checkBrandMatch(currentTargetBrand, prod.brands || "", prodName);
 
-              if (!isBrandMatch && prod.brands) {
-                showConfirm(
-                  `Il codice corrisponde alla birra "${prodName}" di marca "${prod.brands}" (invece di "${currentTargetBrand}"). Vuoi procedere comunque?`,
-                  "Marca Rilevata Differente",
-                  proceedToCapture
-                );
-                return;
+              if (!matchesTarget) {
+                // Check if it belongs to a known different brand in our database
+                const identifiedBrand = getIdentifiedBrand(prod.brands || "", prodName, currentTargetBrand);
+
+                if (identifiedBrand) {
+                  // Block them completely (no bypass allowed since it's confirmed to be a different brand)
+                  showAlert(
+                    `Hai inquadrato una birra di marca "${identifiedBrand}" (${prodName}), ma stai cercando di sbloccare "${currentTargetBrand}". Gioca pulito!`,
+                    "Sblocco Bloccato",
+                    true,
+                    () => {
+                      onClose();
+                    }
+                  );
+                  return;
+                } else {
+                  // If the brand is empty or unknown (craft beers not in our DB), allow them to proceed after confirmation
+                  showConfirm(
+                    `Il codice corrisponde alla birra "${prodName}" di marca "${prod.brands || 'Non Specificata'}" (invece di "${currentTargetBrand}"). Vuoi procedere comunque?`,
+                    "Marca Rilevata Differente",
+                    proceedToCapture
+                  );
+                  return;
+                }
               }
             } else {
+              // Barcode not found on Open Food Facts: allow bypass in case of new/unlisted beers
               showConfirm(
                 `Questo codice non è stato trovato nel database globale degli alimenti. Assicurati che si tratti di una birra e che sia del marchio "${currentTargetBrand}". Vuoi procedere comunque?`,
                 "Prodotto non catalogato",
