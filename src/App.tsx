@@ -1,0 +1,1353 @@
+import React, { useState, useEffect, useRef } from 'react';
+import { onAuthStateChanged, signOut, updatePassword, EmailAuthProvider, reauthenticateWithCredential } from 'firebase/auth';
+import { ref, onValue, set, get, update, push, remove } from 'firebase/database';
+import { auth, db } from './firebase';
+
+import { beers, getBeerPoints, countryCoordinates, normalizeStr } from './beers';
+
+// Import Views
+import { HomeView } from './views/HomeView';
+import { ExploreView } from './views/ExploreView';
+import { LeaderboardView } from './views/LeaderboardView';
+import { PubView } from './views/PubView';
+import { ProfileView } from './views/ProfileView';
+import { PublicProfileView } from './views/PublicProfileView';
+import { FriendsView } from './views/FriendsView';
+import { RulesView } from './views/RulesView';
+
+// Import Components
+import { CustomModal } from './components/CustomModal';
+import { StappoOverlay } from './components/StappoOverlay';
+import { AgeGateModal } from './components/AgeGateModal';
+import { AuthScreen } from './components/AuthScreen';
+import { ScannerModal } from './components/ScannerModal';
+import { CropModal } from './components/CropModal';
+import { MapContainer } from './components/MapContainer';
+
+const pagesMapList = [
+  'page-home',
+  'page-explore',
+  'page-leaderboard',
+  'page-social',
+  'page-profile',
+  'page-public-profile',
+  'page-map-view',
+  'page-friends',
+  'page-rules',
+];
+
+interface Post {
+  postId: string;
+  user: string;
+  brand: string;
+  variant: string;
+  photo: string;
+  time: number;
+  isShiny: boolean;
+  isShared: boolean;
+  taggedFriend: string | null;
+  likes?: Record<string, boolean>;
+  lat?: number;
+  lng?: number;
+}
+
+export default function App() {
+  // Navigation State
+  const [currentPage, setCurrentPage] = useState<string>('page-home');
+  const [prevPage, setPrevPage] = useState<string | null>(null);
+  const [transitionDir, setTransitionDir] = useState<'left' | 'right' | null>(null);
+
+  // Authentication State
+  const [currentUser, setCurrentUser] = useState<any>(null);
+  const [currentUserNick, setCurrentUserNick] = useState<string>('');
+  const [currentUserEmail, setCurrentUserEmail] = useState<string>('');
+  const [isAdminUser, setIsAdminUser] = useState<boolean>(false);
+  const [authOpen, setAuthOpen] = useState<boolean>(false);
+
+  // Age Gate
+  const [ageGateOpen, setAgeGateOpen] = useState<boolean>(true);
+
+  // Stappo Animation
+  const [stappoActive, setStappoActive] = useState<boolean>(false);
+  const [stappoPopped, setStappoPopped] = useState<boolean>(false);
+  const [stappoText, setStappoText] = useState<string>('STAPPO IN CORSO!');
+
+  // Realtime Database State
+  const [myPokedex, setMyPokedex] = useState<Record<string, any>>({});
+  const [globalPosts, setGlobalPosts] = useState<Post[]>([]);
+  const [globalLeaderboardScores, setGlobalLeaderboardScores] = useState<Record<string, number>>({});
+  const [myFriendsList, setMyFriendsList] = useState<string[]>([]);
+  const [myReceivedRequests, setMyReceivedRequests] = useState<string[]>([]);
+  const [mySentRequests, setMySentRequests] = useState<string[]>([]);
+  const [myRejectedRequests, setMyRejectedRequests] = useState<string[]>([]);
+  const [globalAvatars, setGlobalAvatars] = useState<Record<string, string>>({});
+  const [totalUsersCount, setTotalUsersCount] = useState<number>(1);
+
+  // UI Modals State
+  const [alertConfig, setAlertConfig] = useState<{
+    open: boolean;
+    title: string;
+    text: string;
+    showOk: boolean;
+    callback?: () => void;
+  }>({ open: false, title: 'Avviso', text: '', showOk: true });
+
+  const [confirmConfig, setConfirmConfig] = useState<{
+    open: boolean;
+    title: string;
+    text: string;
+    onConfirm?: () => void;
+  }>({ open: false, title: 'Conferma', text: '' });
+
+  const [scannerConfig, setScannerConfig] = useState<{
+    open: boolean;
+    brand: string;
+    variant: string;
+  }>({ open: false, brand: '', variant: '' });
+
+  const [captureOpen, setCaptureOpen] = useState<boolean>(false);
+  const [shareOpen, setShareOpen] = useState<boolean>(false);
+  const [pendingUploadData, setPendingUploadData] = useState<any>(null);
+
+  // Avatar Selection & Crop State
+  const [avatarSelectorOpen, setAvatarSelectorOpen] = useState<boolean>(false);
+  const [cropOpen, setCropOpen] = useState<boolean>(false);
+  const [cropImageSrc, setCropImageSrc] = useState<string>('');
+
+  // Settings Overlay State
+  const [settingsOpen, setSettingsOpen] = useState<boolean>(false);
+  
+  // Nickname & Password Input State in settings
+  const [newNickname, setNewNickname] = useState<string>('');
+  const [oldPassword, setOldPassword] = useState<string>('');
+  const [newPassword, setNewPassword] = useState<string>('');
+  const [confirmNewPassword, setConfirmNewPassword] = useState<string>('');
+
+  // Public Profile View State
+  const [pubProfileUser, setPubProfileUser] = useState<string>('');
+  const [pubProfileDex, setPubProfileDex] = useState<Record<string, any>>({});
+  const [pubProfileScore, setPubProfileScore] = useState<number>(0);
+
+  const touchStartX = useRef<number>(0);
+
+  // check age gate on mount
+  useEffect(() => {
+    if (localStorage.getItem('beerdex_18plus') === 'yes') {
+      setAgeGateOpen(false);
+    }
+  }, []);
+
+  // Listen to Auth State
+  useEffect(() => {
+    if (ageGateOpen) return;
+
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        setCurrentUser(user);
+        const email = user.email ? user.email.toLowerCase() : '';
+        setCurrentUserEmail(email);
+        setIsAdminUser(email === 'barcello.luca02@gmail.com');
+
+        // Fetch Nickname
+        const nickSnap = await get(ref(db, `users_directory/${user.uid}`));
+        let nickname = '';
+        if (nickSnap.exists()) {
+          nickname = nickSnap.val();
+        } else {
+          nickname = user.email ? user.email.split('@')[0] : 'Utente';
+          await set(ref(db, `users_directory/${user.uid}`), nickname);
+        }
+        setCurrentUserNick(nickname);
+        setAuthOpen(false);
+
+        // Load Realtime Data
+        setupRealtimeListeners(nickname);
+      } else {
+        setCurrentUser(null);
+        setCurrentUserNick('');
+        setCurrentUserEmail('');
+        setIsAdminUser(false);
+        setAuthOpen(true);
+      }
+    });
+
+    return () => unsubscribe();
+  }, [ageGateOpen]);
+
+  const setupRealtimeListeners = (nickname: string) => {
+    // Total Users
+    onValue(ref(db, 'users_directory'), (snap) => {
+      if (snap.exists()) {
+        setTotalUsersCount(Object.keys(snap.val()).length);
+      }
+    });
+
+    // Avatars
+    onValue(ref(db, 'users_avatars'), (snap) => {
+      setGlobalAvatars(snap.val() || {});
+    });
+
+    // Personal Pokedex
+    onValue(ref(db, `pokedex_profiles/${nickname}`), (snap) => {
+      const dex = snap.val() || {};
+      setMyPokedex(dex);
+    });
+
+    // Friends List
+    onValue(ref(db, `users_friends/${nickname}`), (snap) => {
+      setMyFriendsList(snap.exists() ? Object.keys(snap.val()) : []);
+    });
+
+    // Friend Requests Received
+    onValue(ref(db, `friend_requests/${nickname}`), (snap) => {
+      setMyReceivedRequests(snap.exists() ? Object.keys(snap.val()) : []);
+    });
+
+    // Friend Requests Sent
+    onValue(ref(db, `friend_requests_sent/${nickname}`), (snap) => {
+      setMySentRequests(snap.exists() ? Object.keys(snap.val()) : []);
+    });
+
+    // Friend Requests Rejected
+    onValue(ref(db, `friend_requests_rejected/${nickname}`), (snap) => {
+      setMyRejectedRequests(snap.exists() ? Object.keys(snap.val()) : []);
+    });
+
+    // Social Timeline
+    onValue(ref(db, 'social_timeline'), (snap) => {
+      const postsList: Post[] = [];
+      if (snap.exists()) {
+        snap.forEach((child) => {
+          const val = child.val();
+          val.postId = child.key;
+          postsList.push(val);
+        });
+      }
+      setGlobalPosts(postsList);
+    });
+
+    // Leaderboard Scores
+    onValue(ref(db, 'leaderboard_scores'), (snap) => {
+      setGlobalLeaderboardScores(snap.val() || {});
+    });
+  };
+
+  // Score Recalculation
+  const recalculateTotalScore = async (username: string) => {
+    const snap = await get(ref(db, `pokedex_profiles/${username}`));
+    let totalScore = 0;
+    const brandUnlockCounts: Record<string, number> = {};
+    beers.forEach((b) => {
+      brandUnlockCounts[b.brand] = 0;
+    });
+
+    if (snap.exists()) {
+      const profileData = snap.val();
+      for (const uniqueId in profileData) {
+        const entry = profileData[uniqueId];
+        const bName = entry.brand || uniqueId.split('-')[0];
+        const vName = uniqueId.substring(bName.length + 1);
+        const isShiny = entry.isShiny || false;
+        const isShared = entry.isShared || false;
+        totalScore += getBeerPoints(bName, vName, isShiny, isShared);
+        if (brandUnlockCounts[bName] !== undefined) {
+          brandUnlockCounts[bName]++;
+        }
+      }
+    }
+
+    beers.forEach((beer) => {
+      if (beer.variants.length > 0 && brandUnlockCounts[beer.brand] === beer.variants.length) {
+        totalScore += 10;
+      }
+    });
+
+    await set(ref(db, `leaderboard_scores/${username}`), totalScore);
+  };
+
+  // Helper visibility titles
+  const getUserRankTitle = (score: number) => {
+    if (score < 10) return "Novizio del Pub";
+    if (score < 50) return "Apprendista Bevitore";
+    if (score < 100) return "Esploratore di Luppoli";
+    if (score < 200) return "Sommelier del Bancone";
+    return "Maestro Birraio";
+  };
+
+  // Navigation Logic
+  const navigateTo = (pageId: string) => {
+    if (pageId === currentPage) return;
+    const currIdx = pagesMapList.indexOf(currentPage);
+    const targetIdx = pagesMapList.indexOf(pageId);
+    if (targetIdx === -1) return;
+
+    const isForward = targetIdx > currIdx;
+    setPrevPage(currentPage);
+    setCurrentPage(pageId);
+    setTransitionDir(isForward ? 'left' : 'right');
+
+    sessionStorage.setItem('beerdex_currentPage', pageId);
+
+    setTimeout(() => {
+      setPrevPage(null);
+      setTransitionDir(null);
+    }, 400);
+  };
+
+  // Slide directional gesture swipe
+  const handleSwipeGesture = (touchEndX: number) => {
+    const swipeThreshold = 65;
+    const mainTabs = ['page-home', 'page-explore', 'page-leaderboard', 'page-social', 'page-profile'];
+    const currentIndex = mainTabs.indexOf(currentPage);
+    if (currentIndex === -1) return;
+
+    if (touchStartX.current - touchEndX > swipeThreshold) {
+      // Swipe Left -> Next Tab
+      if (currentIndex < mainTabs.length - 1) {
+        navigateTo(mainTabs[currentIndex + 1]);
+      }
+    } else if (touchEndX - touchStartX.current > swipeThreshold) {
+      // Swipe Right -> Previous Tab
+      if (currentIndex > 0) {
+        navigateTo(mainTabs[currentIndex - 1]);
+      }
+    }
+  };
+
+  useEffect(() => {
+    const handleTouchStart = (e: TouchEvent) => {
+      const target = e.target as HTMLElement;
+      if (
+        target.closest('#mapContainer') ||
+        target.closest('.crop-viewport-container') ||
+        target.closest('input[type="range"]') ||
+        target.closest('.leaflet-container')
+      ) {
+        touchStartX.current = 0;
+        return;
+      }
+      touchStartX.current = e.changedTouches[0].screenX;
+    };
+
+    const handleTouchEnd = (e: TouchEvent) => {
+      if (touchStartX.current === 0) return;
+      const touchEndX = e.changedTouches[0].screenX;
+      handleSwipeGesture(touchEndX);
+    };
+
+    document.addEventListener('touchstart', handleTouchStart, { passive: true });
+    document.addEventListener('touchend', handleTouchEnd, { passive: true });
+
+    return () => {
+      document.removeEventListener('touchstart', handleTouchStart);
+      document.removeEventListener('touchend', handleTouchEnd);
+    };
+  }, [currentPage]);
+
+  // Alert and Confirm Utilities
+  const showAlert = (message: string, title = 'Avviso', showOk = true, callback?: () => void) => {
+    setAlertConfig({ open: true, title, text: message, showOk, callback });
+  };
+
+  const hideAlert = () => {
+    setAlertConfig((prev) => ({ ...prev, open: false }));
+  };
+
+  const showConfirm = (message: string, title: string, onConfirm: () => void) => {
+    setConfirmConfig({ open: true, title, text: message, onConfirm });
+  };
+
+  // Stappo pop bottle animation helper
+  const triggerStappoAnimation = (text: string, callback?: () => void) => {
+    setStappoText(text);
+    setStappoActive(true);
+    setStappoPopped(false);
+
+    setTimeout(() => {
+      setStappoPopped(true);
+      setTimeout(() => {
+        setStappoActive(false);
+        setStappoPopped(false);
+        if (callback) callback();
+      }, 1300);
+    }, 600);
+  };
+
+  // Age gate confirm
+  const handleConfirmAge = () => {
+    localStorage.setItem('beerdex_18plus', 'yes');
+    setAgeGateOpen(false);
+  };
+
+  const handleRejectAge = () => {
+    window.location.href = 'https://www.google.com';
+  };
+
+  // Photo uploads and GPS verification
+  const handleInitUnlock = (brand: string, variant: string) => {
+    setScannerConfig({ open: true, brand, variant });
+  };
+
+  const handleScannerSuccess = (isSpinaBypass: boolean) => {
+    setScannerConfig((prev) => ({ ...prev, open: false }));
+    setCaptureOpen(true);
+    // store bypass in states for camera callback
+    setPendingUploadData({ isSpinaBypass });
+  };
+
+  const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setCaptureOpen(false);
+    showAlert("Analisi del contesto in corso...", "Sblocco", false);
+
+    const targetBeer = beers.find((b) => b.brand === scannerConfig.brand);
+
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        async (position) => {
+          const lat = position.coords.latitude;
+          const lng = position.coords.longitude;
+          const isShiny = await checkShinyStatus(lat, lng, targetBeer);
+          processPhoto(file, isShiny, lat, lng);
+        },
+        () => {
+          processPhoto(file, false, null, null);
+        }
+      );
+    } else {
+      processPhoto(file, false, null, null);
+    }
+  };
+
+  const checkShinyStatus = async (lat: number, lng: number, targetBeer: any) => {
+    let isShiny = false;
+    if (targetBeer && countryCoordinates[targetBeer.country]) {
+      const bounds = countryCoordinates[targetBeer.country];
+      if (lat >= bounds.latMin && lat <= bounds.latMax && lng >= bounds.lngMin && lng <= bounds.lngMax) {
+        if (targetBeer.country === 'Italia' && targetBeer.regione) {
+          try {
+            const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=10`);
+            const data = await res.json();
+            const currentRegion = data.address.state || data.address.region || "";
+            if (normalizeStr(currentRegion).includes(normalizeStr(targetBeer.regione))) {
+              isShiny = true;
+            }
+          } catch (e) {
+            console.log("Nominatim reverse geocode error:", e);
+          }
+        } else {
+          isShiny = true;
+        }
+      }
+    }
+    return isShiny;
+  };
+
+  const processPhoto = (file: File, isShiny: boolean, lat: number | null, lng: number | null) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        const MAX_SIZE = 300;
+        let width = img.width;
+        let height = img.height;
+
+        const targetRatio = 4 / 5;
+        const imgRatio = width / height;
+
+        let cropX = 0,
+          cropY = 0,
+          cropW = width,
+          cropH = height;
+        if (imgRatio > targetRatio) {
+          cropW = height * targetRatio;
+          cropX = (width - cropW) / 2;
+        } else {
+          cropH = width / targetRatio;
+          cropY = (height - cropH) / 2;
+        }
+
+        const finalWidth = MAX_SIZE;
+        const finalHeight = MAX_SIZE / targetRatio;
+
+        canvas.width = finalWidth;
+        canvas.height = finalHeight;
+        const ctx = canvas.getContext('2d');
+        if (ctx) {
+          ctx.drawImage(img, cropX, cropY, cropW, cropH, 0, 0, finalWidth, finalHeight);
+          const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.4);
+
+          const uploadData = {
+            brand: scannerConfig.brand,
+            variant: scannerConfig.variant,
+            isShiny,
+            canvasBase64: compressedDataUrl,
+            lat,
+            lng,
+          };
+
+          if (myFriendsList.length > 0) {
+            setPendingUploadData(uploadData);
+            hideAlert();
+            setShareOpen(true);
+          } else {
+            finalizeUpload(uploadData, null);
+          }
+        }
+      };
+      img.src = e.target?.result as string;
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const finalizeUpload = async (uploadData: any, taggedFriend: string | null) => {
+    hideAlert();
+    setShareOpen(false);
+    
+    showAlert("Caricamento sblocco in corso...", "Cloud Sync", false);
+    const { brand, variant, isShiny, canvasBase64, lat, lng } = uploadData;
+    const isShared = taggedFriend !== null && taggedFriend !== '';
+
+    const uniqueId = `${brand}-${variant}`;
+    const pokedexEntry = {
+      photo: canvasBase64,
+      isShiny,
+      isShared,
+      taggedFriend,
+      brand,
+    };
+
+    try {
+      await set(ref(db, `pokedex_profiles/${currentUserNick}/${uniqueId}`), pokedexEntry);
+      
+      const newPostRef = push(ref(db, 'social_timeline'));
+      const postData: any = {
+        user: currentUserNick,
+        brand,
+        variant,
+        photo: canvasBase64,
+        time: new Date().getTime(),
+        isShiny,
+        isShared,
+        taggedFriend,
+        fakeVotes: {},
+      };
+      if (lat !== null && lng !== null) {
+        postData.lat = lat;
+        postData.lng = lng;
+      }
+
+      await set(newPostRef, postData);
+      await recalculateTotalScore(currentUserNick);
+
+      let msg = `Birra sbloccata con successo! (+${getBeerPoints(brand, variant, isShiny, isShared)} Punti)`;
+      if (isShiny) msg += '\nSBLOCCO SHINY IN TRASFERTA!';
+      if (isShared) msg += `\nBEVUTA CON ${taggedFriend}!`;
+
+      hideAlert();
+      showAlert(msg, 'Conquistata!');
+    } catch (err: any) {
+      hideAlert();
+      showAlert('Errore sblocco: ' + err.message, 'Errore di Rete');
+    }
+  };
+
+  // Like operations (triggered doubletap or button clink)
+  const handleToggleLike = async (postId: string, _imageContainer: HTMLElement | null) => {
+    const likeRef = ref(db, `social_timeline/${postId}/likes/${currentUserNick}`);
+    const snap = await get(likeRef);
+    if (snap.exists()) {
+      await remove(likeRef);
+    } else {
+      await set(likeRef, true);
+    }
+  };
+
+  // Delete variant/checkin
+  const handleDeleteVariant = (brand: string, variant: string) => {
+    const uniqueId = `${brand}-${variant}`;
+    showConfirm(
+      `Vuoi davvero eliminare lo sblocco per ${brand} - ${variant}?`,
+      'Conferma Eliminazione',
+      async () => {
+        try {
+          await remove(ref(db, `pokedex_profiles/${currentUserNick}/${uniqueId}`));
+          
+          // remove matching post in community feed as well
+          const timelineSnap = await get(ref(db, 'social_timeline'));
+          if (timelineSnap.exists()) {
+            timelineSnap.forEach((child) => {
+              const p = child.val();
+              if (p.user === currentUserNick && p.brand === brand && p.variant === variant) {
+                remove(ref(db, `social_timeline/${child.key}`));
+              }
+            });
+          }
+
+          await recalculateTotalScore(currentUserNick);
+          showAlert('Sblocco eliminato con successo.', 'Eliminato');
+        } catch (err: any) {
+          showAlert('Errore eliminazione: ' + err.message);
+        }
+      }
+    );
+  };
+
+  const handleDeletePost = (postId: string, postUser: string, brand: string, variant: string) => {
+    showConfirm(
+      `Vuoi davvero eliminare lo sblocco di ${postUser} per ${brand} - ${variant}?`,
+      'Conferma Eliminazione',
+      async () => {
+        try {
+          const uniqueId = `${brand}-${variant}`;
+          await remove(ref(db, `pokedex_profiles/${postUser}/${uniqueId}`));
+          await remove(ref(db, `social_timeline/${postId}`));
+          await recalculateTotalScore(postUser);
+          showAlert('Post rimosso con successo.');
+        } catch (err: any) {
+          showAlert(err.message, 'Errore');
+        }
+      }
+    );
+  };
+
+  // Flag post as fake
+  const handleReportFakePost = (postId: string, postUser: string, brand: string, variant: string) => {
+    showConfirm(
+      `Sei sicuro di voler segnalare la ${brand} di ${postUser} come falsa o contro le regole?`,
+      'Segnala Post',
+      async () => {
+        try {
+          await set(ref(db, `social_timeline/${postId}/fakeVotes/${currentUserNick}`), true);
+          const snap = await get(ref(db, `social_timeline/${postId}/fakeVotes`));
+          const votesCount = snap.exists() ? Object.keys(snap.val()).length : 0;
+          const maxThreshold = Math.max(1, Math.ceil(totalUsersCount / 2));
+
+          if (votesCount >= maxThreshold) {
+            // Auto delete
+            const uniqueId = `${brand}-${variant}`;
+            await remove(ref(db, `pokedex_profiles/${postUser}/${uniqueId}`));
+            await remove(ref(db, `social_timeline/${postId}`));
+            await recalculateTotalScore(postUser);
+            showAlert('Il post è stato rimosso in automatico dalla moderazione di BeerDex.', 'Post Rimosso');
+          } else {
+            showAlert(
+              `Segnalazione inviata. Se altri utenti confermano, il post verrà eliminato. (${votesCount}/${maxThreshold} voti necessari).`,
+              'Grazie'
+            );
+          }
+        } catch (err: any) {
+          showAlert(err.message);
+        }
+      }
+    );
+  };
+
+  // Avatar Management
+  const handleAvatarFileSelected = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (uploadEvent) => {
+      setCropImageSrc(uploadEvent.target?.result as string);
+      setCropOpen(true);
+    };
+    reader.readAsDataURL(file);
+    
+    // reset inputs
+    e.target.value = '';
+  };
+
+  const handleConfirmCrop = async (croppedBase64: string) => {
+    setCropOpen(false);
+    showAlert("Caricamento avatar in corso...", "Attendere", false);
+
+    try {
+      await set(ref(db, `users_avatars/${currentUserNick}`), croppedBase64);
+      hideAlert();
+      showAlert("Foto profilo aggiornata con successo!", "Fatto");
+    } catch (err: any) {
+      hideAlert();
+      showAlert("Errore di caricamento: " + err.message, "Errore");
+    }
+  };
+
+  // Public Profile View
+  const handleOpenPublicProfile = async (username: string) => {
+    if (username === currentUserNick) {
+      navigateTo('page-profile');
+      return;
+    }
+    const snap = await get(ref(db, `pokedex_profiles/${username}`));
+    const dex = snap.val() || {};
+    setPubProfileDex(dex);
+
+    const scoreSnap = await get(ref(db, `leaderboard_scores/${username}`));
+    const scoreVal = scoreSnap.val() || 0;
+    setPubProfileScore(scoreVal);
+    setPubProfileUser(username);
+
+    navigateTo('page-public-profile');
+  };
+
+  // Friends actions
+  const handleAddFriend = async (targetNick: string) => {
+    await set(ref(db, `friend_requests/${targetNick}/${currentUserNick}`), true);
+    await set(ref(db, `friend_requests_sent/${currentUserNick}/${targetNick}`), true);
+  };
+
+  const handleAcceptRequest = async (senderNick: string) => {
+    await set(ref(db, `users_friends/${currentUserNick}/${senderNick}`), true);
+    await set(ref(db, `users_friends/${senderNick}/${currentUserNick}`), true);
+    await remove(ref(db, `friend_requests/${currentUserNick}/${senderNick}`));
+    await remove(ref(db, `friend_requests_sent/${senderNick}/${currentUserNick}`));
+    await remove(ref(db, `friend_requests_rejected/${currentUserNick}/${senderNick}`));
+  };
+
+  const handleRejectRequest = async (senderNick: string) => {
+    await remove(ref(db, `friend_requests/${currentUserNick}/${senderNick}`));
+    await remove(ref(db, `friend_requests_sent/${senderNick}/${currentUserNick}`));
+    await set(ref(db, `friend_requests_rejected/${currentUserNick}/${senderNick}`), true);
+  };
+
+  const handleCancelSentRequest = async (targetNick: string) => {
+    await remove(ref(db, `friend_requests/${targetNick}/${currentUserNick}`));
+    await remove(ref(db, `friend_requests_sent/${currentUserNick}/${targetNick}`));
+  };
+
+  const handleRemoveFriend = (friendNick: string) => {
+    showConfirm(`Vuoi davvero rimuovere ${friendNick}?`, 'Rimuovi Amico', async () => {
+      await remove(ref(db, `users_friends/${currentUserNick}/${friendNick}`));
+      await remove(ref(db, `users_friends/${friendNick}/${currentUserNick}`));
+    });
+  };
+
+  const handleRestoreRejectedRequest = (senderNick: string) => {
+    remove(ref(db, `friend_requests_rejected/${currentUserNick}/${senderNick}`));
+    handleAcceptRequest(senderNick);
+  };
+
+  // Settings view operations
+  const handleSaveNickname = async () => {
+    const nick = newNickname.trim();
+    if (nick.length < 3) {
+      showAlert("Il nickname deve avere almeno 3 caratteri.");
+      return;
+    }
+    if (nick.toLowerCase() === currentUserNick.toLowerCase()) {
+      showAlert("È già il tuo nickname!");
+      return;
+    }
+
+    try {
+      const snap = await get(ref(db, `usernames_emails/${nick.toLowerCase()}`));
+      if (snap.exists()) {
+        showAlert("Questo nickname è già in uso da un altro utente!");
+        return;
+      }
+
+      const uid = auth.currentUser?.uid;
+      if (!uid) return;
+
+      const updates: any = {};
+      updates[`users_directory/${uid}`] = nick;
+      updates[`usernames_emails/${nick.toLowerCase()}`] = currentUserEmail;
+      updates[`usernames_emails/${currentUserNick.toLowerCase()}`] = null;
+      updates[`leaderboard_scores/${nick}`] = globalLeaderboardScores[currentUserNick] || 0;
+      updates[`leaderboard_scores/${currentUserNick}`] = null;
+      
+      if (Object.keys(myPokedex).length > 0) {
+        updates[`pokedex_profiles/${nick}`] = myPokedex;
+        updates[`pokedex_profiles/${currentUserNick}`] = null;
+      }
+      
+      if (myFriendsList.length > 0) {
+        updates[`users_friends/${nick}`] = Object.fromEntries(myFriendsList.map((f) => [f, true]));
+        updates[`users_friends/${currentUserNick}`] = null;
+      }
+      
+      myFriendsList.forEach((f) => {
+        updates[`users_friends/${f}/${nick}`] = true;
+        updates[`users_friends/${f}/${currentUserNick}`] = null;
+      });
+      
+      globalPosts.forEach((p) => {
+        if (p.user === currentUserNick) {
+          updates[`social_timeline/${p.postId}/user`] = nick;
+        }
+      });
+
+      if (globalAvatars[currentUserNick]) {
+        updates[`users_avatars/${nick}`] = globalAvatars[currentUserNick];
+        updates[`users_avatars/${currentUserNick}`] = null;
+      }
+
+      await update(ref(db), updates);
+      setSettingsOpen(false);
+      triggerStappoAnimation("NICKNAME AGGIORNATO! RICARICA...", () => {
+        window.location.reload();
+      });
+    } catch (e: any) {
+      showAlert("Errore durante il cambio nickname: " + e.message);
+    }
+  };
+
+  const handleUpdatePassword = async () => {
+    if (!oldPassword || !newPassword || !confirmNewPassword) {
+      showAlert("Compila tutti i campi richiesti per il codice di stappo.");
+      return;
+    }
+    if (newPassword !== confirmNewPassword) {
+      showAlert("I nuovi codici di stappo inseriti non coincidono.");
+      return;
+    }
+    if (newPassword.length < 8) {
+      showAlert("Il nuovo codice di stappo deve avere almeno 8 caratteri.");
+      return;
+    }
+    if (!/[A-Z]/.test(newPassword)) {
+      showAlert("Il nuovo codice di stappo deve contenere almeno una lettera MAIUSCOLA.");
+      return;
+    }
+    if (!/\d/.test(newPassword)) {
+      showAlert("Il nuovo codice di stappo deve contenere almeno un NUMERO.");
+      return;
+    }
+    if (!/[!?$%&]/.test(newPassword)) {
+      showAlert("Il nuovo codice di stappo deve contenere almeno un carattere speciale tra ! ? $ % &");
+      return;
+    }
+
+    try {
+      const credential = EmailAuthProvider.credential(currentUserEmail, oldPassword);
+      await reauthenticateWithCredential(auth.currentUser!, credential);
+      await updatePassword(auth.currentUser!, newPassword);
+
+      triggerStappoAnimation("CODICE DI STAPPO AGGIORNATO!", () => {
+        showAlert("Codice di stappo aggiornato con successo!");
+        setOldPassword('');
+        setNewPassword('');
+        setConfirmNewPassword('');
+        setSettingsOpen(false);
+      });
+    } catch (error: any) {
+      showAlert("Il vecchio codice di stappo non è corretto o errore server: " + error.message, "Errore");
+    }
+  };
+
+  const handleLogout = async () => {
+    sessionStorage.removeItem('beerdex_currentPage');
+    await signOut(auth);
+    window.location.reload();
+  };
+
+  const getPageClass = (pageId: string) => {
+    if (pageId === currentPage) {
+      if (transitionDir === 'left') return 'page-view active slide-in-right';
+      if (transitionDir === 'right') return 'page-view active slide-in-left';
+      return 'page-view active';
+    }
+    if (pageId === prevPage) {
+      if (transitionDir === 'left') return 'page-view slide-out-left';
+      if (transitionDir === 'right') return 'page-view slide-out-right';
+    }
+    return 'page-view'; // display: none
+  };
+
+  return (
+    <>
+      {/* Age Restriction Gate */}
+      <AgeGateModal
+        isOpen={ageGateOpen}
+        onConfirm={handleConfirmAge}
+        onReject={handleRejectAge}
+      />
+
+      {/* Authentication screen */}
+      <AuthScreen
+        isOpen={authOpen}
+        onAuthSuccess={(welcomeText) => triggerStappoAnimation(welcomeText)}
+        showAlert={showAlert}
+      />
+
+      {/* Pop cap stappo animation overlay */}
+      <StappoOverlay
+        isActive={stappoActive}
+        isPopped={stappoPopped}
+        text={stappoText}
+      />
+
+      {/* Custom Global Alert Dialog */}
+      <CustomModal
+        isOpen={alertConfig.open}
+        title={alertConfig.title}
+        text={alertConfig.text}
+        showOk={alertConfig.showOk}
+        onConfirm={() => {
+          hideAlert();
+          if (alertConfig.callback) alertConfig.callback();
+        }}
+      />
+
+      {/* Custom Global Confirm Dialog */}
+      <CustomModal
+        isOpen={confirmConfig.open}
+        title={confirmConfig.title}
+        text={confirmConfig.text}
+        showOk={false}
+        onConfirm={() => {
+          setConfirmConfig((prev) => ({ ...prev, open: false }));
+          if (confirmConfig.onConfirm) confirmConfig.onConfirm();
+        }}
+        onCancel={() => {
+          setConfirmConfig((prev) => ({ ...prev, open: false }));
+        }}
+      />
+
+      {/* QR/Barcode scanner modal */}
+      <ScannerModal
+        isOpen={scannerConfig.open}
+        currentTargetBrand={scannerConfig.brand}
+        onClose={() => setScannerConfig((prev) => ({ ...prev, open: false }))}
+        onSuccess={handleScannerSuccess}
+        showAlert={showAlert}
+        showConfirm={showConfirm}
+        hideAlert={hideAlert}
+      />
+
+      {/* Pokedex Photo upload trigger modal */}
+      {captureOpen && (
+        <div className="auth-modal" style={{ zIndex: 18000 }}>
+          <div className="auth-container" style={{ maxWidth: '400px', width: '95%' }}>
+            <h3 style={{ marginTop: 0, color: 'var(--dark)', fontSize: '20px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+              <span className="material-symbols-outlined" style={{ color: '#27ae60' }}>check_circle</span> Codice Approvato
+            </h3>
+            <p style={{ color: 'var(--text-muted)', fontSize: '14px', marginBottom: '20px' }}>
+              Ora scatta la foto per il tuo feed social. Assicurati che si veda bene la birra!
+            </p>
+            <label className="btn-main" style={{ display: 'flex', textAlign: 'center', padding: '14px', cursor: 'pointer', justifyContent: 'center' }}>
+              <span className="material-symbols-outlined">photo_camera</span> Apri Fotocamera
+              <input
+                type="file"
+                accept="image/*"
+                capture="environment"
+                style={{ display: 'none' }}
+                onChange={handlePhotoUpload}
+              />
+            </label>
+            <button className="btn-secondary" onClick={() => setCaptureOpen(false)} style={{ justifyContent: 'center' }}>
+              Annulla
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Friends sharing tag modal */}
+      {shareOpen && (
+        <div className="auth-modal" style={{ zIndex: 20000 }}>
+          <div className="auth-container" style={{ maxWidth: '350px' }}>
+            <h3 style={{ marginTop: 0, color: 'var(--dark)', fontSize: '22px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+              <span className="material-symbols-outlined">group</span> Bevuta in Compagnia
+            </h3>
+            <p style={{ color: 'var(--text-muted)', fontSize: '14px', marginBottom: '20px' }}>
+              Sei in compagnia? Tagga un amico per condividere questa bevuta con lui sul feed.
+            </p>
+            <select
+              id="shareFriendSelect"
+              onChange={(e) => setPendingUploadData((d: any) => ({ ...d, taggedFriend: e.target.value }))}
+              style={{
+                width: '100%',
+                padding: '12px',
+                borderRadius: '10px',
+                border: '2px solid var(--gray)',
+                marginBottom: '20px',
+                fontWeight: 'bold',
+                outline: 'none',
+                cursor: 'pointer',
+              }}
+            >
+              <option value="">-- Nessun tag (Bevi da solo) --</option>
+              {myFriendsList.map((f) => (
+                <option key={f} value={f}>
+                  {f}
+                </option>
+              ))}
+            </select>
+            <button
+              className="btn-main"
+              onClick={() => finalizeUpload(pendingUploadData, pendingUploadData.taggedFriend || null)}
+              style={{ justifyContent: 'center' }}
+            >
+              Condividi Sblocco
+            </button>
+            <button
+              className="btn-secondary"
+              onClick={() => finalizeUpload(pendingUploadData, null)}
+              style={{ justifyContent: 'center' }}
+            >
+              Sono solo io
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Avatar selectors camera / gallery */}
+      {avatarSelectorOpen && (
+        <div className="auth-modal" style={{ zIndex: 20500 }}>
+          <div className="auth-container" style={{ maxWidth: '320px', padding: '20px', textAlign: 'center' }}>
+            <h3 style={{ marginTop: 0, color: 'var(--dark)', marginBottom: '20px' }}>Cambia Foto Profilo</h3>
+            
+            {/* hidden inputs */}
+            <input
+              type="file"
+              id="avatarInputGallery"
+              accept="image/*"
+              style={{ display: 'none' }}
+              onChange={handleAvatarFileSelected}
+            />
+            <input
+              type="file"
+              id="avatarInputCamera"
+              accept="image/*"
+              capture="user"
+              style={{ display: 'none' }}
+              onChange={handleAvatarFileSelected}
+            />
+
+            <button
+              className="btn-main"
+              onClick={() => {
+                setAvatarSelectorOpen(false);
+                document.getElementById('avatarInputCamera')?.click();
+              }}
+              style={{ width: '100%', justifyContent: 'center', marginBottom: '10px', gap: '8px' }}
+            >
+              <span className="material-symbols-outlined">photo_camera</span> Scatta Foto
+            </button>
+            <button
+              className="btn-secondary"
+              onClick={() => {
+                setAvatarSelectorOpen(false);
+                document.getElementById('avatarInputGallery')?.click();
+              }}
+              style={{ width: '100%', justifyContent: 'center', marginBottom: '15px', gap: '8px' }}
+            >
+              <span className="material-symbols-outlined">image</span> Scegli da Galleria
+            </button>
+            <button
+              className="btn-secondary"
+              onClick={() => setAvatarSelectorOpen(false)}
+              style={{ width: '100%', justifyContent: 'center', background: '#f1f3f5', color: 'var(--dark)', borderColor: '#e1e8ed' }}
+            >
+              Annulla
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Cropper viewport */}
+      <CropModal
+        isOpen={cropOpen}
+        imageSrc={cropImageSrc}
+        onCancel={() => setCropOpen(false)}
+        onConfirm={handleConfirmCrop}
+      />
+
+      {/* TOP HEADER BAR */}
+      <div className="top-bar">
+        <div className="top-bar-side">
+          <button className="top-action-btn" onClick={() => navigateTo('page-map-view')} title="Mappa Sblocchi">
+            <span className="material-symbols-outlined">map</span>
+          </button>
+        </div>
+        <div className="top-bar-logo">
+          <span className="material-symbols-outlined" style={{ fontSize: '26px' }}>sports_bar</span> BeerDex
+        </div>
+        <div className="top-bar-side right">
+          <button className="top-action-btn" onClick={() => navigateTo('page-friends')} title="Gestione Amici">
+            <span className="material-symbols-outlined">group</span>
+            <span
+              className="top-badge"
+              id="topBeerBadge"
+              style={{ display: myReceivedRequests.length > 0 ? 'inline-block' : 'none' }}
+            >
+              !
+            </span>
+          </button>
+          <button className="top-action-btn" onClick={() => navigateTo('page-rules')} title="Regolamento Ufficiale">
+            <span className="material-symbols-outlined">description</span>
+          </button>
+        </div>
+      </div>
+
+      {/* SETTINGS DRAWER OVERLAY */}
+      <div className={`settings-overlay ${settingsOpen ? 'active' : ''}`}>
+        <div className="settings-content">
+          <button className="btn-close-settings" onClick={() => setSettingsOpen(false)}>
+            <span className="material-symbols-outlined" style={{ fontSize: '32px' }}>close</span>
+          </button>
+          <h2 style={{ marginTop: 0, color: 'var(--dark)', textAlign: 'center' }}>Impostazioni Account</h2>
+          
+          <div style={{ textAlign: 'center', marginBottom: '20px' }}>
+            <div style={{ fontSize: '18px', fontWeight: 'bold', color: 'var(--primary-dark)' }} id="ddUsername">
+              Ciao, {currentUserNick}
+            </div>
+            <div style={{ fontSize: '13px', color: 'var(--text-muted)' }} id="ddEmail">
+              {currentUserEmail}
+            </div>
+          </div>
+          
+          <div className="controls" style={{ background: 'var(--white)', padding: '20px', borderRadius: '16px', boxShadow: '0 4px 15px rgba(0,0,0,0.05)' }}>
+            <h4 style={{ margin: '25px 0 10px 0', color: 'var(--dark)', display: 'flex', alignItems: 'center', gap: '5px' }}>
+              <span className="material-symbols-outlined">edit</span> Cambia Nickname
+            </h4>
+            <p style={{ fontSize: '12px', color: 'var(--danger)', fontWeight: 'bold', marginTop: 0 }}>
+              Attenzione: L'aggiornamento modificherà i tuoi post passati e aggiornerà le liste dei tuoi amici automaticamente.
+            </p>
+            <input
+              type="text"
+              placeholder="Nuovo Nickname..."
+              value={newNickname}
+              onChange={(e) => setNewNickname(e.target.value)}
+            />
+            <button className="btn-main" onClick={handleSaveNickname} style={{ marginTop: 0, justifyContent: 'center' }}>
+              Salva Nuovo Nick
+            </button>
+
+            <hr style={{ border: 0, borderTop: '1px solid var(--gray)', margin: '25px 0' }} />
+            
+            <h4 style={{ margin: '0 0 10px 0', color: 'var(--dark)', display: 'flex', alignItems: 'center', gap: '5px' }}>
+              <span className="material-symbols-outlined">lock</span> Modifica codice di stappo
+            </h4>
+            <p style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: 0 }}>
+              Per sicurezza inserisci prima il tuo vecchio codice di stappo, e poi il nuovo confermandolo.
+            </p>
+            <input
+              type="password"
+              placeholder="Vecchio codice di stappo"
+              value={oldPassword}
+              onChange={(e) => setOldPassword(e.target.value)}
+            />
+            <input
+              type="password"
+              placeholder="Nuovo codice di stappo"
+              value={newPassword}
+              onChange={(e) => setNewPassword(e.target.value)}
+            />
+            <input
+              type="password"
+              placeholder="Conferma nuovo codice di stappo"
+              value={confirmNewPassword}
+              onChange={(e) => setConfirmNewPassword(e.target.value)}
+            />
+            <button className="btn-main" onClick={handleUpdatePassword} style={{ marginTop: 0, background: 'var(--social-blue)', justifyContent: 'center' }}>
+              Aggiorna codice di stappo
+            </button>
+
+            <hr style={{ border: 0, borderTop: '1px solid var(--gray)', margin: '25px 0' }} />
+            
+            <button className="btn-logout" onClick={handleLogout}>
+              <span className="material-symbols-outlined">logout</span> Esci dall'App
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* MAIN CONTAINER CONTENT VIEW WITH TRANSITIONS */}
+      <div className="main-content">
+        {/* Page Home */}
+        <div className={getPageClass('page-home')}>
+          {currentPage === 'page-home' || prevPage === 'page-home' ? (
+            <HomeView
+              currentUserNick={currentUserNick}
+              posts={globalPosts}
+              leaderboardScores={globalLeaderboardScores}
+              onNavigate={navigateTo}
+              getUserRankTitle={getUserRankTitle}
+            />
+          ) : null}
+        </div>
+
+        {/* Page Explore */}
+        <div className={getPageClass('page-explore')}>
+          {currentPage === 'page-explore' || prevPage === 'page-explore' ? (
+            <ExploreView
+              myPokedex={myPokedex}
+              onInitUnlock={handleInitUnlock}
+              onDeleteVariant={handleDeleteVariant}
+            />
+          ) : null}
+        </div>
+
+        {/* Page Leaderboard */}
+        <div className={getPageClass('page-leaderboard')}>
+          {currentPage === 'page-leaderboard' || prevPage === 'page-leaderboard' ? (
+            <LeaderboardView
+              currentUserNick={currentUserNick}
+              leaderboardScores={globalLeaderboardScores}
+              myFriendsList={myFriendsList}
+              mySentRequests={mySentRequests}
+              myReceivedRequests={myReceivedRequests}
+              globalAvatars={globalAvatars}
+              onAddFriend={handleAddFriend}
+              onOpenPublicProfile={handleOpenPublicProfile}
+              onNavigateToFriends={() => navigateTo('page-friends')}
+              getUserRankTitle={getUserRankTitle}
+            />
+          ) : null}
+        </div>
+
+        {/* Page Social (Pub feed) */}
+        <div className={getPageClass('page-social')}>
+          {currentPage === 'page-social' || prevPage === 'page-social' ? (
+            <PubView
+              currentUserNick={currentUserNick}
+              posts={globalPosts}
+              globalAvatars={globalAvatars}
+              myFriendsList={myFriendsList}
+              isAdminUser={isAdminUser}
+              onToggleLike={handleToggleLike}
+              onDeletePost={handleDeletePost}
+              onReportFakePost={handleReportFakePost}
+              onOpenPublicProfile={handleOpenPublicProfile}
+            />
+          ) : null}
+        </div>
+
+        {/* Page Profile */}
+        <div className={getPageClass('page-profile')}>
+          {currentPage === 'page-profile' || prevPage === 'page-profile' ? (
+            <ProfileView
+              currentUserNick={currentUserNick}
+              isAdminUser={isAdminUser}
+              myPokedex={myPokedex}
+              globalAvatars={globalAvatars}
+              leaderboardScores={globalLeaderboardScores}
+              onOpenAvatarSelector={() => setAvatarSelectorOpen(true)}
+              onToggleSettings={() => {
+                setNewNickname('');
+                setOldPassword('');
+                setNewPassword('');
+                setConfirmNewPassword('');
+                setSettingsOpen(true);
+              }}
+              onDeleteVariant={handleDeleteVariant}
+              getUserRankTitle={getUserRankTitle}
+            />
+          ) : null}
+        </div>
+
+        {/* Page Public Profile */}
+        <div className={getPageClass('page-public-profile')}>
+          {currentPage === 'page-public-profile' || prevPage === 'page-public-profile' ? (
+            <PublicProfileView
+              username={pubProfileUser}
+              pokedex={pubProfileDex}
+              score={pubProfileScore}
+              avatar={globalAvatars[pubProfileUser]}
+              onBack={() => navigateTo('page-leaderboard')}
+              getUserRankTitle={getUserRankTitle}
+            />
+          ) : null}
+        </div>
+
+        {/* Page Map */}
+        <div className={getPageClass('page-map-view')}>
+          {(currentPage === 'page-map-view' || prevPage === 'page-map-view') && (
+            <div id="page-map-view">
+              <header className="hero">
+                <h1>Mappa Sblocchi</h1>
+                <p>Esplora il mondo e traccia i pub in cui hai conquistato le tue birre.</p>
+              </header>
+              <div style={{ flexGrow: 1, position: 'relative' }}>
+                <MapContainer
+                  currentUserNick={currentUserNick}
+                  posts={globalPosts}
+                  isActive={currentPage === 'page-map-view'}
+                />
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Page Friends Manager */}
+        <div className={getPageClass('page-friends')}>
+          {currentPage === 'page-friends' || prevPage === 'page-friends' ? (
+            <FriendsView
+              myFriendsList={myFriendsList}
+              myReceivedRequests={myReceivedRequests}
+              mySentRequests={mySentRequests}
+              myRejectedRequests={myRejectedRequests}
+              onAcceptRequest={handleAcceptRequest}
+              onRejectRequest={handleRejectRequest}
+              onCancelSentRequest={handleCancelSentRequest}
+              onRemoveFriend={handleRemoveFriend}
+              onRestoreRejectedRequest={handleRestoreRejectedRequest}
+              onOpenPublicProfile={handleOpenPublicProfile}
+            />
+          ) : null}
+        </div>
+
+        {/* Page Rules */}
+        <div className={getPageClass('page-rules')}>
+          {currentPage === 'page-rules' || prevPage === 'page-rules' ? <RulesView /> : null}
+        </div>
+      </div>
+
+      {/* FLOATING NAVIGATION CAP BAR */}
+      {currentUser && (
+        <nav className="bottom-nav">
+          <div
+            className={`nav-item ${currentPage === 'page-home' ? 'active' : ''}`}
+            onClick={() => navigateTo('page-home')}
+          >
+            <div className="nav-icon">
+              <span className="material-symbols-outlined">home</span>
+            </div>
+            <div className="nav-text">Home</div>
+          </div>
+          <div
+            className={`nav-item ${currentPage === 'page-explore' || currentPage === 'page-map-view' ? 'active' : ''}`}
+            onClick={() => navigateTo('page-explore')}
+          >
+            <div className="nav-icon">
+              <span className="material-symbols-outlined">search</span>
+            </div>
+            <div className="nav-text">Esplora</div>
+          </div>
+          <div
+            className={`nav-item ${currentPage === 'page-leaderboard' || currentPage === 'page-public-profile' ? 'active' : ''}`}
+            onClick={() => navigateTo('page-leaderboard')}
+          >
+            <div className="nav-icon">
+              <span className="material-symbols-outlined">leaderboard</span>
+            </div>
+            <div className="nav-text">Classifica</div>
+          </div>
+          <div
+            className={`nav-item ${currentPage === 'page-social' ? 'active' : ''}`}
+            onClick={() => navigateTo('page-social')}
+          >
+            <div className="nav-icon">
+              <span className="material-symbols-outlined">sports_bar</span>
+            </div>
+            <div className="nav-text">Pub</div>
+          </div>
+          <div
+            className={`nav-item ${currentPage === 'page-profile' || currentPage === 'page-friends' || currentPage === 'page-rules' ? 'active' : ''}`}
+            onClick={() => navigateTo('page-profile')}
+          >
+            <div className="nav-icon">
+              <span className="material-symbols-outlined">person</span>
+            </div>
+            <div className="nav-text">Profilo</div>
+          </div>
+        </nav>
+      )}
+    </>
+  );
+}
