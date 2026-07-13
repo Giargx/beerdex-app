@@ -250,25 +250,51 @@
             box-sizing: border-box;
         }
         
-        /* TRANSITIONING: Place pages side-by-side and slide */
-        .main-content.transitioning {
-            display: flex;
-            flex-direction: row;
-            transition: transform 0.45s cubic-bezier(0.16, 1, 0.3, 1);
-            overflow-x: visible;
-            align-items: flex-start;
-        }
-        
-        .main-content.transitioning .page-view {
+        /* High-performance hardware-accelerated transition styling */
+        .page-view.slide-out-left {
             display: block !important;
+            position: absolute;
+            top: 0; left: 0;
             width: 100%;
-            flex-shrink: 0;
-            opacity: 0.15;
-            height: auto !important;
-            overflow: visible !important;
+            animation: slideOutLeftKey 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+            pointer-events: none;
         }
-        .main-content.transitioning .page-view.active {
-            opacity: 1;
+        .page-view.slide-in-right {
+            display: block !important;
+            position: relative;
+            width: 100%;
+            animation: slideInRightKey 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+        .page-view.slide-out-right {
+            display: block !important;
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%;
+            animation: slideOutRightKey 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+            pointer-events: none;
+        }
+        .page-view.slide-in-left {
+            display: block !important;
+            position: relative;
+            width: 100%;
+            animation: slideInLeftKey 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        @keyframes slideOutLeftKey {
+            0% { transform: translateX(0); opacity: 1; }
+            100% { transform: translateX(-100%); opacity: 0; }
+        }
+        @keyframes slideInRightKey {
+            0% { transform: translateX(100%); opacity: 0; }
+            100% { transform: translateX(0); opacity: 1; }
+        }
+        @keyframes slideOutRightKey {
+            0% { transform: translateX(0); opacity: 1; }
+            100% { transform: translateX(100%); opacity: 0; }
+        }
+        @keyframes slideInLeftKey {
+            0% { transform: translateX(-100%); opacity: 0; }
+            100% { transform: translateX(0); opacity: 1; }
         }
         
         /* IDLE: Show only the active page-view so height and width shrink to fit */
@@ -1321,7 +1347,7 @@
     <div class="main-content">
         <div id="page-home" class="page-view">
             <header class="hero">
-                <h1>Il tuo Passaporto</h1>
+                <h1>Il mio Bancone</h1>
                 <p>Bentornato nel pub, <span id="dashWelcomeName" style="font-weight:bold;">Utente</span>!</p>
             </header>
             <div class="page-container">
@@ -1838,8 +1864,9 @@
             const index = pagesMapList.indexOf(pageId);
             if(index === -1) return;
             
-            const mainContent = document.querySelector('.main-content');
             const currentPage = document.querySelector('.page-view.active');
+            const targetPage = document.getElementById(pageId);
+            if (!targetPage) return;
             
             // Highlight navigation item
             document.querySelectorAll('.nav-item').forEach(nav => nav.classList.remove('active'));
@@ -1854,43 +1881,42 @@
             const activeNav = document.getElementById(navId);
             if(activeNav) activeNav.classList.add('active');
 
-            if (currentPage && currentPage.id !== pageId && mainContent) {
+            if (currentPage && currentPage.id !== pageId) {
                 isTransitioningPages = true;
                 const currIdx = pagesMapList.indexOf(currentPage.id);
                 const targetIdx = index;
                 
-                // 1. Prepare transition: position pages side-by-side
-                mainContent.style.transform = `translateX(-${currIdx * 100}%)`;
-                mainContent.classList.add('transitioning');
+                // Determine direction based on index values
+                const isForward = targetIdx > currIdx;
                 
-                // Force layout reflow
-                void mainContent.offsetWidth;
+                // Clean up any old transition classes
+                currentPage.className = 'page-view';
+                targetPage.className = 'page-view';
                 
-                // 2. Start transition
-                currentPage.classList.remove('active');
-                const targetPage = document.getElementById(pageId);
-                if (targetPage) targetPage.classList.add('active');
+                // Trigger hardware-accelerated animations
+                if (isForward) {
+                    currentPage.classList.add('slide-out-left');
+                    targetPage.classList.add('slide-in-right');
+                } else {
+                    currentPage.classList.add('slide-out-right');
+                    targetPage.classList.add('slide-in-left');
+                }
                 
-                mainContent.style.transform = `translateX(-${targetIdx * 100}%)`;
+                targetPage.classList.add('active');
                 sessionStorage.setItem('beerdex_currentPage', pageId);
                 
-                // 3. Clean up after transition
                 setTimeout(() => {
-                    mainContent.classList.remove('transitioning');
-                    mainContent.style.transform = 'none';
+                    currentPage.classList.remove('active', 'slide-out-left', 'slide-out-right');
+                    targetPage.classList.remove('slide-in-left', 'slide-in-right');
                     isTransitioningPages = false;
                     
-                    // Trigger specific page renders after slide completes
                     triggerPageLoadActions(pageId);
-                }, 450);
+                }, 400);
             } else {
                 // Direct activation (e.g. first load)
                 document.querySelectorAll('.page-view').forEach(p => p.classList.remove('active'));
-                const targetPage = document.getElementById(pageId);
-                if(targetPage) { 
-                    targetPage.classList.add('active'); 
-                    sessionStorage.setItem('beerdex_currentPage', pageId); 
-                }
+                targetPage.classList.add('active');
+                sessionStorage.setItem('beerdex_currentPage', pageId);
                 triggerPageLoadActions(pageId);
             }
             window.scrollTo(0, 0);
