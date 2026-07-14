@@ -216,24 +216,6 @@ export const HomeView: React.FC<HomeViewProps> = ({
             overflow: 'hidden'
           }}
         >
-          {eventConfig.badge && (
-            <span style={{
-              position: 'absolute',
-              top: '12px',
-              right: '12px',
-              background: 'rgba(255, 255, 255, 0.2)',
-              color: '#FFFFFF',
-              fontSize: '10px',
-              fontWeight: 'bold',
-              padding: '4px 8px',
-              borderRadius: '20px',
-              letterSpacing: '0.5px',
-              backdropFilter: 'blur(4px)'
-            }}>
-              {eventConfig.badge}
-            </span>
-          )}
-
           <div style={{ 
             color: eventConfig.iconColor,
             background: timedEvent ? 'rgba(255, 255, 255, 0.1)' : 'rgba(100, 116, 139, 0.08)',
@@ -247,10 +229,27 @@ export const HomeView: React.FC<HomeViewProps> = ({
               {eventConfig.icon}
             </span>
           </div>
-          <div style={{ flex: 1, paddingRight: eventConfig.badge ? '80px' : '0' }}>
-            <h4 style={{ margin: '0 0 6px 0', color: eventConfig.titleColor, fontSize: '15px', fontWeight: 'bold' }}>
-              Evento a Tempo Limitato
-            </h4>
+          <div style={{ flex: 1 }}>
+            <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+              <h4 style={{ margin: 0, color: eventConfig.titleColor, fontSize: '14px', fontWeight: 800 }}>
+                Evento a Tempo Limitato
+              </h4>
+              {eventConfig.badge && (
+                <span style={{
+                  background: 'rgba(255, 255, 255, 0.25)',
+                  color: '#FFFFFF',
+                  fontSize: '9px',
+                  fontWeight: 'bold',
+                  padding: '2px 8px',
+                  borderRadius: '20px',
+                  letterSpacing: '0.5px',
+                  backdropFilter: 'blur(4px)',
+                  whiteSpace: 'nowrap'
+                }}>
+                  {eventConfig.badge}
+                </span>
+              )}
+            </div>
             {timedEvent ? (
               <p style={{ margin: 0, fontSize: '13px', color: eventConfig.descColor, lineHeight: '1.4' }}>
                 <strong style={{ fontSize: '14px' }}>{timedEvent.name} ATTIVO!</strong>

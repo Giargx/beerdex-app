@@ -289,6 +289,9 @@ export default function App() {
   }, [ageGateOpen]);
 
   const setupRealtimeListeners = (nickname: string) => {
+    // Calibrate all scores on initial sync
+    recalculateAllScores();
+
     // Total Users
     onValue(ref(db, 'users_directory'), (snap) => {
       if (snap.exists()) {
@@ -401,6 +404,21 @@ export default function App() {
     });
 
     await set(ref(db, `leaderboard_scores/${username}`), totalScore);
+  };
+
+  // Recalculate all scores to adapt existing database records
+  const recalculateAllScores = async () => {
+    try {
+      const scoresSnap = await get(ref(db, 'leaderboard_scores'));
+      if (scoresSnap.exists()) {
+        const scores = scoresSnap.val();
+        for (const username in scores) {
+          await recalculateTotalScore(username);
+        }
+      }
+    } catch (err) {
+      console.error("Error recalculating all scores: ", err);
+    }
   };
 
   // Helper visibility titles
