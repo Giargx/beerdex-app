@@ -32,7 +32,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
   posts,
   onOpenPostDetail,
 }) => {
-  const [activeTab, setActiveTab] = useState<'collection' | 'posts' | 'stats' | 'achievements'>('collection');
+  const [activeTab, setActiveTab] = useState<'collection' | 'posts' | 'stats' | 'achievements'>('posts');
   const [variantSort, setVariantSort] = useState<'alpha' | 'unlocked' | 'rarity' | 'nation'>('unlocked');
   const [variantSortDir, setVariantSortDir] = useState<number>(1);
   const [medalSort, setMedalSort] = useState<'alpha' | 'unlocked' | 'rarity' | 'nation'>('unlocked');
@@ -296,8 +296,8 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
         gap: '4px'
       }}>
         {[
-          { id: 'collection', label: 'Collezione', icon: 'collections_bookmark' },
           { id: 'posts', label: 'I Miei Post', icon: 'photo_library' },
+          { id: 'collection', label: 'Collezione', icon: 'collections_bookmark' },
           { id: 'stats', label: 'Statistiche', icon: 'bar_chart' },
           { id: 'achievements', label: 'Traguardi', icon: 'emoji_events' }
         ].map(tab => (

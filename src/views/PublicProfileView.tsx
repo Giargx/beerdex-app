@@ -28,7 +28,7 @@ export const PublicProfileView: React.FC<PublicProfileViewProps> = ({
   posts,
   onOpenPostDetail,
 }) => {
-  const [activeTab, setActiveTab] = useState<'collection' | 'posts'>('collection');
+  const [activeTab, setActiveTab] = useState<'collection' | 'posts'>('posts');
   const [variantSort, setVariantSort] = useState<'alpha' | 'unlocked' | 'rarity' | 'nation'>('unlocked');
   const [variantSortDir, setVariantSortDir] = useState<number>(1);
   const [medalSort, setMedalSort] = useState<'alpha' | 'unlocked' | 'rarity' | 'nation'>('unlocked');
@@ -140,8 +140,8 @@ export const PublicProfileView: React.FC<PublicProfileViewProps> = ({
         zIndex: 2
       }}>
         {[
-          { id: 'collection', label: 'Collezione', icon: 'collections_bookmark' },
-          { id: 'posts', label: 'Post Caricati', icon: 'photo_library' }
+          { id: 'posts', label: 'Post Caricati', icon: 'photo_library' },
+          { id: 'collection', label: 'Collezione', icon: 'collections_bookmark' }
         ].map(tab => (
           <button
             key={tab.id}
