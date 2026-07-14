@@ -14,7 +14,6 @@ interface LeaderboardViewProps {
   onOpenPublicProfile: (name: string) => void;
   onNavigateToFriends: () => void;
   getUserRankTitle: (score: number) => string;
-  getAvatarZoomProps?: (url: string | undefined) => any;
 }
 
 export const LeaderboardView: React.FC<LeaderboardViewProps> = ({
@@ -29,7 +28,6 @@ export const LeaderboardView: React.FC<LeaderboardViewProps> = ({
   onOpenPublicProfile,
   onNavigateToFriends,
   getUserRankTitle,
-  getAvatarZoomProps,
 }) => {
   const [activeTab, setActiveTab] = useState<'friends' | 'global'>('friends');
   const [searchQuery, setSearchQuery] = useState('');
@@ -246,12 +244,12 @@ export const LeaderboardView: React.FC<LeaderboardViewProps> = ({
                   key={player.name}
                   className={`leaderboard-item ${player.name === currentUserNick ? 'is-current-user' : ''}`}
                 >
-                  <div style={{ display: 'flex', alignItems: 'center', flexGrow: 1 }}>
+                  <div className="lb-player-left" style={{ display: 'flex', alignItems: 'center', flexGrow: 1 }}>
                     <div className="rank">{medalHtml}</div>
                     <div
                       className="post-avatar"
-                      style={{ width: '40px', height: '40px', margin: '0 10px 0 5px' }}
-                      {...(getAvatarZoomProps ? getAvatarZoomProps(avatar) : {})}
+                      onClick={() => onOpenPublicProfile(player.name)}
+                      style={{ width: '40px', height: '40px', margin: '0 10px 0 5px', cursor: 'pointer' }}
                     >
                       {avatar ? (
                         <img src={avatar} alt={player.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
@@ -261,8 +259,12 @@ export const LeaderboardView: React.FC<LeaderboardViewProps> = ({
                         </span>
                       )}
                     </div>
-                    <div className="lb-user">
-                      <span className="clickable-user" onClick={() => onOpenPublicProfile(player.name)}>
+                    <div 
+                      className="lb-user" 
+                      onClick={() => onOpenPublicProfile(player.name)}
+                      style={{ cursor: 'pointer' }}
+                    >
+                      <span className="clickable-user" style={{ fontWeight: 'bold' }}>
                         {globalDisplayNames?.[player.name] ? globalDisplayNames[player.name] : player.name}
                       </span>
                       <br />

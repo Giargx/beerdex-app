@@ -13,6 +13,7 @@ interface UserPostsDetailViewProps {
   globalAvatars?: Record<string, string>;
   onDeletePost?: (postId: string, user: string, brand: string, variant: string) => void;
   onReportFakePost?: (postId: string, user: string, brand: string, variant: string) => void;
+  onOpenPublicProfile: (username: string) => void;
 }
 
 export const UserPostsDetailView: React.FC<UserPostsDetailViewProps> = ({
@@ -28,6 +29,7 @@ export const UserPostsDetailView: React.FC<UserPostsDetailViewProps> = ({
   globalAvatars = {},
   onDeletePost,
   onReportFakePost,
+  onOpenPublicProfile,
 }) => {
   const myPosts = [...posts].filter((p) => p.user === username).reverse();
 
@@ -166,8 +168,9 @@ export const UserPostsDetailView: React.FC<UserPostsDetailViewProps> = ({
                   {/* Card Header */}
                   <div className="post-header" style={{ padding: '12px 16px' }}>
                     <div style={{ display: 'flex', alignItems: 'center' }}>
-                      <div
-                        className="post-avatar"
+                       <div
+                        className="post-avatar clickable-user"
+                        onClick={() => onOpenPublicProfile(post.user)}
                         style={{
                           width: '36px',
                           height: '36px',
@@ -182,7 +185,8 @@ export const UserPostsDetailView: React.FC<UserPostsDetailViewProps> = ({
                           fontWeight: 800,
                           textTransform: 'uppercase',
                           fontSize: '14px',
-                          marginRight: '12px'
+                          marginRight: '12px',
+                          cursor: 'pointer'
                         }}
                       >
                         {postUserAvatar ? (
@@ -198,7 +202,11 @@ export const UserPostsDetailView: React.FC<UserPostsDetailViewProps> = ({
                         )}
                       </div>
                       <div>
-                        <div style={{ fontWeight: 800, fontSize: '14px', color: 'var(--dark)' }}>
+                        <div 
+                          className="clickable-user"
+                          onClick={() => onOpenPublicProfile(post.user)}
+                          style={{ fontWeight: 800, fontSize: '14px', color: 'var(--dark)', cursor: 'pointer' }}
+                        >
                           {postUserDisplayName}
                         </div>
                         <div className="post-time" style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '11px', color: 'var(--text-muted)' }}>

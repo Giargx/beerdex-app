@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { FoamBubbles } from '../components/FoamBubbles';
+import { beers } from '../beers';
 
 interface Post {
   postId: string;
@@ -58,23 +59,63 @@ export const HomeView: React.FC<HomeViewProps> = ({
   const totalPoints = leaderboardScores[currentUserNick] || 0;
   const rankLabel = getUserRankTitle(totalPoints);
 
-  // Calculate progress bar percentage
-  let progressPct = 0;
-  if (totalPoints < 10) {
-    progressPct = (totalPoints / 10) * 100;
-  } else if (totalPoints < 50) {
-    progressPct = ((totalPoints - 10) / 40) * 100;
-  } else if (totalPoints < 100) {
-    progressPct = ((totalPoints - 50) / 50) * 100;
-  } else if (totalPoints < 200) {
-    progressPct = ((totalPoints - 100) / 100) * 100;
-  } else {
-    progressPct = 100;
-  }
-
   // Get last beer unlocked by user
   const myPosts = posts.filter((p) => p.user === currentUserNick);
   const lastPost = myPosts.length > 0 ? [...myPosts].sort((a, b) => b.time - a.time)[0] : null;
+
+  // New Rank Progression Tiers
+  let nextTargetPoints = 50;
+  let prevTargetPoints = 0;
+  let nextRankName = "Apprendista Bevitore";
+
+  if (totalPoints < 50) {
+    nextTargetPoints = 50;
+    prevTargetPoints = 0;
+    nextRankName = "Apprendista Bevitore";
+  } else if (totalPoints < 200) {
+    nextTargetPoints = 200;
+    prevTargetPoints = 50;
+    nextRankName = "Esploratore di Luppoli";
+  } else if (totalPoints < 500) {
+    nextTargetPoints = 500;
+    prevTargetPoints = 200;
+    nextRankName = "Sommelier del Bancone";
+  } else if (totalPoints < 1200) {
+    nextTargetPoints = 1200;
+    prevTargetPoints = 500;
+    nextRankName = "Maestro Birraio";
+  } else {
+    nextTargetPoints = totalPoints;
+    prevTargetPoints = totalPoints;
+    nextRankName = "Massimo Livello Conseguito!";
+  }
+
+  const pointsToNextLevel = nextTargetPoints - totalPoints;
+  const progressPct = nextTargetPoints === prevTargetPoints
+    ? 100
+    : Math.min(((totalPoints - prevTargetPoints) / (nextTargetPoints - prevTargetPoints)) * 100, 100);
+
+  // New Collector Metrics
+  const totalUnlockedCount = new Set(myPosts.map(p => p.brand + ' - ' + p.variant)).size;
+  const shinyCount = myPosts.filter(p => p.isShiny).length;
+  const countriesExplored = new Set(myPosts.map(p => {
+    const b = beers.find(beerItem => beerItem.brand === p.brand);
+    return b ? b.country : '';
+  }).filter(Boolean)).size;
+
+  // Deterministic pick of a missing beer of the week
+  const unlockedBrands = new Set(myPosts.map((p) => p.brand));
+  const missingBeers = beers.filter((b) => !unlockedBrands.has(b.brand));
+  const getBeerOfTheWeek = () => {
+    const list = missingBeers.length > 0 ? missingBeers : beers;
+    const today = new Date();
+    const firstDayOfYear = new Date(today.getFullYear(), 0, 1);
+    const pastDaysOfYear = (today.getTime() - firstDayOfYear.getTime()) / 86400000;
+    const weekNum = Math.ceil((pastDaysOfYear + firstDayOfYear.getDay() + 1) / 7);
+    const index = (weekNum + today.getFullYear()) % list.length;
+    return list[index];
+  };
+  const beerOfTheWeek = getBeerOfTheWeek();
 
   // Timed Event Banner Styles configuration
   const getEventConfig = () => {
@@ -226,25 +267,153 @@ export const HomeView: React.FC<HomeViewProps> = ({
           </div>
         </div>
 
-        <div className="dashboard-stats">
-          <h3 style={{ marginTop: 0, color: 'var(--dark)' }}>Punteggio Totale</h3>
-          <div className="progress-text" style={{ fontSize: '22px', color: 'var(--primary-dark)', marginBottom: '5px' }}>
-            {totalPoints} <span className="material-symbols-outlined">emoji_events</span>
-          </div>
-          <div>
-            <span className="user-rank-title" style={{ fontSize: '14px', padding: '6px 12px' }}>
+        {/* Level & Points Progress Section */}
+        <div className="dashboard-stats" style={{ padding: '20px', borderRadius: '24px', background: 'var(--white)', border: '1px solid var(--gray)', boxShadow: 'var(--card-shadow)', marginBottom: '25px', textAlign: 'left' }}>
+          <h3 style={{ marginTop: 0, marginBottom: '15px', color: 'var(--dark)', fontSize: '15px', display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 800 }}>
+            <span className="material-symbols-outlined" style={{ color: 'var(--primary)', fontSize: '20px' }}>military_tech</span>
+            Progresso Collezionista
+          </h3>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+            <span className="user-rank-title" style={{ fontSize: '12px', padding: '5px 10px', background: 'linear-gradient(135deg, #1e293b, #0f172a)', color: '#FFFFFF', fontWeight: 'bold', borderRadius: '8px' }}>
               {rankLabel}
             </span>
+            <div style={{ fontSize: '18px', fontWeight: 900, color: 'var(--dark)', display: 'flex', alignItems: 'center', gap: '4px' }}>
+              {totalPoints} <span style={{ fontSize: '14px', color: 'var(--primary)', fontWeight: 'bold' }}>pt</span>
+            </div>
           </div>
-          <div className="progress-container" style={{ height: '15px', borderRadius: '20px', marginTop: '15px' }}>
+
+          <div className="progress-container" style={{ height: '10px', borderRadius: '20px', background: 'var(--gray)', overflow: 'hidden', marginTop: '12px', marginBottom: '8px' }}>
             <div
               className="progress-bar"
-              style={{ borderRadius: '20px', width: `${progressPct}%` }}
+              style={{ borderRadius: '20px', width: `${progressPct}%`, background: 'linear-gradient(90deg, var(--primary), var(--primary-dark))', height: '100%' }}
             ></div>
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: 'var(--text-muted)', fontWeight: 500 }}>
+            <span>{prevTargetPoints} pt</span>
+            {pointsToNextLevel > 0 ? (
+              <span>Mancano <strong>{pointsToNextLevel} pt</strong> per diventare <strong>{nextRankName}</strong></span>
+            ) : (
+              <span>Sei al livello massimo! 🏆</span>
+            )}
+            <span>{nextTargetPoints} pt</span>
           </div>
         </div>
 
-        <h3 className="hero-section-title" style={{ marginTop: '30px', color: 'var(--dark)', textAlign: 'center' }}>
+        {/* Collector Metrics Dashboard Row */}
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(3, 1fr)',
+          gap: '12px',
+          marginBottom: '25px'
+        }}>
+          <div style={{ background: 'var(--white)', border: '1px solid var(--gray)', borderRadius: '20px', padding: '12px 6px', textAlign: 'center', boxShadow: 'var(--card-shadow)' }}>
+            <span className="material-symbols-outlined" style={{ fontSize: '24px', color: 'var(--primary-dark)', marginBottom: '4px' }}>sports_bar</span>
+            <div style={{ fontSize: '16px', fontWeight: 900, color: 'var(--dark)' }}>{totalUnlockedCount}</div>
+            <div style={{ fontSize: '9px', color: 'var(--text-muted)', fontWeight: 750, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Sbloccate</div>
+          </div>
+          <div style={{ background: 'var(--white)', border: '1px solid var(--gray)', borderRadius: '20px', padding: '12px 6px', textAlign: 'center', boxShadow: 'var(--card-shadow)' }}>
+            <span className="material-symbols-outlined" style={{ fontSize: '24px', color: '#EAB308', marginBottom: '4px' }}>auto_awesome</span>
+            <div style={{ fontSize: '16px', fontWeight: 900, color: 'var(--dark)' }}>{shinyCount}</div>
+            <div style={{ fontSize: '9px', color: 'var(--text-muted)', fontWeight: 750, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Shiny</div>
+          </div>
+          <div style={{ background: 'var(--white)', border: '1px solid var(--gray)', borderRadius: '20px', padding: '12px 6px', textAlign: 'center', boxShadow: 'var(--card-shadow)' }}>
+            <span className="material-symbols-outlined" style={{ fontSize: '24px', color: '#10B981', marginBottom: '4px' }}>public</span>
+            <div style={{ fontSize: '16px', fontWeight: 900, color: 'var(--dark)' }}>{countriesExplored}</div>
+            <div style={{ fontSize: '9px', color: 'var(--text-muted)', fontWeight: 750, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Paesi</div>
+          </div>
+        </div>
+
+        {/* Beer of the Week Card */}
+        {beerOfTheWeek && (
+          <div style={{
+            background: 'linear-gradient(135deg, #FFFDF5 0%, #FFF9E6 100%)',
+            border: '1px dashed #F59E0B',
+            borderRadius: '24px',
+            padding: '20px',
+            marginBottom: '25px',
+            boxShadow: 'var(--card-shadow)',
+            position: 'relative',
+            textAlign: 'left'
+          }}>
+            <span style={{
+              position: 'absolute',
+              top: '-10px',
+              left: '20px',
+              background: 'linear-gradient(135deg, #F59E0B, #D97706)',
+              color: 'white',
+              fontSize: '10px',
+              fontWeight: 800,
+              padding: '4px 10px',
+              borderRadius: '20px',
+              boxShadow: '0 4px 10px rgba(245,158,11,0.2)'
+            }}>
+              CONSIGLIATA DELLA SETTIMANA
+            </span>
+            <div style={{ display: 'flex', gap: '15px', alignItems: 'center', marginTop: '5px' }}>
+              <div style={{
+                background: 'white',
+                borderRadius: '16px',
+                width: '50px',
+                height: '50px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: '26px',
+                border: '1px solid rgba(245,158,11,0.15)',
+                boxShadow: '0 4px 10px rgba(0,0,0,0.02)'
+              }}>
+                🍺
+              </div>
+              <div style={{ flex: 1 }}>
+                <h4 style={{ margin: 0, fontSize: '15px', color: 'var(--dark)', fontWeight: 'bold' }}>
+                  {beerOfTheWeek.brand}
+                </h4>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '4px' }}>
+                  <span style={{ fontSize: '11px', color: 'var(--text-muted)', display: 'inline-flex', alignItems: 'center', gap: '3px' }}>
+                    📍 {beerOfTheWeek.country}
+                  </span>
+                  <span style={{
+                    fontSize: '9px',
+                    fontWeight: 'bold',
+                    padding: '2px 6px',
+                    borderRadius: '6px',
+                    background: beerOfTheWeek.rarity === 'rara' ? '#F3E8FF' : beerOfTheWeek.rarity === 'media' ? '#FEF3C7' : '#E0F2FE',
+                    color: beerOfTheWeek.rarity === 'rara' ? '#6B21A8' : beerOfTheWeek.rarity === 'media' ? '#92400E' : '#0369A1'
+                  }}>
+                    {beerOfTheWeek.rarity.toUpperCase()}
+                  </span>
+                </div>
+              </div>
+            </div>
+            <p style={{ margin: '12px 0 0 0', fontSize: '13px', color: 'var(--text-muted)', lineHeight: '1.4' }}>
+              <strong>Varianti:</strong> {beerOfTheWeek.variants.join(', ')}. Una birra fantastica da aggiungere alla tua collezione. Clicca sotto per cercarla nel catalogo!
+            </p>
+            <button
+              onClick={() => onNavigate('page-explore')}
+              style={{
+                marginTop: '12px',
+                width: '100%',
+                padding: '10px',
+                fontSize: '13px',
+                borderRadius: '12px',
+                background: 'linear-gradient(135deg, #F59E0B, #D97706)',
+                border: 'none',
+                color: 'white',
+                fontWeight: 'bold',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '5px'
+              }}
+            >
+              <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>search</span>
+              Trovala in Esplora
+            </button>
+          </div>
+        )}
+
+        <h3 className="hero-section-title" style={{ marginTop: '10px', color: 'var(--dark)', textAlign: 'center' }}>
           Ultima Conquista
         </h3>
 

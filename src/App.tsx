@@ -1612,7 +1612,6 @@ export default function App() {
               onOpenPublicProfile={handleOpenPublicProfile}
               onNavigateToFriends={() => navigateTo('page-friends')}
               getUserRankTitle={getUserRankTitle}
-              getAvatarZoomProps={getAvatarZoomProps}
             />
           ) : null}
         </div>
@@ -1749,6 +1748,7 @@ export default function App() {
               globalAvatars={globalAvatars}
               onDeletePost={handleDeletePost}
               onReportFakePost={handleReportFakePost}
+              onOpenPublicProfile={handleOpenPublicProfile}
             />
           ) : null}
         </div>

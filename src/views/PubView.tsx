@@ -286,7 +286,9 @@ export const PubView: React.FC<PubViewProps> = ({
                   <div className="post-header">
                     <div style={{ display: 'flex', alignItems: 'center' }}>
                       <div
-                        className="post-avatar"
+                        className="post-avatar clickable-user"
+                        onClick={() => onOpenPublicProfile(post.user)}
+                        style={{ cursor: 'pointer' }}
                         {...(getAvatarZoomProps ? getAvatarZoomProps(avatar) : {})}
                       >
                         {avatar ? (

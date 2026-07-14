@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { TrophyGrid } from '../components/TrophyGrid';
 import type { PokedexEntry } from '../components/TrophyGrid';
 import { FoamBubbles } from '../components/FoamBubbles';
@@ -29,6 +29,11 @@ export const PublicProfileView: React.FC<PublicProfileViewProps> = ({
   onOpenPostDetail,
 }) => {
   const [activeTab, setActiveTab] = useState<'collection' | 'posts'>('posts');
+
+  useEffect(() => {
+    setActiveTab('posts');
+  }, [username]);
+
   const [variantSort, setVariantSort] = useState<'alpha' | 'unlocked' | 'rarity' | 'nation'>('unlocked');
   const [variantSortDir, setVariantSortDir] = useState<number>(1);
   const [medalSort, setMedalSort] = useState<'alpha' | 'unlocked' | 'rarity' | 'nation'>('unlocked');
@@ -128,48 +133,47 @@ export const PublicProfileView: React.FC<PublicProfileViewProps> = ({
         </div>
       </header>
 
-      {/* Tab control bar */}
-      <div style={{
-        display: 'flex',
-        margin: '10px 20px 15px 20px',
-        background: 'var(--gray)',
-        borderRadius: '12px',
-        padding: '4px',
-        gap: '4px',
-        position: 'relative',
-        zIndex: 2
-      }}>
-        {[
-          { id: 'posts', label: 'Post Caricati', icon: 'photo_library' },
-          { id: 'collection', label: 'Collezione', icon: 'collections_bookmark' }
-        ].map(tab => (
-          <button
-            key={tab.id}
-            onClick={() => setActiveTab(tab.id as any)}
-            style={{
-              flex: 1,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: '6px',
-              padding: '10px 4px',
-              borderRadius: '8px',
-              border: 'none',
-              background: activeTab === tab.id ? 'var(--white)' : 'transparent',
-              color: activeTab === tab.id ? 'var(--dark)' : 'var(--text-muted)',
-              fontWeight: activeTab === tab.id ? 'bold' : 'normal',
-              fontSize: '13px',
-              cursor: 'pointer',
-              boxShadow: activeTab === tab.id ? '0 4px 10px rgba(0,0,0,0.06)' : 'none',
-              transition: 'all 0.2s ease',
-            }}
-          >
-            <span className="material-symbols-outlined" style={{ fontSize: '20px' }} title={tab.label}>{tab.icon}</span>
-          </button>
-        ))}
-      </div>
-
-      <div className="page-container" style={{ marginTop: '0px' }}>
+      <div className="page-container" style={{ marginTop: '-40px', paddingTop: '30px' }}>
+        {/* Tab control bar */}
+        <div style={{
+          display: 'flex',
+          marginBottom: '20px',
+          background: 'var(--gray)',
+          borderRadius: '12px',
+          padding: '4px',
+          gap: '4px',
+          position: 'relative',
+          zIndex: 2
+        }}>
+          {[
+            { id: 'posts', label: 'Post Caricati', icon: 'photo_library' },
+            { id: 'collection', label: 'Collezione', icon: 'collections_bookmark' }
+          ].map(tab => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id as any)}
+              style={{
+                flex: 1,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '6px',
+                padding: '10px 4px',
+                borderRadius: '8px',
+                border: 'none',
+                background: activeTab === tab.id ? 'var(--white)' : 'transparent',
+                color: activeTab === tab.id ? 'var(--dark)' : 'var(--text-muted)',
+                fontWeight: activeTab === tab.id ? 'bold' : 'normal',
+                fontSize: '13px',
+                cursor: 'pointer',
+                boxShadow: activeTab === tab.id ? '0 4px 10px rgba(0,0,0,0.06)' : 'none',
+                transition: 'all 0.2s ease',
+              }}
+            >
+              <span className="material-symbols-outlined" style={{ fontSize: '20px' }} title={tab.label}>{tab.icon}</span>
+            </button>
+          ))}
+        </div>
         {activeTab === 'collection' && (
           <div style={{ animation: 'fadeIn 0.2s ease-out' }}>
             {/* Medals sorting controls */}
