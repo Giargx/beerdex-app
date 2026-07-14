@@ -1625,7 +1625,6 @@ export default function App() {
               myPokedex={myPokedex}
               globalAvatars={globalAvatars}
               leaderboardScores={globalLeaderboardScores}
-              onOpenAvatarSelector={() => setAvatarSelectorOpen(true)}
               onToggleSettings={() => {
                 setNewNickname('');
                 setOldPassword('');
@@ -1637,6 +1636,7 @@ export default function App() {
               getUserRankTitle={getUserRankTitle}
               getAvatarZoomProps={getAvatarZoomProps}
               posts={globalPosts}
+              onToggleLike={handleToggleLike}
             />
           ) : null}
         </div>
@@ -1654,6 +1654,8 @@ export default function App() {
               getUserRankTitle={getUserRankTitle}
               getAvatarZoomProps={getAvatarZoomProps}
               posts={globalPosts}
+              currentUserNick={currentUserNick}
+              onToggleLike={handleToggleLike}
             />
           ) : null}
         </div>
