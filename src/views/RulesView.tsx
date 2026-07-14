@@ -23,19 +23,19 @@ export const RulesView: React.FC = () => {
           <p>Più punti accumuli, più sali di livello. Ecco i gradi che puoi sbloccare:</p>
           <ul style={{ listStyle: 'none', paddingLeft: 0, display: 'flex', flexDirection: 'column', gap: '10px' }}>
             <li>
-              🍺 <strong>Novizio del Pub</strong> (&lt; 10 punti): Hai appena iniziato a bagnarti le labbra.
+              🍺 <strong>Novizio del Pub</strong> (&lt; 50 punti): Hai appena iniziato a bagnarti le labbra.
             </li>
             <li>
-              🍺 <strong>Apprendista Bevitore</strong> (10-49 punti): Inizi a distinguere una bionda da una rossa.
+              🍺 <strong>Apprendista Bevitore</strong> (50-199 punti): Inizi a distinguere una bionda da una rossa.
             </li>
             <li>
-              🍺 <strong>Esploratore di Luppoli</strong> (50-99 punti): La birra del discount non ti basta più.
+              🍺 <strong>Esploratore di Luppoli</strong> (200-499 punti): La birra del discount non ti basta più.
             </li>
             <li>
-              🍺 <strong>Sommelier del Bancone</strong> (100-199 punti): Ormai sei quello che dà i consigli a tutti.
+              🍺 <strong>Sommelier del Bancone</strong> (500-1199 punti): Ormai sei quello che dà i consigli a tutti.
             </li>
             <li>
-              👑 <strong>Maestro Birraio</strong> (200+ punti): Il bancone è letteralmente casa tua. Leggenda.
+              👑 <strong>Maestro Birraio</strong> (1200+ punti): Il bancone è letteralmente casa tua. Leggenda.
             </li>
           </ul>
         </div>
@@ -45,17 +45,20 @@ export const RulesView: React.FC = () => {
           <p>Ogni birra sbloccata ti dà dei punti in base a quanto è rara:</p>
           <ul style={{ paddingLeft: '20px' }}>
             <li style={{ marginBottom: '8px' }}>
-              <strong>Comune (1 punto):</strong> Birre commerciali diffuse (es. Heineken, Moretti, Peroni, Corona, Best Brau).
+              <strong>Comune (1 punto):</strong> Birre commerciali diffuse (es. Heineken, Moretti, Peroni, Corona, Ceres, Ichnusa, Leffe, Menabrea, Forst, Guinness).
             </li>
             <li style={{ marginBottom: '8px' }}>
-              <strong>Media (2 punti):</strong> Birre speciali o artigianali molto note (es. Ceres, Leffe, Ichnusa, Tennent's).
+              <strong>Media (2 punti):</strong> Birre speciali o artigianali molto note (es. Affligem, BrewDog, Augustiner).
             </li>
             <li style={{ marginBottom: '8px' }}>
-              <strong>Rara (5 punti):</strong> Birre trappiste o artigianali di nicchia (es. Baladin, Tripel Karmeliet, Chimay, Crak).
+              <strong>Rara (5 punti):</strong> Birre trappiste o artigianali di nicchia (es. Baladin, Tripel Karmeliet, Chimay, Crak, Birrificio Italiano).
             </li>
           </ul>
           <p>
             🎁 <strong>Bonus Completa Marchio</strong>: Se sblocchi <strong>tutte</strong> le varianti di un singolo brand (ad esempio tutte le varianti di Menabrea), ottieni subito un bonus extra di <strong>+10 Punti</strong>!
+          </p>
+          <p>
+            🏅 <strong>Medaglie Evento (+15 Punti)</strong>: Guadagna medaglie speciali completando sfide stagionali durante l'anno (es. San Patrizio, Solstizio d'Estate, Oktoberfest) per ottenere un boost di punti al tuo punteggio totale!
           </p>
         </div>
 

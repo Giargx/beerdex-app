@@ -15,8 +15,7 @@ interface ProfileViewProps {
   onDeleteVariant: (brand: string, variant: string) => void;
   getUserRankTitle: (score: number) => string;
   getAvatarZoomProps?: (url: string | undefined) => any;
-  currentTheme: string;
-  onChangeTheme: (theme: string) => void;
+  posts: any[];
 }
 
 export const ProfileView: React.FC<ProfileViewProps> = ({
@@ -31,10 +30,9 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
   onDeleteVariant,
   getUserRankTitle,
   getAvatarZoomProps,
-  currentTheme,
-  onChangeTheme,
+  posts,
 }) => {
-  const [activeTab, setActiveTab] = useState<'collection' | 'stats' | 'achievements'>('collection');
+  const [activeTab, setActiveTab] = useState<'collection' | 'posts' | 'stats' | 'achievements'>('collection');
   const [variantSort, setVariantSort] = useState<'alpha' | 'unlocked' | 'rarity' | 'nation'>('unlocked');
   const [variantSortDir, setVariantSortDir] = useState<number>(1);
   const [medalSort, setMedalSort] = useState<'alpha' | 'unlocked' | 'rarity' | 'nation'>('unlocked');
@@ -292,44 +290,21 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
             </div>
           </div>
 
-          {/* Interface Brewery Themes selector */}
-          <div style={{ marginTop: '18px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px' }}>
-            <span style={{ fontSize: '11px', fontWeight: 'bold', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.8px' }}>
-              Tema
-            </span>
-            <div style={{ display: 'flex', gap: '8px', background: 'var(--white)', padding: '5px 10px', borderRadius: '20px', boxShadow: '0 4px 10px rgba(0,0,0,0.05)', border: '1px solid var(--gray)' }}>
-              {[
-                { id: 'classic', color: '#FFB300', name: 'Pilsner (Classic)' },
-                { id: 'amber', color: '#D35400', name: 'Amber Ale' },
-                { id: 'dark', color: '#5C3D2E', name: 'Stout (Dark)' },
-                { id: 'ipa', color: '#2D8A4E', name: 'Pale IPA' },
-              ].map((themeItem) => (
-                <button
-                  key={themeItem.id}
-                  onClick={() => onChangeTheme(themeItem.id)}
-                  style={{
-                    width: '24px',
-                    height: '24px',
-                    borderRadius: '50%',
-                    background: themeItem.color,
-                    border: currentTheme === themeItem.id ? '2.5px solid var(--dark)' : '1.5px solid var(--gray)',
-                    cursor: 'pointer',
-                    padding: 0,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    boxShadow: 'inset 0 1px 3px rgba(0,0,0,0.2)',
-                    transition: 'transform 0.1s ease',
-                  }}
-                  title={themeItem.name}
-                >
-                  {currentTheme === themeItem.id && (
-                    <span className="material-symbols-outlined" style={{ fontSize: '12px', color: 'var(--white)', fontWeight: 'bold' }}>
-                      done
-                    </span>
-                  )}
-                </button>
-              ))}
+          {/* Instagram-style user stats row */}
+          <div style={{ display: 'flex', justifyContent: 'center', gap: '30px', marginTop: '18px', padding: '0 10px' }}>
+            <div style={{ textAlign: 'center', flex: '1' }}>
+              <div style={{ fontWeight: 900, fontSize: '18px', color: 'var(--dark)' }}>
+                {posts.filter(p => p.user === currentUserNick).length}
+              </div>
+              <div style={{ fontSize: '10px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: 600 }}>Post</div>
+            </div>
+            <div style={{ textAlign: 'center', flex: '1', borderLeft: '1px solid var(--gray)', borderRight: '1px solid var(--gray)' }}>
+              <div style={{ fontWeight: 900, fontSize: '18px', color: 'var(--dark)' }}>{score}</div>
+              <div style={{ fontSize: '10px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: 600 }}>Punti</div>
+            </div>
+            <div style={{ textAlign: 'center', flex: '1' }}>
+              <div style={{ fontWeight: 900, fontSize: '18px', color: 'var(--dark)' }}>{totalUnlocked}</div>
+              <div style={{ fontSize: '10px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: 600 }}>Sblocchi</div>
             </div>
           </div>
         </div>
@@ -346,6 +321,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
       }}>
         {[
           { id: 'collection', label: 'Collezione', icon: 'collections_bookmark' },
+          { id: 'posts', label: 'I Miei Post', icon: 'photo_library' },
           { id: 'stats', label: 'Statistiche', icon: 'bar_chart' },
           { id: 'achievements', label: 'Traguardi', icon: 'emoji_events' }
         ].map(tab => (
@@ -453,6 +429,38 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
             mode="medals"
           />
 
+          {/* Event Medals Section */}
+          <div
+            style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              borderBottom: '2px solid var(--gray)',
+              paddingBottom: '8px',
+              margin: '40px 20px 15px 20px',
+            }}
+          >
+            <h3 style={{ margin: 0, color: 'var(--dark)', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '16px' }}>
+              <span className="material-symbols-outlined" style={{ color: 'var(--primary)' }}>
+                event_note
+              </span>{' '}
+              Medaglie Evento
+            </h3>
+          </div>
+
+          <TrophyGrid
+            pokedex={myPokedex}
+            isPub={false}
+            variantSortOption={variantSort}
+            variantSortDir={variantSortDir}
+            medalSortOption={medalSort}
+            medalSortDir={medalSortDir}
+            onDeleteEntry={onDeleteVariant}
+            showDeleteButton={false}
+            mode="events"
+            userPosts={posts.filter(p => p.user === currentUserNick)}
+          />
+
           {/* Variants sorting controls */}
           <div
             style={{
@@ -524,7 +532,78 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
         </div>
       )}
 
-      {/* 2. STATS TAB */}
+      {/* 2. MY POSTS TAB */}
+      {activeTab === 'posts' && (
+        <div style={{ padding: '0 20px', animation: 'fadeIn 0.2s ease-out' }}>
+          <h3 style={{ borderBottom: '2px solid var(--gray)', paddingBottom: '8px', margin: '20px 0 15px 0', fontSize: '16px', color: 'var(--dark)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <span className="material-symbols-outlined">photo_library</span> Foto Caricate ({posts.filter(p => p.user === currentUserNick).length})
+          </h3>
+          {posts.filter(p => p.user === currentUserNick).length === 0 ? (
+            <div style={{ textAlign: 'center', padding: '40px 20px', color: 'var(--text-muted)' }}>
+              <span className="material-symbols-outlined" style={{ fontSize: '48px', marginBottom: '10px' }}>photo_camera</span>
+              <p style={{ margin: 0, fontSize: '14px' }}>Non hai ancora caricato nessuna foto.</p>
+            </div>
+          ) : (
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(3, 1fr)',
+                gap: '8px',
+                marginBottom: '20px'
+              }}
+            >
+              {[...posts.filter(p => p.user === currentUserNick)].reverse().map((post) => (
+                <div
+                  key={post.postId}
+                  style={{
+                    position: 'relative',
+                    aspectRatio: '1/1',
+                    borderRadius: '12px',
+                    overflow: 'hidden',
+                    background: '#f1f5f9',
+                    border: '1px solid var(--gray)',
+                    boxShadow: '0 2px 8px rgba(0,0,0,0.05)',
+                  }}
+                >
+                  <img
+                    src={post.photo}
+                    alt={`${post.brand} - ${post.variant}`}
+                    style={{
+                      width: '100%',
+                      height: '100%',
+                      objectFit: 'cover'
+                    }}
+                    onContextMenu={(e) => e.preventDefault()}
+                  />
+                  <div
+                    style={{
+                      position: 'absolute',
+                      bottom: 0,
+                      left: 0,
+                      width: '100%',
+                      background: 'rgba(0, 0, 0, 0.65)',
+                      padding: '4px 6px',
+                      color: 'white',
+                      boxSizing: 'border-box',
+                      fontSize: '9px',
+                      lineHeight: 1.2,
+                    }}
+                  >
+                    <div style={{ fontWeight: 'bold', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      {post.brand}
+                    </div>
+                    <div style={{ opacity: 0.8, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      {post.variant}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* 3. STATS TAB */}
       {activeTab === 'stats' && (
         <div style={{ padding: '0 20px', animation: 'fadeIn 0.2s ease-out' }}>
           {/* Circular/Linear progress summary */}

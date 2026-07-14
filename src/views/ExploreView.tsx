@@ -17,7 +17,11 @@ export const ExploreView: React.FC<ExploreViewProps> = ({
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [countryFilter, setCountryFilter] = useState('Tutte');
-  const [sortFilter, setSortFilter] = useState('alpha');
+  const [sortFilter, setSortFilter] = useState(() => localStorage.getItem('beerdex_catalog_sort') || 'alpha');
+  const [sortDir, setSortDir] = useState<number>(() => {
+    const saved = localStorage.getItem('beerdex_catalog_sort_dir');
+    return saved ? parseInt(saved, 10) : 1;
+  });
   
   // Track expanded state for each beer brand card
   const [expandedCards, setExpandedCards] = useState<Record<string, boolean>>({});
@@ -27,6 +31,12 @@ export const ExploreView: React.FC<ExploreViewProps> = ({
       ...prev,
       [brand]: !prev[brand],
     }));
+  };
+
+  const handleToggleDir = () => {
+    const nextDir = sortDir === 1 ? -1 : 1;
+    setSortDir(nextDir);
+    localStorage.setItem('beerdex_catalog_sort_dir', nextDir.toString());
   };
 
   // Filter and sort beers list
@@ -49,15 +59,13 @@ export const ExploreView: React.FC<ExploreViewProps> = ({
   const rarityMap = { comune: 1, media: 2, rara: 3 };
 
   filteredBeers.sort((a, b) => {
-    if (sortFilter === 'alpha') return a.brand.localeCompare(b.brand);
-    if (sortFilter === 'nation') return a.country.localeCompare(b.country) || a.brand.localeCompare(b.brand);
-    if (sortFilter === 'rarityAsc') {
-      return (rarityMap[a.rarity] || 0) - (rarityMap[b.rarity] || 0) || a.brand.localeCompare(b.brand);
+    let res = 0;
+    if (sortFilter === 'alpha') {
+      res = a.brand.localeCompare(b.brand);
+    } else if (sortFilter === 'rarity') {
+      res = (rarityMap[a.rarity] || 0) - (rarityMap[b.rarity] || 0) || a.brand.localeCompare(b.brand);
     }
-    if (sortFilter === 'rarityDesc') {
-      return (rarityMap[b.rarity] || 0) - (rarityMap[a.rarity] || 0) || a.brand.localeCompare(b.brand);
-    }
-    return 0;
+    return res * sortDir;
   });
 
   return (
@@ -99,15 +107,42 @@ export const ExploreView: React.FC<ExploreViewProps> = ({
           </select>
 
           <span className="filters-label">Ordina catalogo per</span>
-          <select
-            value={sortFilter}
-            onChange={(e) => setSortFilter(e.target.value)}
-          >
-            <option value="alpha">Ordine Alfabetico</option>
-            <option value="nation">Nazione</option>
-            <option value="rarityAsc">Rarità (Crescente)</option>
-            <option value="rarityDesc">Rarità (Decrescente)</option>
-          </select>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <select
+              value={sortFilter}
+              onChange={(e) => {
+                const val = e.target.value;
+                setSortFilter(val);
+                localStorage.setItem('beerdex_catalog_sort', val);
+              }}
+              style={{ flexGrow: 1, marginBottom: 0 }}
+            >
+              <option value="alpha">Ordine Alfabetico</option>
+              <option value="rarity">Rarità</option>
+            </select>
+            <button
+              onClick={handleToggleDir}
+              style={{
+                border: '1px solid var(--gray)',
+                background: '#fbfcfc',
+                borderRadius: '10px',
+                padding: '10px 14px',
+                cursor: 'pointer',
+                color: 'var(--dark)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                height: '42px',
+                width: '42px',
+                boxSizing: 'border-box'
+              }}
+              title={sortDir === 1 ? "Crescente" : "Decrescente"}
+            >
+              <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>
+                {sortDir === 1 ? 'arrow_upward' : 'arrow_downward'}
+              </span>
+            </button>
+          </div>
         </div>
 
         <div className="container" id="beerList" style={{ marginTop: '20px', padding: 0 }}>

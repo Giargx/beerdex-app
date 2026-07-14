@@ -5,6 +5,7 @@ import { auth, db } from './firebase';
 
 import { beers, getBeerPoints, countryCoordinates, normalizeStr } from './beers';
 import { playPopSound } from './utils/audio';
+import { getEventMedals } from './components/TrophyGrid';
 
 // Import Views
 import { HomeView } from './views/HomeView';
@@ -362,15 +363,34 @@ export default function App() {
       }
     });
 
+    // Event Medals Recalculation
+    const timelineSnap = await get(ref(db, 'social_timeline'));
+    const userPosts: any[] = [];
+    if (timelineSnap.exists()) {
+      const timelineData = timelineSnap.val();
+      for (const key in timelineData) {
+        const post = timelineData[key];
+        if (post.user === username) {
+          userPosts.push(post);
+        }
+      }
+    }
+    const eventMedals = getEventMedals(userPosts);
+    eventMedals.forEach((medal) => {
+      if (medal.isUnlocked) {
+        totalScore += 15;
+      }
+    });
+
     await set(ref(db, `leaderboard_scores/${username}`), totalScore);
   };
 
   // Helper visibility titles
   const getUserRankTitle = (score: number) => {
-    if (score < 10) return "Novizio del Pub";
-    if (score < 50) return "Apprendista Bevitore";
-    if (score < 100) return "Esploratore di Luppoli";
-    if (score < 200) return "Sommelier del Bancone";
+    if (score < 50) return "Novizio del Pub";
+    if (score < 200) return "Apprendista Bevitore";
+    if (score < 500) return "Esploratore di Luppoli";
+    if (score < 1200) return "Sommelier del Bancone";
     return "Maestro Birraio";
   };
 
@@ -1225,7 +1245,7 @@ export default function App() {
           <button className="btn-close-settings" onClick={() => setSettingsOpen(false)}>
             <span className="material-symbols-outlined" style={{ fontSize: '32px' }}>close</span>
           </button>
-          <h2 style={{ marginTop: 0, color: 'var(--dark)', textAlign: 'center', fontWeight: 900 }}>Impostazioni</h2>
+          <h2 style={{ marginTop: 0, color: 'var(--dark)', textAlign: 'center', fontWeight: 900, marginBottom: '25px' }}>Impostazioni</h2>
           
           <div style={{ textAlign: 'center', marginBottom: '25px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
             <div style={{
@@ -1239,7 +1259,8 @@ export default function App() {
               justifyContent: 'center',
               overflow: 'hidden',
               marginBottom: '8px',
-              boxShadow: '0 4px 8px rgba(0,0,0,0.05)'
+              boxShadow: '0 4px 8px rgba(0,0,0,0.05)',
+              position: 'relative'
             }}>
               {globalAvatars[currentUserNick] ? (
                 <img src={globalAvatars[currentUserNick]} alt={currentUserNick} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
@@ -1260,103 +1281,162 @@ export default function App() {
             </div>
           </div>
           
-          {/* SEZIONE 1: PROFILO PERSONALE */}
-          <div className="settings-section-card" style={{ background: 'var(--white)', padding: '20px', borderRadius: '20px', boxShadow: '0 4px 15px rgba(0,0,0,0.03)', border: '1px solid var(--gray)', marginBottom: '20px' }}>
-            <h3 style={{ margin: '0 0 15px 0', color: 'var(--dark)', display: 'flex', alignItems: 'center', gap: '8px', borderBottom: '1px solid var(--gray)', paddingBottom: '8px', fontSize: '15px', fontWeight: 'bold' }}>
-              <span className="material-symbols-outlined" style={{ color: 'var(--primary)', fontSize: '20px' }}>person</span> Profilo Personale
-            </h3>
+          {/* CATEGORY 1: PROFILO & ACCOUNT */}
+          <div className="settings-instagram-section">
+            <div className="section-title">Profilo e Account</div>
             
-            {/* Soprannome */}
-            <div style={{ marginBottom: '18px' }}>
-              <label style={{ fontSize: '12px', fontWeight: 'bold', color: 'var(--dark)', display: 'block', marginBottom: '4px' }}>Soprannome (Nome visualizzato)</label>
-              <p style={{ fontSize: '11px', color: 'var(--text-muted)', margin: '0 0 8px 0', lineHeight: '1.3' }}>
-                Il nome visibile a tutti sul tuo profilo e nei post (es. Giorgio Rossi).
-              </p>
-              <div style={{ display: 'flex', gap: '8px' }}>
+            {/* Row Cambia Foto Profilo */}
+            <div className="settings-row" onClick={() => setAvatarSelectorOpen(true)}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                <span className="material-symbols-outlined icon">photo_camera</span>
+                <div>
+                  <div className="row-label">Foto del profilo</div>
+                  <div className="row-desc">Aggiorna o scatta la foto del tuo profilo</div>
+                </div>
+              </div>
+              <span className="material-symbols-outlined chevron">chevron_right</span>
+            </div>
+
+            {/* Row Soprannome */}
+            <div className="settings-row-expanded">
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
+                <span className="material-symbols-outlined icon">badge</span>
+                <div>
+                  <div className="row-label">Nome visualizzato</div>
+                  <div className="row-desc">Il nome visibile a tutti sul tuo profilo e nei post</div>
+                </div>
+              </div>
+              <div style={{ display: 'flex', gap: '8px', marginTop: '10px' }}>
                 <input
                   type="text"
                   placeholder="Inserisci soprannome..."
                   value={newDisplayName}
                   onChange={(e) => setNewDisplayName(e.target.value)}
-                  style={{ flex: 1, padding: '10px 12px', borderRadius: '10px', border: '1px solid var(--gray)', fontSize: '13px', margin: 0 }}
+                  style={{ flex: 1, padding: '8px 12px', borderRadius: '10px', border: '1px solid var(--gray)', fontSize: '13px', margin: 0 }}
                 />
-                <button className="btn-main" onClick={handleSaveDisplayName} style={{ marginTop: 0, padding: '10px 16px', borderRadius: '10px', fontSize: '12px', height: 'auto', justifyContent: 'center' }}>
+                <button className="btn-main" onClick={handleSaveDisplayName} style={{ marginTop: 0, padding: '8px 16px', borderRadius: '10px', fontSize: '12px', height: 'auto', justifyContent: 'center' }}>
                   Salva
                 </button>
               </div>
             </div>
 
-            {/* Nickname */}
-            <div>
-              <label style={{ fontSize: '12px', fontWeight: 'bold', color: 'var(--dark)', display: 'block', marginBottom: '4px' }}>Nickname univoco (@username)</label>
-              <p style={{ fontSize: '11px', color: 'var(--text-muted)', margin: '0 0 8px 0', lineHeight: '1.3' }}>
-                L'identificativo unico per taggare e farsi trovare dagli amici.
-              </p>
-              <p style={{ fontSize: '11px', color: 'var(--danger)', fontWeight: 'bold', margin: '0 0 8px 0', lineHeight: '1.3' }}>
-                Nota: L'aggiornamento modificherà il tuo tag ed aggiornerà la lista dei tuoi amici automaticamente.
-              </p>
-              <div style={{ display: 'flex', gap: '8px' }}>
+            {/* Row Nickname */}
+            <div className="settings-row-expanded">
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
+                <span className="material-symbols-outlined icon">alternate_email</span>
+                <div>
+                  <div className="row-label">Nickname univoco (@username)</div>
+                  <div className="row-desc">L'identificativo unico per taggare e farsi trovare</div>
+                </div>
+              </div>
+              <div style={{ display: 'flex', gap: '8px', marginTop: '10px' }}>
                 <input
                   type="text"
                   placeholder="Nuovo Nickname..."
                   value={newNickname}
                   onChange={(e) => setNewNickname(e.target.value)}
-                  style={{ flex: 1, padding: '10px 12px', borderRadius: '10px', border: '1px solid var(--gray)', fontSize: '13px', margin: 0 }}
+                  style={{ flex: 1, padding: '8px 12px', borderRadius: '10px', border: '1px solid var(--gray)', fontSize: '13px', margin: 0 }}
                 />
-                <button className="btn-main" onClick={handleSaveNickname} style={{ marginTop: 0, padding: '10px 16px', borderRadius: '10px', fontSize: '12px', background: 'var(--primary-dark)', height: 'auto', justifyContent: 'center' }}>
+                <button className="btn-main" onClick={handleSaveNickname} style={{ marginTop: 0, padding: '8px 16px', borderRadius: '10px', fontSize: '12px', background: 'var(--primary-dark)', height: 'auto', justifyContent: 'center' }}>
                   Aggiorna
+                </button>
+              </div>
+            </div>
+
+            {/* Row Codice di Stappo (Password) */}
+            <div className="settings-row-expanded">
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
+                <span className="material-symbols-outlined icon" style={{ color: 'var(--social-blue)' }}>lock</span>
+                <div>
+                  <div className="row-label">Codice di Stappo (Password)</div>
+                  <div className="row-desc">Cambia il codice segreto del tuo account</div>
+                </div>
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '10px' }}>
+                <input
+                  type="password"
+                  placeholder="Vecchio codice di stappo"
+                  value={oldPassword}
+                  onChange={(e) => setOldPassword(e.target.value)}
+                  style={{ display: 'block', width: '100%', padding: '8px 12px', borderRadius: '10px', border: '1px solid var(--gray)', fontSize: '13px', boxSizing: 'border-box' }}
+                />
+                <input
+                  type="password"
+                  placeholder="Nuovo codice di stappo"
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  style={{ display: 'block', width: '100%', padding: '8px 12px', borderRadius: '10px', border: '1px solid var(--gray)', fontSize: '13px', boxSizing: 'border-box' }}
+                />
+                <input
+                  type="password"
+                  placeholder="Conferma nuovo codice"
+                  value={confirmNewPassword}
+                  onChange={(e) => setConfirmNewPassword(e.target.value)}
+                  style={{ display: 'block', width: '100%', padding: '8px 12px', borderRadius: '10px', border: '1px solid var(--gray)', fontSize: '13px', boxSizing: 'border-box' }}
+                />
+                <button className="btn-main" onClick={handleUpdatePassword} style={{ marginTop: 4, background: 'var(--social-blue)', justifyContent: 'center', width: '100%', padding: '10px' }}>
+                  Aggiorna codice
                 </button>
               </div>
             </div>
           </div>
 
-          {/* SEZIONE 2: SICUREZZA */}
-          <div className="settings-section-card" style={{ background: 'var(--white)', padding: '20px', borderRadius: '20px', boxShadow: '0 4px 15px rgba(0,0,0,0.03)', border: '1px solid var(--gray)', marginBottom: '20px' }}>
-            <h3 style={{ margin: '0 0 15px 0', color: 'var(--dark)', display: 'flex', alignItems: 'center', gap: '8px', borderBottom: '1px solid var(--gray)', paddingBottom: '8px', fontSize: '15px', fontWeight: 'bold' }}>
-              <span className="material-symbols-outlined" style={{ color: 'var(--social-blue)', fontSize: '20px' }}>lock</span> Codice di Stappo (Password)
-            </h3>
-            <p style={{ fontSize: '11px', color: 'var(--text-muted)', margin: '0 0 12px 0', lineHeight: '1.3' }}>
-              Inserisci il vecchio codice per autorizzare la modifica, poi inserisci e conferma il nuovo.
-            </p>
-            <input
-              type="password"
-              placeholder="Vecchio codice di stappo"
-              value={oldPassword}
-              onChange={(e) => setOldPassword(e.target.value)}
-              style={{ display: 'block', width: '100%', padding: '10px 12px', borderRadius: '10px', border: '1px solid var(--gray)', fontSize: '13px', marginBottom: '10px', boxSizing: 'border-box' }}
-            />
-            <input
-              type="password"
-              placeholder="Nuovo codice di stappo"
-              value={newPassword}
-              onChange={(e) => setNewPassword(e.target.value)}
-              style={{ display: 'block', width: '100%', padding: '10px 12px', borderRadius: '10px', border: '1px solid var(--gray)', fontSize: '13px', marginBottom: '10px', boxSizing: 'border-box' }}
-            />
-            <input
-              type="password"
-              placeholder="Conferma nuovo codice"
-              value={confirmNewPassword}
-              onChange={(e) => setConfirmNewPassword(e.target.value)}
-              style={{ display: 'block', width: '100%', padding: '10px 12px', borderRadius: '10px', border: '1px solid var(--gray)', fontSize: '13px', marginBottom: '15px', boxSizing: 'border-box' }}
-            />
-            <button className="btn-main" onClick={handleUpdatePassword} style={{ marginTop: 0, background: 'var(--social-blue)', justifyContent: 'center', width: '100%', padding: '12px' }}>
-              Aggiorna codice di stappo
-            </button>
-          </div>
+          {/* CATEGORY 2: PREFERENZE DELL'APP */}
+          <div className="settings-instagram-section">
+            <div className="section-title">Preferenze dell'App</div>
 
-          {/* SEZIONE 3: PREFERENZE APPLICAZIONE */}
-          <div className="settings-section-card" style={{ background: 'var(--white)', padding: '20px', borderRadius: '20px', boxShadow: '0 4px 15px rgba(0,0,0,0.03)', border: '1px solid var(--gray)', marginBottom: '20px' }}>
-            <h3 style={{ margin: '0 0 15px 0', color: 'var(--dark)', display: 'flex', alignItems: 'center', gap: '8px', borderBottom: '1px solid var(--gray)', paddingBottom: '8px', fontSize: '15px', fontWeight: 'bold' }}>
-              <span className="material-symbols-outlined" style={{ color: 'var(--accent)', fontSize: '20px' }}>settings_suggest</span> Preferenze Applicazione
-            </h3>
-            
-            {/* Toggle Effetti Sonori */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
-              <div style={{ flex: 1, paddingRight: '10px' }}>
-                <div style={{ fontSize: '13px', fontWeight: 'bold', color: 'var(--dark)' }}>Suoni dello Stappo</div>
-                <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Riproduci suoni ed animazioni allo sblocco delle birre.</div>
+            {/* Row Tema */}
+            <div className="settings-row-expanded">
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
+                <span className="material-symbols-outlined icon">palette</span>
+                <div>
+                  <div className="row-label">Tema dell'applicazione</div>
+                  <div className="row-desc">Personalizza i colori dominanti dell'app</div>
+                </div>
               </div>
-              <label className="switch" style={{ position: 'relative', display: 'inline-block', width: '42px', height: '22px' }}>
+              <div style={{ display: 'flex', gap: '10px', background: '#FAFAFC', padding: '10px', borderRadius: '12px', border: '1px solid var(--gray)', marginTop: '8px', justifyContent: 'center' }}>
+                {[
+                  { id: 'classic', color: '#FFB300', name: 'Pilsner (Classic)' },
+                  { id: 'amber', color: '#D35400', name: 'Amber Ale' },
+                  { id: 'dark', color: '#5C3D2E', name: 'Stout (Dark)' },
+                  { id: 'ipa', color: '#2D8A4E', name: 'Pale IPA' },
+                ].map((themeItem) => (
+                  <button
+                    key={themeItem.id}
+                    onClick={() => setCurrentTheme(themeItem.id)}
+                    style={{
+                      width: '32px',
+                      height: '32px',
+                      borderRadius: '50%',
+                      background: themeItem.color,
+                      border: currentTheme === themeItem.id ? '2.5px solid var(--dark)' : '1.5px solid var(--gray)',
+                      cursor: 'pointer',
+                      padding: 0,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      boxShadow: 'inset 0 1px 3px rgba(0,0,0,0.2)',
+                      transition: 'transform 0.1s ease',
+                    }}
+                    title={themeItem.name}
+                  >
+                    {currentTheme === themeItem.id && (
+                      <span className="material-symbols-outlined" style={{ fontSize: '16px', color: 'var(--white)', fontWeight: 'bold' }}>
+                        done
+                      </span>
+                    )}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Row Suoni dello Stappo */}
+            <div className="settings-row-expanded" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div style={{ flex: 1, paddingRight: '10px' }}>
+                <div className="row-label">Suoni dello Stappo</div>
+                <div className="row-desc">Riproduci effetti sonori allo sblocco delle birre.</div>
+              </div>
+              <label className="switch" style={{ position: 'relative', display: 'inline-block', width: '42px', height: '22px', flexShrink: 0 }}>
                 <input 
                   type="checkbox" 
                   checked={soundEnabled} 
@@ -1372,20 +1452,20 @@ export default function App() {
               </label>
             </div>
 
-            {/* Toggle Bollicine Intestazione */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
+            {/* Row Bollicine */}
+            <div className="settings-row-expanded" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <div style={{ flex: 1, paddingRight: '10px' }}>
-                <div style={{ fontSize: '13px', fontWeight: 'bold', color: 'var(--dark)' }}>Effetto Bollicine Birra</div>
-                <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Mostra bollicine animate che salgono nei banner.</div>
+                <div className="row-label">Effetto Bollicine Birra</div>
+                <div className="row-desc">Mostra bollicine animate nei banner.</div>
               </div>
-              <label className="switch" style={{ position: 'relative', display: 'inline-block', width: '42px', height: '22px' }}>
+              <label className="switch" style={{ position: 'relative', display: 'inline-block', width: '42px', height: '22px', flexShrink: 0 }}>
                 <input 
                   type="checkbox" 
                   checked={bubblesEnabled} 
                   onChange={(e) => {
                     setBubblesEnabled(e.target.checked);
                     localStorage.setItem('beerdex_bubbles', e.target.checked ? 'yes' : 'no');
-                    window.location.reload(); // Ricarichiamo per applicare/rimuovere i componenti FoamBubbles all'istante
+                    window.location.reload();
                   }}
                   style={{ opacity: 0, width: 0, height: 0 }}
                 />
@@ -1395,13 +1475,13 @@ export default function App() {
               </label>
             </div>
 
-            {/* Toggle Posizione GPS */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
+            {/* Row GPS */}
+            <div className="settings-row-expanded" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <div style={{ flex: 1, paddingRight: '10px' }}>
-                <div style={{ fontSize: '13px', fontWeight: 'bold', color: 'var(--dark)' }}>Usa GPS per tracciare i Pub</div>
-                <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Usa la geolocalizzazione per aggiungere i pub sulla mappa.</div>
+                <div className="row-label">Tracciamento Mappa (GPS)</div>
+                <div className="row-desc">Salva coordinate GPS per visualizzare sblocchi sulla mappa.</div>
               </div>
-              <label className="switch" style={{ position: 'relative', display: 'inline-block', width: '42px', height: '22px' }}>
+              <label className="switch" style={{ position: 'relative', display: 'inline-block', width: '42px', height: '22px', flexShrink: 0 }}>
                 <input 
                   type="checkbox" 
                   checked={gpsEnabled} 
@@ -1417,13 +1497,13 @@ export default function App() {
               </label>
             </div>
 
-            {/* Toggle Modalità Profilo Privato */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            {/* Row Profilo Privato */}
+            <div className="settings-row-expanded" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <div style={{ flex: 1, paddingRight: '10px' }}>
-                <div style={{ fontSize: '13px', fontWeight: 'bold', color: 'var(--dark)' }}>Profilo Privato</div>
-                <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Nascondi il tuo profilo dalle classifiche e ricerche pubbliche.</div>
+                <div className="row-label">Profilo Privato</div>
+                <div className="row-desc">Nascondi profilo da classifiche e ricerche pubbliche.</div>
               </div>
-              <label className="switch" style={{ position: 'relative', display: 'inline-block', width: '42px', height: '22px' }}>
+              <label className="switch" style={{ position: 'relative', display: 'inline-block', width: '42px', height: '22px', flexShrink: 0 }}>
                 <input 
                   type="checkbox" 
                   checked={privateMode} 
@@ -1440,17 +1520,31 @@ export default function App() {
             </div>
           </div>
 
-          {/* SEZIONE 4: ASSISTENZA & ESCI */}
-          <div className="settings-section-card" style={{ background: 'var(--white)', padding: '20px', borderRadius: '20px', boxShadow: '0 4px 15px rgba(0,0,0,0.03)', border: '1px solid var(--gray)', marginBottom: '20px', textAlign: 'center' }}>
-            <h3 style={{ margin: '0 0 10px 0', color: 'var(--dark)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', borderBottom: '1px solid var(--gray)', paddingBottom: '8px', fontSize: '15px', fontWeight: 'bold' }}>
-              <span className="material-symbols-outlined" style={{ color: 'var(--text-muted)', fontSize: '20px' }}>info</span> Info & Versione
-            </h3>
-            <p style={{ fontSize: '12px', color: 'var(--text-muted)', margin: '0 0 15px 0' }}>
-              BeerDex App v3.2.0 • Progetto Pair Programming
-            </p>
-            <button className="btn-logout" onClick={handleLogout} style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '12px', border: 'none', borderRadius: '10px', background: 'var(--danger)', color: 'white', cursor: 'pointer', fontWeight: 'bold' }}>
-              <span className="material-symbols-outlined">logout</span> Esci dall'App
-            </button>
+          {/* CATEGORY 3: ALTRE OPZIONI */}
+          <div className="settings-instagram-section">
+            <div className="section-title">Altre Opzioni</div>
+            
+            {/* Info row */}
+            <div className="settings-row-expanded" style={{ textAlign: 'center', background: '#FAFAFC', borderBottom: '1px solid rgba(226,232,240,0.4)' }}>
+              <div style={{ fontSize: '12px', fontWeight: 'bold', color: 'var(--text-muted)' }}>
+                BeerDex App v3.3.0
+              </div>
+              <div style={{ fontSize: '10px', color: 'var(--text-muted)', marginTop: '2px' }}>
+                Progetto Pair Programming • Powered by Vision AI
+              </div>
+            </div>
+
+            {/* Logout row */}
+            <div className="settings-row" onClick={handleLogout} style={{ background: '#FFF5F5' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                <span className="material-symbols-outlined icon" style={{ color: 'var(--danger)' }}>logout</span>
+                <div>
+                  <div className="row-label" style={{ color: 'var(--danger)' }}>Esci dall'applicazione</div>
+                  <div className="row-desc" style={{ color: '#E53E3E', opacity: 0.85 }}>Disconnetti il tuo account da questo dispositivo</div>
+                </div>
+              </div>
+              <span className="material-symbols-outlined chevron" style={{ color: '#FEB2B2' }}>chevron_right</span>
+            </div>
           </div>
         </div>
       </div>
@@ -1542,8 +1636,7 @@ export default function App() {
               onDeleteVariant={handleDeleteVariant}
               getUserRankTitle={getUserRankTitle}
               getAvatarZoomProps={getAvatarZoomProps}
-              currentTheme={currentTheme}
-              onChangeTheme={setCurrentTheme}
+              posts={globalPosts}
             />
           ) : null}
         </div>
@@ -1560,6 +1653,7 @@ export default function App() {
               onBack={() => navigateTo('page-leaderboard')}
               getUserRankTitle={getUserRankTitle}
               getAvatarZoomProps={getAvatarZoomProps}
+              posts={globalPosts}
             />
           ) : null}
         </div>

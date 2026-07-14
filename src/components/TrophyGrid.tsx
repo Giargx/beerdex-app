@@ -1,5 +1,5 @@
 import React from 'react';
-import { beers, getBasePoints } from '../beers';
+import { beers, getBasePoints, getBeerType } from '../beers';
 
 export interface PokedexEntry {
   photo: string;
@@ -7,6 +7,94 @@ export interface PokedexEntry {
   isShared: boolean;
   taggedFriend: string | null;
   brand: string;
+}
+
+export interface EventMedal {
+  id: string;
+  name: string;
+  year: number;
+  icon: string;
+  color: string;
+  isUnlocked: boolean;
+  desc: string;
+}
+
+export function getEventMedals(userPosts: any[]): EventMedal[] {
+  const currentYear = new Date().getFullYear();
+  const yearSet = new Set([2025, 2026, 2027, currentYear]);
+  userPosts.forEach(p => {
+    if (p.time) {
+      const yr = new Date(p.time).getFullYear();
+      if (!isNaN(yr)) yearSet.add(yr);
+    }
+  });
+
+  const years = Array.from(yearSet).sort((a, b) => b - a);
+  const medals: EventMedal[] = [];
+
+  years.forEach(year => {
+    // Filter posts for this year
+    const yearPosts = userPosts.filter(p => p.time && new Date(p.time).getFullYear() === year);
+
+    // 1. San Patrizio (March - Month index 2)
+    const marchPosts = yearPosts.filter(p => new Date(p.time).getMonth() === 2);
+    const irishScottishCount = marchPosts.filter(p => {
+      const beer = beers.find(b => b.brand === p.brand);
+      return beer && (beer.country === "Irlanda" || beer.country === "Scozia");
+    }).length;
+    const sanPatrizioUnlocked = irishScottishCount >= 2;
+    medals.push({
+      id: `patrizio-${year}`,
+      name: `San Patrizio ${year}`,
+      year,
+      icon: 'eco',
+      color: '#27ae60',
+      isUnlocked: sanPatrizioUnlocked,
+      desc: `Sblocca 2 birre d'Irlanda/Scozia a Marzo. (${irishScottishCount}/2)`
+    });
+
+    // 2. Solstizio d'Estate (June-August: month index 5, 6, 7)
+    const summerPosts = yearPosts.filter(p => {
+      const m = new Date(p.time).getMonth();
+      return m >= 5 && m <= 7;
+    });
+    const summerCount = summerPosts.filter(p => {
+      const type = getBeerType(p.brand, p.variant);
+      return type === "bionda" || type === "ipa";
+    }).length;
+    const summerUnlocked = summerCount >= 3;
+    medals.push({
+      id: `summer-${year}`,
+      name: `Solstizio d'Estate ${year}`,
+      year,
+      icon: 'wb_sunny',
+      color: '#f39c12',
+      isUnlocked: summerUnlocked,
+      desc: `Sblocca 3 Bionde o IPA in Estate (Giu-Ago). (${summerCount}/3)`
+    });
+
+    // 3. Oktoberfest (September-October: month index 8, 9)
+    const oktoberfestPosts = yearPosts.filter(p => {
+      const m = new Date(p.time).getMonth();
+      return m === 8 || m === 9;
+    });
+    const germanCount = oktoberfestPosts.filter(p => {
+      const beer = beers.find(b => b.brand === p.brand);
+      return beer && beer.country === "Germania";
+    }).length;
+    const oktoberfestUnlocked = germanCount >= 3;
+    medals.push({
+      id: `oktoberfest-${year}`,
+      name: `Oktoberfest ${year}`,
+      year,
+      icon: 'sports_bar',
+      color: '#d35400',
+      isUnlocked: oktoberfestUnlocked,
+      desc: `Sblocca 3 birre tedesche a Settembre/Ottobre. (${germanCount}/3)`
+    });
+  });
+
+  return medals;
 }
 
 interface TrophyGridProps {
@@ -18,7 +106,8 @@ interface TrophyGridProps {
   medalSortDir: number;
   onDeleteEntry?: (brand: string, variant: string) => void;
   showDeleteButton?: boolean;
-  mode?: 'medals' | 'variants';
+  mode?: 'medals' | 'variants' | 'events';
+  userPosts?: any[];
 }
 
 export const TrophyGrid: React.FC<TrophyGridProps> = ({
@@ -30,8 +119,10 @@ export const TrophyGrid: React.FC<TrophyGridProps> = ({
   onDeleteEntry,
   showDeleteButton = false,
   mode,
+  userPosts = [],
 }) => {
   const rarityMap = { comune: 1, media: 2, rara: 3 };
+  const eventMedalsList = getEventMedals(userPosts);
 
   // Calculate unlock count per brand
   const brandUnlockCounts: Record<string, number> = {};
@@ -224,6 +315,47 @@ export const TrophyGrid: React.FC<TrophyGridProps> = ({
                     </span>
                   </button>
                 )}
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {/* Event Medals Grid Section */}
+      {mode === 'events' && (
+        <div className="trophy-grid" id="eventMedalsGrid">
+          {eventMedalsList.map((medal) => {
+            const iconColor = medal.isUnlocked ? medal.color : 'var(--text-muted)';
+            const medalIcon = medal.isUnlocked ? medal.icon : 'lock';
+            return (
+              <div
+                key={medal.id}
+                className={`medal-badge-card ${medal.isUnlocked ? 'unlocked' : ''}`}
+                style={{
+                  opacity: medal.isUnlocked ? 1 : 0.65,
+                  padding: '12px 10px',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  textAlign: 'center',
+                }}
+              >
+                {medal.isUnlocked && (
+                  <div className="pts-badge" style={{ background: '#27ae60' }}>
+                    +15pt
+                  </div>
+                )}
+                <div className="medal-icon-container" style={{ color: iconColor, marginBottom: '6px' }}>
+                  <span className="material-symbols-outlined" style={{ fontSize: '40px' }}>
+                    {medalIcon}
+                  </span>
+                </div>
+                <div style={{ fontSize: '11px', fontWeight: 'bold', color: 'var(--dark)', lineHeight: 1.2 }}>
+                  {medal.name}
+                </div>
+                <div style={{ fontSize: '9px', color: 'var(--text-muted)', marginTop: '4px', lineHeight: 1.2 }}>
+                  {medal.desc}
+                </div>
               </div>
             );
           })}

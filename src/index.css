@@ -1190,3 +1190,63 @@ header.hero p {
     100% { transform: scale(1); opacity: 1; }
 }
 
+/* INSTAGRAM STYLE SETTINGS LAYOUT */
+.settings-instagram-section {
+    background: var(--white);
+    border-radius: 16px;
+    border: 1px solid var(--gray);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.02);
+    margin-bottom: 20px;
+    overflow: hidden;
+}
+.settings-instagram-section .section-title {
+    font-size: 11px;
+    font-weight: 800;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    padding: 14px 16px 8px 16px;
+    letter-spacing: 0.8px;
+    border-bottom: 1px solid rgba(226, 232, 240, 0.4);
+    background: #FAFAFC;
+}
+.settings-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 16px;
+    border-bottom: 1px solid rgba(226, 232, 240, 0.4);
+    cursor: pointer;
+    transition: background 0.2s ease;
+}
+.settings-row:last-child {
+    border-bottom: none;
+}
+.settings-row:hover {
+    background: #F8FAFC;
+}
+.settings-row-expanded {
+    padding: 14px 16px;
+    border-bottom: 1px solid rgba(226, 232, 240, 0.4);
+}
+.settings-row-expanded:last-child {
+    border-bottom: none;
+}
+.settings-row .icon, .settings-row-expanded .icon {
+    font-size: 20px;
+    color: var(--primary-dark);
+}
+.settings-row .row-label, .settings-row-expanded .row-label {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--dark);
+}
+.settings-row .row-desc, .settings-row-expanded .row-desc {
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-top: 2px;
+}
+.settings-row .chevron {
+    font-size: 18px;
+    color: #94A3B8;
+}
+
