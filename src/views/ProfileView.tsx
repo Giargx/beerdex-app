@@ -216,9 +216,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
         {/* User avatar display card */}
         <div style={{ textAlign: 'center', padding: '30px 20px 20px 20px' }}>
           <div
-            style={{ cursor: 'pointer', display: 'inline-block', position: 'relative' }}
-            title="Cambia foto profilo"
-            onClick={onOpenAvatarSelector}
+            style={{ display: 'inline-block', position: 'relative' }}
           >
             <div
               id="profileAvatarDisplay"
@@ -239,7 +237,12 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
               }}
             >
               {avatar ? (
-                <img src={avatar} alt={currentUserNick} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                <img
+                  src={avatar}
+                  alt={currentUserNick}
+                  style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                  onContextMenu={(e) => e.preventDefault()}
+                />
               ) : (
                 <span className="material-symbols-outlined" style={{ fontSize: '40px' }}>
                   person
@@ -247,6 +250,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
               )}
             </div>
             <div
+              onClick={onOpenAvatarSelector}
               style={{
                 position: 'absolute',
                 bottom: '15px',
@@ -261,7 +265,9 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
                 justifyContent: 'center',
                 border: '2px solid var(--primary)',
                 color: 'var(--dark)',
+                cursor: 'pointer',
               }}
+              title="Cambia foto profilo"
             >
               <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>
                 photo_camera
@@ -435,6 +441,18 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
             </div>
           </div>
 
+          <TrophyGrid
+            pokedex={myPokedex}
+            isPub={false}
+            variantSortOption={variantSort}
+            variantSortDir={variantSortDir}
+            medalSortOption={medalSort}
+            medalSortDir={medalSortDir}
+            onDeleteEntry={onDeleteVariant}
+            showDeleteButton={true}
+            mode="medals"
+          />
+
           {/* Variants sorting controls */}
           <div
             style={{
@@ -501,6 +519,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
             medalSortDir={medalSortDir}
             onDeleteEntry={onDeleteVariant}
             showDeleteButton={true}
+            mode="variants"
           />
         </div>
       )}

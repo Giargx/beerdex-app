@@ -11,13 +11,14 @@ export interface PokedexEntry {
 
 interface TrophyGridProps {
   pokedex: Record<string, PokedexEntry>;
-  isPub: boolean;
+  isPub?: boolean;
   variantSortOption: "alpha" | "unlocked" | "rarity" | "nation";
   variantSortDir: number;
   medalSortOption: "alpha" | "unlocked" | "rarity" | "nation";
   medalSortDir: number;
   onDeleteEntry?: (brand: string, variant: string) => void;
   showDeleteButton?: boolean;
+  mode?: 'medals' | 'variants';
 }
 
 export const TrophyGrid: React.FC<TrophyGridProps> = ({
@@ -28,6 +29,7 @@ export const TrophyGrid: React.FC<TrophyGridProps> = ({
   medalSortDir,
   onDeleteEntry,
   showDeleteButton = false,
+  mode,
 }) => {
   const rarityMap = { comune: 1, media: 2, rara: 3 };
 
@@ -129,94 +131,104 @@ export const TrophyGrid: React.FC<TrophyGridProps> = ({
   return (
     <>
       {/* Medals Grid Section */}
-      <div className="trophy-grid" id="brandMedalsGrid">
-        {brandMedalsList.map((beerObj) => {
-          const medalIcon = beerObj.isCompleted ? 'workspace_premium' : 'circle';
-          const iconColor = beerObj.isCompleted ? 'var(--gold)' : 'var(--text-muted)';
-          
-          return (
-            <div
-              key={`medal-${beerObj.brand}`}
-              className={`medal-badge-card ${beerObj.isCompleted ? 'unlocked' : ''}`}
-            >
-              {beerObj.isCompleted && (
-                <div className="pts-badge" style={{ background: '#e67e22' }}>
-                  +10pt
+      {(!mode || mode === 'medals') && (
+        <div className="trophy-grid" id="brandMedalsGrid">
+          {brandMedalsList.map((beerObj) => {
+            const medalIcon = beerObj.isCompleted ? 'workspace_premium' : 'circle';
+            const iconColor = beerObj.isCompleted ? 'var(--gold)' : 'var(--text-muted)';
+            
+            return (
+              <div
+                key={`medal-${beerObj.brand}`}
+                className={`medal-badge-card ${beerObj.isCompleted ? 'unlocked' : ''}`}
+              >
+                {beerObj.isCompleted && (
+                  <div className="pts-badge" style={{ background: '#e67e22' }}>
+                    +10pt
+                  </div>
+                )}
+                <div className="medal-icon-container" style={{ color: iconColor }}>
+                  <span className="material-symbols-outlined" style={{ fontSize: '40px' }}>
+                    {medalIcon}
+                  </span>
                 </div>
-              )}
-              <div className="medal-icon-container" style={{ color: iconColor }}>
-                <span className="material-symbols-outlined" style={{ fontSize: '40px' }}>
-                  {medalIcon}
-                </span>
+                <div style={{ fontSize: '11px', fontWeight: 'bold', color: 'var(--dark)', lineHeight: 1.2 }}>
+                  Maestro<br />{beerObj.brand}
+                </div>
               </div>
-              <div style={{ fontSize: '11px', fontWeight: 'bold', color: 'var(--dark)', lineHeight: 1.2 }}>
-                Maestro<br />{beerObj.brand}
-              </div>
-            </div>
-          );
-        })}
-      </div>
+            );
+          })}
+        </div>
+      )}
 
-      {/* Title separator before variants */}
-      <div style={{ borderBottom: '2px solid var(--gray)', margin: '15px 20px 20px 20px' }}></div>
+      {/* Title separator before variants - only if rendering both */}
+      {!mode && (
+        <div style={{ borderBottom: '2px solid var(--gray)', margin: '15px 20px 20px 20px' }}></div>
+      )}
 
       {/* Variants Grid Section */}
-      <div className="trophy-grid" id="trophyGrid">
-        {allVariantsList.map((item) => {
-          const uniqueId = `${item.brand}-${item.variant}`;
-          return (
-            <div
-              key={`variant-${uniqueId}`}
-              className={`trophy-card ${item.isUnlocked ? 'unlocked' : ''} ${item.isShiny ? 'shiny-card' : ''}`}
-            >
-              {item.isUnlocked && (
-                <div className="pts-badge">+{item.finalPts}pt</div>
-              )}
-              {item.isUnlocked && item.muls.length > 0 && (
-                <div className="mul-badge">
-                  {item.muls.map((iconName) => (
-                    <span
-                      key={iconName}
-                      className="material-symbols-outlined"
-                      style={{ fontSize: '12px' }}
-                    >
-                      {iconName}
+      {(!mode || mode === 'variants') && (
+        <div className="trophy-grid" id="trophyGrid">
+          {allVariantsList.map((item) => {
+            const uniqueId = `${item.brand}-${item.variant}`;
+            return (
+              <div
+                key={`variant-${uniqueId}`}
+                className={`trophy-card ${item.isUnlocked ? 'unlocked' : ''} ${item.isShiny ? 'shiny-card' : ''}`}
+              >
+                {item.isUnlocked && (
+                  <div className="pts-badge">+{item.finalPts}pt</div>
+                )}
+                {item.isUnlocked && item.muls.length > 0 && (
+                  <div className="mul-badge">
+                    {item.muls.map((iconName) => (
+                      <span
+                        key={iconName}
+                        className="material-symbols-outlined"
+                        style={{ fontSize: '12px' }}
+                      >
+                        {iconName}
+                      </span>
+                    ))}
+                    <span>x{item.muls.length * 2}</span>
+                  </div>
+                )}
+                
+                <div className="trophy-brand">{item.brand}</div>
+                
+                <div className="trophy-img-container">
+                  {item.isUnlocked ? (
+                    <img
+                      src={item.photo}
+                      alt={item.variant}
+                      onContextMenu={(e) => e.preventDefault()}
+                    />
+                  ) : (
+                    <span className="material-symbols-outlined" style={{ fontSize: '32px' }}>
+                      sports_bar
                     </span>
-                  ))}
-                  <span>x{item.muls.length * 2}</span>
+                  )}
                 </div>
-              )}
-              
-              <div className="trophy-brand">{item.brand}</div>
-              
-              <div className="trophy-img-container">
-                {item.isUnlocked ? (
-                  <img src={item.photo} alt={item.variant} />
-                ) : (
-                  <span className="material-symbols-outlined" style={{ fontSize: '32px' }}>
-                    sports_bar
-                  </span>
+                
+                <div className="trophy-name">{item.variant}</div>
+                
+                {showDeleteButton && item.isUnlocked && onDeleteEntry && (
+                  <button
+                    className="btn-delete"
+                    onClick={() => onDeleteEntry(item.brand, item.variant)}
+                    title="Elimina sblocco"
+                    style={{ position: 'absolute', bottom: '5px', right: '5px', opacity: 0.7 }}
+                  >
+                    <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>
+                      delete
+                    </span>
+                  </button>
                 )}
               </div>
-              
-              <div className="trophy-name">{item.variant}</div>
-              
-              {showDeleteButton && item.isUnlocked && onDeleteEntry && (
-                <button
-                  className="btn-delete"
-                  onClick={() => onDeleteEntry(item.brand, item.variant)}
-                  title="Elimina sblocco"
-                  style={{ position: 'absolute', bottom: '5px', right: '5px', opacity: 0.7 }}
-                >
-                  <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>
-                    delete
-                  </span>
-                </button>
-              )}
-            </div>
-          );
-        })}
-      </div>
+            );
+          })}
+        </div>
+      )}
     </>
   );
 };

@@ -102,7 +102,7 @@ export default function App() {
     }
     longPressTimeout.current = window.setTimeout(() => {
       setZoomedAvatarUrl(avatarUrl || 'generic');
-    }, 200);
+    }, 300); // 300ms long press delay
   };
 
   const handleAvatarPressEnd = () => {
@@ -110,7 +110,6 @@ export default function App() {
       window.clearTimeout(longPressTimeout.current);
       longPressTimeout.current = null;
     }
-    setZoomedAvatarUrl(null);
   };
 
   const getAvatarZoomProps = (avatarUrl: string | undefined) => {
@@ -203,6 +202,7 @@ export default function App() {
   const [pubProfileScore, setPubProfileScore] = useState<number>(0);
 
   const touchStartX = useRef<number>(0);
+  const touchStartY = useRef<number>(0);
 
   const isAnyModalOpen =
     authOpen ||
@@ -396,7 +396,7 @@ export default function App() {
 
   // Slide directional gesture swipe
   const handleSwipeGesture = (touchEndX: number) => {
-    const swipeThreshold = 65;
+    const swipeThreshold = 100; // Increased from 65 to reduce sensitivity
     const mainTabs = ['page-home', 'page-explore', 'page-leaderboard', 'page-social', 'page-profile'];
     const currentIndex = mainTabs.indexOf(currentPage);
     if (currentIndex === -1) return;
@@ -418,6 +418,7 @@ export default function App() {
     const handleTouchStart = (e: TouchEvent) => {
       if (isAnyModalOpen) {
         touchStartX.current = 0;
+        touchStartY.current = 0;
         return;
       }
       const target = e.target as HTMLElement;
@@ -428,14 +429,28 @@ export default function App() {
         target.closest('.leaflet-container')
       ) {
         touchStartX.current = 0;
+        touchStartY.current = 0;
         return;
       }
       touchStartX.current = e.changedTouches[0].screenX;
+      touchStartY.current = e.changedTouches[0].screenY;
     };
 
     const handleTouchEnd = (e: TouchEvent) => {
       if (touchStartX.current === 0) return;
       const touchEndX = e.changedTouches[0].screenX;
+      const touchEndY = e.changedTouches[0].screenY;
+      
+      const deltaX = touchEndX - touchStartX.current;
+      const deltaY = touchEndY - touchStartY.current;
+
+      // Ignore gesture if vertical movement is greater than horizontal movement or vertical movement is substantial
+      if (Math.abs(deltaY) > Math.abs(deltaX) || Math.abs(deltaY) > 60) {
+        touchStartX.current = 0;
+        touchStartY.current = 0;
+        return;
+      }
+
       handleSwipeGesture(touchEndX);
     };
 
@@ -1647,6 +1662,8 @@ export default function App() {
       {/* Zoomed Profile Avatar modal */}
       {zoomedAvatarUrl && (
         <div
+          onClick={() => setZoomedAvatarUrl(null)}
+          onTouchStart={() => setZoomedAvatarUrl(null)}
           style={{
             position: 'fixed',
             top: 0,
@@ -1659,11 +1676,13 @@ export default function App() {
             alignItems: 'center',
             justifyContent: 'center',
             zIndex: 99999,
-            pointerEvents: 'none',
+            pointerEvents: 'auto',
             animation: 'fadeIn 0.2s ease-out',
+            cursor: 'zoom-out',
           }}
         >
           <div
+            onClick={(e) => e.stopPropagation()} // Prevent closing when clicking the image container directly
             style={{
               width: '280px',
               height: '280px',
@@ -1683,9 +1702,10 @@ export default function App() {
                 src={zoomedAvatarUrl}
                 alt="Zoomed Avatar"
                 style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                onContextMenu={(e) => e.preventDefault()}
               />
             ) : (
-              <span className="material-symbols-outlined" style={{ fontSize: '120px', color: 'var(--text-muted)' }}>
+              <span className="material-symbols-outlined" style={{ fontSize: '120px', color: 'var(--text-muted)' }} onContextMenu={(e) => e.preventDefault()}>
                 person
               </span>
             )}

@@ -1,6 +1,7 @@
 import React from 'react';
 import { playClinkSound } from '../utils/audio';
 import { FoamBubbles } from '../components/FoamBubbles';
+import { getBasePoints } from '../beers';
 
 interface Post {
   postId: string;
@@ -151,9 +152,37 @@ export const PubView: React.FC<PubViewProps> = ({
               const canDelete = post.user === currentUserNick || isAdminUser;
               const canReport = post.user !== currentUserNick && !isAdminUser;
 
+              // Calculate points received upon unlocking
+              const basePts = getBasePoints(post.brand, post.variant);
+              let earnedPts = basePts;
+              if (post.isShiny) earnedPts *= 2;
+              if (post.isShared) earnedPts *= 2;
+
+              const pointsBadge = (
+                <span
+                  className="pts-tag"
+                  style={{
+                    color: 'white',
+                    fontWeight: 'bold',
+                    fontSize: '11px',
+                    background: '#e67e22',
+                    padding: '2px 6px',
+                    borderRadius: '6px',
+                    marginLeft: '6px',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    boxShadow: '0 1px 3px rgba(0,0,0,0.15)',
+                    verticalAlign: 'middle'
+                  }}
+                >
+                  +{earnedPts} pt
+                </span>
+              );
+
               let actionText: React.ReactNode = (
                 <>
                   ha sbloccato la 🍺 <strong className="beer-highlight">{post.brand}</strong> ({post.variant})
+                  {pointsBadge}
                 </>
               );
 
@@ -164,6 +193,7 @@ export const PubView: React.FC<PubViewProps> = ({
                     <strong className="clickable-user" onClick={() => onOpenPublicProfile(post.taggedFriend!)}>
                       {post.taggedFriend}
                     </strong>
+                    {pointsBadge}
                   </>
                 );
               }
@@ -188,7 +218,13 @@ export const PubView: React.FC<PubViewProps> = ({
                         {...(getAvatarZoomProps ? getAvatarZoomProps(avatar) : {})}
                       >
                         {avatar ? (
-                          <img src={avatar} alt={post.user} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                          <img
+                            src={avatar}
+                            alt={post.user}
+                            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                            onContextMenu={(e) => e.preventDefault()}
+                            draggable={false}
+                          />
                         ) : (
                           <span className="material-symbols-outlined" style={{ fontSize: '24px' }}>
                             person
@@ -229,6 +265,8 @@ export const PubView: React.FC<PubViewProps> = ({
                       className="post-image"
                       alt="Beer Unlock"
                       onDoubleClick={(e) => handlePostDoubleTap(post.postId, e)}
+                      onContextMenu={(e) => e.preventDefault()}
+                      draggable={false}
                     />
                   </div>
 

@@ -787,7 +787,7 @@ header.hero p {
 .post-user { font-weight: 800; font-size: 15px; color: var(--dark); margin-left: 12px; } 
 .post-time { font-size: 11px; color: var(--text-muted); margin-left: 12px; } 
 
-.post-image { width: 100%; height: 45vh; object-fit: cover; background: #F1F5F9; display: block; border-bottom: 1px solid rgba(226, 232, 240, 0.4); }
+.post-image { width: 100%; height: auto; max-height: 50vh; object-fit: contain; background: #0c0c0e; display: block; border-bottom: 1px solid rgba(226, 232, 240, 0.4); -webkit-touch-callout: none; }
 
 .post-actions { display: flex; align-items: center; padding: 12px 20px 8px 20px; }
 .btn-like { 
@@ -836,7 +836,7 @@ header.hero p {
 @media (min-width: 600px) {
     .social-page-container { border-radius: 28px 28px 0 0; box-shadow: 0 -10px 30px rgba(0,0,0,0.02); background: var(--white); padding: 30px 20px; margin-top: -35px; }
     .post-card { border-radius: 24px; border: 1px solid rgba(226, 232, 240, 0.8); margin-bottom: 24px; box-shadow: var(--card-shadow); }
-    .post-image { height: 480px; }
+    .post-image { height: auto; max-height: 480px; }
 }
 
 /* CIN ANIMATION ON POST IMAGE */
@@ -1065,7 +1065,7 @@ header.hero p {
     .settings-content { padding: 60px 16px 100px 16px !important; }
     .post-card { margin-bottom: 12px !important; }
     .post-user, .post-time { margin-left: 10px !important; }
-    .post-image { height: 42vh !important; }
+    .post-image { height: auto !important; max-height: 42vh !important; }
     .post-caption { font-size: 13px !important; padding: 6px 12px 12px 12px !important; }
     .post-time { flex-wrap: wrap !important; }
     

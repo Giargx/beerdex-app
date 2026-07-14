@@ -116,6 +116,7 @@ export const BeerCard: React.FC<BeerCardProps> = ({
                       src={entry.photo}
                       className="thumb-preview"
                       alt={variant}
+                      onContextMenu={(e) => e.preventDefault()}
                       onClick={() => {
                         // Optional preview action if needed, or do nothing since doubletap works on feed
                       }}

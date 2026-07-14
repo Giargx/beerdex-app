@@ -187,6 +187,17 @@ export const PublicProfileView: React.FC<PublicProfileViewProps> = ({
           </div>
         </div>
 
+        <TrophyGrid
+          pokedex={pokedex}
+          isPub={true}
+          variantSortOption={variantSort}
+          variantSortDir={variantSortDir}
+          medalSortOption={medalSort}
+          medalSortDir={medalSortDir}
+          showDeleteButton={false}
+          mode="medals"
+        />
+
         {/* Variants sorting controls */}
         <div
           style={{
@@ -252,6 +263,7 @@ export const PublicProfileView: React.FC<PublicProfileViewProps> = ({
           medalSortOption={medalSort}
           medalSortDir={medalSortDir}
           showDeleteButton={false}
+          mode="variants"
         />
       </div>
     </div>
