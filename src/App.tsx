@@ -31,7 +31,7 @@ const pagesMapList = [
   'page-home',
   'page-explore',
   'page-leaderboard',
-  'page-pub',
+  'page-social',
   'page-profile',
   'page-friends',
   'page-rules',
