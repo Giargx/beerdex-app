@@ -1,5 +1,6 @@
 import React from 'react';
 import { playClinkSound } from '../utils/audio';
+import { FoamBubbles } from '../components/FoamBubbles';
 
 interface Post {
   postId: string;
@@ -18,6 +19,7 @@ interface PubViewProps {
   currentUserNick: string;
   posts: Post[];
   globalAvatars: Record<string, string>;
+  globalDisplayNames?: Record<string, string>;
   myFriendsList: string[];
   isAdminUser: boolean;
   onToggleLike: (postId: string, cardElement: HTMLElement | null) => void;
@@ -31,6 +33,7 @@ export const PubView: React.FC<PubViewProps> = ({
   currentUserNick,
   posts,
   globalAvatars,
+  globalDisplayNames,
   myFriendsList,
   isAdminUser,
   onToggleLike,
@@ -133,8 +136,9 @@ export const PubView: React.FC<PubViewProps> = ({
   return (
     <div className="page-container-view">
       <header className="hero">
-        <h1>Al Pub</h1>
-        <p>Scopri cosa stanno bevendo i tuoi amici al bancone.</p>
+        <FoamBubbles />
+        <h1 style={{ position: 'relative', zIndex: 2 }}>Al Pub</h1>
+        <p style={{ position: 'relative', zIndex: 2 }}>Scopri cosa stanno bevendo i tuoi amici al bancone.</p>
       </header>
 
       <div className="social-page-container">
@@ -193,7 +197,7 @@ export const PubView: React.FC<PubViewProps> = ({
                       </div>
                       <div>
                         <div className="post-user clickable-user" onClick={() => onOpenPublicProfile(post.user)}>
-                          {post.user}
+                          {globalDisplayNames?.[post.user] ? `${globalDisplayNames[post.user]} (@${post.user})` : post.user}
                         </div>
                         <div className="post-time" style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                           {timeStr}
@@ -258,7 +262,7 @@ export const PubView: React.FC<PubViewProps> = ({
 
                   <div className="post-caption">
                     <strong className="clickable-user" onClick={() => onOpenPublicProfile(post.user)}>
-                      {post.user}
+                      {globalDisplayNames?.[post.user] ? globalDisplayNames[post.user] : post.user}
                     </strong>{' '}
                     {actionText}
                   </div>

@@ -1,11 +1,13 @@
 import React from 'react';
+import { FoamBubbles } from '../components/FoamBubbles';
 
 export const RulesView: React.FC = () => {
   return (
     <div className="page-container-view">
       <header className="hero">
-        <h1>Le Regole del Pub</h1>
-        <p>Come funziona la sfida (senza fare i furbi!).</p>
+        <FoamBubbles />
+        <h1 style={{ position: 'relative', zIndex: 2 }}>Le Regole del Pub</h1>
+        <p style={{ position: 'relative', zIndex: 2 }}>Come funziona la sfida (senza fare i furbi!).</p>
       </header>
 
       <div className="page-container">

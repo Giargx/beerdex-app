@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { FoamBubbles } from '../components/FoamBubbles';
 
 interface Post {
   postId: string;
@@ -14,6 +15,7 @@ interface Post {
 
 interface HomeViewProps {
   currentUserNick: string;
+  currentUserDisplayName?: string;
   posts: Post[];
   leaderboardScores: Record<string, number>;
   onNavigate: (pageId: string) => void;
@@ -22,6 +24,7 @@ interface HomeViewProps {
 
 export const HomeView: React.FC<HomeViewProps> = ({
   currentUserNick,
+  currentUserDisplayName,
   posts,
   leaderboardScores,
   onNavigate,
@@ -73,33 +76,151 @@ export const HomeView: React.FC<HomeViewProps> = ({
   const myPosts = posts.filter((p) => p.user === currentUserNick);
   const lastPost = myPosts.length > 0 ? [...myPosts].sort((a, b) => b.time - a.time)[0] : null;
 
+  // Timed Event Banner Styles configuration
+  const getEventConfig = () => {
+    if (!timedEvent) {
+      return {
+        background: 'linear-gradient(135deg, #F8FAFC 0%, #F1F5F9 100%)',
+        border: '1px solid rgba(148, 163, 184, 0.25)',
+        color: 'var(--dark)',
+        titleColor: 'var(--dark)',
+        descColor: 'var(--text-muted)',
+        iconColor: '#64748B',
+        icon: 'calendar_month',
+        badge: null
+      };
+    }
+
+    if (timedEvent.name === "San Patrizio") {
+      return {
+        background: 'linear-gradient(135deg, #065F46 0%, #047857 100%)',
+        border: '1px solid rgba(16, 185, 129, 0.2)',
+        color: '#FFFFFF',
+        titleColor: '#A7F3D0',
+        descColor: '#E6FDF4',
+        iconColor: '#34D399',
+        icon: 'eco',
+        badge: '🍀 EVENTO ATTIVO'
+      };
+    }
+
+    if (timedEvent.name === "Solstizio d'Estate") {
+      return {
+        background: 'linear-gradient(135deg, #D97706 0%, #92400E 100%)',
+        border: '1px solid rgba(245, 158, 11, 0.2)',
+        color: '#FFFFFF',
+        titleColor: '#FDE68A',
+        descColor: '#FEF3C7',
+        iconColor: '#F59E0B',
+        icon: 'wb_sunny',
+        badge: '☀️ EVENTO ATTIVO'
+      };
+    }
+
+    if (timedEvent.name === "Oktoberfest") {
+      return {
+        background: 'linear-gradient(135deg, #B45309 0%, #78350F 100%)',
+        border: '1px solid rgba(245, 158, 11, 0.2)',
+        color: '#FFFFFF',
+        titleColor: '#FDE68A',
+        descColor: '#FEF3C7',
+        iconColor: '#F59E0B',
+        icon: 'sports_bar',
+        badge: '🍺 EVENTO ATTIVO'
+      };
+    }
+
+    return {
+      background: 'linear-gradient(135deg, #3B82F6 0%, #1D4ED8 100%)',
+      border: '1px solid rgba(59, 130, 246, 0.2)',
+      color: '#FFFFFF',
+      titleColor: '#BFDBFE',
+      descColor: '#EFF6FF',
+      iconColor: '#60A5FA',
+      icon: 'celebration',
+      badge: '🎉 EVENTO ATTIVO'
+    };
+  };
+
+  const eventConfig = getEventConfig();
+  const greetingName = currentUserDisplayName ? currentUserDisplayName : currentUserNick;
+
   return (
     <div className="page-container-view">
       <header className="hero">
-        <h1>Il mio Bancone</h1>
-        <p>Bentornato nel pub, <span style={{ fontWeight: 'bold' }}>{currentUserNick}</span>!</p>
+        <FoamBubbles />
+        <h1 style={{ position: 'relative', zIndex: 2 }}>Il mio Bancone</h1>
+        <p style={{ position: 'relative', zIndex: 2 }}>
+          Bentornato nel pub, <span style={{ fontWeight: 'bold' }}>{greetingName}</span>!
+        </p>
       </header>
 
       <div className="page-container">
-        <div className="dashboard-event" id="dashEventBox">
-          <div style={{ color: 'var(--social-blue)' }}>
-            <span className="material-symbols-outlined" style={{ fontSize: '36px' }}>
-              calendar_month
+        {/* Dynamic Timed Event Banner */}
+        <div 
+          className="dashboard-event" 
+          id="dashEventBox"
+          style={{
+            background: eventConfig.background,
+            border: eventConfig.border,
+            padding: '22px',
+            borderRadius: '24px',
+            marginBottom: '25px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '18px',
+            textAlign: 'left',
+            boxShadow: timedEvent ? '0 10px 25px rgba(180, 83, 9, 0.15)' : '0 4px 15px rgba(148, 163, 184, 0.05)',
+            position: 'relative',
+            overflow: 'hidden'
+          }}
+        >
+          {eventConfig.badge && (
+            <span style={{
+              position: 'absolute',
+              top: '12px',
+              right: '12px',
+              background: 'rgba(255, 255, 255, 0.2)',
+              color: '#FFFFFF',
+              fontSize: '10px',
+              fontWeight: 'bold',
+              padding: '4px 8px',
+              borderRadius: '20px',
+              letterSpacing: '0.5px',
+              backdropFilter: 'blur(4px)'
+            }}>
+              {eventConfig.badge}
+            </span>
+          )}
+
+          <div style={{ 
+            color: eventConfig.iconColor,
+            background: timedEvent ? 'rgba(255, 255, 255, 0.1)' : 'rgba(100, 116, 139, 0.08)',
+            padding: '12px',
+            borderRadius: '16px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center'
+          }}>
+            <span className="material-symbols-outlined" style={{ fontSize: '32px' }}>
+              {eventConfig.icon}
             </span>
           </div>
-          <div>
-            <h4 style={{ margin: '0 0 4px 0', color: 'var(--dark)' }}>Evento a Tempo Limitato</h4>
+          <div style={{ flex: 1, paddingRight: eventConfig.badge ? '80px' : '0' }}>
+            <h4 style={{ margin: '0 0 6px 0', color: eventConfig.titleColor, fontSize: '15px', fontWeight: 'bold' }}>
+              Evento a Tempo Limitato
+            </h4>
             {timedEvent ? (
-              <p style={{ margin: 0, fontSize: '13px', color: 'var(--text-muted)' }}>
-                <strong>{timedEvent.name} ATTIVO!</strong>
+              <p style={{ margin: 0, fontSize: '13px', color: eventConfig.descColor, lineHeight: '1.4' }}>
+                <strong style={{ fontSize: '14px' }}>{timedEvent.name} ATTIVO!</strong>
                 <br />
                 {timedEvent.desc}
               </p>
             ) : (
-              <p style={{ margin: 0, fontSize: '13px', color: 'var(--text-muted)' }}>
-                <strong>Nessun evento attivo</strong>
+              <p style={{ margin: 0, fontSize: '13px', color: eventConfig.descColor, lineHeight: '1.4' }}>
+                <strong>Nessun evento attivo in questo momento</strong>
                 <br />
-                Prossimi appuntamenti: San Patrizio (Marzo) e Oktoberfest (Settembre/Ottobre).
+                Prossimi eventi: San Patrizio (Marzo) e Oktoberfest (Settembre/Ottobre).
               </p>
             )}
           </div>
@@ -128,7 +249,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
         </h3>
 
         {lastPost ? (
-          <div className="dash-last-card">
+          <div className="dash-last-card" style={{ margin: '0 0 25px 0' }}>
             <img src={lastPost.photo} className="dash-last-img" alt="Ultima Birra" />
             <div className="dash-last-info">
               <h4 style={{ margin: '0 0 5px 0', color: 'var(--dark)', fontSize: '18px' }}>
@@ -151,14 +272,14 @@ export const HomeView: React.FC<HomeViewProps> = ({
             </div>
           </div>
         ) : (
-          <div className="dash-empty">
+          <div className="dash-empty" style={{ margin: '0 0 25px 0' }}>
             Nessuna birra sbloccata!
             <br />
             Inizia la tua avventura!
           </div>
         )}
 
-        <div style={{ padding: '0 20px', display: 'flex', flexDirection: 'column', gap: '10px', marginTop: '30px' }}>
+        <div style={{ padding: 0, display: 'flex', flexDirection: 'column', gap: '10px', marginTop: '30px' }}>
           <button
             className="btn-main"
             style={{
@@ -184,3 +305,4 @@ export const HomeView: React.FC<HomeViewProps> = ({
     </div>
   );
 };
+

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { beers, normalizeStr } from '../beers';
 import { BeerCard } from '../components/BeerCard';
 import type { PokedexEntry } from '../components/TrophyGrid';
+import { FoamBubbles } from '../components/FoamBubbles';
 
 interface ExploreViewProps {
   myPokedex: Record<string, PokedexEntry>;
@@ -62,8 +63,9 @@ export const ExploreView: React.FC<ExploreViewProps> = ({
   return (
     <div className="page-container-view">
       <header className="hero">
-        <h1>Esplora Birre</h1>
-        <p>Cerca, scopri e scatta per catturare nuove birre.</p>
+        <FoamBubbles />
+        <h1 style={{ position: 'relative', zIndex: 2 }}>Esplora Birre</h1>
+        <p style={{ position: 'relative', zIndex: 2 }}>Cerca, scopri e scatta per catturare nuove birre.</p>
       </header>
 
       <div className="page-container" style={{ marginTop: '-30px' }}>

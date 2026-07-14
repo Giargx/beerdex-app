@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { FoamBubbles } from '../components/FoamBubbles';
 
 interface FriendsViewProps {
   myFriendsList: string[];
@@ -30,8 +31,9 @@ export const FriendsView: React.FC<FriendsViewProps> = ({
   return (
     <div className="page-container-view">
       <header className="hero">
-        <h1>Gestione Amici</h1>
-        <p>Aggiungi, accetta e gestisci la tua cerchia.</p>
+        <FoamBubbles />
+        <h1 style={{ position: 'relative', zIndex: 2 }}>Gestione Amici</h1>
+        <p style={{ position: 'relative', zIndex: 2 }}>Aggiungi, accetta e gestisci la tua cerchia.</p>
       </header>
 
       <div className="page-container">

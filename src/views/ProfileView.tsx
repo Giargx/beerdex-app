@@ -5,6 +5,7 @@ import { beers } from '../beers';
 
 interface ProfileViewProps {
   currentUserNick: string;
+  currentUserDisplayName?: string;
   isAdminUser: boolean;
   myPokedex: Record<string, PokedexEntry>;
   globalAvatars: Record<string, string>;
@@ -20,6 +21,7 @@ interface ProfileViewProps {
 
 export const ProfileView: React.FC<ProfileViewProps> = ({
   currentUserNick,
+  currentUserDisplayName,
   isAdminUser,
   myPokedex,
   globalAvatars,
@@ -271,9 +273,14 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
             <div style={{ fontSize: '12px', letterSpacing: '1px', color: roleColor, marginBottom: '5px', fontWeight: 'bold' }}>
               {roleText}
             </div>
-            <div style={{ fontSize: '26px', color: 'var(--dark)', fontWeight: 900, marginBottom: '5px' }}>
-              {currentUserNick}
+            <div style={{ fontSize: '26px', color: 'var(--dark)', fontWeight: 900, marginBottom: '2px' }}>
+              {currentUserDisplayName ? currentUserDisplayName : currentUserNick}
             </div>
+            {currentUserDisplayName && (
+              <div style={{ fontSize: '14px', color: 'var(--text-muted)', fontWeight: 500, marginBottom: '8px' }}>
+                @{currentUserNick}
+              </div>
+            )}
             <div className="user-rank-title" style={{ marginBottom: 0, fontSize: '13px', padding: '5px 12px', display: 'inline-block' }}>
               {rankTitle}
             </div>
@@ -282,7 +289,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
           {/* Interface Brewery Themes selector */}
           <div style={{ marginTop: '18px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px' }}>
             <span style={{ fontSize: '11px', fontWeight: 'bold', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.8px' }}>
-              Tema Grafico
+              Tema
             </span>
             <div style={{ display: 'flex', gap: '8px', background: 'var(--white)', padding: '5px 10px', borderRadius: '20px', boxShadow: '0 4px 10px rgba(0,0,0,0.05)', border: '1px solid var(--gray)' }}>
               {[

@@ -360,15 +360,15 @@ export const ScannerModal: React.FC<ScannerModalProps> = ({
 
   return (
     <div className="auth-modal" style={{ zIndex: 18000 }}>
-      <div className="auth-container" style={{ maxWidth: '400px', width: '95%', padding: '20px' }}>
+      <div className="auth-container" style={{ maxWidth: '400px', width: '95%', padding: '20px', boxSizing: 'border-box' }}>
         <h3 style={{ marginTop: 0, color: 'var(--dark)', fontSize: '20px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
           <span className="material-symbols-outlined">barcode_scanner</span> Codice a Barre
         </h3>
-        <p style={{ color: 'var(--text-muted)', fontSize: '13px', marginBottom: '15px' }}>
+        <p style={{ color: 'var(--text-muted)', fontSize: '13px', marginBottom: '15px', textAlign: 'center' }}>
           Scatta una foto chiara al codice a barre sul retro per verificare l'autenticità di <strong>{currentTargetBrand}</strong>.
         </p>
 
-        <label className="btn-main" style={{ display: 'flex', textAlign: 'center', padding: '14px', cursor: 'pointer', justifyContent: 'center' }}>
+        <label className="btn-main" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', textAlign: 'center', padding: '14px', cursor: 'pointer', width: '100%', boxSizing: 'border-box' }}>
           <span className="material-symbols-outlined">photo_camera</span> Fotografa Codice a Barre
           <input
             type="file"
@@ -380,13 +380,13 @@ export const ScannerModal: React.FC<ScannerModalProps> = ({
         </label>
 
         <hr style={{ border: 0, borderTop: '1px solid var(--gray)', margin: '20px 0' }} />
-        <p style={{ fontSize: '12px', color: 'var(--dark)', fontWeight: 'bold', marginTop: 0 }}>
+        <p style={{ fontSize: '12px', color: 'var(--dark)', fontWeight: 'bold', marginTop: 0, textAlign: 'center' }}>
           Stai bevendo una birra alla spina?
         </p>
         <button
           className="btn-secondary"
           onClick={handleDraftBypass}
-          style={{ display: 'flex', textAlign: 'center', padding: '12px', marginTop: '5px', cursor: 'pointer', justifyContent: 'center', width: '100%' }}
+          style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', textAlign: 'center', padding: '12px', marginTop: '5px', cursor: 'pointer', width: '100%', boxSizing: 'border-box' }}
         >
           <span className="material-symbols-outlined">local_drink</span> È alla spina (Salta Scanner)
         </button>
@@ -394,9 +394,9 @@ export const ScannerModal: React.FC<ScannerModalProps> = ({
         <button
           className="btn-secondary"
           onClick={onClose}
-          style={{ marginTop: '15px', background: 'var(--danger)', color: 'white', border: 'none', justifyContent: 'center' }}
+          style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', marginTop: '15px', background: 'var(--danger)', color: 'white', border: 'none', width: '100%', boxSizing: 'border-box', padding: '12px' }}
         >
-          Annulla
+          <span className="material-symbols-outlined">close</span> Annulla
         </button>
       </div>
     </div>

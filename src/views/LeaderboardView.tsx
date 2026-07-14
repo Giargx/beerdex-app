@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { normalizeStr } from '../beers';
+import { FoamBubbles } from '../components/FoamBubbles';
 
 interface LeaderboardViewProps {
   currentUserNick: string;
@@ -8,6 +9,7 @@ interface LeaderboardViewProps {
   mySentRequests: string[];
   myReceivedRequests: string[];
   globalAvatars: Record<string, string>;
+  globalDisplayNames?: Record<string, string>;
   onAddFriend: (name: string) => void;
   onOpenPublicProfile: (name: string) => void;
   onNavigateToFriends: () => void;
@@ -22,6 +24,7 @@ export const LeaderboardView: React.FC<LeaderboardViewProps> = ({
   mySentRequests,
   myReceivedRequests,
   globalAvatars,
+  globalDisplayNames,
   onAddFriend,
   onOpenPublicProfile,
   onNavigateToFriends,
@@ -130,8 +133,9 @@ export const LeaderboardView: React.FC<LeaderboardViewProps> = ({
   return (
     <div className="page-container-view">
       <header className="hero">
-        <h1>Classifiche</h1>
-        <p>Sfidali a colpi di boccali e controlla chi domina il Pub.</p>
+        <FoamBubbles />
+        <h1 style={{ position: 'relative', zIndex: 2 }}>Classifiche</h1>
+        <p style={{ position: 'relative', zIndex: 2 }}>Sfidali a colpi di boccali e controlla chi domina il Pub.</p>
       </header>
 
       <div className="page-container">
@@ -259,11 +263,11 @@ export const LeaderboardView: React.FC<LeaderboardViewProps> = ({
                     </div>
                     <div className="lb-user">
                       <span className="clickable-user" onClick={() => onOpenPublicProfile(player.name)}>
-                        {player.name}
+                        {globalDisplayNames?.[player.name] ? globalDisplayNames[player.name] : player.name}
                       </span>
                       <br />
                       <small style={{ fontSize: '11px', color: 'var(--text-muted)', fontWeight: 'normal' }}>
-                        {rankLabel}
+                        {globalDisplayNames?.[player.name] ? `@${player.name} • ${rankLabel}` : rankLabel}
                       </small>
                     </div>
                   </div>

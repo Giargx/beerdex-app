@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
 import { TrophyGrid } from '../components/TrophyGrid';
 import type { PokedexEntry } from '../components/TrophyGrid';
+import { FoamBubbles } from '../components/FoamBubbles';
 
 interface PublicProfileViewProps {
   username: string;
+  displayName?: string;
   pokedex: Record<string, PokedexEntry>;
   score: number;
   avatar: string | undefined;
@@ -14,6 +16,7 @@ interface PublicProfileViewProps {
 
 export const PublicProfileView: React.FC<PublicProfileViewProps> = ({
   username,
+  displayName,
   pokedex,
   score,
   avatar,
@@ -31,6 +34,7 @@ export const PublicProfileView: React.FC<PublicProfileViewProps> = ({
   return (
     <div className="page-container-view">
       <header className="hero">
+        <FoamBubbles />
         <button
           onClick={onBack}
           style={{
@@ -48,6 +52,7 @@ export const PublicProfileView: React.FC<PublicProfileViewProps> = ({
             display: 'flex',
             alignItems: 'center',
             gap: '4px',
+            zIndex: 5,
           }}
         >
           <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>
@@ -74,6 +79,8 @@ export const PublicProfileView: React.FC<PublicProfileViewProps> = ({
             boxShadow: '0 4px 10px rgba(0,0,0,0.1)',
             fontWeight: 'bold',
             color: 'var(--text-muted)',
+            position: 'relative',
+            zIndex: 2,
           }}
         >
           {avatar ? (
@@ -85,10 +92,15 @@ export const PublicProfileView: React.FC<PublicProfileViewProps> = ({
           )}
         </div>
         
-        <h1 id="pubProfileName" style={{ margin: '5px 0' }}>
-          {username}
+        <h1 id="pubProfileName" style={{ margin: '5px 0', position: 'relative', zIndex: 2 }}>
+          {displayName ? displayName : username}
         </h1>
-        <p id="pubProfileRank" style={{ fontWeight: 'bold', color: 'var(--dark)', opacity: 0.7 }}>
+        {displayName && (
+          <div style={{ fontSize: '14px', color: 'var(--text-muted)', fontWeight: '500', marginBottom: '5px', position: 'relative', zIndex: 2 }}>
+            @{username}
+          </div>
+        )}
+        <p id="pubProfileRank" style={{ fontWeight: 'bold', color: 'var(--dark)', opacity: 0.7, position: 'relative', zIndex: 2, margin: '5px 0' }}>
           {rankTitle}
         </p>
         
@@ -102,6 +114,8 @@ export const PublicProfileView: React.FC<PublicProfileViewProps> = ({
             alignItems: 'center',
             justifyContent: 'center',
             gap: '5px',
+            position: 'relative',
+            zIndex: 2,
           }}
           id="pubProfileScore"
         >
