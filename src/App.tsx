@@ -14,6 +14,7 @@ import { LeaderboardView } from './views/LeaderboardView';
 import { PubView } from './views/PubView';
 import { ProfileView } from './views/ProfileView';
 import { PublicProfileView } from './views/PublicProfileView';
+import { UserPostsDetailView } from './views/UserPostsDetailView';
 import { FriendsView } from './views/FriendsView';
 import { RulesView } from './views/RulesView';
 
@@ -37,6 +38,7 @@ const pagesMapList = [
   'page-friends',
   'page-rules',
   'page-public-profile',
+  'page-user-posts-detail',
   'page-map-view',
 ];
 
@@ -60,6 +62,11 @@ export default function App() {
   const [currentPage, setCurrentPage] = useState<string>('page-home');
   const [prevPage, setPrevPage] = useState<string | null>(null);
   const [transitionDir, setTransitionDir] = useState<'left' | 'right' | null>(null);
+
+  // User Posts Detail View State
+  const [detailViewUser, setDetailViewUser] = useState<string>('');
+  const [detailViewPostId, setDetailViewPostId] = useState<string>('');
+  const [detailViewBackPage, setDetailViewBackPage] = useState<string>('page-profile');
 
   // Age Verification & Auth States
   const [ageGateOpen, setAgeGateOpen] = useState<boolean>(true);
@@ -201,6 +208,7 @@ export default function App() {
   const [pubProfileUser, setPubProfileUser] = useState<string>('');
   const [pubProfileDex, setPubProfileDex] = useState<Record<string, any>>({});
   const [pubProfileScore, setPubProfileScore] = useState<number>(0);
+  const [pubProfileBackPage, setPubProfileBackPage] = useState<string>('page-leaderboard');
 
   const touchStartX = useRef<number>(0);
   const touchStartY = useRef<number>(0);
@@ -818,6 +826,7 @@ export default function App() {
       navigateTo('page-profile');
       return;
     }
+    setPubProfileBackPage(currentPage);
     const snap = await get(ref(db, `pokedex_profiles/${username}`));
     const dex = snap.val() || {};
     setPubProfileDex(dex);
@@ -1636,7 +1645,12 @@ export default function App() {
               getUserRankTitle={getUserRankTitle}
               getAvatarZoomProps={getAvatarZoomProps}
               posts={globalPosts}
-              onToggleLike={handleToggleLike}
+              onOpenPostDetail={(uname, pid) => {
+                setDetailViewUser(uname);
+                setDetailViewPostId(pid);
+                setDetailViewBackPage('page-profile');
+                navigateTo('page-user-posts-detail');
+              }}
             />
           ) : null}
         </div>
@@ -1650,12 +1664,16 @@ export default function App() {
               pokedex={pubProfileDex}
               score={pubProfileScore}
               avatar={globalAvatars[pubProfileUser]}
-              onBack={() => navigateTo('page-leaderboard')}
+              onBack={() => navigateTo(pubProfileBackPage)}
               getUserRankTitle={getUserRankTitle}
               getAvatarZoomProps={getAvatarZoomProps}
               posts={globalPosts}
-              currentUserNick={currentUserNick}
-              onToggleLike={handleToggleLike}
+              onOpenPostDetail={(uname, pid) => {
+                setDetailViewUser(uname);
+                setDetailViewPostId(pid);
+                setDetailViewBackPage('page-public-profile');
+                navigateTo('page-user-posts-detail');
+              }}
             />
           ) : null}
         </div>
@@ -1701,6 +1719,26 @@ export default function App() {
         {/* Page Rules */}
         <div className={getPageClass('page-rules')}>
           {currentPage === 'page-rules' || prevPage === 'page-rules' ? <RulesView /> : null}
+        </div>
+
+        {/* Page User Posts Detail */}
+        <div className={getPageClass('page-user-posts-detail')}>
+          {currentPage === 'page-user-posts-detail' || prevPage === 'page-user-posts-detail' ? (
+            <UserPostsDetailView
+              username={detailViewUser}
+              displayName={globalDisplayNames[detailViewUser]}
+              avatar={globalAvatars[detailViewUser]}
+              posts={globalPosts}
+              currentUserNick={currentUserNick}
+              onToggleLike={handleToggleLike}
+              onBack={() => navigateTo(detailViewBackPage)}
+              initialPostId={detailViewPostId}
+              globalDisplayNames={globalDisplayNames}
+              globalAvatars={globalAvatars}
+              onDeletePost={handleDeletePost}
+              onReportFakePost={handleReportFakePost}
+            />
+          ) : null}
         </div>
       </div>
 

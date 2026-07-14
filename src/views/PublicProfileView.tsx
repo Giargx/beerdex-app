@@ -13,8 +13,7 @@ interface PublicProfileViewProps {
   getUserRankTitle: (score: number) => string;
   getAvatarZoomProps?: (url: string | undefined) => any;
   posts: any[];
-  currentUserNick: string;
-  onToggleLike: (postId: string, imageContainer: HTMLElement | null) => void;
+  onOpenPostDetail: (username: string, postId: string) => void;
 }
 
 export const PublicProfileView: React.FC<PublicProfileViewProps> = ({
@@ -27,15 +26,13 @@ export const PublicProfileView: React.FC<PublicProfileViewProps> = ({
   getUserRankTitle,
   getAvatarZoomProps,
   posts,
-  currentUserNick,
-  onToggleLike,
+  onOpenPostDetail,
 }) => {
   const [activeTab, setActiveTab] = useState<'collection' | 'posts'>('collection');
   const [variantSort, setVariantSort] = useState<'alpha' | 'unlocked' | 'rarity' | 'nation'>('unlocked');
   const [variantSortDir, setVariantSortDir] = useState<number>(1);
   const [medalSort, setMedalSort] = useState<'alpha' | 'unlocked' | 'rarity' | 'nation'>('unlocked');
   const [medalSortDir, setMedalSortDir] = useState<number>(1);
-  const [selectedPost, setSelectedPost] = useState<any | null>(null);
 
   const rankTitle = getUserRankTitle(score);
   const myPosts = posts.filter((p) => p.user === username);
@@ -369,7 +366,7 @@ export const PublicProfileView: React.FC<PublicProfileViewProps> = ({
                 {[...myPosts].reverse().map((post) => (
                   <div
                     key={post.postId}
-                    onClick={() => setSelectedPost(post)}
+                    onClick={() => onOpenPostDetail(username, post.postId)}
                     style={{
                       position: 'relative',
                       aspectRatio: '1/1',
@@ -420,260 +417,7 @@ export const PublicProfileView: React.FC<PublicProfileViewProps> = ({
         )}
       </div>
 
-      {/* INSTAGRAM POST DETAIL MODAL OVERLAY */}
-      {(() => {
-        const currentPostInProp = selectedPost ? posts.find(p => p.postId === selectedPost.postId) : null;
-        const activeModalPost = currentPostInProp || selectedPost;
-        if (!activeModalPost) return null;
-        
-        return (
-          <div
-            className="modal-backdrop"
-            onClick={() => setSelectedPost(null)}
-            style={{
-              position: 'fixed',
-              top: 0,
-              left: 0,
-              width: '100%',
-              height: '100%',
-              background: 'rgba(0, 0, 0, 0.8)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              zIndex: 9999,
-              padding: '20px',
-              boxSizing: 'border-box',
-              backdropFilter: 'blur(10px)',
-              WebkitBackdropFilter: 'blur(10px)',
-              animation: 'fadeIn 0.2s ease-out'
-            }}
-          >
-            <div
-              className="instagram-post-modal"
-              onClick={(e) => e.stopPropagation()}
-              style={{
-                background: 'var(--white)',
-                borderRadius: '24px',
-                width: '100%',
-                maxWidth: '480px',
-                overflow: 'hidden',
-                boxShadow: '0 10px 30px rgba(0,0,0,0.3)',
-                display: 'flex',
-                flexDirection: 'column',
-                maxHeight: '90vh',
-                animation: 'zoomIn 0.2s ease-out'
-              }}
-            >
-              {/* Modal Header */}
-              <div
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  padding: '14px 20px',
-                  borderBottom: '1px solid rgba(226, 232, 240, 0.6)',
-                }}
-              >
-                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                  <div
-                    style={{
-                      width: '36px',
-                      height: '36px',
-                      borderRadius: '50%',
-                      border: '2px solid var(--primary)',
-                      overflow: 'hidden',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      background: 'linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%)',
-                      color: 'white',
-                      fontWeight: 800,
-                      textTransform: 'uppercase',
-                      fontSize: '14px'
-                    }}
-                  >
-                    {avatar ? (
-                      <img
-                        src={avatar}
-                        alt={username}
-                        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                      />
-                    ) : (
-                      username.substring(0, 2)
-                    )}
-                  </div>
-                  <div>
-                    <div style={{ fontWeight: 800, fontSize: '14px', color: 'var(--dark)' }}>
-                      {displayName || username}
-                    </div>
-                    <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
-                      {new Date(activeModalPost.time).toLocaleDateString('it-IT', {
-                        day: 'numeric',
-                        month: 'long',
-                        year: 'numeric'
-                      })}
-                    </div>
-                  </div>
-                </div>
-                <button
-                  onClick={() => setSelectedPost(null)}
-                  style={{
-                    border: 'none',
-                    background: 'transparent',
-                    cursor: 'pointer',
-                    color: 'var(--text-muted)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    padding: 0
-                  }}
-                >
-                  <span className="material-symbols-outlined" style={{ fontSize: '24px' }}>close</span>
-                </button>
-              </div>
 
-              {/* Post Photo */}
-              <div
-                style={{
-                  position: 'relative',
-                  background: '#0c0c0e',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  aspectRatio: '1/1',
-                }}
-              >
-                <img
-                  src={activeModalPost.photo}
-                  alt={`${activeModalPost.brand} - ${activeModalPost.variant}`}
-                  style={{ width: '100%', height: '100%', objectFit: 'contain' }}
-                />
-                {activeModalPost.isShiny && (
-                  <div
-                    style={{
-                      position: 'absolute',
-                      top: '12px',
-                      left: '12px',
-                      background: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
-                      color: 'white',
-                      padding: '4px 10px',
-                      borderRadius: '20px',
-                      fontSize: '10px',
-                      fontWeight: 'bold',
-                      boxShadow: '0 4px 10px rgba(245, 158, 11, 0.4)',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '4px'
-                    }}
-                  >
-                    <span className="material-symbols-outlined" style={{ fontSize: '12px' }}>star</span> Shiny
-                  </div>
-                )}
-              </div>
-
-              {/* Post Info and Actions */}
-              <div style={{ padding: '16px 20px', overflowY: 'auto' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    {/* Like Button */}
-                    <button
-                      onClick={() => {
-                        onToggleLike(activeModalPost.postId, null);
-                      }}
-                      style={{
-                        background: activeModalPost.likes && activeModalPost.likes[currentUserNick] ? '#FFFBEB' : '#F8FAFC',
-                        border: '1px solid ' + (activeModalPost.likes && activeModalPost.likes[currentUserNick] ? 'var(--primary)' : 'var(--gray)'),
-                        borderRadius: '20px',
-                        padding: '6px 14px',
-                        fontWeight: 700,
-                        cursor: 'pointer',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '6px',
-                        color: activeModalPost.likes && activeModalPost.likes[currentUserNick] ? 'var(--primary-dark)' : 'var(--text-muted)',
-                        transition: 'all 0.15s ease'
-                      }}
-                    >
-                      <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>sports_bar</span>
-                      <span style={{ fontSize: '13px' }}>
-                        {activeModalPost.likes ? Object.keys(activeModalPost.likes).length : 0} Brindisi
-                      </span>
-                    </button>
-                  </div>
-                </div>
-
-                {/* Beer Details Card */}
-                <div
-                  style={{
-                    background: '#f8fafc',
-                    border: '1px solid var(--gray)',
-                    borderRadius: '16px',
-                    padding: '12px 14px',
-                    marginBottom: '10px'
-                  }}
-                >
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
-                    <div style={{ fontWeight: 900, fontSize: '15px', color: 'var(--dark)' }}>
-                      {activeModalPost.brand}
-                    </div>
-                    <div
-                      style={{
-                        fontSize: '9px',
-                        fontWeight: 'bold',
-                        textTransform: 'uppercase',
-                        padding: '2px 6px',
-                        borderRadius: '6px',
-                        background:
-                          activeModalPost.rarity === 'rara'
-                            ? '#FEE2E2'
-                            : activeModalPost.rarity === 'media'
-                            ? '#FEF3C7'
-                            : '#F1F5F9',
-                        color:
-                          activeModalPost.rarity === 'rara'
-                            ? '#991B1B'
-                            : activeModalPost.rarity === 'media'
-                            ? '#92400E'
-                            : '#475569',
-                      }}
-                    >
-                      {activeModalPost.rarity || 'comune'}
-                    </div>
-                  </div>
-                  <div style={{ fontSize: '13px', color: 'var(--text-muted)', marginTop: '2px' }}>
-                    {activeModalPost.variant}
-                  </div>
-                  {activeModalPost.pubName && (
-                    <div
-                      style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '4px',
-                        fontSize: '11px',
-                        color: 'var(--primary-dark)',
-                        marginTop: '6px',
-                        fontWeight: '600'
-                      }}
-                    >
-                      <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>location_on</span>
-                      {activeModalPost.pubName}
-                    </div>
-                  )}
-                </div>
-
-                {/* Description / Caption */}
-                {activeModalPost.description && (
-                  <div style={{ fontSize: '13px', color: 'var(--dark)', lineHeight: 1.4, margin: '8px 0 0 2px' }}>
-                    <strong style={{ marginRight: '6px' }}>
-                      {displayName || username}
-                    </strong>
-                    {activeModalPost.description}
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-        );
-      })()}
     </div>
   );
 };
