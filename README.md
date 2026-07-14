@@ -12,37 +12,38 @@ L'applicazione si interfaccia in tempo reale con **Firebase Realtime Database** 
 * **Validazione tramite Codice a Barre**: L'app si collega alle API globali di **Open Food Facts** per analizzare il codice a barre delle bottiglie fotografate.
 * **Controllo "È una birra?"**: Algoritmo multi-fattore che analizza tag di categoria, ingredienti (orzo, luppolo, malto), presenza di alcol escludendo superalcolici/vino, e brand conosciuti.
 * **Verifica di Corrispondenza Brand**: Selezionando una marca specifica, lo scanner si assicura che il codice a barre appartenga a quel marchio o a una sua controllante (es: *Carlsberg* per *Tuborg*, *Heineken* per *Ichnusa/Moretti*), prevenendo i tentativi di sblocco fraudolenti.
-* **Blocco Rigido**: Se viene inquadrato un prodotto non valido (es: una bottiglia d'acqua) o una birra di un brand differente, lo sblocco viene annullato all'istante. Il bypass per i prodotti non catalogati è riservato solo a birre locali e artigianali non presenti nel database globale.
+* **Blocco Rigido**: Se viene inquadrato un prodotto non valido o una birra di un brand differente, lo sblocco viene annullato. Il bypass per i prodotti non catalogati è riservato solo a birre locali e artigianali non presenti nel database globale.
 
-### 🔊 Effetti Sonori Fisici (Audio Synthesizer)
-L'applicazione integra un sintetizzatore audio nativo basato su **Web Audio API** che non richiede il download di file multimediali esterni ed è attivo al 100% offline:
-* **Suono del Brindisi (Clink)**: Due frequenze sinusoidali ad alta definizione con decadimento esponenziale che riproducono fedelmente l'impatto di due bicchieri.
-* **Suono dello Stappo (Pop & Fizz)**: Una simulazione a spettro misto (sweep sinusoidale per la pressione + burst di rumore bianco filtrato passa-alto per l'effervescenza) che riproduce l'apertura di una bottiglia.
+### 📱 Esperienza Social & Feed Verticale "Instagram-Style"
+* **Navigazione Profilo**: Griglia dei post nel profilo personale e pubblico con la possibilità di cliccare su qualsiasi foto per aprirla in una nuova vista verticale a scorrimento (con scroll automatico al post selezionato).
+* **Interazioni Rapide**: Like immediato tramite doppio tocco sull'immagine con animazione nativa SVG di brindisi a calici incrociati.
+* **Profili Navigabili da Ovunque**: Cliccando sull'avatar o sul nome di un utente all'interno del feed social, della classifica o delle liste di amici, verrai reindirizzato direttamente sul suo profilo pubblico.
 
-### 📊 Statistiche e Infografiche
-Una sezione del profilo interamente dedicata alle statistiche personali con:
-* Percentuale di completamento totale del catalogo delle birre.
-* Grafico a barre colorate per la distribuzione delle rarità (Comune, Media, Rara).
-* Elenco ordinato con barre di completamento per ciascuna Nazione.
+### 💡 Dashboard Collezionista & Suggerimento Settimanale
+* **Statistiche Rapide**: Visualizzazione immediata di tre metriche cardine sulla Home: Birre Sbloccate, Varianti Shiny collezionate e Paesi d'origine scoperti.
+* **Consigliata della Settimana**: Algoritmo deterministico settimanale che seleziona e propone una birra dal catalogo non ancora sbloccata dall'utente, invogliandolo a completare la collezione.
 
-### 🏆 Traguardi e Medaglie Speciali (Achievements)
-Sistema di obiettivi sbloccabili in tempo reale in base alla tua collezione:
-* 🌍 **Giro del Mondo**: Sblocca birre provenienti da almeno 5 nazioni diverse.
-* ✨ **Collezionista Shiny**: Trova la tua prima variante Shiny all'avventura.
-* 🥇 **Monarca delle Bionde**: Colleziona almeno 15 varianti comuni.
-* 💎 **Leggenda dei Pub**: Colleziona almeno 5 varianti rare.
-* 🤝 **Socio Onorario**: Tagga un amico in uno sblocco di gruppo.
-* 🎓 **Sommelier Esperto**: Sblocca almeno 3 varianti diverse di uno stesso brand.
+### 🗺️ Mappa GPS & Filtri Regionali
+* **Beer Radar (Leaflet)**: Rilevamento della posizione GPS per mappare geograficamente gli sblocchi in tempo reale con pop-up fotografici personalizzati.
+* **Filtro Regioni Italiane**: Sotto-filtro dinamico nella pagina di ricerca: selezionando "Italia", compare un menu secondario che permette di filtrare le birre locali per regione di produzione (es. Campania, Lombardia, Sicilia, Toscana, ecc.).
 
-### 🎨 Temi Cromatici Dinamici (Brewery Themes)
-L'utente può personalizzare i colori di accento dell'interfaccia direttamente dal profilo scegliendo un tema ispirato alle tipologie di birra:
-* 🍺 **Pilsner (Classic)**: Il classico colore giallo dorato.
-* 🍁 **Amber Ale**: Rosso ambrato caldo.
-* ☕ **Stout (Dark)**: Marrone intenso per gli amanti della birra scura.
-* 🌿 **Pale IPA**: Verde brillante ispirato al luppolo.
+### 🏆 Traguardi, Livelli & Medaglie Temporali
+* **Fasce di Rango Collezionista**:
+  * 🟢 *Novizio del Pub* (< 50 pt)
+  * 🟡 *Apprendista Bevitore* (50-199 pt)
+  * 🟠 *Esploratore di Luppoli* (200-499 pt)
+  * 🔴 *Sommelier del Bancone* (500-1199 pt)
+  * 👑 *Maestro Birraio* (1200+ pt)
+* **Medaglie Brand**: Sbloccabili collezionando determinati stili, rarità o brand specifici.
+* **Medaglie Evento (Sblocco per Anno)**:
+  * 🍀 **San Patrizio**: 2 birre irlandesi o scozzesi sbloccate a Marzo.
+  * ☀️ **Solstizio d'Estate**: 3 birre bionde o IPA sbloccate tra Giugno e Agosto.
+  * 🍺 **Oktoberfest**: 3 birre tedesche sbloccate tra Settembre e Ottobre.
 
-### 🗺️ Mappa Interattiva (Beer Radar)
-Una mappa basata su **Leaflet** che rileva la posizione GPS dell'utente per tracciare geograficamente tutti i luoghi in cui ha sbloccato le sue birre, mostrando foto e dettagli per ogni marker.
+### 🎨 Grafica & Personalizzazione Brewery
+* **Brewery Lettering SVG**: Titolo "Pub" animato nel feed con lettere che ricordano calici, boccali e botti con bollicine dinamiche.
+* **Temi Cromatici Dinamici**: Scegli il tuo stile cromatico in base al tipo di fermentazione: Pilsner (Giallo Dorato), Amber Ale (Rosso Ambrato), Stout (Marrone Intenso) o Pale IPA (Verde Luppolo).
+* **Effetti Sonori Fisici**: Synth audio tramite Web Audio API che emula in modo fedele il brindisi ("clink") e lo stappo ("pop & fizz").
 
 ---
 
