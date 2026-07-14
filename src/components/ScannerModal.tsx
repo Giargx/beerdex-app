@@ -152,12 +152,60 @@ const getIdentifiedBrand = (scannedBrand: string, productName: string, targetBra
   return null;
 };
 
+// Helper to verify if a text contains any beer-related keywords as whole words
+const hasWholeBeerKeyword = (text: string): boolean => {
+  if (!text) return false;
+  // Replace symbols/punctuation with spaces, keeping standard accented letters
+  const clean = text.toLowerCase().replace(/[^a-z0-9àèìòùáéíóúüñ]/g, ' ');
+  const tokens = clean.split(/\s+/);
+  
+  const beerWords = new Set([
+    "beer", "beers", 
+    "birra", "birre", 
+    "biere", "bieres", "bière", "bières", 
+    "bier", "biere", 
+    "cerveza", "cervezas", 
+    "stout", "stouts", 
+    "ipa", "ipas", 
+    "lager", "lagers", 
+    "ale", "ales", 
+    "pils", "pilsner", "pilsners", 
+    "weisse", "weissbier", 
+    "radler", "radlers", 
+    "tripel", "dubbel", 
+    "trappist", "trappiste", 
+    "bock", "doppelbock"
+  ]);
+
+  return tokens.some(token => beerWords.has(token));
+};
+
 // Multi-criteria verification to check if a product is a beer
 const isProductBeer = (prod: any): boolean => {
   const prodName = prod.product_name || prod.product_name_it || prod.product_name_en || "";
   const prodNameLower = prodName.toLowerCase();
   const categoriesTags = prod.categories_tags || [];
   const categories = (prod.categories || "").toLowerCase();
+
+  // 0. Prevent false positives for common non-beer categories (water, juices, sodas, solid foods)
+  const exclusionKeywords = [
+    "acqua", "water", "eau", "wasser", "juice", "succo", "jus", "saft",
+    "soft drink", "cola", "soda", "lemonade", "gassosa", "aranciata",
+    "farina", "flour", "pasta", "biscuit", "biscotto", "cookie", "snack"
+  ];
+  const isExcluded = exclusionKeywords.some(kw => 
+    categories.includes(kw) || prodNameLower.includes(kw)
+  );
+
+  if (isExcluded) {
+    // Only allow if it has a very strong and explicit beer keyword (e.g. "beer", "birra") to avoid blocking hop water
+    const hasStrongBeerKeyword = ["birra", "beer", "biere", "bière", "bier", "cerveza"].some(
+      kw => prodNameLower.includes(kw) || categories.includes(kw)
+    );
+    if (!hasStrongBeerKeyword) {
+      return false;
+    }
+  }
 
   // 1. Check categories tags
   const beerTags = [
@@ -174,13 +222,8 @@ const isProductBeer = (prod: any): boolean => {
   const isBeerByTag = categoriesTags.some((tag: string) => beerTags.includes(tag));
   if (isBeerByTag) return true;
 
-  // 2. Check keywords in categories or name
-  const beerKeywords = [
-    "beer", "birra", "bière", "bier", "cerveza", "stout", "ipa", 
-    "lager", "ale", "pils", "pilsner", "weisse", "radler", 
-    "tripel", "dubbel", "trappist", "bock", "doppelbock"
-  ];
-  const isBeerByKeyword = beerKeywords.some((kw) => categories.includes(kw) || prodNameLower.includes(kw));
+  // 2. Check keywords in categories or name (matching whole words only to avoid false positives like "naturale" -> "ale")
+  const isBeerByKeyword = hasWholeBeerKeyword(categories) || hasWholeBeerKeyword(prodNameLower);
   if (isBeerByKeyword) return true;
 
   // 3. Check if it matches any of our known beer brands
@@ -312,7 +355,7 @@ export const ScannerModal: React.FC<ScannerModalProps> = ({
                 } else {
                   // If the brand is empty or unknown (craft beers not in our DB), allow them to proceed after confirmation
                   showConfirm(
-                    `Il codice corrisponde alla birra "${prodName}" di marca "${prod.brands || 'Non Specificata'}" (invece di "${currentTargetBrand}"). Vuoi procedere comunque?`,
+                    `Il codice corrisponde a "${prodName}" di marca "${prod.brands || 'Non Specificata'}" (invece di "${currentTargetBrand}"). Vuoi procedere comunque?`,
                     "Marca Rilevata Differente",
                     proceedToCapture
                   );
