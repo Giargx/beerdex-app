@@ -17,6 +17,7 @@ export const ExploreView: React.FC<ExploreViewProps> = ({
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [countryFilter, setCountryFilter] = useState('Tutte');
+  const [regionFilter, setRegionFilter] = useState('Tutte');
   const [sortFilter, setSortFilter] = useState(() => localStorage.getItem('beerdex_catalog_sort') || 'alpha');
   const [sortDir, setSortDir] = useState<number>(() => {
     const saved = localStorage.getItem('beerdex_catalog_sort_dir');
@@ -39,6 +40,15 @@ export const ExploreView: React.FC<ExploreViewProps> = ({
     localStorage.setItem('beerdex_catalog_sort_dir', nextDir.toString());
   };
 
+  // Extract unique regions for Italian beers
+  const ItalianRegions = Array.from(
+    new Set(
+      beers
+        .filter((b) => b.country === 'Italia' && b.regione)
+        .map((b) => b.regione as string)
+    )
+  ).sort((a, b) => a.localeCompare(b));
+
   // Filter and sort beers list
   const normalizedSearch = normalizeStr(searchTerm);
   const filteredBeers = beers.filter((beer) => {
@@ -53,7 +63,12 @@ export const ExploreView: React.FC<ExploreViewProps> = ({
 
     const matchCountry = countryFilter === 'Tutte' || beer.country === countryFilter;
 
-    return matchSearch && matchCountry;
+    const matchRegion =
+      countryFilter !== 'Italia' ||
+      regionFilter === 'Tutte' ||
+      beer.regione === regionFilter;
+
+    return matchSearch && matchCountry && matchRegion;
   });
 
   const rarityMap = { comune: 1, media: 2, rara: 3 };
@@ -88,7 +103,13 @@ export const ExploreView: React.FC<ExploreViewProps> = ({
           <span className="filters-label">Esplora per nazione</span>
           <select
             value={countryFilter}
-            onChange={(e) => setCountryFilter(e.target.value)}
+            onChange={(e) => {
+              const val = e.target.value;
+              setCountryFilter(val);
+              if (val !== 'Italia') {
+                setRegionFilter('Tutte');
+              }
+            }}
           >
             <option value="Tutte">Tutte le Nazioni</option>
             <option value="Italia">Italia</option>
@@ -105,6 +126,24 @@ export const ExploreView: React.FC<ExploreViewProps> = ({
             <option value="Messico">Messico</option>
             <option value="Stati Uniti">Stati Uniti</option>
           </select>
+
+          {countryFilter === 'Italia' && (
+            <div style={{ display: 'flex', flexDirection: 'column', width: '100%', animation: 'fadeIn 0.2s ease-out' }}>
+              <span className="filters-label" style={{ marginTop: '8px' }}>Filtra per regione</span>
+              <select
+                value={regionFilter}
+                onChange={(e) => setRegionFilter(e.target.value)}
+                style={{ width: '100%' }}
+              >
+                <option value="Tutte">Tutte le Regioni</option>
+                {ItalianRegions.map((reg) => (
+                  <option key={reg} value={reg}>
+                    {reg}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
 
           <span className="filters-label">Ordina catalogo per</span>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>

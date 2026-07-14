@@ -85,7 +85,11 @@ export const beers: Beer[] = [
   { brand: "Warsteiner", country: "Germania", flag: "DE", rarity: "comune", desc: "Popolarissima pilsner tedesca premium.", variants: ["Premium Verum", "Double Hops", "Analcolica"], barcodes: [] },
   { brand: "Weihenstephaner", country: "Germania", flag: "DE", rarity: "rara", desc: "Il più antico marchio di birra al mondo (1040).", variants: ["Hefe Weissbier", "Vitus", "Original Hell"], barcodes: [] },
   { brand: "Westmalle", country: "Belgio", flag: "BE", rarity: "rara", desc: "La madre di tutte le Tripel trappiste belghe.", variants: ["Dubbel", "Tripel", "Extra"], barcodes: [] },
-  { brand: "Wuhrer", country: "Italia", regione: "Lombardia", flag: "IT", rarity: "comune", desc: "Il più antico marchio di birra italiano (Brescia, 1829).", variants: ["La Classica"], barcodes: [] }
+  { brand: "Wuhrer", country: "Italia", regione: "Lombardia", flag: "IT", rarity: "comune", desc: "Il più antico marchio di birra italiano (Brescia, 1829).", variants: ["La Classica"], barcodes: [] },
+  { brand: "Amarcord", country: "Italia", regione: "Emilia-Romagna", flag: "IT", rarity: "media", desc: "Birrificio indipendente di Rimini ispirato ai film di Federico Fellini.", variants: ["Gradisca (Lager)", "Midona (Bionda)", "Volpina (Rossa)", "Tabachera (Doppio Malto)"], barcodes: [] },
+  { brand: "KBirr", country: "Italia", regione: "Campania", flag: "IT", rarity: "rara", desc: "La birra napoletana artigianale prodotta nel cuore della Campania.", variants: ["Nata Vota (Lager)", "Jattura (Scotch Ale)", "Pulicenella (Witbier)"], barcodes: [] },
+  { brand: "Maltus Faber", country: "Italia", regione: "Liguria", flag: "IT", rarity: "rara", desc: "Birrificio artigianale genovese pluripremiato.", variants: ["Blonde", "Amber Ale", "Triple"], barcodes: [] },
+  { brand: "L'Olmaia", country: "Italia", regione: "Toscana", flag: "IT", rarity: "rara", desc: "Birrificio artigianale della Val d'Orcia in Toscana.", variants: ["La 5", "La 9", "Starship"], barcodes: [] }
 ];
 
 export const countryCoordinates: Record<string, { latMin: number; latMax: number; lngMin: number; lngMax: number }> = {
