@@ -555,34 +555,30 @@ export default function App() {
       const img = new Image();
       img.onload = () => {
         const canvas = document.createElement('canvas');
-        const MAX_SIZE = 300;
+        const MAX_SIZE = 800; // Risoluzione migliorata da 300 a 800 per dettagli nitidi
         let width = img.width;
         let height = img.height;
 
-        const targetRatio = 4 / 5;
-        const imgRatio = width / height;
-
-        let cropX = 0,
-          cropY = 0,
-          cropW = width,
-          cropH = height;
-        if (imgRatio > targetRatio) {
-          cropW = height * targetRatio;
-          cropX = (width - cropW) / 2;
+        // Ridimensionamento proporzionale senza ritaglio (mantiene l'aspect ratio originale)
+        if (width > height) {
+          if (width > MAX_SIZE) {
+            height = Math.round((height * MAX_SIZE) / width);
+            width = MAX_SIZE;
+          }
         } else {
-          cropH = width / targetRatio;
-          cropY = (height - cropH) / 2;
+          if (height > MAX_SIZE) {
+            width = Math.round((width * MAX_SIZE) / height);
+            height = MAX_SIZE;
+          }
         }
 
-        const finalWidth = MAX_SIZE;
-        const finalHeight = MAX_SIZE / targetRatio;
-
-        canvas.width = finalWidth;
-        canvas.height = finalHeight;
+        canvas.width = width;
+        canvas.height = height;
         const ctx = canvas.getContext('2d');
         if (ctx) {
-          ctx.drawImage(img, cropX, cropY, cropW, cropH, 0, 0, finalWidth, finalHeight);
-          const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.4);
+          ctx.drawImage(img, 0, 0, width, height);
+          // Qualità JPEG aumentata da 0.4 (bassa) a 0.75 (alta definizione / peso ottimizzato)
+          const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.75);
 
           const uploadData = {
             brand: scannerConfig.brand,

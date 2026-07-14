@@ -153,8 +153,8 @@ export const CropModal: React.FC<CropModalProps> = ({
     const cropSize = 250 * scaleR;
     
     const canvas = document.createElement('canvas');
-    canvas.width = 200;
-    canvas.height = 200;
+    canvas.width = 400;
+    canvas.height = 400;
     const ctx = canvas.getContext('2d');
     
     if (ctx) {
@@ -167,8 +167,8 @@ export const CropModal: React.FC<CropModalProps> = ({
         cropSize,
         0,
         0,
-        200,
-        200
+        400,
+        400
       );
       const croppedBase64 = canvas.toDataURL('image/jpeg', 0.8);
       onConfirm(croppedBase64);
