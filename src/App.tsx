@@ -1121,8 +1121,21 @@ export default function App() {
             <p style={{ color: 'var(--text-muted)', fontSize: '14px', marginBottom: '20px' }}>
               Ora scatta la foto per il tuo feed social. Assicurati che si veda bene la birra!
             </p>
-            <label className="btn-main" style={{ display: 'flex', textAlign: 'center', padding: '14px', cursor: 'pointer', justifyContent: 'center' }}>
-              <span className="material-symbols-outlined">photo_camera</span> Apri Fotocamera
+            <label 
+              className="btn-main" 
+              style={{ 
+                display: 'flex', 
+                alignItems: 'center', 
+                justifyContent: 'center', 
+                gap: '8px', 
+                textAlign: 'center', 
+                padding: '14px', 
+                cursor: 'pointer',
+                marginBottom: '10px' 
+              }}
+            >
+              <span className="material-symbols-outlined" style={{ fontSize: '22px' }}>photo_camera</span>
+              <span>Apri Fotocamera</span>
               <input
                 type="file"
                 accept="image/*"
