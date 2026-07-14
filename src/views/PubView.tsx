@@ -138,7 +138,79 @@ export const PubView: React.FC<PubViewProps> = ({
     <div className="page-container-view">
       <header className="hero">
         <FoamBubbles />
-        <h1 style={{ position: 'relative', zIndex: 2 }}>Al Pub</h1>
+        <div style={{ position: 'relative', zIndex: 2, display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: '8px' }}>
+          {/* Animated Beer Styled SVG for PUB */}
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 120" style={{ width: '180px', height: '68px', filter: 'drop-shadow(0px 4px 8px rgba(0,0,0,0.15))' }}>
+            <defs>
+              <linearGradient id="beerGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+                <stop offset="0%" stopColor="#FFE082" />
+                <stop offset="50%" stopColor="#FFA000" />
+                <stop offset="100%" stopColor="#FF6F00" />
+              </linearGradient>
+              <linearGradient id="foamGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+                <stop offset="0%" stopColor="#FFFFFF" />
+                <stop offset="100%" stopColor="#ECEFF1" />
+              </linearGradient>
+            </defs>
+
+            <style>{`
+              @keyframes bubbleRiseUp {
+                0% { transform: translateY(0); opacity: 0; }
+                20% { opacity: 0.8; }
+                80% { opacity: 0.8; }
+                100% { transform: translateY(-40px); opacity: 0; }
+              }
+              .beer-bubble {
+                animation: bubbleRiseUp 3s infinite ease-in;
+                fill: rgba(255, 255, 255, 0.7);
+              }
+              .beer-bubble-fast {
+                animation: bubbleRiseUp 2s infinite ease-in;
+                animation-delay: 0.8s;
+                fill: rgba(255, 255, 255, 0.85);
+              }
+              .beer-bubble-slow {
+                animation: bubbleRiseUp 4s infinite ease-in;
+                animation-delay: 0.4s;
+                fill: rgba(255, 255, 255, 0.5);
+              }
+            `}</style>
+
+            {/* LETTER P (Styled as a pint of Pilsner with a curved foam head & left handle) */}
+            <g transform="translate(10, 10)">
+              <path d="M 15 10 L 55 10 A 25 25 0 0 1 55 60 L 35 60 L 35 90 L 15 90 Z" fill="url(#beerGrad)" stroke="#FF8F00" strokeWidth="3" />
+              <path d="M 10 10 C 20 -2 30 15 40 5 C 50 15 60 -2 60 10 Z" fill="url(#foamGrad)" stroke="#CFD8DC" strokeWidth="1.5" />
+              <path d="M 15 25 L 5 25 C 0 25, 0 45, 5 45 L 15 45" fill="none" stroke="url(#foamGrad)" strokeWidth="4" strokeLinecap="round" />
+              
+              <circle cx="25" cy="50" r="2" className="beer-bubble" />
+              <circle cx="45" cy="40" r="3" className="beer-bubble-fast" />
+              <circle cx="35" cy="30" r="1.5" className="beer-bubble-slow" />
+            </g>
+
+            {/* LETTER U (Styled as a classic beer mug) */}
+            <g transform="translate(110, 10)">
+              <path d="M 15 10 L 15 60 A 20 20 0 0 0 55 60 L 55 10 Z" fill="url(#beerGrad)" stroke="#FF8F00" strokeWidth="3" />
+              <path d="M 10 10 C 20 -2 30 15 40 5 C 50 15 60 -2 60 10 Z" fill="url(#foamGrad)" stroke="#CFD8DC" strokeWidth="1.5" />
+              <path d="M 55 20 L 68 20 C 74 20 74 50 68 50 L 55 50" fill="none" stroke="#FFA000" strokeWidth="4" />
+              
+              <circle cx="25" cy="55" r="2" className="beer-bubble-fast" />
+              <circle cx="45" cy="45" r="1.5" className="beer-bubble" />
+              <circle cx="35" cy="65" r="3" className="beer-bubble-slow" />
+            </g>
+
+            {/* LETTER B (Styled as double loops with foam & barrel contour) */}
+            <g transform="translate(210, 10)">
+              <path d="M 15 10 L 50 10 A 18 18 0 0 1 50 48 A 20 20 0 0 1 50 90 L 15 90 Z" fill="url(#beerGrad)" stroke="#FF8F00" strokeWidth="3" strokeLinejoin="round" />
+              <path d="M 40 10 C 45 3 50 15 55 10 Z" fill="url(#foamGrad)" stroke="#CFD8DC" strokeWidth="1.2" />
+              <path d="M 42 48 C 47 41 52 53 57 48 Z" fill="url(#foamGrad)" stroke="#CFD8DC" strokeWidth="1.2" />
+              <path d="M 10 10 C 20 -2 30 15 38 10 Z" fill="url(#foamGrad)" stroke="#CFD8DC" strokeWidth="1.5" />
+              
+              <circle cx="25" cy="30" r="2" className="beer-bubble" />
+              <circle cx="35" cy="60" r="3" className="beer-bubble-slow" />
+              <circle cx="45" cy="75" r="1.5" className="beer-bubble-fast" />
+            </g>
+          </svg>
+        </div>
         <p style={{ position: 'relative', zIndex: 2 }}>Scopri cosa stanno bevendo i tuoi amici al bancone.</p>
       </header>
 
