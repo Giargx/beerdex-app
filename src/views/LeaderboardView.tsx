@@ -13,7 +13,7 @@ interface LeaderboardViewProps {
   onAddFriend: (name: string) => void;
   onOpenPublicProfile: (name: string) => void;
   onNavigateToFriends: () => void;
-  getUserRankTitle: (score: number) => string;
+  getUserRankTitle: (score: number, unlockedCount?: number) => string;
 }
 
 export const LeaderboardView: React.FC<LeaderboardViewProps> = ({

@@ -35,7 +35,10 @@ export const RulesView: React.FC = () => {
               🍺 <strong>Sommelier del Bancone</strong> (500-1199 punti): Ormai sei quello che dà i consigli a tutti.
             </li>
             <li>
-              👑 <strong>Maestro Birraio</strong> (1200+ punti): Il bancone è letteralmente casa tua. Leggenda.
+              👑 <strong>Mastro Birraio</strong> (1200+ punti): Il bancone è letteralmente casa tua. Leggenda.
+            </li>
+            <li>
+              ⚡ <strong>Dio della Birra</strong> (100% sblocchi): Hai sbloccato ogni singola variante di birra dell'applicazione. Divinità assoluta.
             </li>
           </ul>
         </div>
@@ -55,10 +58,10 @@ export const RulesView: React.FC = () => {
             </li>
           </ul>
           <p>
-            🎁 <strong>Bonus Completa Marchio</strong>: Se sblocchi <strong>tutte</strong> le varianti di un singolo brand (ad esempio tutte le varianti di Menabrea), ottieni subito un bonus extra di <strong>+10 Punti</strong>!
+            🎁 <strong>Bonus Completa Marchio</strong>: Se sblocchi <strong>tutte</strong> le varianti di un singolo brand (ad esempio tutte le varianti di Menabrea), ottieni subito un bonus extra proporzionale di <strong>+3 Punti per ogni variante</strong> presente in quel brand (es. +9 Punti per un brand da 3 varianti, +15 Punti per uno da 5)!
           </p>
           <p>
-            🏅 <strong>Medaglie Evento (+15 Punti)</strong>: Guadagna medaglie speciali completando sfide stagionali durante l'anno (es. San Patrizio, Solstizio d'Estate, Oktoberfest) per ottenere un boost di punti al tuo punteggio totale!
+            🏅 <strong>Medaglie Evento</strong>: Guadagna medaglie speciali completando sfide durante l'anno (<strong>+10 Punti</strong> per eventi stagionali come Primavera/Estate, e <strong>+5 Punti</strong> per festività più facili come Ferragosto/Natale) per ottenere un boost di punti al tuo punteggio totale!
           </p>
         </div>
 

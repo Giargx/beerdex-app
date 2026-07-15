@@ -17,81 +17,403 @@ export interface EventMedal {
   color: string;
   isUnlocked: boolean;
   desc: string;
+  points: number;
 }
 
 export function getEventMedals(userPosts: any[]): EventMedal[] {
-  const currentYear = new Date().getFullYear();
-  const yearSet = new Set([2025, 2026, 2027, currentYear]);
-  userPosts.forEach(p => {
-    if (p.time) {
-      const yr = new Date(p.time).getFullYear();
-      if (!isNaN(yr)) yearSet.add(yr);
-    }
-  });
+  const now = new Date();
+  const currentYear = now.getFullYear();
 
-  const years = Array.from(yearSet).sort((a, b) => b - a);
+  // Dynamic years from 2026 up to currentYear (remove 2025 and don't put 2027 until it's time)
+  const years: number[] = [];
+  for (let y = 2026; y <= currentYear; y++) {
+    years.push(y);
+  }
+  // Sort years descending so newest events are first
+  years.sort((a, b) => b - a);
+
   const medals: EventMedal[] = [];
 
   years.forEach(year => {
     // Filter posts for this year
     const yearPosts = userPosts.filter(p => p.time && new Date(p.time).getFullYear() === year);
 
-    // 1. San Patrizio (March - Month index 2)
-    const marchPosts = yearPosts.filter(p => new Date(p.time).getMonth() === 2);
-    const irishScottishCount = marchPosts.filter(p => {
-      const beer = beers.find(b => b.brand === p.brand);
-      return beer && (beer.country === "Irlanda" || beer.country === "Scozia");
-    }).length;
-    const sanPatrizioUnlocked = irishScottishCount >= 2;
-    medals.push({
-      id: `patrizio-${year}`,
-      name: `San Patrizio ${year}`,
-      year,
-      icon: 'eco',
-      color: '#27ae60',
-      isUnlocked: sanPatrizioUnlocked,
-      desc: `Sblocca 2 birre d'Irlanda/Scozia a Marzo. (${irishScottishCount}/2)`
-    });
+    // Dynamic date checker helper: only show if the event period has started
+    const isStarted = (startMonth: number) => {
+      return new Date(year, startMonth, 1) <= now;
+    };
 
-    // 2. Solstizio d'Estate (June-August: month index 5, 6, 7)
-    const summerPosts = yearPosts.filter(p => {
-      const m = new Date(p.time).getMonth();
-      return m >= 5 && m <= 7;
-    });
-    const summerCount = summerPosts.filter(p => {
-      const type = getBeerType(p.brand, p.variant);
-      return type === "bionda" || type === "ipa";
-    }).length;
-    const summerUnlocked = summerCount >= 3;
-    medals.push({
-      id: `summer-${year}`,
-      name: `Solstizio d'Estate ${year}`,
-      year,
-      icon: 'wb_sunny',
-      color: '#f39c12',
-      isUnlocked: summerUnlocked,
-      desc: `Sblocca 3 Bionde o IPA in Estate (Giu-Ago). (${summerCount}/3)`
-    });
+    // Helper to get posts by month (0-indexed)
+    const getPostsByMonth = (month: number) => {
+      return yearPosts.filter(p => new Date(p.time).getMonth() === month);
+    };
 
-    // 3. Oktoberfest (September-October: month index 8, 9)
-    const oktoberfestPosts = yearPosts.filter(p => {
-      const m = new Date(p.time).getMonth();
-      return m === 8 || m === 9;
-    });
-    const germanCount = oktoberfestPosts.filter(p => {
-      const beer = beers.find(b => b.brand === p.brand);
-      return beer && beer.country === "Germania";
-    }).length;
-    const oktoberfestUnlocked = germanCount >= 3;
-    medals.push({
-      id: `oktoberfest-${year}`,
-      name: `Oktoberfest ${year}`,
-      year,
-      icon: 'sports_bar',
-      color: '#d35400',
-      isUnlocked: oktoberfestUnlocked,
-      desc: `Sblocca 3 birre tedesche a Settembre/Ottobre. (${germanCount}/3)`
-    });
+    // --- EVENTI STAGIONALI (10 birre, 10 punti) ---
+
+    // 🌸 Primavera (Mar-Mag)
+    if (isStarted(2)) { // March
+      const springPosts = yearPosts.filter(p => {
+        const m = new Date(p.time).getMonth();
+        return m >= 2 && m <= 4;
+      });
+      const springCount = springPosts.filter(p => {
+        const type = getBeerType(p.brand, p.variant);
+        return type === "bianca"; // Blanche, Weizen, Saison map to "bianca"
+      }).length;
+      medals.push({
+        id: `spring-${year}`,
+        name: `Primavera ${year}`,
+        year,
+        icon: 'local_florist',
+        color: '#E0F2FE',
+        isUnlocked: springCount >= 10,
+        desc: `Sblocca 10 birre Bianche (Blanche, Weizen, Saison) in Primavera (Mar-Mag). (${springCount}/10)`,
+        points: 10
+      });
+    }
+
+    // ☀️ Estate (Giu-Ago)
+    if (isStarted(5)) { // June
+      const summerPosts = yearPosts.filter(p => {
+        const m = new Date(p.time).getMonth();
+        return m >= 5 && m <= 7;
+      });
+      const summerCount = summerPosts.filter(p => {
+        const type = getBeerType(p.brand, p.variant);
+        return type === "bionda" || type === "ipa";
+      }).length;
+      medals.push({
+        id: `summer-${year}`,
+        name: `Estate ${year}`,
+        year,
+        icon: 'wb_sunny',
+        color: '#FDE68A',
+        isUnlocked: summerCount >= 10,
+        desc: `Sblocca 10 Bionde o IPA in Estate (Giu-Ago). (${summerCount}/10)`,
+        points: 10
+      });
+    }
+
+    // 🍁 Autunno (Set-Nov)
+    if (isStarted(8)) { // September
+      const autumnPosts = yearPosts.filter(p => {
+        const m = new Date(p.time).getMonth();
+        return m >= 8 && m <= 10;
+      });
+      const autumnCount = autumnPosts.filter(p => {
+        const type = getBeerType(p.brand, p.variant);
+        const beer = beers.find(b => b.brand === p.brand);
+        const isGerman = beer && beer.country === "Germania";
+        return type === "rossa" || type === "ipa" || isGerman;
+      }).length;
+      medals.push({
+        id: `autumn-${year}`,
+        name: `Autunno ${year}`,
+        year,
+        icon: 'wb_twilight',
+        color: '#FDBA74',
+        isUnlocked: autumnCount >= 10,
+        desc: `Sblocca 10 Rosse, IPA o Tedesche in Autunno (Set-Nov). (${autumnCount}/10)`,
+        points: 10
+      });
+    }
+
+    // ❄️ Inverno (Dic-Feb)
+    if (isStarted(11)) { // December
+      const winterPosts = yearPosts.filter(p => {
+        const m = new Date(p.time).getMonth();
+        return m === 11 || m === 0 || m === 1;
+      });
+      const winterCount = winterPosts.filter(p => {
+        const type = getBeerType(p.brand, p.variant);
+        return type === "scura" || type === "rossa";
+      }).length;
+      medals.push({
+        id: `winter-${year}`,
+        name: `Inverno ${year}`,
+        year,
+        icon: 'ac_unit',
+        color: '#93C5FD',
+        isUnlocked: winterCount >= 10,
+        desc: `Sblocca 10 Scure o Rosse in Inverno (Dic-Feb). (${winterCount}/10)`,
+        points: 10
+      });
+    }
+
+    // --- EVENTI FESTIVITÀ (1 birra, 5 punti) ---
+
+    // 1. 🎉 Capodanno (Gennaio)
+    if (isStarted(0)) {
+      const janPosts = getPostsByMonth(0);
+      const count = janPosts.length;
+      medals.push({
+        id: `capodanno-${year}`,
+        name: `Capodanno ${year}`,
+        year,
+        icon: 'celebration',
+        color: '#FBBF24',
+        isUnlocked: count >= 1,
+        desc: `Sblocca 1 birra qualsiasi a Gennaio. (${count}/1)`,
+        points: 5
+      });
+    }
+
+    // 2. 💖 San Valentino (Febbraio)
+    if (isStarted(1)) {
+      const febPosts = getPostsByMonth(1);
+      const count = febPosts.filter(p => {
+        const type = getBeerType(p.brand, p.variant);
+        return type === "rossa" || type === "scura";
+      }).length;
+      medals.push({
+        id: `valentino-${year}`,
+        name: `San Valentino ${year}`,
+        year,
+        icon: 'favorite',
+        color: '#F472B6',
+        isUnlocked: count >= 1,
+        desc: `Sblocca 1 Rossa o Scura a San Valentino (Febbraio). (${count}/1)`,
+        points: 5
+      });
+    }
+
+    // 3. 🍀 San Patrizio (Marzo)
+    if (isStarted(2)) {
+      const marchPosts = getPostsByMonth(2);
+      const IrishCount = marchPosts.filter(p => {
+        const beer = beers.find(b => b.brand === p.brand);
+        return beer && (beer.country === "Irlanda" || beer.country === "Scozia");
+      }).length;
+      medals.push({
+        id: `patrizio-${year}`,
+        name: `San Patrizio ${year}`,
+        year,
+        icon: 'eco',
+        color: '#A7F3D0',
+        isUnlocked: IrishCount >= 1,
+        desc: `Sblocca 1 birra d'Irlanda/Scozia a Marzo. (${IrishCount}/1)`,
+        points: 5
+      });
+    }
+
+    // 4. 👨 Festa del Papà (Marzo)
+    if (isStarted(2)) {
+      const marchPosts = getPostsByMonth(2);
+      const count = marchPosts.filter(p => {
+        const beer = beers.find(b => b.brand === p.brand);
+        return beer && (beer.rarity === "rara" || beer.rarity === "media");
+      }).length;
+      medals.push({
+        id: `papa-${year}`,
+        name: `Festa del Papà ${year}`,
+        year,
+        icon: 'person',
+        color: '#93C5FD',
+        isUnlocked: count >= 1,
+        desc: `Sblocca 1 birra Rara o Media per la Festa del Papà (Marzo). (${count}/1)`,
+        points: 5
+      });
+    }
+
+    // 5. 🥚 Pasqua (Aprile)
+    if (isStarted(3)) {
+      const aprilPosts = getPostsByMonth(3);
+      const count = aprilPosts.filter(p => {
+        const beer = beers.find(b => b.brand === p.brand);
+        return beer && beer.country === "Belgio";
+      }).length;
+      medals.push({
+        id: `pasqua-${year}`,
+        name: `Pasqua ${year}`,
+        year,
+        icon: 'egg',
+        color: '#FDE68A',
+        isUnlocked: count >= 1,
+        desc: `Sblocca 1 birra belga a Pasqua (Aprile). (${count}/1)`,
+        points: 5
+      });
+    }
+
+    // 6. 🛠️ Festa del Lavoro (Maggio)
+    if (isStarted(4)) {
+      const mayPosts = getPostsByMonth(4);
+      const count = mayPosts.filter(p => getBeerType(p.brand, p.variant) === "bionda").length;
+      medals.push({
+        id: `lavoro-${year}`,
+        name: `Festa del Lavoro ${year}`,
+        year,
+        icon: 'build',
+        color: '#6EE7B7',
+        isUnlocked: count >= 1,
+        desc: `Sblocca 1 birra Bionda per la Festa del Lavoro (Maggio). (${count}/1)`,
+        points: 5
+      });
+    }
+
+    // 7. 🇮🇹 Festa della Repubblica (Giugno)
+    if (isStarted(5)) {
+      const junePosts = getPostsByMonth(5);
+      const count = junePosts.filter(p => {
+        const beer = beers.find(b => b.brand === p.brand);
+        return beer && beer.country === "Italia";
+      }).length;
+      medals.push({
+        id: `repubblica-${year}`,
+        name: `Festa della Repubblica ${year}`,
+        year,
+        icon: 'flag',
+        color: '#86EFAC',
+        isUnlocked: count >= 1,
+        desc: `Sblocca 1 birra italiana a Giugno. (${count}/1)`,
+        points: 5
+      });
+    }
+
+    // 8. 🔥 Grigliata di Luglio (Luglio)
+    if (isStarted(6)) {
+      const julyPosts = getPostsByMonth(6);
+      const count = julyPosts.filter(p => {
+        const type = getBeerType(p.brand, p.variant);
+        return type === "ipa" || type === "bionda";
+      }).length;
+      medals.push({
+        id: `grigliata-${year}`,
+        name: `Grigliata di Luglio ${year}`,
+        year,
+        icon: 'local_fire_department',
+        color: '#FDBA74',
+        isUnlocked: count >= 1,
+        desc: `Sblocca 1 IPA o Bionda per la Grigliata di Luglio. (${count}/1)`,
+        points: 5
+      });
+    }
+
+    // 9. 🍉 Ferragosto (Agosto)
+    if (isStarted(7)) {
+      const augustPosts = getPostsByMonth(7);
+      const count = augustPosts.length;
+      medals.push({
+        id: `ferragosto-${year}`,
+        name: `Ferragosto ${year}`,
+        year,
+        icon: 'celebration',
+        color: '#FCA5A5',
+        isUnlocked: count >= 1,
+        desc: `Sblocca 1 birra qualsiasi ad Agosto. (${count}/1)`,
+        points: 5
+      });
+    }
+
+    // 10. 🍻 Oktoberfest Inizio (Settembre)
+    if (isStarted(8)) {
+      const septPosts = getPostsByMonth(8);
+      const count = septPosts.filter(p => {
+        const beer = beers.find(b => b.brand === p.brand);
+        return beer && beer.country === "Germania";
+      }).length;
+      medals.push({
+        id: `oktoberfest-start-${year}`,
+        name: `Oktoberfest Start ${year}`,
+        year,
+        icon: 'sports_bar',
+        color: '#F59E0B',
+        isUnlocked: count >= 1,
+        desc: `Sblocca 1 birra tedesca a Settembre per l'Oktoberfest. (${count}/1)`,
+        points: 5
+      });
+    }
+
+    // 11. 🍻 Oktoberfest Fine (Ottobre)
+    if (isStarted(9)) {
+      const octPosts = getPostsByMonth(9);
+      const count = octPosts.filter(p => {
+        const beer = beers.find(b => b.brand === p.brand);
+        return beer && beer.country === "Germania";
+      }).length;
+      medals.push({
+        id: `oktoberfest-end-${year}`,
+        name: `Oktoberfest ${year}`,
+        year,
+        icon: 'sports_bar',
+        color: '#D97706',
+        isUnlocked: count >= 1,
+        desc: `Sblocca 1 birra tedesca ad Ottobre. (${count}/1)`,
+        points: 5
+      });
+    }
+
+    // 12. 🎃 Halloween (Ottobre)
+    if (isStarted(9)) {
+      const octoberPosts = getPostsByMonth(9);
+      const darkOrRedCount = octoberPosts.filter(p => {
+        const type = getBeerType(p.brand, p.variant);
+        return type === "scura" || type === "rossa";
+      }).length;
+      medals.push({
+        id: `halloween-${year}`,
+        name: `Halloween ${year}`,
+        year,
+        icon: 'dark_mode',
+        color: '#C084FC',
+        isUnlocked: darkOrRedCount >= 1,
+        desc: `Sblocca 1 Stout o Rossa ad Ottobre. (${darkOrRedCount}/1)`,
+        points: 5
+      });
+    }
+
+    // 13. 🍁 Castagnata (Novembre)
+    if (isStarted(10)) {
+      const novPosts = getPostsByMonth(10);
+      const count = novPosts.filter(p => {
+        const type = getBeerType(p.brand, p.variant);
+        return type === "scura" || type === "rossa";
+      }).length;
+      medals.push({
+        id: `castagnata-${year}`,
+        name: `Castagnata ${year}`,
+        year,
+        icon: 'forest',
+        color: '#B45309',
+        isUnlocked: count >= 1,
+        desc: `Sblocca 1 Rossa o Scura a Novembre. (${count}/1)`,
+        points: 5
+      });
+    }
+
+    // 14. 🎄 Natale (Dicembre)
+    if (isStarted(11)) {
+      const decemberPosts = getPostsByMonth(11);
+      const ChristmasCount = decemberPosts.filter(p => {
+        const beer = beers.find(b => b.brand === p.brand);
+        return beer && (beer.rarity === "rara" || beer.rarity === "media");
+      }).length;
+      medals.push({
+        id: `natale-${year}`,
+        name: `Natale ${year}`,
+        year,
+        icon: 'redeem',
+        color: '#F87171',
+        isUnlocked: ChristmasCount >= 1,
+        desc: `Sblocca 1 birra Rara o Media a Dicembre. (${ChristmasCount}/1)`,
+        points: 5
+      });
+    }
+
+    // 15. 🎆 Vigilia di Capodanno (Dicembre)
+    if (isStarted(11)) {
+      const decemberPosts = getPostsByMonth(11);
+      const count = decemberPosts.length;
+      medals.push({
+        id: `vigilia-${year}`,
+        name: `Vigilia ${year}`,
+        year,
+        icon: 'auto_awesome',
+        color: '#FCD34D',
+        isUnlocked: count >= 1,
+        desc: `Sblocca 1 birra qualsiasi a Dicembre per Capodanno. (${count}/1)`,
+        points: 5
+      });
+    }
   });
 
   return medals;
@@ -201,6 +523,7 @@ export const TrophyGrid: React.FC<TrophyGridProps> = ({
       isCompleted,
       country: beer.country,
       rarity: beer.rarity,
+      variantsLength: beer.variants.length,
     };
   });
 
@@ -235,7 +558,7 @@ export const TrophyGrid: React.FC<TrophyGridProps> = ({
               >
                 {beerObj.isCompleted && (
                   <div className="pts-badge" style={{ background: '#e67e22' }}>
-                    +10pt
+                    +{beerObj.variantsLength * 3}pt
                   </div>
                 )}
                 <div className="medal-icon-container" style={{ color: iconColor }}>
@@ -244,7 +567,7 @@ export const TrophyGrid: React.FC<TrophyGridProps> = ({
                   </span>
                 </div>
                 <div style={{ fontSize: '11px', fontWeight: 'bold', color: 'var(--dark)', lineHeight: 1.2 }}>
-                  Maestro<br />{beerObj.brand}
+                  Mastro<br />{beerObj.brand}
                 </div>
               </div>
             );
@@ -342,7 +665,7 @@ export const TrophyGrid: React.FC<TrophyGridProps> = ({
               >
                 {medal.isUnlocked && (
                   <div className="pts-badge" style={{ background: '#27ae60' }}>
-                    +15pt
+                    +{medal.points}pt
                   </div>
                 )}
                 <div className="medal-icon-container" style={{ color: iconColor, marginBottom: '6px' }}>

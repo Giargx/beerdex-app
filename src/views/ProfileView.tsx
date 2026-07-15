@@ -12,7 +12,7 @@ interface ProfileViewProps {
   leaderboardScores: Record<string, number>;
   onToggleSettings: () => void;
   onDeleteVariant: (brand: string, variant: string) => void;
-  getUserRankTitle: (score: number) => string;
+  getUserRankTitle: (score: number, unlockedCount?: number) => string;
   getAvatarZoomProps?: (url: string | undefined) => any;
   posts: any[];
   onOpenPostDetail: (username: string, postId: string) => void;
@@ -39,7 +39,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
   const [medalSortDir, setMedalSortDir] = useState<number>(1);
 
   const score = leaderboardScores[currentUserNick] || 0;
-  const rankTitle = getUserRankTitle(score);
+  const rankTitle = getUserRankTitle(score, Object.keys(myPokedex || {}).length);
   const avatar = globalAvatars[currentUserNick];
 
   const roleText = isAdminUser ? "ADMIN" : "UTENTE";

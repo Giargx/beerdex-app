@@ -233,6 +233,63 @@ select:focus {
     box-sizing: border-box;
 }
 
+/* Main Tabs Slider Styles */
+.main-tabs-slider-wrapper {
+    width: 100%;
+    box-sizing: border-box;
+    display: none;
+    overflow: hidden;
+    position: relative;
+}
+
+.main-tabs-slider-wrapper.active {
+    display: block;
+}
+
+.main-tabs-slider-container {
+    display: flex;
+    width: 500%; /* 5 main tabs side-by-side */
+    height: 100%;
+    will-change: transform;
+}
+
+.main-tab-slide {
+    width: 20%; /* 100% / 5 */
+    flex-shrink: 0;
+    box-sizing: border-box;
+}
+
+/* Slide transitions for the wrapper when navigating to/from subpages */
+.main-tabs-slider-wrapper.slide-out-left {
+    display: block;
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%;
+    animation: slideOutLeftKey 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    pointer-events: none;
+}
+.main-tabs-slider-wrapper.slide-in-right {
+    display: block;
+    position: relative;
+    width: 100%;
+    animation: slideInRightKey 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+.main-tabs-slider-wrapper.slide-out-right {
+    display: block;
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%;
+    animation: slideOutRightKey 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    pointer-events: none;
+}
+.main-tabs-slider-wrapper.slide-in-left {
+    display: block;
+    position: relative;
+    width: 100%;
+    animation: slideInLeftKey 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+
 /* High-performance hardware-accelerated transition styling */
 .page-view.slide-out-left {
     position: absolute;

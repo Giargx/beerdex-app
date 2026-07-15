@@ -10,7 +10,7 @@ interface PublicProfileViewProps {
   score: number;
   avatar: string | undefined;
   onBack: () => void;
-  getUserRankTitle: (score: number) => string;
+  getUserRankTitle: (score: number, unlockedCount?: number) => string;
   getAvatarZoomProps?: (url: string | undefined) => any;
   posts: any[];
   onOpenPostDetail: (username: string, postId: string) => void;
@@ -39,7 +39,7 @@ export const PublicProfileView: React.FC<PublicProfileViewProps> = ({
   const [medalSort, setMedalSort] = useState<'alpha' | 'unlocked' | 'rarity' | 'nation'>('unlocked');
   const [medalSortDir, setMedalSortDir] = useState<number>(1);
 
-  const rankTitle = getUserRankTitle(score);
+  const rankTitle = getUserRankTitle(score, Object.keys(pokedex || {}).length);
   const myPosts = posts.filter((p) => p.user === username);
   const totalUnlocked = Object.keys(pokedex || {}).length;
 

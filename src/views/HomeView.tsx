@@ -20,7 +20,7 @@ interface HomeViewProps {
   posts: Post[];
   leaderboardScores: Record<string, number>;
   onNavigate: (pageId: string) => void;
-  getUserRankTitle: (score: number) => string;
+  getUserRankTitle: (score: number, unlockedCount?: number) => string;
 }
 
 export const HomeView: React.FC<HomeViewProps> = ({
@@ -56,11 +56,12 @@ export const HomeView: React.FC<HomeViewProps> = ({
     }
   }, []);
 
+  const myPosts = posts.filter((p) => p.user === currentUserNick);
+  const totalUnlockedCount = new Set(myPosts.map(p => p.brand + ' - ' + p.variant)).size;
   const totalPoints = leaderboardScores[currentUserNick] || 0;
-  const rankLabel = getUserRankTitle(totalPoints);
+  const rankLabel = getUserRankTitle(totalPoints, totalUnlockedCount);
 
   // Get last beer unlocked by user
-  const myPosts = posts.filter((p) => p.user === currentUserNick);
   const lastPost = myPosts.length > 0 ? [...myPosts].sort((a, b) => b.time - a.time)[0] : null;
 
   // New Rank Progression Tiers
@@ -68,7 +69,14 @@ export const HomeView: React.FC<HomeViewProps> = ({
   let prevTargetPoints = 0;
   let nextRankName = "Apprendista Bevitore";
 
-  if (totalPoints < 50) {
+  const totalVariants = beers.reduce((acc, b) => acc + b.variants.length, 0);
+  const isDioDellaBirra = totalUnlockedCount >= totalVariants;
+
+  if (isDioDellaBirra) {
+    nextTargetPoints = totalPoints;
+    prevTargetPoints = totalPoints;
+    nextRankName = "Massimo Livello: Dio della Birra!";
+  } else if (totalPoints < 50) {
     nextTargetPoints = 50;
     prevTargetPoints = 0;
     nextRankName = "Apprendista Bevitore";
@@ -83,7 +91,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
   } else if (totalPoints < 1200) {
     nextTargetPoints = 1200;
     prevTargetPoints = 500;
-    nextRankName = "Maestro Birraio";
+    nextRankName = "Mastro Birraio";
   } else {
     nextTargetPoints = totalPoints;
     prevTargetPoints = totalPoints;
@@ -96,7 +104,6 @@ export const HomeView: React.FC<HomeViewProps> = ({
     : Math.min(((totalPoints - prevTargetPoints) / (nextTargetPoints - prevTargetPoints)) * 100, 100);
 
   // New Collector Metrics
-  const totalUnlockedCount = new Set(myPosts.map(p => p.brand + ' - ' + p.variant)).size;
   const shinyCount = myPosts.filter(p => p.isShiny).length;
   const countriesExplored = new Set(myPosts.map(p => {
     const b = beers.find(beerItem => beerItem.brand === p.brand);

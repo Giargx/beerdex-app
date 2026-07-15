@@ -212,6 +212,9 @@ export default function App() {
 
   const touchStartX = useRef<number>(0);
   const touchStartY = useRef<number>(0);
+  const isHorizontalSwipe = useRef<boolean | null>(null);
+  const [dragOffset, setDragOffset] = useState<number>(0);
+  const [isDragging, setIsDragging] = useState<boolean>(false);
 
   const isAnyModalOpen =
     authOpen ||
@@ -233,7 +236,7 @@ export default function App() {
     }
   }, []);
 
-  // Adjust body padding-top dynamically based on pages that have their own custom headers
+  // Adjust body padding-top dynamically based on pages that have their own custom headers and reset scroll positions
   useEffect(() => {
     const noHeaderPages = ['page-user-posts-detail', 'page-public-profile'];
     if (noHeaderPages.includes(currentPage)) {
@@ -241,6 +244,16 @@ export default function App() {
     } else {
       document.body.style.paddingTop = '70px';
     }
+
+    // Reset window, body and inner scroll container scroll positions
+    window.scrollTo(0, 0);
+    document.documentElement.scrollTop = 0;
+    document.body.scrollTop = 0;
+    
+    const scrollables = document.querySelectorAll('.page-container-view, [style*="overflow-y: auto"], [style*="overflowY: auto"]');
+    scrollables.forEach((el) => {
+      el.scrollTop = 0;
+    });
   }, [currentPage]);
 
   // Synchronize settings form state when the drawer is toggled
@@ -380,7 +393,7 @@ export default function App() {
 
     beers.forEach((beer) => {
       if (beer.variants.length > 0 && brandUnlockCounts[beer.brand] === beer.variants.length) {
-        totalScore += 10;
+        totalScore += beer.variants.length * 3;
       }
     });
 
@@ -399,7 +412,7 @@ export default function App() {
     const eventMedals = getEventMedals(userPosts);
     eventMedals.forEach((medal) => {
       if (medal.isUnlocked) {
-        totalScore += 15;
+        totalScore += medal.points;
       }
     });
 
@@ -422,12 +435,16 @@ export default function App() {
   };
 
   // Helper visibility titles
-  const getUserRankTitle = (score: number) => {
+  const getUserRankTitle = (score: number, unlockedCount?: number) => {
+    const totalVariants = beers.reduce((acc, b) => acc + b.variants.length, 0);
+    if (unlockedCount !== undefined && unlockedCount >= totalVariants) {
+      return "Dio della Birra";
+    }
     if (score < 50) return "Novizio del Pub";
     if (score < 200) return "Apprendista Bevitore";
     if (score < 500) return "Esploratore di Luppoli";
     if (score < 1200) return "Sommelier del Bancone";
-    return "Maestro Birraio";
+    return "Mastro Birraio";
   };
 
   // Navigation Logic
@@ -444,33 +461,21 @@ export default function App() {
 
     sessionStorage.setItem('beerdex_currentPage', pageId);
 
+    // Scroll to the top when page changes
+    window.scrollTo({ top: 0, behavior: 'instant' });
+
     setTimeout(() => {
       setPrevPage(null);
       setTransitionDir(null);
     }, 400);
   };
 
-  // Slide directional gesture swipe
-  const handleSwipeGesture = (touchEndX: number) => {
-    const swipeThreshold = 100; // Increased from 65 to reduce sensitivity
-    const mainTabs = ['page-home', 'page-explore', 'page-leaderboard', 'page-social', 'page-profile'];
-    const currentIndex = mainTabs.indexOf(currentPage);
-    if (currentIndex === -1) return;
-
-    if (touchStartX.current - touchEndX > swipeThreshold) {
-      // Swipe Left -> Next Tab
-      if (currentIndex < mainTabs.length - 1) {
-        navigateTo(mainTabs[currentIndex + 1]);
-      }
-    } else if (touchEndX - touchStartX.current > swipeThreshold) {
-      // Swipe Right -> Previous Tab
-      if (currentIndex > 0) {
-        navigateTo(mainTabs[currentIndex - 1]);
-      }
-    }
-  };
-
+  // Touch swipe to drag horizontally
   useEffect(() => {
+    // Only enable swiping on main tabs
+    const mainTabs = ['page-home', 'page-explore', 'page-leaderboard', 'page-social', 'page-profile'];
+    if (!mainTabs.includes(currentPage)) return;
+
     const handleTouchStart = (e: TouchEvent) => {
       if (isAnyModalOpen) {
         touchStartX.current = 0;
@@ -482,42 +487,80 @@ export default function App() {
         target.closest('#mapContainer') ||
         target.closest('.crop-viewport-container') ||
         target.closest('input[type="range"]') ||
-        target.closest('.leaflet-container')
+        target.closest('.leaflet-container') ||
+        target.closest('.no-swipe') ||
+        target.closest('.leaflet-interactive')
       ) {
         touchStartX.current = 0;
         touchStartY.current = 0;
         return;
       }
-      touchStartX.current = e.changedTouches[0].screenX;
-      touchStartY.current = e.changedTouches[0].screenY;
+      touchStartX.current = e.changedTouches[0].clientX;
+      touchStartY.current = e.changedTouches[0].clientY;
+      isHorizontalSwipe.current = null;
+    };
+
+    const handleTouchMove = (e: TouchEvent) => {
+      if (touchStartX.current === 0) return;
+      const currentX = e.changedTouches[0].clientX;
+      const currentY = e.changedTouches[0].clientY;
+      const diffX = currentX - touchStartX.current;
+      const diffY = currentY - touchStartY.current;
+
+      if (isHorizontalSwipe.current === null) {
+        if (Math.abs(diffX) < 8 && Math.abs(diffY) < 8) return;
+        
+        if (Math.abs(diffX) > Math.abs(diffY)) {
+          isHorizontalSwipe.current = true;
+        } else {
+          isHorizontalSwipe.current = false;
+          touchStartX.current = 0;
+          return;
+        }
+      }
+
+      if (isHorizontalSwipe.current) {
+        if (e.cancelable) {
+          e.preventDefault();
+        }
+        setIsDragging(true);
+        setDragOffset(diffX);
+      }
     };
 
     const handleTouchEnd = (e: TouchEvent) => {
       if (touchStartX.current === 0) return;
-      const touchEndX = e.changedTouches[0].screenX;
-      const touchEndY = e.changedTouches[0].screenY;
-      
-      const deltaX = touchEndX - touchStartX.current;
-      const deltaY = touchEndY - touchStartY.current;
+      const currentX = e.changedTouches[0].clientX;
+      const diffX = currentX - touchStartX.current;
 
-      // Ignore gesture if vertical movement is greater than horizontal movement or vertical movement is substantial
-      if (Math.abs(deltaY) > Math.abs(deltaX) || Math.abs(deltaY) > 60) {
-        touchStartX.current = 0;
-        touchStartY.current = 0;
-        return;
+      if (isHorizontalSwipe.current && isDragging) {
+        const threshold = window.innerWidth * 0.15; // 15% threshold for switching page
+        const currentIndex = mainTabs.indexOf(currentPage);
+        
+        if (diffX < -threshold && currentIndex < mainTabs.length - 1) {
+          navigateTo(mainTabs[currentIndex + 1]);
+        } else if (diffX > threshold && currentIndex > 0) {
+          navigateTo(mainTabs[currentIndex - 1]);
+        }
       }
 
-      handleSwipeGesture(touchEndX);
+      setIsDragging(false);
+      setDragOffset(0);
+      touchStartX.current = 0;
+      touchStartY.current = 0;
+      isHorizontalSwipe.current = null;
     };
 
     document.addEventListener('touchstart', handleTouchStart, { passive: true });
+    document.addEventListener('touchmove', handleTouchMove, { passive: false });
     document.addEventListener('touchend', handleTouchEnd, { passive: true });
 
     return () => {
       document.removeEventListener('touchstart', handleTouchStart);
+      document.removeEventListener('touchmove', handleTouchMove);
       document.removeEventListener('touchend', handleTouchEnd);
     };
-  }, [currentPage, isAnyModalOpen]);
+  }, [currentPage, isAnyModalOpen, isDragging, dragOffset]);
 
   // Alert and Confirm Utilities
   const showAlert = (message: string, title = 'Avviso', showOk = true, callback?: () => void) => {
@@ -1049,6 +1092,38 @@ export default function App() {
     }
     return 'page-view'; // display: none
   };
+
+  const getSliderWrapperClass = () => {
+    const mainTabs = ['page-home', 'page-explore', 'page-leaderboard', 'page-social', 'page-profile'];
+    const isCurrentMain = mainTabs.includes(currentPage);
+    const isPrevMain = prevPage ? mainTabs.includes(prevPage) : false;
+
+    if (isCurrentMain) {
+      if (prevPage && !isPrevMain) {
+        if (transitionDir === 'left') return 'main-tabs-slider-wrapper active slide-in-right';
+        if (transitionDir === 'right') return 'main-tabs-slider-wrapper active slide-in-left';
+      }
+      return 'main-tabs-slider-wrapper active';
+    }
+    
+    if (prevPage && isPrevMain) {
+      if (transitionDir === 'left') return 'main-tabs-slider-wrapper slide-out-left';
+      if (transitionDir === 'right') return 'main-tabs-slider-wrapper slide-out-right';
+    }
+
+    return 'main-tabs-slider-wrapper';
+  };
+
+  const activeIndex = (() => {
+    const mainTabs = ['page-home', 'page-explore', 'page-leaderboard', 'page-social', 'page-profile'];
+    const idx = mainTabs.indexOf(currentPage);
+    if (idx !== -1) return idx;
+    if (prevPage) {
+      const prevIdx = mainTabs.indexOf(prevPage);
+      if (prevIdx !== -1) return prevIdx;
+    }
+    return 0;
+  })();
 
   return (
     <>
@@ -1603,98 +1678,111 @@ export default function App() {
 
       {/* MAIN CONTAINER CONTENT VIEW WITH TRANSITIONS */}
       <div className="main-content">
-        {/* Page Home */}
-        <div className={getPageClass('page-home')}>
-          {currentPage === 'page-home' || prevPage === 'page-home' ? (
-            <HomeView
-              currentUserNick={currentUserNick}
-              currentUserDisplayName={globalDisplayNames[currentUserNick]}
-              posts={globalPosts}
-              leaderboardScores={globalLeaderboardScores}
-              onNavigate={navigateTo}
-              getUserRankTitle={getUserRankTitle}
-            />
-          ) : null}
-        </div>
+        {/* Main Tabs Slider */}
+        <div className={getSliderWrapperClass()}>
+          <div
+            className="main-tabs-slider-container"
+            style={{
+              transform: isDragging
+                ? `translateX(calc(-${activeIndex * 20}% + ${dragOffset}px))`
+                : `translateX(-${activeIndex * 20}%)`,
+              transition: isDragging ? 'none' : 'transform 0.4s cubic-bezier(0.16, 1, 0.3, 1)',
+            }}
+          >
+            {/* Page Home */}
+            <div className="main-tab-slide">
+              {currentUser && (
+                <HomeView
+                  currentUserNick={currentUserNick}
+                  currentUserDisplayName={globalDisplayNames[currentUserNick]}
+                  posts={globalPosts}
+                  leaderboardScores={globalLeaderboardScores}
+                  onNavigate={navigateTo}
+                  getUserRankTitle={getUserRankTitle}
+                />
+              )}
+            </div>
 
-        {/* Page Explore */}
-        <div className={getPageClass('page-explore')}>
-          {currentPage === 'page-explore' || prevPage === 'page-explore' ? (
-            <ExploreView
-              myPokedex={myPokedex}
-              onInitUnlock={handleInitUnlock}
-              onDeleteVariant={handleDeleteVariant}
-            />
-          ) : null}
-        </div>
+            {/* Page Explore */}
+            <div className="main-tab-slide">
+              {currentUser && (
+                <ExploreView
+                  myPokedex={myPokedex}
+                  onInitUnlock={handleInitUnlock}
+                  onDeleteVariant={handleDeleteVariant}
+                />
+              )}
+            </div>
 
-        {/* Page Leaderboard */}
-        <div className={getPageClass('page-leaderboard')}>
-          {currentPage === 'page-leaderboard' || prevPage === 'page-leaderboard' ? (
-            <LeaderboardView
-              currentUserNick={currentUserNick}
-              leaderboardScores={globalLeaderboardScores}
-              myFriendsList={myFriendsList}
-              mySentRequests={mySentRequests}
-              myReceivedRequests={myReceivedRequests}
-              globalAvatars={globalAvatars}
-              globalDisplayNames={globalDisplayNames}
-              onAddFriend={handleAddFriend}
-              onOpenPublicProfile={handleOpenPublicProfile}
-              onNavigateToFriends={() => navigateTo('page-friends')}
-              getUserRankTitle={getUserRankTitle}
-            />
-          ) : null}
-        </div>
+            {/* Page Leaderboard */}
+            <div className="main-tab-slide">
+              {currentUser && (
+                <LeaderboardView
+                  currentUserNick={currentUserNick}
+                  leaderboardScores={globalLeaderboardScores}
+                  myFriendsList={myFriendsList}
+                  mySentRequests={mySentRequests}
+                  myReceivedRequests={myReceivedRequests}
+                  globalAvatars={globalAvatars}
+                  globalDisplayNames={globalDisplayNames}
+                  onAddFriend={handleAddFriend}
+                  onOpenPublicProfile={handleOpenPublicProfile}
+                  onNavigateToFriends={() => navigateTo('page-friends')}
+                  getUserRankTitle={getUserRankTitle}
+                />
+              )}
+            </div>
 
-        {/* Page Social (Pub feed) */}
-        <div className={getPageClass('page-social')}>
-          {currentPage === 'page-social' || prevPage === 'page-social' ? (
-            <PubView
-              currentUserNick={currentUserNick}
-              posts={globalPosts}
-              globalAvatars={globalAvatars}
-              globalDisplayNames={globalDisplayNames}
-              myFriendsList={myFriendsList}
-              isAdminUser={isAdminUser}
-              onToggleLike={handleToggleLike}
-              onDeletePost={handleDeletePost}
-              onReportFakePost={handleReportFakePost}
-              onOpenPublicProfile={handleOpenPublicProfile}
-              getAvatarZoomProps={getAvatarZoomProps}
-            />
-          ) : null}
-        </div>
+            {/* Page Social (Pub feed) */}
+            <div className="main-tab-slide">
+              {currentUser && (
+                <PubView
+                  currentUserNick={currentUserNick}
+                  posts={globalPosts}
+                  globalAvatars={globalAvatars}
+                  globalDisplayNames={globalDisplayNames}
+                  myFriendsList={myFriendsList}
+                  isAdminUser={isAdminUser}
+                  onToggleLike={handleToggleLike}
+                  onDeletePost={handleDeletePost}
+                  onReportFakePost={handleReportFakePost}
+                  onOpenPublicProfile={handleOpenPublicProfile}
+                  getAvatarZoomProps={getAvatarZoomProps}
+                />
+              )}
+            </div>
 
-        {/* Page Profile */}
-        <div className={getPageClass('page-profile')}>
-          {currentPage === 'page-profile' || prevPage === 'page-profile' ? (
-            <ProfileView
-              currentUserNick={currentUserNick}
-              currentUserDisplayName={globalDisplayNames[currentUserNick]}
-              isAdminUser={isAdminUser}
-              myPokedex={myPokedex}
-              globalAvatars={globalAvatars}
-              leaderboardScores={globalLeaderboardScores}
-              onToggleSettings={() => {
-                setNewNickname('');
-                setOldPassword('');
-                setNewPassword('');
-                setConfirmNewPassword('');
-                setSettingsOpen(true);
-              }}
-              onDeleteVariant={handleDeleteVariant}
-              getUserRankTitle={getUserRankTitle}
-              getAvatarZoomProps={getAvatarZoomProps}
-              posts={globalPosts}
-              onOpenPostDetail={(uname, pid) => {
-                setDetailViewUser(uname);
-                setDetailViewPostId(pid);
-                setDetailViewBackPage('page-profile');
-                navigateTo('page-user-posts-detail');
-              }}
-            />
-          ) : null}
+            {/* Page Profile */}
+            <div className="main-tab-slide">
+              {currentUser && (
+                <ProfileView
+                  currentUserNick={currentUserNick}
+                  currentUserDisplayName={globalDisplayNames[currentUserNick]}
+                  isAdminUser={isAdminUser}
+                  myPokedex={myPokedex}
+                  globalAvatars={globalAvatars}
+                  leaderboardScores={globalLeaderboardScores}
+                  onToggleSettings={() => {
+                    setNewNickname('');
+                    setOldPassword('');
+                    setNewPassword('');
+                    setConfirmNewPassword('');
+                    setSettingsOpen(true);
+                  }}
+                  onDeleteVariant={handleDeleteVariant}
+                  getUserRankTitle={getUserRankTitle}
+                  getAvatarZoomProps={getAvatarZoomProps}
+                  posts={globalPosts}
+                  onOpenPostDetail={(uname, pid) => {
+                    setDetailViewUser(uname);
+                    setDetailViewPostId(pid);
+                    setDetailViewBackPage('page-profile');
+                    navigateTo('page-user-posts-detail');
+                  }}
+                />
+              )}
+            </div>
+          </div>
         </div>
 
         {/* Page Public Profile */}
