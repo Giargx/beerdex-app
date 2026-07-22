@@ -138,7 +138,7 @@ export const PubView: React.FC<PubViewProps> = ({
     <div className="page-container-view">
       <header className="hero">
         <FoamBubbles />
-        <div style={{ position: 'relative', zIndex: 2, display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
+        <div style={{ position: 'relative', zIndex: 2, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', marginBottom: '8px' }}>
           <span className="material-symbols-outlined" style={{ fontSize: '36px', color: 'var(--primary-dark)' }}>sports_bar</span>
           <h1 style={{ fontSize: '36px', margin: 0, fontWeight: 800 }}>Pub</h1>
         </div>
