@@ -35,21 +35,95 @@ export const HomeView: React.FC<HomeViewProps> = ({
 
   useEffect(() => {
     const now = new Date();
-    const month = now.getMonth() + 1;
-    if (month === 3) {
+    const currentYear = now.getFullYear();
+
+    const getEasterDate = (year: number) => {
+      const a = year % 19;
+      const b = Math.floor(year / 100);
+      const c = year % 100;
+      const d = Math.floor(b / 4);
+      const e = b % 4;
+      const f = Math.floor((b + 8) / 25);
+      const g = Math.floor((b - f + 1) / 3);
+      const h = (19 * a + b - d - g + 15) % 30;
+      const i = Math.floor(c / 4);
+      const k = c % 4;
+      const L = (32 + 2 * e + 2 * i - h - k) % 7;
+      const m = Math.floor((a + 11 * h + 22 * L) / 451);
+      const month = Math.floor((h + L - 7 * m + 114) / 31);
+      const day = ((h + L - 7 * m + 114) % 31) + 1;
+      return new Date(year, month - 1, day);
+    };
+
+    // Short Events
+    const patrizioStart = new Date(currentYear, 2, 15);
+    const patrizioEnd = new Date(currentYear, 2, 21, 23, 59, 59);
+
+    const easterDate = getEasterDate(currentYear);
+    const pasquettaStart = new Date(easterDate);
+    pasquettaStart.setDate(easterDate.getDate() - 1);
+    const pasquettaEnd = new Date(easterDate);
+    pasquettaEnd.setDate(easterDate.getDate() + 1);
+    pasquettaEnd.setHours(23, 59, 59, 999);
+
+    const ferragostoStart = new Date(currentYear, 7, 14);
+    const ferragostoEnd = new Date(currentYear, 7, 16, 23, 59, 59);
+
+    const oktoberfestStart = new Date(currentYear, 8, 16);
+    const oktoberfestEnd = new Date(currentYear, 9, 4, 23, 59, 59);
+
+    // Seasonal Events
+    const springStart = new Date(currentYear, 2, 21);
+    const springEnd = new Date(currentYear, 5, 20, 23, 59, 59);
+
+    const summerStart = new Date(currentYear, 5, 21);
+    const summerEnd = new Date(currentYear, 8, 22, 23, 59, 59);
+
+    const autumnStart = new Date(currentYear, 8, 23);
+    const autumnEnd = new Date(currentYear, 11, 20, 23, 59, 59);
+
+    const winterStart = new Date(currentYear - 1, 11, 21);
+    const winterEnd = new Date(currentYear, 2, 20, 23, 59, 59);
+
+    if (now >= ferragostoStart && now <= ferragostoEnd) {
       setTimedEvent({
-        name: "San Patrizio",
-        desc: "Mese di Marzo! Sblocca 2 varianti irlandesi o scozzesi per vincere la medaglia!",
+        name: "Ferragosto",
+        desc: "Festa di Ferragosto! Sblocca 1 birra per il brindisi estivo e vinci +3 punti!",
       });
-    } else if (month >= 6 && month <= 8) {
-      setTimedEvent({
-        name: "Solstizio d'Estate",
-        desc: "Estate! Sblocca 3 birre Bionde o IPA per rinfrescarti e vincere la medaglia!",
-      });
-    } else if (month === 9 || month === 10) {
+    } else if (now >= oktoberfestStart && now <= oktoberfestEnd) {
       setTimedEvent({
         name: "Oktoberfest",
-        desc: "Periodo Oktoberfest! Sblocca 3 varianti tedesche tra Settembre e Ottobre!",
+        desc: "Sfida Oktoberfest! Sblocca 3 birre tedesche durante le 3 settimane dell'evento per +5 punti!",
+      });
+    } else if (now >= patrizioStart && now <= patrizioEnd) {
+      setTimedEvent({
+        name: "San Patrizio",
+        desc: "Festa di San Patrizio! Sblocca 1 birra irlandese/scozzese o scura per +3 punti!",
+      });
+    } else if (now >= pasquettaStart && now <= pasquettaEnd) {
+      setTimedEvent({
+        name: "Pasquetta",
+        desc: "Pasquetta al pub! Sblocca 1 birra belga o bionda per +3 punti!",
+      });
+    } else if (now >= summerStart && now <= summerEnd) {
+      setTimedEvent({
+        name: "Estate",
+        desc: `Sfida Estate ${currentYear}! Sblocca 10 birre Bionde o IPA entro il 22 Settembre per +10 punti!`,
+      });
+    } else if (now >= autumnStart && now <= autumnEnd) {
+      setTimedEvent({
+        name: "Autunno",
+        desc: `Sfida Autunno ${currentYear}! Sblocca 10 birre Rosse, IPA o Tedesche entro il 20 Dicembre per +10 punti!`,
+      });
+    } else if (now >= springStart && now <= springEnd) {
+      setTimedEvent({
+        name: "Primavera",
+        desc: `Sfida Primavera ${currentYear}! Sblocca 10 birre Bianche entro il 20 Giugno per +10 punti!`,
+      });
+    } else if (now >= winterStart && now <= winterEnd) {
+      setTimedEvent({
+        name: "Inverno",
+        desc: `Sfida Inverno ${currentYear}! Sblocca 10 birre Scure o Rosse entro il 20 Marzo per +10 punti!`,
       });
     } else {
       setTimedEvent(null);
@@ -152,7 +226,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
       };
     }
 
-    if (timedEvent.name === "Solstizio d'Estate") {
+    if (timedEvent.name === "Estate") {
       return {
         background: 'linear-gradient(135deg, #D97706 0%, #92400E 100%)',
         border: '1px solid rgba(245, 158, 11, 0.2)',
@@ -161,7 +235,20 @@ export const HomeView: React.FC<HomeViewProps> = ({
         descColor: '#FEF3C7',
         iconColor: '#F59E0B',
         icon: 'wb_sunny',
-        badge: '☀️ EVENTO ATTIVO'
+        badge: '☀️ SFIDA STAGIONALE ATTIVA'
+      };
+    }
+
+    if (timedEvent.name === "Ferragosto") {
+      return {
+        background: 'linear-gradient(135deg, #DC2626 0%, #991B1B 100%)',
+        border: '1px solid rgba(239, 68, 68, 0.2)',
+        color: '#FFFFFF',
+        titleColor: '#FCA5A5',
+        descColor: '#FEF2F2',
+        iconColor: '#F87171',
+        icon: 'celebration',
+        badge: '🍉 FESTIVITÀ ATTIVA'
       };
     }
 
@@ -175,6 +262,58 @@ export const HomeView: React.FC<HomeViewProps> = ({
         iconColor: '#F59E0B',
         icon: 'sports_bar',
         badge: '🍺 EVENTO ATTIVO'
+      };
+    }
+
+    if (timedEvent.name === "Primavera") {
+      return {
+        background: 'linear-gradient(135deg, #0284C7 0%, #0369A1 100%)',
+        border: '1px solid rgba(56, 189, 248, 0.2)',
+        color: '#FFFFFF',
+        titleColor: '#BAE6FD',
+        descColor: '#F0F9FF',
+        iconColor: '#38BDF8',
+        icon: 'local_florist',
+        badge: '🌸 SFIDA STAGIONALE ATTIVA'
+      };
+    }
+
+    if (timedEvent.name === "Autunno") {
+      return {
+        background: 'linear-gradient(135deg, #C2410C 0%, #7C2D12 100%)',
+        border: '1px solid rgba(249, 115, 22, 0.2)',
+        color: '#FFFFFF',
+        titleColor: '#FFEDD5',
+        descColor: '#FFF7ED',
+        iconColor: '#FB923C',
+        icon: 'wb_twilight',
+        badge: '🍁 SFIDA STAGIONALE ATTIVA'
+      };
+    }
+
+    if (timedEvent.name === "Inverno") {
+      return {
+        background: 'linear-gradient(135deg, #1E40AF 0%, #1E3A8A 100%)',
+        border: '1px solid rgba(96, 165, 250, 0.2)',
+        color: '#FFFFFF',
+        titleColor: '#BFDBFE',
+        descColor: '#EFF6FF',
+        iconColor: '#60A5FA',
+        icon: 'ac_unit',
+        badge: '❄️ SFIDA STAGIONALE ATTIVA'
+      };
+    }
+
+    if (timedEvent.name === "Pasquetta") {
+      return {
+        background: 'linear-gradient(135deg, #CA8A04 0%, #854D0E 100%)',
+        border: '1px solid rgba(234, 179, 8, 0.2)',
+        color: '#FFFFFF',
+        titleColor: '#FEF08A',
+        descColor: '#FEFCE8',
+        iconColor: '#FACC15',
+        icon: 'egg',
+        badge: '🧺 FESTIVITÀ ATTIVA'
       };
     }
 
