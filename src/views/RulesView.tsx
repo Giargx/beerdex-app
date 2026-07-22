@@ -60,9 +60,6 @@ export const RulesView: React.FC = () => {
           <p>
             🎁 <strong>Bonus Completa Marchio</strong>: Se sblocchi <strong>tutte</strong> le varianti di un singolo brand (ad esempio tutte le varianti di Menabrea), ottieni subito un bonus extra proporzionale di <strong>+3 Punti per ogni variante</strong> presente in quel brand (es. +9 Punti per un brand da 3 varianti, +15 Punti per uno da 5)!
           </p>
-          <p>
-            🏅 <strong>Medaglie Evento</strong>: Guadagna medaglie speciali completando sfide durante l'anno (<strong>+10 Punti</strong> per eventi stagionali come Primavera/Estate, e <strong>+5 Punti</strong> per festività più facili come Ferragosto/Natale) per ottenere un boost di punti al tuo punteggio totale!
-          </p>
         </div>
 
         <div className="rules-section">
@@ -76,17 +73,38 @@ export const RulesView: React.FC = () => {
         </div>
 
         <div className="rules-section">
-          <h3>🏅 Medaglie Stagionali</h3>
-          <p>Ci sono delle medaglie speciali che puoi sbloccare solo in determinati periodi dell'anno:</p>
+          <h3>🏅 Medaglie Stagionali ed Eventi a Tempo</h3>
+          <p>Ci sono medaglie speciali che puoi sbloccare in determinati periodi dell'anno:</p>
+
+          <h4 style={{ margin: '12px 0 6px 0', color: 'var(--primary-dark)' }}>🌸 4 Sfide Stagionali (+10 Punti ciascuna, 10 birre richieste):</h4>
+          <ul style={{ paddingLeft: '20px', marginBottom: '14px' }}>
+            <li style={{ marginBottom: '6px' }}>
+              <strong>Primavera (21 Mar – 20 Giu):</strong> Sblocca 10 birre Bianche (Blanche, Weizen, Saison).
+            </li>
+            <li style={{ marginBottom: '6px' }}>
+              <strong>Estate (21 Giu – 22 Set):</strong> Sblocca 10 birre Bionde o IPA.
+            </li>
+            <li style={{ marginBottom: '6px' }}>
+              <strong>Autunno (23 Set – 20 Dic):</strong> Sblocca 10 birre Rosse, IPA o Tedesche.
+            </li>
+            <li style={{ marginBottom: '6px' }}>
+              <strong>Inverno (21 Dic – 20 Mar):</strong> Sblocca 10 birre Scure o Rosse (l'inverno viene associato all'anno solare in cui ricade la maggior parte dei mesi).
+            </li>
+          </ul>
+
+          <h4 style={{ margin: '12px 0 6px 0', color: 'var(--primary-dark)' }}>🍻 4 Festività della Birra (3 o 5 Punti):</h4>
           <ul style={{ paddingLeft: '20px' }}>
-            <li style={{ marginBottom: '8px' }}>
-              <strong>San Patrizio (Marzo):</strong> Sblocca almeno 2 varianti di Guinness o Stout scure durante il mese di marzo.
+            <li style={{ marginBottom: '6px' }}>
+              <strong>🍀 San Patrizio (15 – 21 Mar):</strong> Sblocca 1 birra d'Irlanda/Scozia o Scura (+3 Punti).
             </li>
-            <li style={{ marginBottom: '8px' }}>
-              <strong>Solstizio d'Estate (Giugno-Agosto):</strong> Trova e registra almeno 3 birre chiare fresche o IPA sotto il sole estivo.
+            <li style={{ marginBottom: '6px' }}>
+              <strong>🧺 Pasquetta (Weekend di Pasquetta):</strong> Sblocca 1 birra Belga o Bionda (+3 Punti).
             </li>
-            <li style={{ marginBottom: '8px' }}>
-              <strong>Oktoberfest (Settembre-Oktober):</strong> Registra almeno 3 birre tedesche (es. Paulaner, Franziskaner, HB) tra il 1° settembre e il 31 ottobre.
+            <li style={{ marginBottom: '6px' }}>
+              <strong>☀️ Ferragosto (14 – 16 Ago):</strong> Sblocca 1 birra per il brindisi estivo (+3 Punti).
+            </li>
+            <li style={{ marginBottom: '6px' }}>
+              <strong>🍺 Oktoberfest (16 Set – 4 Ott):</strong> Sblocca 3 birre tedesche durante le 3 settimane dell'evento (+5 Punti).
             </li>
           </ul>
         </div>
