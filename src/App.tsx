@@ -98,6 +98,15 @@ export default function App() {
   const [globalDisplayNames, setGlobalDisplayNames] = useState<Record<string, string>>({});
   const [totalUsersCount, setTotalUsersCount] = useState<number>(1);
 
+  // Proposal & Custom Beers State
+  const [customBeers, setCustomBeers] = useState<Beer[]>([]);
+  const [beerProposals, setBeerProposals] = useState<BeerProposalItem[]>([]);
+  const [proposeModalOpen, setProposeModalOpen] = useState<boolean>(false);
+  const [proposeBrandPrefill, setProposeBrandPrefill] = useState<string>('');
+  const [adminProposalsModalOpen, setAdminProposalsModalOpen] = useState<boolean>(false);
+
+  const allBeersCatalog = mergeBeers(beers, customBeers);
+
   // Enriched settings states
   const [newDisplayName, setNewDisplayName] = useState<string>('');
   const [soundEnabled, setSoundEnabled] = useState<boolean>(() => localStorage.getItem('beerdex_sounds') !== 'no');
@@ -1932,7 +1941,7 @@ export default function App() {
                     navigateTo('page-user-posts-detail');
                   }}
                   onOpenAdminProposals={() => setAdminProposalsModalOpen(true)}
-                  pendingProposalsCount={beerProposals.filter((p) => p.status === 'pending').length}
+                  pendingProposalsCount={beerProposals.filter((p: BeerProposalItem) => p.status === 'pending').length}
                 />
               )}
             </div>

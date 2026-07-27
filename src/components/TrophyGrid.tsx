@@ -282,7 +282,7 @@ export const TrophyGrid: React.FC<TrophyGridProps> = ({
   userPosts = [],
   allBeersCatalog = beers,
 }) => {
-  const rarityMap = { comune: 1, media: 2, rara: 3 };
+  const rarityMap: Record<string, number> = { comune: 1, media: 2, rara: 3 };
   const eventMedalsList = getEventMedals(userPosts);
 
   // Calculate unlock count per brand
@@ -293,7 +293,7 @@ export const TrophyGrid: React.FC<TrophyGridProps> = ({
 
   // Build the list of all variants
   const allVariantsList = allBeersCatalog.flatMap((beer) => {
-    return beer.variants.map((variant) => {
+    return beer.variants.map((variant: string) => {
       const uniqueId = `${beer.brand}-${variant}`;
       const entry = pokedex ? pokedex[uniqueId] : undefined;
       const isUnlocked = entry !== undefined;
@@ -430,7 +430,7 @@ export const TrophyGrid: React.FC<TrophyGridProps> = ({
                 )}
                 {item.isUnlocked && item.muls.length > 0 && (
                   <div className="mul-badge">
-                    {item.muls.map((iconName) => (
+                    {item.muls.map((iconName: string) => (
                       <span
                         key={iconName}
                         className="material-symbols-outlined"

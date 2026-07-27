@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { beers, normalizeStr } from '../beers';
+import type { Beer } from '../beers';
 import { BeerCard } from '../components/BeerCard';
 import type { PokedexEntry } from '../components/TrophyGrid';
 import { FoamBubbles } from '../components/FoamBubbles';
@@ -79,7 +80,7 @@ export const ExploreView: React.FC<ExploreViewProps> = ({
     return matchSearch && matchCountry && matchRegion;
   });
 
-  const rarityMap = { comune: 1, media: 2, rara: 3 };
+  const rarityMap: Record<string, number> = { comune: 1, media: 2, rara: 3 };
 
   filteredBeers.sort((a, b) => {
     let res = 0;
