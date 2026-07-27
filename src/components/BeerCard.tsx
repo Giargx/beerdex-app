@@ -10,6 +10,7 @@ interface BeerCardProps {
   onToggle: () => void;
   onInitUnlock: (brand: string, variant: string) => void;
   onDeleteVariant: (brand: string, variant: string) => void;
+  onOpenProposeModal?: (brandPrefill: string) => void;
 }
 
 export const BeerCard: React.FC<BeerCardProps> = ({
@@ -19,6 +20,7 @@ export const BeerCard: React.FC<BeerCardProps> = ({
   onToggle,
   onInitUnlock,
   onDeleteVariant,
+  onOpenProposeModal,
 }) => {
   // Check if all variants are completed
   const brandTotal = beer.variants.length;
@@ -117,9 +119,6 @@ export const BeerCard: React.FC<BeerCardProps> = ({
                       className="thumb-preview"
                       alt={variant}
                       onContextMenu={(e) => e.preventDefault()}
-                      onClick={() => {
-                        // Optional preview action if needed, or do nothing since doubletap works on feed
-                      }}
                     />
                     <button
                       className="btn-delete"
@@ -143,6 +142,33 @@ export const BeerCard: React.FC<BeerCardProps> = ({
               </div>
             );
           })}
+
+          {onOpenProposeModal && (
+            <div style={{ marginTop: '12px', paddingTop: '10px', borderTop: '1px dashed var(--gray)', textAlign: 'center' }}>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onOpenProposeModal(beer.brand);
+                }}
+                style={{
+                  background: 'rgba(255, 179, 0, 0.08)',
+                  border: '1px solid rgba(255, 111, 0, 0.25)',
+                  color: 'var(--primary-dark)',
+                  padding: '8px 14px',
+                  borderRadius: '10px',
+                  fontSize: '12px',
+                  fontWeight: 'bold',
+                  cursor: 'pointer',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                }}
+              >
+                <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>add_circle</span>
+                Manca una variante di {beer.brand}? Proponila (+2pt)
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </div>

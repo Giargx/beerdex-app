@@ -226,17 +226,53 @@ export const ExploreView: React.FC<ExploreViewProps> = ({
               </button>
             </div>
           ) : (
-            filteredBeers.map((beer) => (
-              <BeerCard
-                key={beer.brand}
-                beer={beer}
-                myPokedex={myPokedex}
-                expanded={!!expandedCards[beer.brand]}
-                onToggle={() => toggleCard(beer.brand)}
-                onInitUnlock={onInitUnlock}
-                onDeleteVariant={onDeleteVariant}
-              />
-            ))
+            <>
+              {filteredBeers.map((beer) => (
+                <BeerCard
+                  key={beer.brand}
+                  beer={beer}
+                  myPokedex={myPokedex}
+                  expanded={!!expandedCards[beer.brand]}
+                  onToggle={() => toggleCard(beer.brand)}
+                  onInitUnlock={onInitUnlock}
+                  onDeleteVariant={onDeleteVariant}
+                  onOpenProposeModal={onOpenProposeModal}
+                />
+              ))}
+
+              {/* Bottom Propose Banner when results are displayed */}
+              <div
+                style={{
+                  textAlign: 'center',
+                  padding: '20px 16px',
+                  background: '#FFFDF5',
+                  borderRadius: '20px',
+                  border: '1px dashed rgba(255, 179, 0, 0.4)',
+                  margin: '20px auto 10px auto',
+                  width: '100%',
+                  maxWidth: '500px',
+                  boxSizing: 'border-box'
+                }}
+              >
+                <div style={{ fontSize: '14px', fontWeight: 'bold', color: 'var(--dark)', marginBottom: '4px' }}>
+                  {searchTerm ? (
+                    <>Non trovi la variante esatta per "<strong>{searchTerm}</strong>"?</>
+                  ) : (
+                    <>Manca una birra che conosci nel catalogo?</>
+                  )}
+                </div>
+                <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '12px' }}>
+                  Proponila agli admin: la sbloccherai subito e otterrai <strong>+2 Punti Bonus</strong>!
+                </div>
+                <button
+                  className="btn-main"
+                  onClick={() => onOpenProposeModal(searchTerm)}
+                  style={{ display: 'inline-flex', width: 'auto', padding: '10px 20px', fontSize: '13px', margin: '0 auto' }}
+                >
+                  <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>add_circle</span> Proponi Nuova Birra
+                </button>
+              </div>
+            </>
           )}
         </div>
       </div>
