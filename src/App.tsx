@@ -3,7 +3,8 @@ import { onAuthStateChanged, signOut, updatePassword, EmailAuthProvider, reauthe
 import { ref, onValue, set, get, update, push, remove } from 'firebase/database';
 import { auth, db } from './firebase';
 
-import { beers, getBeerPoints, countryCoordinates, normalizeStr } from './beers';
+import { beers, getBeerPoints, countryCoordinates, normalizeStr, mergeBeers, getCountryFlag } from './beers';
+import type { Beer } from './beers';
 import { playPopSound } from './utils/audio';
 import { getEventMedals } from './components/TrophyGrid';
 
@@ -26,6 +27,10 @@ import { AuthScreen } from './components/AuthScreen';
 import { ScannerModal } from './components/ScannerModal';
 import { CropModal } from './components/CropModal';
 import { MapContainer } from './components/MapContainer';
+import { ProposeBeerModal } from './components/ProposeBeerModal';
+import type { BeerProposalData } from './components/ProposeBeerModal';
+import { AdminProposalsModal } from './components/AdminProposalsModal';
+import type { BeerProposalItem } from './components/AdminProposalsModal';
 
 import { FoamBubbles } from './components/FoamBubbles';
 
@@ -301,9 +306,38 @@ export default function App() {
     return () => unsubscribe();
   }, [ageGateOpen]);
 
+  // Setup app listeners
   const setupRealtimeListeners = (nickname: string) => {
     // Calibrate all scores on initial sync
     recalculateAllScores();
+
+    // Custom Beers
+    onValue(ref(db, 'custom_beers'), (snap) => {
+      const list: Beer[] = [];
+      if (snap.exists()) {
+        const val = snap.val();
+        for (const key in val) {
+          list.push(val[key]);
+        }
+      }
+      setCustomBeers(list);
+    });
+
+    // Beer Proposals
+    onValue(ref(db, 'beer_proposals'), (snap) => {
+      const proposalsList: BeerProposalItem[] = [];
+      if (snap.exists()) {
+        const val = snap.val();
+        for (const key in val) {
+          proposalsList.push({
+            ...val[key],
+            proposalId: key,
+          });
+        }
+        proposalsList.sort((a, b) => b.timestamp - a.timestamp);
+      }
+      setBeerProposals(proposalsList);
+    });
 
     // Total Users
     onValue(ref(db, 'users_directory'), (snap) => {
@@ -372,7 +406,19 @@ export default function App() {
     const snap = await get(ref(db, `pokedex_profiles/${username}`));
     let totalScore = 0;
     const brandUnlockCounts: Record<string, number> = {};
-    beers.forEach((b) => {
+
+    // Get current custom beers snapshot for accurate score recalculation
+    const customSnap = await get(ref(db, 'custom_beers'));
+    const currentCustomBeers: Beer[] = [];
+    if (customSnap.exists()) {
+      const val = customSnap.val();
+      for (const k in val) {
+        currentCustomBeers.push(val[k]);
+      }
+    }
+    const currentCatalog = mergeBeers(beers, currentCustomBeers);
+
+    currentCatalog.forEach((b) => {
       brandUnlockCounts[b.brand] = 0;
     });
 
@@ -384,14 +430,20 @@ export default function App() {
         const vName = uniqueId.substring(bName.length + 1);
         const isShiny = entry.isShiny || false;
         const isShared = entry.isShared || false;
-        totalScore += getBeerPoints(bName, vName, isShiny, isShared);
+        totalScore += getBeerPoints(bName, vName, isShiny, isShared, currentCatalog);
+
+        // Grant +2 Bonus Points for proposed beer if accepted!
+        if (entry.proposalBonus || entry.isProposalBonus) {
+          totalScore += 2;
+        }
+
         if (brandUnlockCounts[bName] !== undefined) {
           brandUnlockCounts[bName]++;
         }
       }
     }
 
-    beers.forEach((beer) => {
+    currentCatalog.forEach((beer) => {
       if (beer.variants.length > 0 && brandUnlockCounts[beer.brand] === beer.variants.length) {
         totalScore += beer.variants.length * 3;
       }
@@ -417,6 +469,99 @@ export default function App() {
     });
 
     await set(ref(db, `leaderboard_scores/${username}`), totalScore);
+  };
+
+  // Proposal Handlers
+  const handleProposeBeerSubmit = async (proposalData: BeerProposalData) => {
+    try {
+      const newRef = push(ref(db, 'beer_proposals'));
+      const proposalObj = {
+        proposalId: newRef.key!,
+        brand: proposalData.brand,
+        variant: proposalData.variant,
+        country: proposalData.country,
+        regione: proposalData.regione || null,
+        rarity: proposalData.rarity,
+        desc: proposalData.desc || null,
+        photo: proposalData.photo,
+        proposedBy: currentUserNick,
+        timestamp: Date.now(),
+        status: 'pending',
+      };
+      await set(newRef, proposalObj);
+      showAlert(
+        `Proposta per "${proposalData.brand} - ${proposalData.variant}" inviata agli admin! Se approvata, verrà aggiunta al catalogo, la sbloccherai subito e riceverai i punti della birra + 2 Punti Bonus!`,
+        'Proposta Inviata!'
+      );
+    } catch (err: any) {
+      showAlert('Errore durante l\'invio della proposta: ' + err.message, 'Errore');
+    }
+  };
+
+  const handleAcceptProposal = async (proposal: BeerProposalItem) => {
+    try {
+      // 1. Save new custom beer to catalog in Firebase DB
+      const newCustomBeer: Beer = {
+        brand: proposal.brand,
+        country: proposal.country,
+        regione: proposal.regione || undefined,
+        flag: getCountryFlag(proposal.country),
+        rarity: proposal.rarity,
+        desc: proposal.desc || `Birra ${proposal.brand} (${proposal.variant})`,
+        variants: [proposal.variant],
+        barcodes: [],
+      };
+      await set(ref(db, `custom_beers/${proposal.proposalId}`), newCustomBeer);
+
+      // 2. Unlock beer for proposing user with proposalBonus: true
+      const uniqueId = `${proposal.brand}-${proposal.variant}`;
+      const pokedexEntry = {
+        brand: proposal.brand,
+        variant: proposal.variant,
+        photo: proposal.photo,
+        unlockedAt: Date.now(),
+        isShiny: false,
+        isShared: false,
+        proposalBonus: true,
+      };
+      await set(ref(db, `pokedex_profiles/${proposal.proposedBy}/${uniqueId}`), pokedexEntry);
+
+      // 3. Post to social timeline
+      const newPostRef = push(ref(db, 'social_timeline'));
+      await set(newPostRef, {
+        user: proposal.proposedBy,
+        brand: proposal.brand,
+        variant: proposal.variant,
+        photo: proposal.photo,
+        time: Date.now(),
+        isShiny: false,
+        isShared: false,
+        proposalBonus: true,
+        taggedFriend: null,
+      });
+
+      // 4. Update proposal status to accepted
+      await update(ref(db, `beer_proposals/${proposal.proposalId}`), { status: 'accepted' });
+
+      // 5. Recalculate score for proposing user
+      await recalculateTotalScore(proposal.proposedBy);
+
+      showAlert(
+        `Proposta "${proposal.brand} - ${proposal.variant}" ACCETTATA! Nuova birra inserita nel catalogo e punti + 2 Bonus accreditati a @${proposal.proposedBy}.`,
+        'Proposta Accettata!'
+      );
+    } catch (err: any) {
+      showAlert('Errore durante l\'approvazione della proposta: ' + err.message, 'Errore');
+    }
+  };
+
+  const handleRejectProposal = async (proposalId: string) => {
+    try {
+      await update(ref(db, `beer_proposals/${proposalId}`), { status: 'rejected' });
+      showAlert('Proposta rifiutata.', 'Info');
+    } catch (err: any) {
+      showAlert('Errore durante il rifiuto della proposta: ' + err.message, 'Errore');
+    }
   };
 
   // Recalculate all scores to adapt existing database records
@@ -1710,8 +1855,13 @@ export default function App() {
               {currentUser && (
                 <ExploreView
                   myPokedex={myPokedex}
+                  allBeersCatalog={allBeersCatalog}
                   onInitUnlock={handleInitUnlock}
                   onDeleteVariant={handleDeleteVariant}
+                  onOpenProposeModal={(search) => {
+                    setProposeBrandPrefill(search);
+                    setProposeModalOpen(true);
+                  }}
                 />
               )}
             </div>
@@ -1781,6 +1931,8 @@ export default function App() {
                     setDetailViewBackPage('page-profile');
                     navigateTo('page-user-posts-detail');
                   }}
+                  onOpenAdminProposals={() => setAdminProposalsModalOpen(true)}
+                  pendingProposalsCount={beerProposals.filter((p) => p.status === 'pending').length}
                 />
               )}
             </div>
@@ -1979,6 +2131,25 @@ export default function App() {
           </div>
         </div>
       )}
+
+      {/* Propose Beer Modal */}
+      <ProposeBeerModal
+        isOpen={proposeModalOpen}
+        onClose={() => setProposeModalOpen(false)}
+        initialBrandSearch={proposeBrandPrefill}
+        onSubmitProposal={handleProposeBeerSubmit}
+      />
+
+      {/* Admin Proposals Modal */}
+      <AdminProposalsModal
+        isOpen={adminProposalsModalOpen}
+        onClose={() => setAdminProposalsModalOpen(false)}
+        proposals={beerProposals}
+        onAcceptProposal={handleAcceptProposal}
+        onRejectProposal={handleRejectProposal}
+        globalAvatars={globalAvatars}
+        globalDisplayNames={globalDisplayNames}
+      />
     </>
   );
 }

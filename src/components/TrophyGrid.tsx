@@ -267,6 +267,7 @@ interface TrophyGridProps {
   showDeleteButton?: boolean;
   mode?: 'medals' | 'variants' | 'events';
   userPosts?: any[];
+  allBeersCatalog?: any[];
 }
 
 export const TrophyGrid: React.FC<TrophyGridProps> = ({
@@ -279,18 +280,19 @@ export const TrophyGrid: React.FC<TrophyGridProps> = ({
   showDeleteButton = false,
   mode,
   userPosts = [],
+  allBeersCatalog = beers,
 }) => {
   const rarityMap = { comune: 1, media: 2, rara: 3 };
   const eventMedalsList = getEventMedals(userPosts);
 
   // Calculate unlock count per brand
   const brandUnlockCounts: Record<string, number> = {};
-  beers.forEach((b) => {
+  allBeersCatalog.forEach((b) => {
     brandUnlockCounts[b.brand] = 0;
   });
 
   // Build the list of all variants
-  const allVariantsList = beers.flatMap((beer) => {
+  const allVariantsList = allBeersCatalog.flatMap((beer) => {
     return beer.variants.map((variant) => {
       const uniqueId = `${beer.brand}-${variant}`;
       const entry = pokedex ? pokedex[uniqueId] : undefined;
@@ -349,7 +351,7 @@ export const TrophyGrid: React.FC<TrophyGridProps> = ({
   });
 
   // Build the completed brand medals
-  const brandMedalsList = beers.map((beer) => {
+  const brandMedalsList = allBeersCatalog.map((beer) => {
     const isCompleted = beer.variants.length > 0 && brandUnlockCounts[beer.brand] === beer.variants.length;
     return {
       brand: beer.brand,

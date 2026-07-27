@@ -129,9 +129,65 @@ export function getBeerType(_brandName: string, variantName: string): "rossa" | 
   return "bionda"; 
 }
 
-export function getBasePoints(brandName: string, variantName: string): number {
+export function getCountryFlag(country: string): string {
+  const flags: Record<string, string> = {
+    "Italia": "IT",
+    "Germania": "DE",
+    "Belgio": "BE",
+    "Paesi Bassi": "NL",
+    "Repubblica Ceca": "CZ",
+    "Danimarca": "DK",
+    "Spagna": "ES",
+    "Francia": "FR",
+    "Irlanda": "IE",
+    "Scozia": "GB-SCT",
+    "Portogallo": "PT",
+    "Messico": "MX",
+    "Stati Uniti": "US"
+  };
+  return flags[country] || "🍺";
+}
+
+export function mergeBeers(staticBeers: Beer[], customBeers: Beer[]): Beer[] {
+  if (!customBeers || customBeers.length === 0) return staticBeers;
+
+  const mergedMap = new Map<string, Beer>();
+  staticBeers.forEach((b) => {
+    mergedMap.set(b.brand, {
+      ...b,
+      variants: [...b.variants],
+      barcodes: b.barcodes ? [...b.barcodes] : [],
+    });
+  });
+
+  customBeers.forEach((cb) => {
+    if (mergedMap.has(cb.brand)) {
+      const existing = mergedMap.get(cb.brand)!;
+      cb.variants.forEach((v) => {
+        if (!existing.variants.includes(v)) {
+          existing.variants.push(v);
+        }
+      });
+    } else {
+      mergedMap.set(cb.brand, {
+        brand: cb.brand,
+        country: cb.country || "Italia",
+        flag: cb.flag || getCountryFlag(cb.country || "Italia"),
+        rarity: cb.rarity || "comune",
+        desc: cb.desc || `Birra ${cb.brand}`,
+        variants: [...cb.variants],
+        regione: cb.regione,
+        barcodes: cb.barcodes ? [...cb.barcodes] : [],
+      });
+    }
+  });
+
+  return Array.from(mergedMap.values());
+}
+
+export function getBasePoints(brandName: string, variantName: string, allBeersCatalog: Beer[] = beers): number {
   let base = 1;
-  const beer = beers.find(b => b.brand === brandName);
+  const beer = allBeersCatalog.find(b => b.brand === brandName);
   if (beer) {
     if (beer.rarity === "media") base = 2;
     if (beer.rarity === "rara") base = 5;
@@ -145,8 +201,8 @@ export function getBasePoints(brandName: string, variantName: string): number {
   return base;
 }
 
-export function getBeerPoints(brandName: string, variantName: string, isShiny: boolean, _isShared?: boolean): number {
-  let base = getBasePoints(brandName, variantName);
+export function getBeerPoints(brandName: string, variantName: string, isShiny: boolean, _isShared?: boolean, allBeersCatalog: Beer[] = beers): number {
+  let base = getBasePoints(brandName, variantName, allBeersCatalog);
   if (isShiny) base *= 2;
   return base;
 }

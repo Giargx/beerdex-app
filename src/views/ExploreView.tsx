@@ -8,12 +8,16 @@ interface ExploreViewProps {
   myPokedex: Record<string, PokedexEntry>;
   onInitUnlock: (brand: string, variant: string) => void;
   onDeleteVariant: (brand: string, variant: string) => void;
+  onOpenProposeModal: (searchTerm: string) => void;
+  allBeersCatalog?: Beer[];
 }
 
 export const ExploreView: React.FC<ExploreViewProps> = ({
   myPokedex,
   onInitUnlock,
   onDeleteVariant,
+  onOpenProposeModal,
+  allBeersCatalog = beers,
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [countryFilter, setCountryFilter] = useState('Tutte');
@@ -43,7 +47,7 @@ export const ExploreView: React.FC<ExploreViewProps> = ({
   // Extract unique regions for Italian beers
   const ItalianRegions = Array.from(
     new Set(
-      beers
+      allBeersCatalog
         .filter((b) => b.country === 'Italia' && b.regione)
         .map((b) => b.regione as string)
     )
@@ -51,7 +55,7 @@ export const ExploreView: React.FC<ExploreViewProps> = ({
 
   // Filter and sort beers list
   const normalizedSearch = normalizeStr(searchTerm);
-  const filteredBeers = beers.filter((beer) => {
+  const filteredBeers = allBeersCatalog.filter((beer) => {
     const brandName = normalizeStr(beer.brand);
     const descText = normalizeStr(beer.desc);
     const variantsText = normalizeStr(beer.variants.join(' '));
@@ -185,17 +189,55 @@ export const ExploreView: React.FC<ExploreViewProps> = ({
         </div>
 
         <div className="container" id="beerList" style={{ marginTop: '20px', padding: 0 }}>
-          {filteredBeers.map((beer) => (
-            <BeerCard
-              key={beer.brand}
-              beer={beer}
-              myPokedex={myPokedex}
-              expanded={!!expandedCards[beer.brand]}
-              onToggle={() => toggleCard(beer.brand)}
-              onInitUnlock={onInitUnlock}
-              onDeleteVariant={onDeleteVariant}
-            />
-          ))}
+          {filteredBeers.length === 0 ? (
+            <div
+              style={{
+                textAlign: 'center',
+                padding: '30px 20px',
+                background: 'var(--white)',
+                borderRadius: '24px',
+                border: '2px dashed var(--gray)',
+                margin: '10px auto 30px auto',
+                width: '100%',
+                maxWidth: '460px',
+                boxShadow: 'var(--card-shadow)',
+                boxSizing: 'border-box'
+              }}
+            >
+              <span className="material-symbols-outlined" style={{ fontSize: '48px', color: 'var(--primary-dark)', marginBottom: '10px' }}>
+                sports_bar
+              </span>
+              <h3 style={{ margin: '0 0 8px 0', color: 'var(--dark)', fontSize: '18px' }}>Nessuna birra trovata</h3>
+              <p style={{ color: 'var(--text-muted)', fontSize: '14px', marginBottom: '20px', lineHeight: 1.5 }}>
+                {searchTerm ? (
+                  <>Non trovi "<strong>{searchTerm}</strong>"? Proponila agli admin!</>
+                ) : (
+                  <>Non vedi la tua birra preferita in lista? Proponila agli admin!</>
+                )}
+                <br />
+                Se verrà approvata, verrà aggiunta al catalogo, la sbloccherai subito e riceverai i punti della birra + <strong>2 Punti Bonus</strong>!
+              </p>
+              <button
+                className="btn-main"
+                onClick={() => onOpenProposeModal(searchTerm)}
+                style={{ display: 'inline-flex', width: 'auto', padding: '12px 24px', margin: '0 auto' }}
+              >
+                <span className="material-symbols-outlined">add_circle</span> Proponi Nuova Birra
+              </button>
+            </div>
+          ) : (
+            filteredBeers.map((beer) => (
+              <BeerCard
+                key={beer.brand}
+                beer={beer}
+                myPokedex={myPokedex}
+                expanded={!!expandedCards[beer.brand]}
+                onToggle={() => toggleCard(beer.brand)}
+                onInitUnlock={onInitUnlock}
+                onDeleteVariant={onDeleteVariant}
+              />
+            ))
+          )}
         </div>
       </div>
     </div>

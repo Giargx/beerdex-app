@@ -16,6 +16,8 @@ interface ProfileViewProps {
   getAvatarZoomProps?: (url: string | undefined) => any;
   posts: any[];
   onOpenPostDetail: (username: string, postId: string) => void;
+  onOpenAdminProposals?: () => void;
+  pendingProposalsCount?: number;
 }
 
 export const ProfileView: React.FC<ProfileViewProps> = ({
@@ -31,6 +33,8 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
   getAvatarZoomProps,
   posts,
   onOpenPostDetail,
+  onOpenAdminProposals,
+  pendingProposalsCount = 0,
 }) => {
   const [activeTab, setActiveTab] = useState<'collection' | 'posts' | 'stats' | 'achievements'>('posts');
   const [variantSort, setVariantSort] = useState<'alpha' | 'unlocked' | 'rarity' | 'nation'>('unlocked');
@@ -281,10 +285,49 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
             <div style={{ textAlign: 'center', flex: '1' }}>
               <div style={{ fontWeight: 900, fontSize: '18px', color: 'var(--dark)' }}>{totalUnlocked}</div>
               <div style={{ fontSize: '10px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: 600 }}>Sblocchi</div>
-            </div>
           </div>
         </div>
       </div>
+
+      {isAdminUser && onOpenAdminProposals && (
+        <div style={{ padding: '0 20px', marginTop: '12px', marginBottom: '8px' }}>
+          <button
+            onClick={onOpenAdminProposals}
+            style={{
+              width: '100%',
+              background: 'linear-gradient(135deg, #0F172A 0%, #1E293B 100%)',
+              color: 'white',
+              border: 'none',
+              padding: '12px 16px',
+              borderRadius: '16px',
+              fontWeight: 'bold',
+              fontSize: '14px',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '8px',
+              boxShadow: '0 4px 12px rgba(15,23,42,0.15)'
+            }}
+          >
+            <span className="material-symbols-outlined" style={{ color: 'var(--primary)' }}>admin_panel_settings</span>
+            <span>Gestisci Proposte Birre</span>
+            {pendingProposalsCount > 0 && (
+              <span style={{
+                background: 'var(--danger)',
+                color: 'white',
+                borderRadius: '10px',
+                padding: '2px 8px',
+                fontSize: '11px',
+                fontWeight: '900',
+                marginLeft: '4px'
+              }}>
+                {pendingProposalsCount}
+              </span>
+            )}
+          </button>
+        </div>
+      )}
 
       {/* Main tab control buttons */}
       <div style={{
