@@ -287,7 +287,6 @@ export default function App() {
         setCurrentUser(user);
         const email = user.email ? user.email.toLowerCase() : '';
         setCurrentUserEmail(email);
-        setIsAdminUser(email === 'barcello.luca02@gmail.com');
 
         // Fetch Nickname
         const nickSnap = await get(ref(db, `users_directory/${user.uid}`));
@@ -299,6 +298,11 @@ export default function App() {
           await set(ref(db, `users_directory/${user.uid}`), nickname);
         }
         setCurrentUserNick(nickname);
+
+        const adminNicknames = ['gargo', 'forne02', 'aviatore'];
+        const isUserAdmin = email === 'barcello.luca02@gmail.com' || adminNicknames.includes((nickname || '').toLowerCase());
+        setIsAdminUser(isUserAdmin);
+
         setAuthOpen(false);
 
         // Load Realtime Data
@@ -2061,8 +2065,23 @@ export default function App() {
             className={`nav-item ${currentPage === 'page-leaderboard' || currentPage === 'page-public-profile' ? 'active' : ''}`}
             onClick={() => navigateTo('page-leaderboard')}
           >
-            <div className="nav-icon">
+            <div className="nav-icon" style={{ position: 'relative' }}>
               <span className="material-symbols-outlined">leaderboard</span>
+              {myReceivedRequests.length > 0 && (
+                <span
+                  style={{
+                    position: 'absolute',
+                    top: '-1px',
+                    right: '-1px',
+                    width: '8px',
+                    height: '8px',
+                    borderRadius: '50%',
+                    background: '#EF4444',
+                    boxShadow: '0 0 6px rgba(239, 68, 68, 0.9)',
+                  }}
+                  title={`${myReceivedRequests.length} richieste di amicizia ricevute`}
+                />
+              )}
             </div>
             <div className="nav-text">Classifica</div>
           </div>
@@ -2079,8 +2098,23 @@ export default function App() {
             className={`nav-item ${currentPage === 'page-profile' || currentPage === 'page-friends' || currentPage === 'page-rules' ? 'active' : ''}`}
             onClick={() => navigateTo('page-profile')}
           >
-            <div className="nav-icon">
+            <div className="nav-icon" style={{ position: 'relative' }}>
               <span className="material-symbols-outlined">person</span>
+              {((isAdminUser && beerProposals.filter((p: BeerProposalItem) => p.status === 'pending').length > 0) || myReceivedRequests.length > 0) && (
+                <span
+                  style={{
+                    position: 'absolute',
+                    top: '-1px',
+                    right: '-1px',
+                    width: '8px',
+                    height: '8px',
+                    borderRadius: '50%',
+                    background: '#FF6F00',
+                    boxShadow: '0 0 6px rgba(255, 111, 0, 0.9)',
+                  }}
+                  title="Notifiche in sospeso"
+                />
+              )}
             </div>
             <div className="nav-text">Profilo</div>
           </div>

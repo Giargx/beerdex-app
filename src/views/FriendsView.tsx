@@ -45,12 +45,17 @@ export const FriendsView: React.FC<FriendsViewProps> = ({
             Ricevute
             {myReceivedRequests.length > 0 && (
               <span
-                className="material-symbols-outlined"
-                id="tabBeerBadge"
-                style={{ marginLeft: '5px', fontSize: '16px', color: 'var(--primary-dark)', display: 'inline-block' }}
-              >
-                priority_high
-              </span>
+                style={{
+                  width: '8px',
+                  height: '8px',
+                  borderRadius: '50%',
+                  background: '#EF4444',
+                  boxShadow: '0 0 6px rgba(239, 68, 68, 0.9)',
+                  display: 'inline-block',
+                  marginLeft: '6px',
+                  verticalAlign: 'middle',
+                }}
+              />
             )}
           </div>
           <div

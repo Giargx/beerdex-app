@@ -314,17 +314,27 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
             <span className="material-symbols-outlined" style={{ color: 'var(--primary)' }}>admin_panel_settings</span>
             <span>Gestisci Proposte Birre</span>
             {pendingProposalsCount > 0 && (
-              <span style={{
-                background: 'var(--danger)',
-                color: 'white',
-                borderRadius: '10px',
-                padding: '2px 8px',
-                fontSize: '11px',
-                fontWeight: '900',
-                marginLeft: '4px'
-              }}>
-                {pendingProposalsCount}
-              </span>
+              <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', marginLeft: '4px' }}>
+                <span
+                  style={{
+                    width: '8px',
+                    height: '8px',
+                    borderRadius: '50%',
+                    background: '#EF4444',
+                    boxShadow: '0 0 8px rgba(239, 68, 68, 0.9)',
+                  }}
+                />
+                <span style={{
+                  background: 'var(--danger)',
+                  color: 'white',
+                  borderRadius: '10px',
+                  padding: '2px 8px',
+                  fontSize: '11px',
+                  fontWeight: '900'
+                }}>
+                  {pendingProposalsCount}
+                </span>
+              </div>
             )}
           </button>
         </div>

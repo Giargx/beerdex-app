@@ -125,8 +125,20 @@ export const ProposeBeerModal: React.FC<ProposeBeerModalProps> = ({
   ];
 
   return (
-    <div className="auth-modal" style={{ zIndex: 19000 }}>
-      <div className="auth-container" style={{ maxWidth: '440px', width: '92%', boxSizing: 'border-box', textAlign: 'left' }}>
+    <div className="auth-modal" style={{ zIndex: 19000, padding: '20px 10px 70px 10px', boxSizing: 'border-box', overflowY: 'auto' }}>
+      <div
+        className="auth-container"
+        style={{
+          maxWidth: '440px',
+          width: '96%',
+          maxHeight: '82vh',
+          overflowY: 'auto',
+          boxSizing: 'border-box',
+          textAlign: 'left',
+          padding: '24px 18px 24px 18px',
+          borderRadius: '24px',
+        }}
+      >
         <h3 style={{ marginTop: 0, color: 'var(--dark)', fontSize: '20px', display: 'flex', alignItems: 'center', gap: '8px', justifyContent: 'center' }}>
           <span className="material-symbols-outlined" style={{ color: 'var(--primary-dark)' }}>sports_bar</span>
           Proponi Nuova Birra
@@ -264,25 +276,28 @@ export const ProposeBeerModal: React.FC<ProposeBeerModalProps> = ({
             />
           </div>
 
-          <button
-            type="submit"
-            className="btn-main"
-            disabled={isSubmitting}
-            style={{ width: '100%', margin: 0 }}
-          >
-            <span className="material-symbols-outlined">send</span>
-            Invia Proposta
-          </button>
-          <button
-            type="button"
-            className="btn-secondary"
-            onClick={onClose}
-            style={{ width: '100%', marginTop: '8px' }}
-          >
-            Annulla
-          </button>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '18px', paddingBottom: '10px' }}>
+            <button
+              type="submit"
+              className="btn-main"
+              disabled={isSubmitting}
+              style={{ width: '100%', margin: 0 }}
+            >
+              <span className="material-symbols-outlined">send</span>
+              Invia Proposta
+            </button>
+            <button
+              type="button"
+              className="btn-secondary"
+              onClick={onClose}
+              style={{ width: '100%', margin: 0 }}
+            >
+              Annulla
+            </button>
+          </div>
         </form>
       </div>
     </div>
+  );
   );
 };
