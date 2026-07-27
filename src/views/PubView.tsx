@@ -236,29 +236,8 @@ export const PubView: React.FC<PubViewProps> = ({
                         )}
                       </div>
                       <div>
-                        <div className="post-user clickable-user" onClick={() => onOpenPublicProfile(post.user)} style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                          <span>{globalDisplayNames?.[post.user] ? `${globalDisplayNames[post.user]} (@${post.user})` : post.user}</span>
-                          {['gargo', 'forne02', 'aviatore'].includes((post.user || '').toLowerCase()) && (
-                            <span
-                              style={{
-                                background: 'linear-gradient(135deg, #EF4444 0%, #B91C1C 100%)',
-                                color: 'white',
-                                fontSize: '9px',
-                                fontWeight: 900,
-                                padding: '2px 6px',
-                                borderRadius: '6px',
-                                letterSpacing: '0.5px',
-                                boxShadow: '0 2px 6px rgba(239, 68, 68, 0.3)',
-                                display: 'inline-flex',
-                                alignItems: 'center',
-                                gap: '2px',
-                                flexShrink: 0
-                              }}
-                            >
-                              <span className="material-symbols-outlined" style={{ fontSize: '10px' }}>admin_panel_settings</span>
-                              ADMIN
-                            </span>
-                          )}
+                        <div className="post-user clickable-user" onClick={() => onOpenPublicProfile(post.user)}>
+                          {globalDisplayNames?.[post.user] ? `${globalDisplayNames[post.user]} (@${post.user})` : post.user}
                         </div>
                         <div className="post-time" style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                           {timeStr}
