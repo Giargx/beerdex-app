@@ -55,17 +55,19 @@ export const ExploreView: React.FC<ExploreViewProps> = ({
     )
   ).sort((a, b) => a.localeCompare(b));
 
-  // Filter and sort beers list strictly by brand name
-  const normalizedSearch = normalizeStr(searchTerm);
+  // Filter and sort beers list strictly by brand name prefix
+  const normalizedSearch = normalizeStr(searchTerm).trim();
   const filteredBeers = safeCatalog.filter((beer) => {
     if (!beer || !beer.brand) return false;
 
-    const brandName = normalizeStr(beer.brand);
+    const brandName = normalizeStr(beer.brand).trim();
+    const brandWords = brandName.split(/\s+/);
 
-    // Strict brand name matching
+    // Strict brand name prefix matching (e.g. "per" matches "Peroni", "Pedavena", "Birra Peroni")
     const matchSearch =
       !normalizedSearch ||
-      brandName.includes(normalizedSearch);
+      brandName.startsWith(normalizedSearch) ||
+      brandWords.some((word) => word.startsWith(normalizedSearch));
 
     const matchCountry = countryFilter === 'Tutte' || beer.country === countryFilter;
 
