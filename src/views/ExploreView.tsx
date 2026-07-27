@@ -44,23 +44,28 @@ export const ExploreView: React.FC<ExploreViewProps> = ({
     localStorage.setItem('beerdex_catalog_sort_dir', nextDir.toString());
   };
 
+  const safeCatalog = Array.isArray(allBeersCatalog) ? allBeersCatalog : beers;
+
   // Extract unique regions for Italian beers
   const ItalianRegions = Array.from(
     new Set(
-      allBeersCatalog
-        .filter((b) => b.country === 'Italia' && b.regione)
+      safeCatalog
+        .filter((b) => b && b.country === 'Italia' && b.regione)
         .map((b) => b.regione as string)
     )
   ).sort((a, b) => a.localeCompare(b));
 
   // Filter and sort beers list
   const normalizedSearch = normalizeStr(searchTerm);
-  const filteredBeers = allBeersCatalog.filter((beer) => {
+  const filteredBeers = safeCatalog.filter((beer) => {
+    if (!beer || !beer.brand) return false;
+
     const brandName = normalizeStr(beer.brand);
     const descText = normalizeStr(beer.desc);
-    const variantsText = normalizeStr(beer.variants.join(' '));
+    const variantsText = normalizeStr(Array.isArray(beer.variants) ? beer.variants.join(' ') : '');
 
     const matchSearch =
+      !normalizedSearch ||
       brandName.includes(normalizedSearch) ||
       descText.includes(normalizedSearch) ||
       variantsText.includes(normalizedSearch);
@@ -80,9 +85,9 @@ export const ExploreView: React.FC<ExploreViewProps> = ({
   filteredBeers.sort((a, b) => {
     let res = 0;
     if (sortFilter === 'alpha') {
-      res = a.brand.localeCompare(b.brand);
+      res = (a.brand || '').localeCompare(b.brand || '');
     } else if (sortFilter === 'rarity') {
-      res = (rarityMap[a.rarity] || 0) - (rarityMap[b.rarity] || 0) || a.brand.localeCompare(b.brand);
+      res = (rarityMap[a.rarity] || 0) - (rarityMap[b.rarity] || 0) || (a.brand || '').localeCompare(b.brand || '');
     }
     return res * sortDir;
   });
@@ -97,12 +102,40 @@ export const ExploreView: React.FC<ExploreViewProps> = ({
 
       <div className="page-container" style={{ marginTop: '-30px' }}>
         <div className="controls">
-          <input
-            type="text"
-            placeholder="Cerca marca o variante..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
+          <div style={{ display: 'flex', gap: '8px', width: '100%', marginBottom: '16px' }}>
+            <input
+              type="text"
+              placeholder="Cerca marca o variante..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              style={{ flexGrow: 1, marginBottom: 0 }}
+            />
+            <button
+              onClick={() => onOpenProposeModal(searchTerm)}
+              style={{
+                background: 'linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%)',
+                color: 'white',
+                border: 'none',
+                borderRadius: '14px',
+                padding: '0 16px',
+                fontWeight: 'bold',
+                fontSize: '13px',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '4px',
+                flexShrink: 0,
+                boxShadow: '0 2px 8px rgba(255, 111, 0, 0.2)',
+                whiteSpace: 'nowrap',
+                height: '48px',
+                boxSizing: 'border-box'
+              }}
+              title="Proponi una nuova birra agli Admin"
+            >
+              <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>add_circle</span>
+              Proponi
+            </button>
+          </div>
 
           <span className="filters-label">Esplora per nazione</span>
           <select

@@ -108,11 +108,13 @@ export const countryCoordinates: Record<string, { latMin: number; latMax: number
   "Stati Uniti": { latMin: 24.3, latMax: 49.3, lngMin: -125.0, lngMax: -66.9 }
 };
 
-export function normalizeStr(str: string): string {
+export function normalizeStr(str?: string | null): string {
+  if (!str || typeof str !== 'string') return "";
   return str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
 }
 
 export function getBeerType(_brandName: string, variantName: string): "rossa" | "scura" | "bianca" | "ipa" | "bionda" {
+  if (!variantName || typeof variantName !== 'string') return "bionda";
   const vLower = variantName.toLowerCase();
   if (vLower.includes("rossa") || vLower.includes("rouge") || vLower.includes("red") || vLower.includes("cherry") || vLower.includes("porpora") || vLower.includes("amber") || vLower.includes("ambrata") || vLower.includes("rituel")) {
     return "rossa";
@@ -129,7 +131,8 @@ export function getBeerType(_brandName: string, variantName: string): "rossa" | 
   return "bionda"; 
 }
 
-export function getCountryFlag(country: string): string {
+export function getCountryFlag(country?: string): string {
+  if (!country || typeof country !== 'string') return "🍺";
   const flags: Record<string, string> = {
     "Italia": "IT",
     "Germania": "DE",
@@ -148,37 +151,53 @@ export function getCountryFlag(country: string): string {
   return flags[country] || "🍺";
 }
 
-export function mergeBeers(staticBeers: Beer[], customBeers: Beer[]): Beer[] {
-  if (!customBeers || customBeers.length === 0) return staticBeers;
+export function mergeBeers(staticBeers: Beer[] = beers, customBeers?: any): Beer[] {
+  const safeStatic = Array.isArray(staticBeers) ? staticBeers : beers;
+  if (!customBeers) return safeStatic;
+
+  let customList: Beer[] = [];
+  if (Array.isArray(customBeers)) {
+    customList = customBeers;
+  } else if (typeof customBeers === 'object') {
+    customList = Object.values(customBeers);
+  }
+
+  if (!customList || customList.length === 0) return safeStatic;
 
   const mergedMap = new Map<string, Beer>();
-  staticBeers.forEach((b) => {
-    mergedMap.set(b.brand, {
-      ...b,
-      variants: [...b.variants],
-      barcodes: b.barcodes ? [...b.barcodes] : [],
-    });
+
+  safeStatic.forEach((b) => {
+    if (b && b.brand) {
+      mergedMap.set(b.brand, {
+        ...b,
+        variants: Array.isArray(b.variants) ? [...b.variants] : [],
+        barcodes: Array.isArray(b.barcodes) ? [...b.barcodes] : [],
+      });
+    }
   });
 
-  customBeers.forEach((cb) => {
-    if (mergedMap.has(cb.brand)) {
-      const existing = mergedMap.get(cb.brand)!;
-      cb.variants.forEach((v) => {
-        if (!existing.variants.includes(v)) {
-          existing.variants.push(v);
-        }
-      });
-    } else {
-      mergedMap.set(cb.brand, {
-        brand: cb.brand,
-        country: cb.country || "Italia",
-        flag: cb.flag || getCountryFlag(cb.country || "Italia"),
-        rarity: cb.rarity || "comune",
-        desc: cb.desc || `Birra ${cb.brand}`,
-        variants: [...cb.variants],
-        regione: cb.regione,
-        barcodes: cb.barcodes ? [...cb.barcodes] : [],
-      });
+  customList.forEach((cb) => {
+    if (cb && cb.brand) {
+      const cbVariants = Array.isArray(cb.variants) ? cb.variants : [];
+      if (mergedMap.has(cb.brand)) {
+        const existing = mergedMap.get(cb.brand)!;
+        cbVariants.forEach((v) => {
+          if (v && !existing.variants.includes(v)) {
+            existing.variants.push(v);
+          }
+        });
+      } else {
+        mergedMap.set(cb.brand, {
+          brand: cb.brand,
+          country: cb.country || "Italia",
+          flag: cb.flag || getCountryFlag(cb.country || "Italia"),
+          rarity: cb.rarity || "comune",
+          desc: cb.desc || `Birra ${cb.brand}`,
+          variants: cbVariants.length > 0 ? [...cbVariants] : ["Classica"],
+          regione: cb.regione || undefined,
+          barcodes: Array.isArray(cb.barcodes) ? [...cb.barcodes] : [],
+        });
+      }
     }
   });
 
@@ -187,7 +206,8 @@ export function mergeBeers(staticBeers: Beer[], customBeers: Beer[]): Beer[] {
 
 export function getBasePoints(brandName: string, variantName: string, allBeersCatalog: Beer[] = beers): number {
   let base = 1;
-  const beer = allBeersCatalog.find(b => b.brand === brandName);
+  const safeCatalog = Array.isArray(allBeersCatalog) ? allBeersCatalog : beers;
+  const beer = safeCatalog.find(b => b && b.brand === brandName);
   if (beer) {
     if (beer.rarity === "media") base = 2;
     if (beer.rarity === "rara") base = 5;
