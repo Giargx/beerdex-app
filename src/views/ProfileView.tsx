@@ -285,6 +285,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
             <div style={{ textAlign: 'center', flex: '1' }}>
               <div style={{ fontWeight: 900, fontSize: '18px', color: 'var(--dark)' }}>{totalUnlocked}</div>
               <div style={{ fontSize: '10px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: 600 }}>Sblocchi</div>
+            </div>
           </div>
         </div>
       </div>
