@@ -145,9 +145,8 @@ export function getBasePoints(brandName: string, variantName: string): number {
   return base;
 }
 
-export function getBeerPoints(brandName: string, variantName: string, isShiny: boolean, isShared?: boolean): number {
+export function getBeerPoints(brandName: string, variantName: string, isShiny: boolean, _isShared?: boolean): number {
   let base = getBasePoints(brandName, variantName);
   if (isShiny) base *= 2;
-  if (isShared) base *= 2;
   return base;
 }

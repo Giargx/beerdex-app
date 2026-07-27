@@ -231,6 +231,14 @@ select:focus {
 .page-view { 
     width: 100%;
     box-sizing: border-box;
+    display: none;
+}
+.page-view.active,
+.page-view.slide-in-left,
+.page-view.slide-in-right,
+.page-view.slide-out-left,
+.page-view.slide-out-right {
+    display: block;
 }
 
 /* Main Tabs Slider Styles */
@@ -248,8 +256,9 @@ select:focus {
 
 .main-tabs-slider-container {
     display: flex;
+    align-items: flex-start;
     width: 500%; /* 5 main tabs side-by-side */
-    height: 100%;
+    height: auto;
     will-change: transform;
 }
 
@@ -257,6 +266,21 @@ select:focus {
     width: 20%; /* 100% / 5 */
     flex-shrink: 0;
     box-sizing: border-box;
+    height: 0;
+    overflow: hidden;
+    visibility: hidden;
+}
+
+.main-tab-slide.active {
+    height: auto;
+    overflow: visible;
+    visibility: visible;
+}
+
+.main-tabs-slider-container.is-transitioning .main-tab-slide {
+    height: auto !important;
+    overflow: visible !important;
+    visibility: visible !important;
 }
 
 /* Slide transitions for the wrapper when navigating to/from subpages */

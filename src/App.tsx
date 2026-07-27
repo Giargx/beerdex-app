@@ -1681,7 +1681,7 @@ export default function App() {
         {/* Main Tabs Slider */}
         <div className={getSliderWrapperClass()}>
           <div
-            className="main-tabs-slider-container"
+            className={`main-tabs-slider-container ${prevPage !== null || transitionDir !== null || isDragging ? 'is-transitioning' : ''}`}
             style={{
               transform: isDragging
                 ? `translateX(calc(-${activeIndex * 20}% + ${dragOffset}px))`
@@ -1690,7 +1690,7 @@ export default function App() {
             }}
           >
             {/* Page Home */}
-            <div className="main-tab-slide">
+            <div className={`main-tab-slide ${activeIndex === 0 ? 'active' : ''}`}>
               {currentUser && (
                 <HomeView
                   currentUserNick={currentUserNick}
@@ -1704,7 +1704,7 @@ export default function App() {
             </div>
 
             {/* Page Explore */}
-            <div className="main-tab-slide">
+            <div className={`main-tab-slide ${activeIndex === 1 ? 'active' : ''}`}>
               {currentUser && (
                 <ExploreView
                   myPokedex={myPokedex}
@@ -1715,7 +1715,7 @@ export default function App() {
             </div>
 
             {/* Page Leaderboard */}
-            <div className="main-tab-slide">
+            <div className={`main-tab-slide ${activeIndex === 2 ? 'active' : ''}`}>
               {currentUser && (
                 <LeaderboardView
                   currentUserNick={currentUserNick}
@@ -1734,7 +1734,7 @@ export default function App() {
             </div>
 
             {/* Page Social (Pub feed) */}
-            <div className="main-tab-slide">
+            <div className={`main-tab-slide ${activeIndex === 3 ? 'active' : ''}`}>
               {currentUser && (
                 <PubView
                   currentUserNick={currentUserNick}
@@ -1753,7 +1753,7 @@ export default function App() {
             </div>
 
             {/* Page Profile */}
-            <div className="main-tab-slide">
+            <div className={`main-tab-slide ${activeIndex === 4 ? 'active' : ''}`}>
               {currentUser && (
                 <ProfileView
                   currentUserNick={currentUserNick}

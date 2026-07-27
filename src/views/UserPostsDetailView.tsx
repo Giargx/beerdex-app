@@ -97,7 +97,7 @@ export const UserPostsDetailView: React.FC<UserPostsDetailViewProps> = ({
   };
 
   return (
-    <div className="page-container-view" style={{ display: 'flex', flexDirection: 'column', height: '100vh', background: 'var(--light)' }}>
+    <div className="page-container-view" style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', background: 'var(--light)' }}>
       {/* Top Navbar */}
       <div
         style={{
@@ -136,7 +136,7 @@ export const UserPostsDetailView: React.FC<UserPostsDetailViewProps> = ({
       </div>
 
       {/* Main Content Area */}
-      <div style={{ flexGrow: 1, overflowY: 'auto', padding: '15px 12px 100px 12px' }}>
+      <div style={{ flexGrow: 1, padding: '15px 12px 30px 12px' }}>
         <div style={{ maxWidth: '600px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '20px' }}>
           {myPosts.length === 0 ? (
             <div style={{ textAlign: 'center', padding: '40px 20px', color: 'var(--text-muted)' }}>

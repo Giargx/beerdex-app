@@ -316,10 +316,6 @@ export const TrophyGrid: React.FC<TrophyGridProps> = ({
           finalPts *= 2;
           muls.push('auto_awesome'); // Material icon name
         }
-        if (isShared) {
-          finalPts *= 2;
-          muls.push('group'); // Material icon name
-        }
       }
 
       return {

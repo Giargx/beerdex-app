@@ -159,7 +159,6 @@ export const PubView: React.FC<PubViewProps> = ({
               const basePts = getBasePoints(post.brand, post.variant);
               let earnedPts = basePts;
               if (post.isShiny) earnedPts *= 2;
-              if (post.isShared) earnedPts *= 2;
 
               const pointsBadge = (
                 <span
