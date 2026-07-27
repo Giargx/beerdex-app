@@ -614,7 +614,7 @@ export default function App() {
     setZoomedAvatarUrl(null);
     setScannerConfig((prev) => ({ ...prev, isOpen: false }));
     setCaptureOpen(false);
-    setCropModalOpen(false);
+    setCropOpen(false);
 
     if (pageId === currentPage) return;
     const currIdx = pagesMapList.indexOf(currentPage);
