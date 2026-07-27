@@ -299,5 +299,4 @@ export const ProposeBeerModal: React.FC<ProposeBeerModalProps> = ({
       </div>
     </div>
   );
-  );
 };
