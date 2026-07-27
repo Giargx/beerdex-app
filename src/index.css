@@ -658,6 +658,7 @@ header.hero p {
     position: relative;
     max-height: 90vh;
     overflow-y: auto;
+    box-sizing: border-box;
 }
 .auth-container input { 
     width: 100%; 
@@ -683,6 +684,7 @@ header.hero p {
 
 .btn-main { 
     width: 100%; 
+    box-sizing: border-box;
     background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%); 
     color: white; 
     border: none; 
@@ -705,6 +707,7 @@ header.hero p {
 }
 .btn-secondary { 
     width: 100%; 
+    box-sizing: border-box;
     background: var(--white); 
     color: var(--dark); 
     border: 1px solid var(--gray); 

@@ -1189,11 +1189,11 @@ export default function App() {
       {/* Pokedex Photo upload trigger modal */}
       {captureOpen && (
         <div className="auth-modal" style={{ zIndex: 18000 }}>
-          <div className="auth-container" style={{ maxWidth: '400px', width: '95%' }}>
-            <h3 style={{ marginTop: 0, color: 'var(--dark)', fontSize: '20px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+          <div className="auth-container" style={{ maxWidth: '400px', width: '90%', boxSizing: 'border-box', margin: '0 auto' }}>
+            <h3 style={{ marginTop: 0, color: 'var(--dark)', fontSize: '20px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', textAlign: 'center' }}>
               <span className="material-symbols-outlined" style={{ color: '#27ae60' }}>check_circle</span> Codice Approvato
             </h3>
-            <p style={{ color: 'var(--text-muted)', fontSize: '14px', marginBottom: '20px' }}>
+            <p style={{ color: 'var(--text-muted)', fontSize: '14px', marginBottom: '20px', textAlign: 'center' }}>
               Ora scatta la foto per il tuo feed social. Assicurati che si veda bene la birra!
             </p>
             <label 
@@ -1206,7 +1206,9 @@ export default function App() {
                 textAlign: 'center', 
                 padding: '14px', 
                 cursor: 'pointer',
-                marginBottom: '10px' 
+                marginBottom: '10px',
+                width: '100%',
+                boxSizing: 'border-box'
               }}
             >
               <span className="material-symbols-outlined" style={{ fontSize: '22px' }}>photo_camera</span>
@@ -1219,7 +1221,7 @@ export default function App() {
                 onChange={handlePhotoUpload}
               />
             </label>
-            <button className="btn-secondary" onClick={() => setCaptureOpen(false)} style={{ justifyContent: 'center' }}>
+            <button className="btn-secondary" onClick={() => setCaptureOpen(false)} style={{ justifyContent: 'center', width: '100%', boxSizing: 'border-box' }}>
               Annulla
             </button>
           </div>
