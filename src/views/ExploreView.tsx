@@ -55,20 +55,17 @@ export const ExploreView: React.FC<ExploreViewProps> = ({
     )
   ).sort((a, b) => a.localeCompare(b));
 
-  // Filter and sort beers list
+  // Filter and sort beers list strictly by brand name
   const normalizedSearch = normalizeStr(searchTerm);
   const filteredBeers = safeCatalog.filter((beer) => {
     if (!beer || !beer.brand) return false;
 
     const brandName = normalizeStr(beer.brand);
-    const descText = normalizeStr(beer.desc);
-    const variantsText = normalizeStr(Array.isArray(beer.variants) ? beer.variants.join(' ') : '');
 
+    // Strict brand name matching
     const matchSearch =
       !normalizedSearch ||
-      brandName.includes(normalizedSearch) ||
-      descText.includes(normalizedSearch) ||
-      variantsText.includes(normalizedSearch);
+      brandName.includes(normalizedSearch);
 
     const matchCountry = countryFilter === 'Tutte' || beer.country === countryFilter;
 
@@ -102,40 +99,12 @@ export const ExploreView: React.FC<ExploreViewProps> = ({
 
       <div className="page-container" style={{ marginTop: '-30px' }}>
         <div className="controls">
-          <div style={{ display: 'flex', gap: '8px', width: '100%', marginBottom: '16px' }}>
-            <input
-              type="text"
-              placeholder="Cerca marca o variante..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              style={{ flexGrow: 1, marginBottom: 0 }}
-            />
-            <button
-              onClick={() => onOpenProposeModal(searchTerm)}
-              style={{
-                background: 'linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%)',
-                color: 'white',
-                border: 'none',
-                borderRadius: '14px',
-                padding: '0 16px',
-                fontWeight: 'bold',
-                fontSize: '13px',
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '4px',
-                flexShrink: 0,
-                boxShadow: '0 2px 8px rgba(255, 111, 0, 0.2)',
-                whiteSpace: 'nowrap',
-                height: '48px',
-                boxSizing: 'border-box'
-              }}
-              title="Proponi una nuova birra agli Admin"
-            >
-              <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>add_circle</span>
-              Proponi
-            </button>
-          </div>
+          <input
+            type="text"
+            placeholder="Cerca marca della birra..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
 
           <span className="filters-label">Esplora per nazione</span>
           <select
@@ -240,15 +209,15 @@ export const ExploreView: React.FC<ExploreViewProps> = ({
               <span className="material-symbols-outlined" style={{ fontSize: '48px', color: 'var(--primary-dark)', marginBottom: '10px' }}>
                 sports_bar
               </span>
-              <h3 style={{ margin: '0 0 8px 0', color: 'var(--dark)', fontSize: '18px' }}>Nessuna birra trovata</h3>
+              <h3 style={{ margin: '0 0 8px 0', color: 'var(--dark)', fontSize: '18px' }}>Nessuna marca trovata</h3>
               <p style={{ color: 'var(--text-muted)', fontSize: '14px', marginBottom: '20px', lineHeight: 1.5 }}>
                 {searchTerm ? (
-                  <>Non trovi "<strong>{searchTerm}</strong>"? Proponila agli admin!</>
+                  <>Non c'è la marca "<strong>{searchTerm}</strong>"? Proponila agli admin!</>
                 ) : (
-                  <>Non vedi la tua birra preferita in lista? Proponila agli admin!</>
+                  <>Non vedi la tua marca preferita in lista? Proponila agli admin!</>
                 )}
                 <br />
-                Se verrà approvata, verrà aggiunta al catalogo, la sbloccherai subito e riceverai i punti della birra + <strong>2 Punti Bonus</strong>!
+                Se verrà approvata dagli admin, verrà aggiunta al catalogo, la sbloccherai subito e riceverai i punti della birra + <strong>2 Punti Bonus</strong>!
               </p>
               <button
                 className="btn-main"
