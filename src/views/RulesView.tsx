@@ -38,7 +38,7 @@ export const RulesView: React.FC = () => {
               👑 <strong>Mastro Birraio</strong> (1200+ punti): Il bancone è letteralmente casa tua. Leggenda.
             </li>
             <li>
-              ⚡ <strong>Dio della Birra</strong> (100% sblocchi): Hai sbloccato ogni singola variante di birra dell'applicazione. Divinità assoluta.
+              ⚡ <strong>Ægir (Divinità Norrena della Birra)</strong> (100% sblocchi): Hai sbloccato ogni singola variante di birra dell'applicazione. Divinità assoluta.
             </li>
           </ul>
         </div>

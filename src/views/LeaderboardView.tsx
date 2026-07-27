@@ -303,8 +303,27 @@ export const LeaderboardView: React.FC<LeaderboardViewProps> = ({
                       onClick={() => onOpenPublicProfile(player.name)}
                       style={{ cursor: 'pointer' }}
                     >
-                      <span className="clickable-user" style={{ fontWeight: 'bold' }}>
-                        {globalDisplayNames?.[player.name] ? globalDisplayNames[player.name] : player.name}
+                      <span className="clickable-user" style={{ fontWeight: 'bold', display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                        <span>{globalDisplayNames?.[player.name] ? globalDisplayNames[player.name] : player.name}</span>
+                        {['gargo', 'forne02', 'aviatore'].includes((player.name || '').toLowerCase()) && (
+                          <span
+                            style={{
+                              background: 'linear-gradient(135deg, #EF4444 0%, #B91C1C 100%)',
+                              color: 'white',
+                              fontSize: '8px',
+                              fontWeight: 900,
+                              padding: '2px 5px',
+                              borderRadius: '6px',
+                              letterSpacing: '0.5px',
+                              boxShadow: '0 2px 4px rgba(239, 68, 68, 0.3)',
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '2px'
+                            }}
+                          >
+                            ADMIN
+                          </span>
+                        )}
                       </span>
                       <br />
                       <small style={{ fontSize: '11px', color: 'var(--text-muted)', fontWeight: 'normal' }}>

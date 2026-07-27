@@ -149,7 +149,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
   if (isDioDellaBirra) {
     nextTargetPoints = totalPoints;
     prevTargetPoints = totalPoints;
-    nextRankName = "Massimo Livello: Dio della Birra!";
+    nextRankName = "Massimo Livello: Ægir (Divinità Norrena della Birra)!";
   } else if (totalPoints < 50) {
     nextTargetPoints = 50;
     prevTargetPoints = 0;

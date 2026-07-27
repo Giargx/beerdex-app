@@ -596,7 +596,7 @@ export default function App() {
   const getUserRankTitle = (score: number, unlockedCount?: number) => {
     const totalVariants = beers.reduce((acc, b) => acc + b.variants.length, 0);
     if (unlockedCount !== undefined && unlockedCount >= totalVariants) {
-      return "Dio della Birra";
+      return "Ægir (Divinità Norrena della Birra)";
     }
     if (score < 50) return "Novizio del Pub";
     if (score < 200) return "Apprendista Bevitore";
@@ -607,6 +607,15 @@ export default function App() {
 
   // Navigation Logic
   const navigateTo = (pageId: string) => {
+    // Close any active drawers or modals on view switch
+    setSettingsOpen(false);
+    setProposeModalOpen(false);
+    setAdminProposalsModalOpen(false);
+    setZoomedAvatarUrl(null);
+    setScannerConfig((prev) => ({ ...prev, isOpen: false }));
+    setCaptureOpen(false);
+    setCropModalOpen(false);
+
     if (pageId === currentPage) return;
     const currIdx = pagesMapList.indexOf(currentPage);
     const targetIdx = pagesMapList.indexOf(pageId);

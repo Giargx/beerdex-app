@@ -104,8 +104,28 @@ export const PublicProfileView: React.FC<PublicProfileViewProps> = ({
           )}
         </div>
         
-        <h1 id="pubProfileName" style={{ margin: '5px 0', position: 'relative', zIndex: 2 }}>
-          {displayName ? displayName : username}
+        <h1 id="pubProfileName" style={{ margin: '5px 0', position: 'relative', zIndex: 2, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+          <span>{displayName ? displayName : username}</span>
+          {['gargo', 'forne02', 'aviatore'].includes((username || '').toLowerCase()) && (
+            <span
+              style={{
+                background: 'linear-gradient(135deg, #EF4444 0%, #B91C1C 100%)',
+                color: 'white',
+                fontSize: '11px',
+                fontWeight: 900,
+                padding: '3px 8px',
+                borderRadius: '8px',
+                letterSpacing: '0.5px',
+                boxShadow: '0 2px 6px rgba(239, 68, 68, 0.4)',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '4px'
+              }}
+            >
+              <span className="material-symbols-outlined" style={{ fontSize: '13px' }}>admin_panel_settings</span>
+              ADMIN
+            </span>
+          )}
         </h1>
         {displayName && (
           <div style={{ fontSize: '14px', color: 'var(--text-muted)', fontWeight: '500', marginBottom: '5px', position: 'relative', zIndex: 2 }}>
