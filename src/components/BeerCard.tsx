@@ -79,8 +79,9 @@ export const BeerCard: React.FC<BeerCardProps> = ({
       </div>
       
       <div className="variants-container">
-        <div className="variants" onClick={(e) => e.stopPropagation()}>
-          <p>Varianti da trovare:</p>
+        <div className="variants-container-inner">
+          <div className="variants" onClick={(e) => e.stopPropagation()}>
+            <p>Varianti da trovare:</p>
           {beer.variants.map((variant) => {
             const uniqueId = `${beer.brand}-${variant}`;
             const entry = myPokedex[uniqueId];
@@ -196,6 +197,7 @@ export const BeerCard: React.FC<BeerCardProps> = ({
           )}
         </div>
       </div>
+    </div>
     </div>
   );
 };

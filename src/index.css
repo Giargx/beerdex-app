@@ -523,8 +523,21 @@ header.hero p {
 .card.active .toggle-icon { transform: rotate(180deg); color: var(--primary-dark); }
 .desc { font-size: 14px; line-height: 1.5; color: var(--text-muted); margin-bottom: 0; flex-grow: 1; } 
 
-.variants-container { max-height: 0; overflow: hidden; transition: max-height 0.4s cubic-bezier(0.16, 1, 0.3, 1), margin-top 0.4s ease-out, opacity 0.3s; opacity: 0; margin-top: 0; }
-.card.active .variants-container { max-height: 1200px; margin-top: 24px; opacity: 1; }
+.variants-container { 
+    display: grid;
+    grid-template-rows: 0fr;
+    transition: grid-template-rows 0.35s cubic-bezier(0.2, 0.8, 0.2, 1), margin-top 0.35s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.3s ease; 
+    opacity: 0; 
+    margin-top: 0; 
+}
+.card.active .variants-container { 
+    grid-template-rows: 1fr; 
+    margin-top: 16px; 
+    opacity: 1; 
+}
+.variants-container-inner {
+    overflow: hidden;
+}
 
 .variants { 
     background: rgba(15, 23, 42, 0.02); 
