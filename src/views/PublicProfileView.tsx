@@ -18,6 +18,8 @@ interface PublicProfileViewProps {
   posts: any[];
   onOpenPostDetail: (username: string, postId: string) => void;
   allBeersCatalog?: Beer[];
+  isAdminUser?: boolean;
+  onDeleteVariant?: (brand: string, variant: string, targetUser?: string) => void;
 }
 
 export const PublicProfileView: React.FC<PublicProfileViewProps> = ({
@@ -32,6 +34,8 @@ export const PublicProfileView: React.FC<PublicProfileViewProps> = ({
   posts,
   onOpenPostDetail,
   allBeersCatalog = beers,
+  isAdminUser,
+  onDeleteVariant,
 }) => {
   const [activeTab, setActiveTab] = useState<'collection' | 'posts' | 'stats' | 'ratings'>('posts');
 
@@ -468,7 +472,8 @@ export const PublicProfileView: React.FC<PublicProfileViewProps> = ({
               variantSortDir={variantSortDir}
               medalSortOption={medalSort}
               medalSortDir={medalSortDir}
-              showDeleteButton={false}
+              showDeleteButton={!!isAdminUser}
+              onDeleteEntry={(brand, variant) => onDeleteVariant?.(brand, variant, username)}
               mode="variants"
             />
           </div>

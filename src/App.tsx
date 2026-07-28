@@ -978,28 +978,29 @@ export default function App() {
   };
 
   // Delete variant/checkin
-  const handleDeleteVariant = (brand: string, variant: string) => {
+  const handleDeleteVariant = (brand: string, variant: string, targetUser?: string) => {
+    const userToEdit = targetUser || currentUserNick;
     const uniqueId = `${brand}-${variant}`;
     showConfirm(
-      `Vuoi davvero eliminare lo sblocco per ${brand} - ${variant}?`,
+      `Vuoi davvero eliminare lo sblocco per ${brand} - ${variant}${targetUser ? ` dell'utente ${targetUser}` : ''}?`,
       'Conferma Eliminazione',
       async () => {
         try {
-          await remove(ref(db, `pokedex_profiles/${currentUserNick}/${uniqueId}`));
+          await remove(ref(db, `pokedex_profiles/${userToEdit}/${uniqueId}`));
           
           // remove matching post in community feed as well
           const timelineSnap = await get(ref(db, 'social_timeline'));
           if (timelineSnap.exists()) {
             timelineSnap.forEach((child) => {
               const p = child.val();
-              if (p.user === currentUserNick && p.brand === brand && p.variant === variant) {
+              if (p.user === userToEdit && p.brand === brand && p.variant === variant) {
                 remove(ref(db, `social_timeline/${child.key}`));
               }
             });
           }
 
-          await recalculateTotalScore(currentUserNick);
-          showAlert('Sblocco eliminato con successo.', 'Eliminato');
+          await recalculateTotalScore(userToEdit);
+          showAlert(`Sblocco ${targetUser ? `di ${targetUser}` : ''} eliminato con successo.`, 'Eliminato');
         } catch (err: any) {
           showAlert('Errore eliminazione: ' + err.message);
         }
@@ -2077,6 +2078,8 @@ export default function App() {
                 navigateTo('page-user-posts-detail');
               }}
               allBeersCatalog={allBeersCatalog}
+              isAdminUser={isAdminUser}
+              onDeleteVariant={handleDeleteVariant}
             />
           ) : null}
         </div>
