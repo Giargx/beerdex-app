@@ -391,42 +391,44 @@ export const TrophyGrid: React.FC<TrophyGridProps> = ({
       {/* 1. BRAND MEDALS ACCORDION SECTION */}
       {(!mode || mode === 'medals') && (
         <div style={{ marginBottom: '16px' }}>
-          <div
-            onClick={() => setMedalsOpen(!medalsOpen)}
-            style={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              background: 'var(--white)',
-              border: '1px solid var(--gray)',
-              padding: '12px 16px',
-              borderRadius: '16px',
-              cursor: 'pointer',
-              marginBottom: '10px',
-              boxShadow: 'var(--card-shadow)',
-              userSelect: 'none',
-            }}
-          >
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 'bold', fontSize: '14px', color: 'var(--dark)' }}>
-              <span className="material-symbols-outlined" style={{ color: 'var(--gold)' }}>workspace_premium</span>
-              <span>Medaglie Brand</span>
-              <span style={{ fontSize: '11px', color: 'var(--text-muted)', background: '#F1F5F9', padding: '2px 8px', borderRadius: '10px' }}>
-                {completedMedalsCount} / {brandMedalsList.length}
-              </span>
-            </div>
-            <span
-              className="material-symbols-outlined"
+          {!mode && (
+            <div
+              onClick={() => setMedalsOpen(!medalsOpen)}
               style={{
-                color: 'var(--text-muted)',
-                transition: 'transform 0.2s ease',
-                transform: medalsOpen ? 'rotate(180deg)' : 'rotate(0deg)',
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                background: 'var(--white)',
+                border: '1px solid var(--gray)',
+                padding: '12px 16px',
+                borderRadius: '16px',
+                cursor: 'pointer',
+                marginBottom: '10px',
+                boxShadow: 'var(--card-shadow)',
+                userSelect: 'none',
               }}
             >
-              expand_more
-            </span>
-          </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 'bold', fontSize: '14px', color: 'var(--dark)' }}>
+                <span className="material-symbols-outlined" style={{ color: 'var(--gold)' }}>workspace_premium</span>
+                <span>Medaglie Brand</span>
+                <span style={{ fontSize: '11px', color: 'var(--text-muted)', background: '#F1F5F9', padding: '2px 8px', borderRadius: '10px' }}>
+                  {completedMedalsCount} / {brandMedalsList.length}
+                </span>
+              </div>
+              <span
+                className="material-symbols-outlined"
+                style={{
+                  color: 'var(--text-muted)',
+                  transition: 'transform 0.2s ease',
+                  transform: medalsOpen ? 'rotate(180deg)' : 'rotate(0deg)',
+                }}
+              >
+                expand_more
+              </span>
+            </div>
+          )}
 
-          {medalsOpen && (
+          {(mode || medalsOpen) && (
             <div className="trophy-grid" id="brandMedalsGrid" style={{ animation: 'fadeIn 0.2s ease-out' }}>
               {brandMedalsList.map((beerObj) => {
                 const medalIcon = beerObj.isCompleted ? 'workspace_premium' : 'circle';
@@ -460,42 +462,44 @@ export const TrophyGrid: React.FC<TrophyGridProps> = ({
       {/* 2. EVENT MEDALS ACCORDION SECTION */}
       {(!mode || mode === 'events') && (
         <div style={{ marginBottom: '16px' }}>
-          <div
-            onClick={() => setEventsOpen(!eventsOpen)}
-            style={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              background: 'var(--white)',
-              border: '1px solid var(--gray)',
-              padding: '12px 16px',
-              borderRadius: '16px',
-              cursor: 'pointer',
-              marginBottom: '10px',
-              boxShadow: 'var(--card-shadow)',
-              userSelect: 'none',
-            }}
-          >
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 'bold', fontSize: '14px', color: 'var(--dark)' }}>
-              <span className="material-symbols-outlined" style={{ color: '#27ae60' }}>event_available</span>
-              <span>Medaglie Evento</span>
-              <span style={{ fontSize: '11px', color: 'var(--text-muted)', background: '#F1F5F9', padding: '2px 8px', borderRadius: '10px' }}>
-                {unlockedEventsCount} / {eventMedalsList.length}
-              </span>
-            </div>
-            <span
-              className="material-symbols-outlined"
+          {!mode && (
+            <div
+              onClick={() => setEventsOpen(!eventsOpen)}
               style={{
-                color: 'var(--text-muted)',
-                transition: 'transform 0.2s ease',
-                transform: eventsOpen ? 'rotate(180deg)' : 'rotate(0deg)',
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                background: 'var(--white)',
+                border: '1px solid var(--gray)',
+                padding: '12px 16px',
+                borderRadius: '16px',
+                cursor: 'pointer',
+                marginBottom: '10px',
+                boxShadow: 'var(--card-shadow)',
+                userSelect: 'none',
               }}
             >
-              expand_more
-            </span>
-          </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 'bold', fontSize: '14px', color: 'var(--dark)' }}>
+                <span className="material-symbols-outlined" style={{ color: '#27ae60' }}>event_available</span>
+                <span>Medaglie Evento</span>
+                <span style={{ fontSize: '11px', color: 'var(--text-muted)', background: '#F1F5F9', padding: '2px 8px', borderRadius: '10px' }}>
+                  {unlockedEventsCount} / {eventMedalsList.length}
+                </span>
+              </div>
+              <span
+                className="material-symbols-outlined"
+                style={{
+                  color: 'var(--text-muted)',
+                  transition: 'transform 0.2s ease',
+                  transform: eventsOpen ? 'rotate(180deg)' : 'rotate(0deg)',
+                }}
+              >
+                expand_more
+              </span>
+            </div>
+          )}
 
-          {eventsOpen && (
+          {(mode || eventsOpen) && (
             <div className="trophy-grid" id="eventMedalsGrid" style={{ animation: 'fadeIn 0.2s ease-out' }}>
               {eventMedalsList.map((medal) => {
                 const iconColor = medal.isUnlocked ? medal.color : 'var(--text-muted)';
@@ -540,42 +544,44 @@ export const TrophyGrid: React.FC<TrophyGridProps> = ({
       {/* 3. VARIANTS ACCORDION SECTION */}
       {(!mode || mode === 'variants') && (
         <div style={{ marginBottom: '16px' }}>
-          <div
-            onClick={() => setVariantsOpen(!variantsOpen)}
-            style={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              background: 'var(--white)',
-              border: '1px solid var(--gray)',
-              padding: '12px 16px',
-              borderRadius: '16px',
-              cursor: 'pointer',
-              marginBottom: '10px',
-              boxShadow: 'var(--card-shadow)',
-              userSelect: 'none',
-            }}
-          >
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 'bold', fontSize: '14px', color: 'var(--dark)' }}>
-              <span className="material-symbols-outlined" style={{ color: 'var(--primary-dark)' }}>sports_bar</span>
-              <span>Varianti Birre Sbloccate</span>
-              <span style={{ fontSize: '11px', color: 'var(--text-muted)', background: '#F1F5F9', padding: '2px 8px', borderRadius: '10px' }}>
-                {unlockedVariantsCount} / {allVariantsList.length}
-              </span>
-            </div>
-            <span
-              className="material-symbols-outlined"
+          {!mode && (
+            <div
+              onClick={() => setVariantsOpen(!variantsOpen)}
               style={{
-                color: 'var(--text-muted)',
-                transition: 'transform 0.2s ease',
-                transform: variantsOpen ? 'rotate(180deg)' : 'rotate(0deg)',
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                background: 'var(--white)',
+                border: '1px solid var(--gray)',
+                padding: '12px 16px',
+                borderRadius: '16px',
+                cursor: 'pointer',
+                marginBottom: '10px',
+                boxShadow: 'var(--card-shadow)',
+                userSelect: 'none',
               }}
             >
-              expand_more
-            </span>
-          </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 'bold', fontSize: '14px', color: 'var(--dark)' }}>
+                <span className="material-symbols-outlined" style={{ color: 'var(--primary-dark)' }}>sports_bar</span>
+                <span>Varianti Birre Sbloccate</span>
+                <span style={{ fontSize: '11px', color: 'var(--text-muted)', background: '#F1F5F9', padding: '2px 8px', borderRadius: '10px' }}>
+                  {unlockedVariantsCount} / {allVariantsList.length}
+                </span>
+              </div>
+              <span
+                className="material-symbols-outlined"
+                style={{
+                  color: 'var(--text-muted)',
+                  transition: 'transform 0.2s ease',
+                  transform: variantsOpen ? 'rotate(180deg)' : 'rotate(0deg)',
+                }}
+              >
+                expand_more
+              </span>
+            </div>
+          )}
 
-          {variantsOpen && (
+          {(mode || variantsOpen) && (
             <div className="trophy-grid" id="trophyGrid" style={{ animation: 'fadeIn 0.2s ease-out' }}>
               {allVariantsList.map((item) => {
                 const uniqueId = `${item.brand}-${item.variant}`;

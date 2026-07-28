@@ -45,6 +45,10 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
   const [medalSort, setMedalSort] = useState<'alpha' | 'unlocked' | 'rarity' | 'nation'>('unlocked');
   const [medalSortDir, setMedalSortDir] = useState<number>(1);
 
+  const [medalsOpen, setMedalsOpen] = useState<boolean>(true);
+  const [eventsOpen, setEventsOpen] = useState<boolean>(true);
+  const [variantsOpen, setVariantsOpen] = useState<boolean>(true);
+
   const score = leaderboardScores[currentUserNick] || 0;
   const rankTitle = getUserRankTitle(score, Object.keys(myPokedex || {}).length);
   const avatar = globalAvatars[currentUserNick];
@@ -368,11 +372,34 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
               margin: '30px 20px 15px 20px',
             }}
           >
-            <h3 style={{ margin: 0, color: 'var(--dark)', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '16px' }}>
+            <h3
+              onClick={() => setMedalsOpen(!medalsOpen)}
+              style={{
+                margin: 0,
+                color: 'var(--dark)',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                fontSize: '16px',
+                cursor: 'pointer',
+                userSelect: 'none',
+              }}
+            >
               <span className="material-symbols-outlined" style={{ color: 'var(--gold)' }}>
                 workspace_premium
               </span>{' '}
               Medaglie Brand
+              <span
+                className="material-symbols-outlined"
+                style={{
+                  fontSize: '20px',
+                  color: 'var(--text-muted)',
+                  transition: 'transform 0.2s ease',
+                  transform: medalsOpen ? 'rotate(180deg)' : 'rotate(0deg)',
+                }}
+              >
+                expand_more
+              </span>
             </h3>
             <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
               <select
@@ -417,17 +444,19 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
             </div>
           </div>
 
-          <TrophyGrid
-            pokedex={myPokedex}
-            isPub={false}
-            variantSortOption={variantSort}
-            variantSortDir={variantSortDir}
-            medalSortOption={medalSort}
-            medalSortDir={medalSortDir}
-            onDeleteEntry={onDeleteVariant}
-            showDeleteButton={true}
-            mode="medals"
-          />
+          {medalsOpen && (
+            <TrophyGrid
+              pokedex={myPokedex}
+              isPub={false}
+              variantSortOption={variantSort}
+              variantSortDir={variantSortDir}
+              medalSortOption={medalSort}
+              medalSortDir={medalSortDir}
+              onDeleteEntry={onDeleteVariant}
+              showDeleteButton={true}
+              mode="medals"
+            />
+          )}
 
           {/* Event Medals Section */}
           <div
@@ -440,26 +469,51 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
               margin: '40px 20px 15px 20px',
             }}
           >
-            <h3 style={{ margin: 0, color: 'var(--dark)', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '16px' }}>
+            <h3
+              onClick={() => setEventsOpen(!eventsOpen)}
+              style={{
+                margin: 0,
+                color: 'var(--dark)',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                fontSize: '16px',
+                cursor: 'pointer',
+                userSelect: 'none',
+              }}
+            >
               <span className="material-symbols-outlined" style={{ color: 'var(--primary)' }}>
                 event_note
               </span>{' '}
               Medaglie Evento
+              <span
+                className="material-symbols-outlined"
+                style={{
+                  fontSize: '20px',
+                  color: 'var(--text-muted)',
+                  transition: 'transform 0.2s ease',
+                  transform: eventsOpen ? 'rotate(180deg)' : 'rotate(0deg)',
+                }}
+              >
+                expand_more
+              </span>
             </h3>
           </div>
 
-          <TrophyGrid
-            pokedex={myPokedex}
-            isPub={false}
-            variantSortOption={variantSort}
-            variantSortDir={variantSortDir}
-            medalSortOption={medalSort}
-            medalSortDir={medalSortDir}
-            onDeleteEntry={onDeleteVariant}
-            showDeleteButton={false}
-            mode="events"
-            userPosts={posts.filter(p => p.user === currentUserNick)}
-          />
+          {eventsOpen && (
+            <TrophyGrid
+              pokedex={myPokedex}
+              isPub={false}
+              variantSortOption={variantSort}
+              variantSortDir={variantSortDir}
+              medalSortOption={medalSort}
+              medalSortDir={medalSortDir}
+              onDeleteEntry={onDeleteVariant}
+              showDeleteButton={false}
+              mode="events"
+              userPosts={posts.filter(p => p.user === currentUserNick)}
+            />
+          )}
 
           {/* Variants sorting controls */}
           <div
@@ -472,8 +526,31 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
               margin: '40px 20px 15px 20px',
             }}
           >
-            <h3 style={{ margin: 0, color: 'var(--dark)', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '16px' }}>
+            <h3
+              onClick={() => setVariantsOpen(!variantsOpen)}
+              style={{
+                margin: 0,
+                color: 'var(--dark)',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                fontSize: '16px',
+                cursor: 'pointer',
+                userSelect: 'none',
+              }}
+            >
               <span className="material-symbols-outlined">collections_bookmark</span> Varianti
+              <span
+                className="material-symbols-outlined"
+                style={{
+                  fontSize: '20px',
+                  color: 'var(--text-muted)',
+                  transition: 'transform 0.2s ease',
+                  transform: variantsOpen ? 'rotate(180deg)' : 'rotate(0deg)',
+                }}
+              >
+                expand_more
+              </span>
             </h3>
             <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
               <select
@@ -518,17 +595,19 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
             </div>
           </div>
 
-          <TrophyGrid
-            pokedex={myPokedex}
-            isPub={false}
-            variantSortOption={variantSort}
-            variantSortDir={variantSortDir}
-            medalSortOption={medalSort}
-            medalSortDir={medalSortDir}
-            onDeleteEntry={onDeleteVariant}
-            showDeleteButton={true}
-            mode="variants"
-          />
+          {variantsOpen && (
+            <TrophyGrid
+              pokedex={myPokedex}
+              isPub={false}
+              variantSortOption={variantSort}
+              variantSortDir={variantSortDir}
+              medalSortOption={medalSort}
+              medalSortDir={medalSortDir}
+              onDeleteEntry={onDeleteVariant}
+              showDeleteButton={true}
+              mode="variants"
+            />
+          )}
         </div>
       )}
 

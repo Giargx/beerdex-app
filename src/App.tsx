@@ -204,6 +204,7 @@ export default function App() {
 
   const [captureOpen, setCaptureOpen] = useState<boolean>(false);
   const [shareOpen, setShareOpen] = useState<boolean>(false);
+  const [selectedTaggedFriends, setSelectedTaggedFriends] = useState<string[]>([]);
   const [pendingUploadData, setPendingUploadData] = useState<any>(null);
 
   // Avatar Selection & Crop State
@@ -618,7 +619,13 @@ export default function App() {
     setCaptureOpen(false);
     setCropOpen(false);
 
-    if (pageId === currentPage) return;
+    if (pageId === currentPage) {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      document.querySelectorAll('.page-container-view, .page-container, .main-tab-slide').forEach((el) => {
+        el.scrollTo({ top: 0, behavior: 'smooth' });
+      });
+      return;
+    }
     const currIdx = pagesMapList.indexOf(currentPage);
     const targetIdx = pagesMapList.indexOf(pageId);
     if (targetIdx === -1) return;
@@ -886,20 +893,30 @@ export default function App() {
     reader.readAsDataURL(file);
   };
 
-  const finalizeUpload = async (uploadData: any, taggedFriend: string | null) => {
+  const finalizeUpload = async (uploadData: any, taggedFriendsInput: string[] | string | null) => {
     hideAlert();
     setShareOpen(false);
     
     showAlert("Caricamento sblocco in corso...", "Cloud Sync", false);
     const { brand, variant, isShiny, canvasBase64, lat, lng } = uploadData;
-    const isShared = taggedFriend !== null && taggedFriend !== '';
+
+    let taggedFriendsList: string[] = [];
+    if (Array.isArray(taggedFriendsInput)) {
+      taggedFriendsList = taggedFriendsInput.filter(Boolean);
+    } else if (typeof taggedFriendsInput === 'string' && taggedFriendsInput.trim() !== '') {
+      taggedFriendsList = [taggedFriendsInput.trim()];
+    }
+
+    const taggedFriendStr = taggedFriendsList.length > 0 ? taggedFriendsList.join(', ') : null;
+    const isShared = taggedFriendsList.length > 0;
 
     const uniqueId = `${brand}-${variant}`;
     const pokedexEntry = {
       photo: canvasBase64,
       isShiny,
       isShared,
-      taggedFriend,
+      taggedFriend: taggedFriendStr,
+      taggedFriends: taggedFriendsList,
       brand,
     };
 
@@ -915,7 +932,8 @@ export default function App() {
         time: new Date().getTime(),
         isShiny,
         isShared,
-        taggedFriend,
+        taggedFriend: taggedFriendStr,
+        taggedFriends: taggedFriendsList,
         fakeVotes: {},
       };
       if (lat !== null && lng !== null) {
@@ -1419,47 +1437,73 @@ export default function App() {
       {/* Friends sharing tag modal */}
       {shareOpen && (
         <div className="auth-modal" style={{ zIndex: 20000 }}>
-          <div className="auth-container" style={{ maxWidth: '350px' }}>
-            <h3 style={{ marginTop: 0, color: 'var(--dark)', fontSize: '22px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
-              <span className="material-symbols-outlined">group</span> Bevuta in Compagnia
+          <div className="auth-container" style={{ maxWidth: '380px', width: '92%' }}>
+            <h3 style={{ marginTop: 0, color: 'var(--dark)', fontSize: '20px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+              <span className="material-symbols-outlined" style={{ color: 'var(--primary-dark)' }}>group</span> Bevuta in Compagnia
             </h3>
-            <p style={{ color: 'var(--text-muted)', fontSize: '14px', marginBottom: '20px' }}>
-              Sei in compagnia? Tagga un amico per condividere questa bevuta con lui sul feed.
+            <p style={{ color: 'var(--text-muted)', fontSize: '13px', marginBottom: '16px', textAlign: 'center' }}>
+              Sei con degli amici? Seleziona gli amici con cui stai bevendo per condividere lo sblocco!
             </p>
-            <select
-              id="shareFriendSelect"
-              onChange={(e) => setPendingUploadData((d: any) => ({ ...d, taggedFriend: e.target.value }))}
-              style={{
-                width: '100%',
-                padding: '12px',
-                borderRadius: '10px',
-                border: '2px solid var(--gray)',
-                marginBottom: '20px',
-                fontWeight: 'bold',
-                outline: 'none',
-                cursor: 'pointer',
-              }}
-            >
-              <option value="">-- Nessun tag (Bevi da solo) --</option>
-              {myFriendsList.map((f) => (
-                <option key={f} value={f}>
-                  {f}
-                </option>
-              ))}
-            </select>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', maxHeight: '200px', overflowY: 'auto', marginBottom: '20px', paddingRight: '4px' }}>
+              {myFriendsList.map((f) => {
+                const isSelected = (selectedTaggedFriends || []).includes(f);
+                return (
+                  <div
+                    key={f}
+                    onClick={() => {
+                      setSelectedTaggedFriends(prev =>
+                        prev.includes(f) ? prev.filter(x => x !== f) : [...prev, f]
+                      );
+                    }}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      padding: '10px 14px',
+                      borderRadius: '12px',
+                      border: '1px solid ' + (isSelected ? 'var(--primary)' : 'var(--gray)'),
+                      background: isSelected ? '#FFFBEB' : '#FAFAFC',
+                      cursor: 'pointer',
+                      transition: 'all 0.2s ease',
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', fontWeight: 'bold', fontSize: '14px', color: 'var(--dark)' }}>
+                      <span className="material-symbols-outlined" style={{ fontSize: '20px', color: isSelected ? 'var(--primary-dark)' : 'var(--text-muted)' }}>
+                        person
+                      </span>
+                      {f}
+                    </div>
+                    <span className="material-symbols-outlined" style={{ color: isSelected ? 'var(--primary-dark)' : '#CBD5E1' }}>
+                      {isSelected ? 'check_box' : 'checkbox_outline_blank'}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+
             <button
               className="btn-main"
-              onClick={() => finalizeUpload(pendingUploadData, pendingUploadData.taggedFriend || null)}
-              style={{ justifyContent: 'center' }}
+              onClick={() => {
+                finalizeUpload(pendingUploadData, selectedTaggedFriends);
+                setSelectedTaggedFriends([]);
+              }}
+              style={{ justifyContent: 'center', width: '100%', margin: '0 0 8px 0' }}
             >
-              Condividi Sblocco
+              <span className="material-symbols-outlined">send</span>
+              {selectedTaggedFriends.length > 0
+                ? `Condividi con ${selectedTaggedFriends.length} amic${selectedTaggedFriends.length === 1 ? 'o' : 'i'}`
+                : 'Condividi Sblocco'}
             </button>
             <button
               className="btn-secondary"
-              onClick={() => finalizeUpload(pendingUploadData, null)}
-              style={{ justifyContent: 'center' }}
+              onClick={() => {
+                finalizeUpload(pendingUploadData, []);
+                setSelectedTaggedFriends([]);
+              }}
+              style={{ justifyContent: 'center', width: '100%', margin: 0 }}
             >
-              Sono solo io
+              Sono solo io (Bevi da solo)
             </button>
           </div>
         </div>
