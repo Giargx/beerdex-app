@@ -947,7 +947,7 @@ export default function App() {
 
       let msg = `Birra sbloccata con successo! (+${getBeerPoints(brand, variant, isShiny, isShared)} Punti)`;
       if (isShiny) msg += '\nSBLOCCO SHINY IN TRASFERTA!';
-      if (isShared) msg += `\nBEVUTA CON ${taggedFriend}!`;
+      if (isShared) msg += `\nBEVUTA CON ${taggedFriendStr?.toUpperCase()}!`;
 
       hideAlert();
       showAlert(msg, 'Conquistata!');
