@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { TrophyGrid } from '../components/TrophyGrid';
 import type { PokedexEntry } from '../components/TrophyGrid';
 import { FoamBubbles } from '../components/FoamBubbles';
+import { getBeerType } from '../beers';
+import { StarRating } from '../components/StarRating';
 
 interface PublicProfileViewProps {
   username: string;
@@ -28,7 +30,7 @@ export const PublicProfileView: React.FC<PublicProfileViewProps> = ({
   posts,
   onOpenPostDetail,
 }) => {
-  const [activeTab, setActiveTab] = useState<'collection' | 'posts'>('posts');
+  const [activeTab, setActiveTab] = useState<'collection' | 'posts' | 'ratings'>('posts');
 
   useEffect(() => {
     setActiveTab('posts');
@@ -42,6 +44,56 @@ export const PublicProfileView: React.FC<PublicProfileViewProps> = ({
   const rankTitle = getUserRankTitle(score, Object.keys(pokedex || {}).length);
   const myPosts = posts.filter((p) => p.user === username);
   const totalUnlocked = Object.keys(pokedex || {}).length;
+
+  // Rating Stats Calculation for Public Profile
+  const beerTypeMeta: Record<string, { label: string; icon: string; color: string }> = {
+    ipa: { label: 'IPA & Craft', icon: 'sports_bar', color: '#F59E0B' },
+    bianca: { label: 'Bianca / Weiss', icon: 'snowing', color: '#6366F1' },
+    scura: { label: 'Scura / Stout', icon: 'dark_mode', color: '#475569' },
+    rossa: { label: 'Rossa / Ambrata', icon: 'local_fire_department', color: '#EF4444' },
+    bionda: { label: 'Bionda / Lager', icon: 'glass_cup', color: '#10B981' },
+  };
+
+  const styleStats: Record<string, { sum: number; count: number; average: number }> = {
+    ipa: { sum: 0, count: 0, average: 0 },
+    bianca: { sum: 0, count: 0, average: 0 },
+    scura: { sum: 0, count: 0, average: 0 },
+    rossa: { sum: 0, count: 0, average: 0 },
+    bionda: { sum: 0, count: 0, average: 0 },
+  };
+
+  let totalRatedBeers = 0;
+  let totalRatingSum = 0;
+
+  Object.entries(pokedex || {}).forEach(([key, entry]) => {
+    if (entry.rating && entry.rating > 0) {
+      totalRatedBeers += 1;
+      totalRatingSum += entry.rating;
+
+      const brand = entry.brand || key.split('-')[0];
+      const variant = key.split('-').slice(1).join('-');
+      const beerType = getBeerType(brand, variant);
+
+      if (styleStats[beerType]) {
+        styleStats[beerType].sum += entry.rating;
+        styleStats[beerType].count += 1;
+      }
+    }
+  });
+
+  Object.keys(styleStats).forEach((type) => {
+    const s = styleStats[type];
+    s.average = s.count > 0 ? parseFloat((s.sum / s.count).toFixed(1)) : 0;
+  });
+
+  const overallAverage = totalRatedBeers > 0 ? parseFloat((totalRatingSum / totalRatedBeers).toFixed(1)) : 0;
+
+  const sortedStyles = Object.entries(styleStats)
+    .filter(([_, stats]) => stats.count > 0)
+    .sort((a, b) => b[1].average - a[1].average || b[1].count - a[1].count);
+
+  const favoriteStyleKey = sortedStyles.length > 0 ? sortedStyles[0][0] : null;
+  const favoriteStyleMeta = favoriteStyleKey ? beerTypeMeta[favoriteStyleKey] : null;
 
   return (
     <div className="page-container-view">
@@ -167,7 +219,8 @@ export const PublicProfileView: React.FC<PublicProfileViewProps> = ({
         }}>
           {[
             { id: 'posts', label: 'Post Caricati', icon: 'photo_library' },
-            { id: 'collection', label: 'Collezione', icon: 'collections_bookmark' }
+            { id: 'collection', label: 'Collezione', icon: 'collections_bookmark' },
+            { id: 'ratings', label: 'Gusti & Voti', icon: 'star' }
           ].map(tab => (
             <button
               key={tab.id}
@@ -435,8 +488,188 @@ export const PublicProfileView: React.FC<PublicProfileViewProps> = ({
                     </div>
                   </div>
                 ))}
+        {/* 3. GUSTI & VOTI (RATINGS) TAB FOR PUBLIC PROFILE */}
+        {activeTab === 'ratings' && (
+          <div style={{ animation: 'fadeIn 0.2s ease-out', marginBottom: '30px' }}>
+            {/* Overview Banner */}
+            <div
+              style={{
+                background: 'linear-gradient(135deg, #1E293B 0%, #0F172A 100%)',
+                borderRadius: '20px',
+                padding: '20px',
+                color: 'white',
+                marginBottom: '20px',
+                boxShadow: '0 10px 25px rgba(15,23,42,0.15)',
+              }}
+            >
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                <div>
+                  <div style={{ fontSize: '11px', color: '#94A3B8', textTransform: 'uppercase', letterSpacing: '1px', fontWeight: 700 }}>
+                    Profilo del Gusto di @{username}
+                  </div>
+                  <h3 style={{ margin: '4px 0 0 0', fontSize: '18px', fontWeight: 900, color: 'white', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <span className="material-symbols-outlined" style={{ color: '#F59E0B' }}>star</span>
+                    Valutazioni Personali
+                  </h3>
+                </div>
+                <div style={{ textAlign: 'right' }}>
+                  <div style={{ fontSize: '24px', fontWeight: 900, color: '#F59E0B', display: 'flex', alignItems: 'center', gap: '4px', justifyContent: 'flex-end' }}>
+                    {overallAverage > 0 ? overallAverage : '-'}
+                    <span style={{ fontSize: '14px', color: '#94A3B8' }}>/5</span>
+                  </div>
+                  <div style={{ fontSize: '10px', color: '#94A3B8' }}>{totalRatedBeers} birre votate</div>
+                </div>
               </div>
-            )}
+
+              {favoriteStyleMeta && (
+                <div
+                  style={{
+                    background: 'rgba(245, 158, 11, 0.15)',
+                    border: '1px solid rgba(245, 158, 11, 0.4)',
+                    borderRadius: '12px',
+                    padding: '10px 14px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '10px',
+                    marginTop: '10px',
+                  }}
+                >
+                  <span className="material-symbols-outlined" style={{ color: favoriteStyleMeta.color, fontSize: '24px' }}>
+                    {favoriteStyleMeta.icon}
+                  </span>
+                  <div>
+                    <div style={{ fontSize: '11px', color: '#FCD34D', fontWeight: 'bold' }}>Stile Preferito</div>
+                    <div style={{ fontSize: '14px', fontWeight: 900, color: 'white' }}>
+                      {favoriteStyleMeta.label} ({styleStats[favoriteStyleKey!].average} ⭐)
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Breakdown per Stile */}
+            <div
+              style={{
+                background: 'var(--white)',
+                borderRadius: '20px',
+                padding: '18px',
+                border: '1px solid var(--gray)',
+                boxShadow: 'var(--card-shadow)',
+                marginBottom: '20px',
+              }}
+            >
+              <h4 style={{ margin: '0 0 16px 0', fontSize: '15px', fontWeight: 'bold', color: 'var(--dark)', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <span className="material-symbols-outlined" style={{ color: 'var(--primary-dark)' }}>bar_chart</span>
+                Media Voti per Stile di Birra
+              </h4>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                {Object.entries(beerTypeMeta).map(([typeKey, meta]) => {
+                  const stat = styleStats[typeKey];
+                  const pct = stat.average > 0 ? (stat.average / 5) * 100 : 0;
+                  return (
+                    <div key={typeKey}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', fontWeight: 'bold', color: 'var(--dark)' }}>
+                          <span className="material-symbols-outlined" style={{ color: meta.color, fontSize: '18px' }}>
+                            {meta.icon}
+                          </span>
+                          {meta.label}
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                          <StarRating rating={Math.round(stat.average)} readOnly size={14} />
+                          <span style={{ fontSize: '12px', fontWeight: 900, color: stat.average > 0 ? 'var(--dark)' : 'var(--text-muted)' }}>
+                            {stat.average > 0 ? `${stat.average} ⭐` : 'N.D.'}
+                          </span>
+                          <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>({stat.count})</span>
+                        </div>
+                      </div>
+
+                      <div style={{ width: '100%', height: '8px', background: '#F1F5F9', borderRadius: '4px', overflow: 'hidden' }}>
+                        <div
+                          style={{
+                            width: `${pct}%`,
+                            height: '100%',
+                            background: meta.color,
+                            borderRadius: '4px',
+                            transition: 'width 0.4s ease',
+                          }}
+                        />
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Lista Birre Votate dall'utente */}
+            <div
+              style={{
+                background: 'var(--white)',
+                borderRadius: '20px',
+                padding: '18px',
+                border: '1px solid var(--gray)',
+                boxShadow: 'var(--card-shadow)',
+              }}
+            >
+              <h4 style={{ margin: '0 0 12px 0', fontSize: '15px', fontWeight: 'bold', color: 'var(--dark)', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <span className="material-symbols-outlined" style={{ color: '#F59E0B' }}>rate_review</span>
+                Birre Recensite ({totalRatedBeers})
+              </h4>
+
+              {totalRatedBeers === 0 ? (
+                <p style={{ textAlign: 'center', color: 'var(--text-muted)', fontSize: '13px', padding: '20px 0' }}>
+                  @{username} non ha ancora recensito nessuna birra.
+                </p>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                  {Object.entries(pokedex || {})
+                    .filter(([_, entry]) => entry.rating && entry.rating > 0)
+                    .map(([key, entry]) => {
+                      const brand = entry.brand || key.split('-')[0];
+                      const variant = key.split('-').slice(1).join('-');
+                      return (
+                        <div
+                          key={key}
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'space-between',
+                            padding: '10px 14px',
+                            background: '#FAFAFC',
+                            borderRadius: '14px',
+                            border: '1px solid rgba(226, 232, 240, 0.8)',
+                          }}
+                        >
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                            <div style={{ width: '36px', height: '36px', borderRadius: '8px', overflow: 'hidden', flexShrink: 0, border: '1px solid var(--gray)' }}>
+                              {entry.photo ? (
+                                <img src={entry.photo} alt={variant} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                              ) : (
+                                <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#F1F5F9', color: '#94A3B8' }}>
+                                  🍺
+                                </div>
+                              )}
+                            </div>
+                            <div>
+                              <div style={{ fontSize: '13px', fontWeight: 'bold', color: 'var(--dark)' }}>
+                                {brand}
+                              </div>
+                              <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
+                                {variant}
+                              </div>
+                            </div>
+                          </div>
+
+                          <div>
+                            <StarRating rating={entry.rating || 0} readOnly size={16} showText />
+                          </div>
+                        </div>
+                      );
+                    })}
+                </div>
+              )}
+            </div>
           </div>
         )}
       </div>

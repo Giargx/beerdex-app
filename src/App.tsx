@@ -31,6 +31,7 @@ import { ProposeBeerModal } from './components/ProposeBeerModal';
 import type { BeerProposalData } from './components/ProposeBeerModal';
 import { AdminProposalsModal } from './components/AdminProposalsModal';
 import type { BeerProposalItem } from './components/AdminProposalsModal';
+import { UnlockRatingModal } from './components/UnlockRatingModal';
 
 import { FoamBubbles } from './components/FoamBubbles';
 
@@ -104,6 +105,7 @@ export default function App() {
   const [proposeModalOpen, setProposeModalOpen] = useState<boolean>(false);
   const [proposeBrandPrefill, setProposeBrandPrefill] = useState<string>('');
   const [adminProposalsModalOpen, setAdminProposalsModalOpen] = useState<boolean>(false);
+  const [unlockRatingModalState, setUnlockRatingModalState] = useState<{ isOpen: boolean; brand: string; variant: string; photo?: string } | null>(null);
 
   const allBeersCatalog = mergeBeers(beers, customBeers);
 
@@ -931,6 +933,15 @@ export default function App() {
 
       hideAlert();
       showAlert(msg, 'Conquistata!');
+
+      setTimeout(() => {
+        setUnlockRatingModalState({
+          isOpen: true,
+          brand,
+          variant,
+          photo: canvasBase64,
+        });
+      }, 800);
     } catch (err: any) {
       hideAlert();
       showAlert('Errore sblocco: ' + err.message, 'Errore di Rete');
@@ -1928,6 +1939,7 @@ export default function App() {
                   globalDisplayNames={globalDisplayNames}
                   myFriendsList={myFriendsList}
                   isAdminUser={isAdminUser}
+                  myPokedex={myPokedex}
                   onToggleLike={handleToggleLike}
                   onDeletePost={handleDeletePost}
                   onReportFakePost={handleReportFakePost}
@@ -2214,6 +2226,20 @@ export default function App() {
         globalAvatars={globalAvatars}
         globalDisplayNames={globalDisplayNames}
       />
+
+      {/* Unlock Rating Modal */}
+      {unlockRatingModalState && (
+        <UnlockRatingModal
+          isOpen={unlockRatingModalState.isOpen}
+          brand={unlockRatingModalState.brand}
+          variant={unlockRatingModalState.variant}
+          photo={unlockRatingModalState.photo}
+          onClose={() => setUnlockRatingModalState(null)}
+          onRate={(rating) => {
+            handleRateBeer(unlockRatingModalState.brand, unlockRatingModalState.variant, rating);
+          }}
+        />
+      )}
     </>
   );
 }

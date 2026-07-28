@@ -2,6 +2,8 @@ import React from 'react';
 import { playClinkSound } from '../utils/audio';
 import { FoamBubbles } from '../components/FoamBubbles';
 import { getBasePoints } from '../beers';
+import { StarRating } from '../components/StarRating';
+import type { PokedexEntry } from '../components/TrophyGrid';
 
 interface Post {
   postId: string;
@@ -14,6 +16,7 @@ interface Post {
   isShared: boolean;
   taggedFriend: string | null;
   likes?: Record<string, boolean>;
+  rating?: number;
 }
 
 interface PubViewProps {
@@ -23,6 +26,7 @@ interface PubViewProps {
   globalDisplayNames?: Record<string, string>;
   myFriendsList: string[];
   isAdminUser: boolean;
+  myPokedex?: Record<string, PokedexEntry>;
   onToggleLike: (postId: string, cardElement: HTMLElement | null) => void;
   onDeletePost: (postId: string, postUser: string, brand: string, variant: string) => void;
   onReportFakePost: (postId: string, postUser: string, brand: string, variant: string) => void;
@@ -264,6 +268,31 @@ export const PubView: React.FC<PubViewProps> = ({
                   </div>
 
                   <div className="post-image-container" style={{ position: 'relative', overflow: 'hidden', width: '100%', display: 'block' }}>
+                    {((post.rating && post.rating > 0) || (myPokedex && myPokedex[`${post.brand}-${post.variant}`]?.rating)) && (
+                      <div
+                        style={{
+                          position: 'absolute',
+                          top: '12px',
+                          left: '12px',
+                          background: 'rgba(15, 23, 42, 0.85)',
+                          backdropFilter: 'blur(8px)',
+                          padding: '4px 10px',
+                          borderRadius: '20px',
+                          zIndex: 5,
+                          boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
+                          border: '1px solid rgba(255,255,255,0.15)',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '4px',
+                        }}
+                      >
+                        <StarRating
+                          rating={post.rating || myPokedex?.[`${post.brand}-${post.variant}`]?.rating || 0}
+                          readOnly
+                          size={13}
+                        />
+                      </div>
+                    )}
                     <img
                       src={post.photo}
                       className="post-image"
