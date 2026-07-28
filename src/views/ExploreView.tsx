@@ -241,7 +241,7 @@ export const ExploreView: React.FC<ExploreViewProps> = ({
                   gap: '10px',
                   width: '100%',
                   boxSizing: 'border-box',
-                  alignItems: 'start',
+                  alignItems: 'stretch',
                 }}
               >
                 {filteredBeers.map((beer) => {
@@ -251,6 +251,9 @@ export const ExploreView: React.FC<ExploreViewProps> = ({
                       key={beer.brand}
                       style={{
                         gridColumn: isExpanded ? '1 / -1' : 'span 1',
+                        height: '100%',
+                        display: 'flex',
+                        flexDirection: 'column',
                         transition: 'all 0.3s ease',
                       }}
                     >

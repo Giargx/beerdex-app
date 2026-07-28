@@ -44,31 +44,39 @@ export const BeerCard: React.FC<BeerCardProps> = ({
     <div
       className={`card ${expanded ? 'active' : ''} ${isCompleted ? 'completed' : ''}`}
       onClick={onToggle}
+      style={{
+        height: '100%',
+        boxSizing: 'border-box',
+        display: 'flex',
+        flexDirection: 'column',
+        justify: 'space-between',
+        padding: '16px 14px',
+        overflow: 'hidden',
+      }}
     >
-      <div className="toggle-icon">
-        <span className="material-symbols-outlined">expand_more</span>
+      <div>
+        <div className="card-badges" style={{ display: 'flex', gap: '4px', flexWrap: 'wrap', marginBottom: '8px' }}>
+          <span className="region" style={{ fontSize: '11px', whiteSpace: 'normal', wordBreak: 'break-word' }}>{regionLabel}</span>
+          <span className={`rarity-badge rarity-${beer.rarity}`} style={{ fontSize: '10px' }}>{beer.rarity}</span>
+        </div>
+        
+        <h2 style={{ marginTop: 0, fontSize: '17px', lineHeight: '1.2', wordBreak: 'break-word', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '6px' }}>
+          <span>{beer.brand}</span>
+          <span
+            className="trophy"
+            style={{
+              display: isCompleted ? 'inline-block' : 'none',
+              color: 'var(--primary-dark)',
+              fontSize: '22px',
+              flexShrink: 0,
+            }}
+          >
+            <span className="material-symbols-outlined">workspace_premium</span>
+          </span>
+        </h2>
+        
+        <div className="desc" style={{ fontSize: '12px', lineHeight: '1.35', color: 'var(--text-muted)', marginBottom: '8px', wordBreak: 'break-word' }}>{beer.desc}</div>
       </div>
-      
-      <div className="card-badges">
-        <span className="region">{regionLabel}</span>
-        <span className={`rarity-badge rarity-${beer.rarity}`}>{beer.rarity}</span>
-      </div>
-      
-      <h2 style={{ marginTop: 0 }}>
-        {beer.brand}
-        <span
-          className="trophy"
-          style={{
-            display: isCompleted ? 'inline-block' : 'none',
-            color: 'var(--primary-dark)',
-            fontSize: '24px',
-          }}
-        >
-          <span className="material-symbols-outlined">workspace_premium</span>
-        </span>
-      </h2>
-      
-      <div className="desc">{beer.desc}</div>
       
       <div className="variants-container">
         <div className="variants" onClick={(e) => e.stopPropagation()}>
