@@ -195,7 +195,7 @@ export const ExploreView: React.FC<ExploreViewProps> = ({
           </div>
         </div>
 
-        <div className="container" id="beerList" style={{ marginTop: '20px', padding: 0 }}>
+        <div className="container" id="beerList" style={{ marginTop: '20px', padding: '0 10px', width: '100%', boxSizing: 'border-box' }}>
           {filteredBeers.length === 0 ? (
             <div
               style={{
@@ -237,9 +237,10 @@ export const ExploreView: React.FC<ExploreViewProps> = ({
               <div
                 style={{
                   display: 'grid',
-                  gridTemplateColumns: 'repeat(2, 1fr)',
-                  gap: '12px',
+                  gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
+                  gap: '10px',
                   width: '100%',
+                  boxSizing: 'border-box',
                   alignItems: 'start',
                 }}
               >

@@ -95,13 +95,54 @@ export const PublicProfileView: React.FC<PublicProfileViewProps> = ({
   const favoriteStyleKey = sortedStyles.length > 0 ? sortedStyles[0][0] : null;
   const favoriteStyleMeta = favoriteStyleKey ? beerTypeMeta[favoriteStyleKey] : null;
 
-  // General Stats
+  // General Stats (matching ProfileView 1:1)
+  const totalVariantsInGame = beers.reduce((acc, beer) => acc + beer.variants.length, 0);
+  const completionPercentage = totalVariantsInGame > 0 ? Math.round((totalUnlocked / totalVariantsInGame) * 100) : 0;
+
   let shinyCount = 0;
   let taggedCount = 0;
   Object.values(pokedex || {}).forEach((entry) => {
     if (entry.isShiny) shinyCount++;
     if (entry.taggedFriend) taggedCount++;
   });
+
+  const rarityCounts = { comune: 0, media: 0, rara: 0 };
+  Object.keys(pokedex || {}).forEach(key => {
+    const brand = key.split('-')[0];
+    const beer = beers.find(b => b.brand === brand);
+    if (beer) {
+      const r = (beer.rarity || 'comune') as 'comune' | 'media' | 'rara';
+      rarityCounts[r] = (rarityCounts[r] || 0) + 1;
+    }
+  });
+
+  const countryCounts: Record<string, { unlocked: number, total: number }> = {};
+  beers.forEach(beer => {
+    const c = beer.country || 'Sconosciuta';
+    if (!countryCounts[c]) {
+      countryCounts[c] = { unlocked: 0, total: 0 };
+    }
+    countryCounts[c].total += beer.variants.length;
+  });
+  Object.keys(pokedex || {}).forEach(key => {
+    const brand = key.split('-')[0];
+    const beer = beers.find(b => b.brand === brand);
+    if (beer) {
+      const c = beer.country || 'Sconosciuta';
+      if (countryCounts[c]) {
+        countryCounts[c].unlocked += 1;
+      }
+    }
+  });
+
+  const countryStatsList = Object.entries(countryCounts)
+    .map(([country, stats]) => ({
+      country,
+      percentage: stats.total > 0 ? Math.round((stats.unlocked / stats.total) * 100) : 0,
+      ...stats
+    }))
+    .filter(stat => stat.unlocked > 0)
+    .sort((a, b) => b.percentage - a.percentage);
 
   return (
     <div className="page-container-view">
@@ -505,120 +546,103 @@ export const PublicProfileView: React.FC<PublicProfileViewProps> = ({
         {/* 3. STATISTICHE GENERALI (STATS) TAB FOR PUBLIC PROFILE */}
         {activeTab === 'stats' && (
           <div style={{ animation: 'fadeIn 0.2s ease-out', marginBottom: '30px' }}>
-            {/* Main Stats Grid */}
-            <div
-              style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(2, 1fr)',
-                gap: '12px',
-                marginBottom: '20px',
-              }}
-            >
-              <div
-                style={{
-                  background: 'var(--white)',
-                  borderRadius: '20px',
-                  padding: '16px',
-                  border: '1px solid var(--gray)',
-                  boxShadow: 'var(--card-shadow)',
-                  textAlign: 'center',
-                }}
-              >
-                <span className="material-symbols-outlined" style={{ fontSize: '32px', color: 'var(--primary-dark)', marginBottom: '4px' }}>
-                  emoji_events
-                </span>
-                <div style={{ fontSize: '22px', fontWeight: 900, color: 'var(--dark)' }}>
-                  {totalUnlocked}
+            {/* Circular/Linear progress summary */}
+            <div style={{ background: 'var(--white)', padding: '20px', borderRadius: '16px', border: '1px solid var(--gray)', boxShadow: 'var(--card-shadow)', textAlign: 'center', marginBottom: '20px' }}>
+              <h4 style={{ margin: '0 0 15px 0', fontSize: '14px', textTransform: 'uppercase', color: 'var(--text-muted)', letterSpacing: '0.5px' }}>
+                Progresso Collezione di @{username}
+              </h4>
+              <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '30px' }}>
+                <div style={{ position: 'relative', width: '90px', height: '90px', display: 'flex', alignItems: 'center', justifyItems: 'center', justifyContent: 'center' }}>
+                  {/* SVG circular progress */}
+                  <svg viewBox="0 0 36 36" style={{ width: '100%', height: '100%', transform: 'rotate(-90deg)' }}>
+                    <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="var(--gray)" strokeWidth="3" />
+                    <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="var(--primary)" strokeWidth="3" strokeDasharray={`${completionPercentage}, 100`} strokeLinecap="round" />
+                  </svg>
+                  <div style={{ position: 'absolute', fontSize: '20px', fontWeight: 'bold', color: 'var(--dark)' }}>
+                    {completionPercentage}%
+                  </div>
                 </div>
-                <div style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: 700 }}>
-                  Birre Sbloccate
-                </div>
-              </div>
-
-              <div
-                style={{
-                  background: 'var(--white)',
-                  borderRadius: '20px',
-                  padding: '16px',
-                  border: '1px solid var(--gray)',
-                  boxShadow: 'var(--card-shadow)',
-                  textAlign: 'center',
-                }}
-              >
-                <span className="material-symbols-outlined" style={{ fontSize: '32px', color: '#F59E0B', marginBottom: '4px' }}>
-                  stars
-                </span>
-                <div style={{ fontSize: '22px', fontWeight: 900, color: 'var(--dark)' }}>
-                  {score}
-                </div>
-                <div style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: 700 }}>
-                  Punti Totali
-                </div>
-              </div>
-
-              <div
-                style={{
-                  background: 'var(--white)',
-                  borderRadius: '20px',
-                  padding: '16px',
-                  border: '1px solid var(--gray)',
-                  boxShadow: 'var(--card-shadow)',
-                  textAlign: 'center',
-                }}
-              >
-                <span className="material-symbols-outlined" style={{ fontSize: '32px', color: '#8B5CF6', marginBottom: '4px' }}>
-                  auto_awesome
-                </span>
-                <div style={{ fontSize: '22px', fontWeight: 900, color: 'var(--dark)' }}>
-                  {shinyCount}
-                </div>
-                <div style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: 700 }}>
-                  Varianti Shiny
-                </div>
-              </div>
-
-              <div
-                style={{
-                  background: 'var(--white)',
-                  borderRadius: '20px',
-                  padding: '16px',
-                  border: '1px solid var(--gray)',
-                  boxShadow: 'var(--card-shadow)',
-                  textAlign: 'center',
-                }}
-              >
-                <span className="material-symbols-outlined" style={{ fontSize: '32px', color: '#10B981', marginBottom: '4px' }}>
-                  group
-                </span>
-                <div style={{ fontSize: '22px', fontWeight: 900, color: 'var(--dark)' }}>
-                  {taggedCount}
-                </div>
-                <div style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: 700 }}>
-                  Bevute in Compagnia
+                <div style={{ textAlign: 'left' }}>
+                  <div style={{ fontSize: '13px', color: 'var(--text-muted)' }}>Varianti Trovate:</div>
+                  <div style={{ fontSize: '24px', fontWeight: 900, color: 'var(--dark)', margin: '2px 0' }}>
+                    {totalUnlocked} <span style={{ fontSize: '13px', fontWeight: 'normal', color: 'var(--text-muted)' }}>/ {totalVariantsInGame}</span>
+                  </div>
+                  <div style={{ fontSize: '12px', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                    <span className="material-symbols-outlined" style={{ fontSize: '14px', color: 'var(--primary)' }}>auto_awesome</span>
+                    <span>{shinyCount} Shiny sbloccate</span>
+                  </div>
                 </div>
               </div>
             </div>
 
-            {/* Post & Activity Banner */}
-            <div
-              style={{
-                background: 'linear-gradient(135deg, #1E293B 0%, #0F172A 100%)',
-                borderRadius: '20px',
-                padding: '20px',
-                color: 'white',
-                boxShadow: '0 10px 25px rgba(15,23,42,0.15)',
-              }}
-            >
-              <div style={{ fontSize: '11px', color: '#94A3B8', textTransform: 'uppercase', letterSpacing: '1px', fontWeight: 700, marginBottom: '4px' }}>
-                Attività Social
+            {/* Quick Metrics grid */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px', marginBottom: '25px' }}>
+              <div style={{ background: 'var(--white)', padding: '15px', borderRadius: '16px', border: '1px solid var(--gray)', boxShadow: 'var(--card-shadow)', textAlign: 'center' }}>
+                <span className="material-symbols-outlined" style={{ fontSize: '28px', color: 'var(--primary-dark)' }}>group</span>
+                <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '5px', textTransform: 'uppercase' }}>Brindisi in Compagnia</div>
+                <div style={{ fontSize: '20px', fontWeight: 900, color: 'var(--dark)', marginTop: '2px' }}>{taggedCount}</div>
               </div>
-              <h4 style={{ margin: '0 0 12px 0', fontSize: '16px', fontWeight: 900, color: 'white', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <span className="material-symbols-outlined" style={{ color: '#F59E0B' }}>photo_library</span>
-                {myPosts.length} Post Pubblicati nel Pub
+              <div style={{ background: 'var(--white)', padding: '15px', borderRadius: '16px', border: '1px solid var(--gray)', boxShadow: 'var(--card-shadow)', textAlign: 'center' }}>
+                <span className="material-symbols-outlined" style={{ fontSize: '28px', color: 'var(--gold)' }}>sports_bar</span>
+                <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '5px', textTransform: 'uppercase' }}>Punti Totali</div>
+                <div style={{ fontSize: '20px', fontWeight: 900, color: 'var(--dark)', marginTop: '2px' }}>{score}</div>
+              </div>
+            </div>
+
+            {/* Rarity Breakdown */}
+            <div style={{ background: 'var(--white)', padding: '20px', borderRadius: '16px', border: '1px solid var(--gray)', boxShadow: 'var(--card-shadow)', marginBottom: '25px' }}>
+              <h4 style={{ margin: '0 0 15px 0', fontSize: '14px', color: 'var(--dark)', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <span className="material-symbols-outlined">analytics</span> Distribuzione Rarità
               </h4>
-              <div style={{ fontSize: '13px', color: '#CBD5E1', lineHeight: 1.5 }}>
-                @{username} ha condiviso {myPosts.length} momenti speciali di degustazione con la community di BeerDex!
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                {[
+                  { name: 'Comuni', count: rarityCounts.comune, color: '#10B981', label: 'comune' },
+                  { name: 'Medie', count: rarityCounts.media, color: '#0EA5E9', label: 'media' },
+                  { name: 'Rare', count: rarityCounts.rara, color: '#EF4444', label: 'rara' },
+                ].map(rarity => {
+                  const totalCalculated = (rarityCounts.comune + rarityCounts.media + rarityCounts.rara) || 1;
+                  const percent = Math.round((rarity.count / totalCalculated) * 100);
+                  return (
+                    <div key={rarity.name} style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px' }}>
+                        <span style={{ fontWeight: 'bold', color: 'var(--dark)' }}>{rarity.name}</span>
+                        <span style={{ color: 'var(--text-muted)' }}>{rarity.count} sbloccate ({percent}%)</span>
+                      </div>
+                      <div style={{ width: '100%', height: '8px', background: 'var(--gray)', borderRadius: '4px', overflow: 'hidden' }}>
+                        <div style={{ width: `${percent}%`, height: '100%', background: rarity.color, borderRadius: '4px' }} />
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
+            </div>
+
+            {/* Country completions */}
+            <div style={{ background: 'var(--white)', padding: '20px', borderRadius: '16px', border: '1px solid var(--gray)', boxShadow: 'var(--card-shadow)', marginBottom: '30px' }}>
+              <h4 style={{ margin: '0 0 15px 0', fontSize: '14px', color: 'var(--dark)', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <span className="material-symbols-outlined">flag</span> Completamento Nazioni
+              </h4>
+              {countryStatsList.length === 0 ? (
+                <p style={{ fontSize: '13px', color: 'var(--text-muted)', textAlign: 'center', margin: '10px 0' }}>
+                  Nessuna nazione sbloccata da questo utente.
+                </p>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                  {countryStatsList.map(stat => (
+                    <div key={stat.country} style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                      <div style={{ width: '90px', fontSize: '13px', fontWeight: 'bold', color: 'var(--dark)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                        {stat.country}
+                      </div>
+                      <div style={{ flexGrow: 1, height: '8px', background: 'var(--gray)', borderRadius: '4px', overflow: 'hidden', position: 'relative' }}>
+                        <div style={{ width: `${stat.percentage}%`, height: '100%', background: 'var(--primary)', borderRadius: '4px' }} />
+                      </div>
+                      <div style={{ width: '65px', textAlign: 'right', fontSize: '12px', color: 'var(--text-muted)' }}>
+                        {stat.unlocked}/{stat.total} ({stat.percentage}%)
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
         )}
