@@ -467,7 +467,7 @@ export const TrophyGrid: React.FC<TrophyGridProps> = ({
               onClick={() => setEventsOpen(!eventsOpen)}
               style={{
                 display: 'flex',
-                justify: 'space-between',
+                justifyContent: 'space-between',
                 alignItems: 'center',
                 background: 'var(--white)',
                 border: '1px solid var(--gray)',
@@ -549,7 +549,7 @@ export const TrophyGrid: React.FC<TrophyGridProps> = ({
               onClick={() => setVariantsOpen(!variantsOpen)}
               style={{
                 display: 'flex',
-                justify: 'space-between',
+                justifyContent: 'space-between',
                 alignItems: 'center',
                 background: 'var(--white)',
                 border: '1px solid var(--gray)',
