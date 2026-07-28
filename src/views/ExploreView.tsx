@@ -238,6 +238,7 @@ export const ExploreView: React.FC<ExploreViewProps> = ({
                 style={{
                   display: 'grid',
                   gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
+                  gridAutoFlow: 'dense',
                   gap: '10px',
                   width: '100%',
                   boxSizing: 'border-box',
