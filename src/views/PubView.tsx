@@ -41,6 +41,7 @@ export const PubView: React.FC<PubViewProps> = ({
   globalDisplayNames,
   myFriendsList,
   isAdminUser,
+  myPokedex,
   onToggleLike,
   onDeletePost,
   onReportFakePost,
