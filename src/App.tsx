@@ -1469,14 +1469,42 @@ export default function App() {
                     }}
                   >
                     <div style={{ display: 'flex', alignItems: 'center', gap: '10px', fontWeight: 'bold', fontSize: '14px', color: 'var(--dark)' }}>
-                      <span className="material-symbols-outlined" style={{ fontSize: '20px', color: isSelected ? 'var(--primary-dark)' : 'var(--text-muted)' }}>
-                        person
-                      </span>
+                      <div
+                        style={{
+                          width: '28px',
+                          height: '28px',
+                          borderRadius: '50%',
+                          background: isSelected ? 'rgba(255, 111, 0, 0.15)' : '#F1F5F9',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          color: isSelected ? 'var(--primary-dark)' : 'var(--text-muted)',
+                          fontSize: '14px',
+                          fontWeight: 'bold',
+                        }}
+                      >
+                        🍺
+                      </div>
                       {f}
                     </div>
-                    <span className="material-symbols-outlined" style={{ color: isSelected ? 'var(--primary-dark)' : '#CBD5E1' }}>
-                      {isSelected ? 'check_box' : 'checkbox_outline_blank'}
-                    </span>
+                    <div
+                      style={{
+                        width: '22px',
+                        height: '22px',
+                        borderRadius: '6px',
+                        border: '2px solid ' + (isSelected ? 'var(--primary-dark)' : '#CBD5E1'),
+                        background: isSelected ? 'var(--primary)' : 'white',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        color: 'white',
+                        fontSize: '13px',
+                        fontWeight: 'bold',
+                        transition: 'all 0.15s ease',
+                      }}
+                    >
+                      {isSelected ? '✓' : ''}
+                    </div>
                   </div>
                 );
               })}

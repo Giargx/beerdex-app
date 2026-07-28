@@ -45,9 +45,9 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
   const [medalSort, setMedalSort] = useState<'alpha' | 'unlocked' | 'rarity' | 'nation'>('unlocked');
   const [medalSortDir, setMedalSortDir] = useState<number>(1);
 
-  const [medalsOpen, setMedalsOpen] = useState<boolean>(true);
-  const [eventsOpen, setEventsOpen] = useState<boolean>(true);
-  const [variantsOpen, setVariantsOpen] = useState<boolean>(true);
+  const [medalsOpen, setMedalsOpen] = useState<boolean>(false);
+  const [eventsOpen, setEventsOpen] = useState<boolean>(false);
+  const [variantsOpen, setVariantsOpen] = useState<boolean>(false);
 
   const score = leaderboardScores[currentUserNick] || 0;
   const rankTitle = getUserRankTitle(score, Object.keys(myPokedex || {}).length);

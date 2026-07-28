@@ -283,9 +283,9 @@ export const TrophyGrid: React.FC<TrophyGridProps> = ({
   userPosts = [],
   allBeersCatalog = beers,
 }) => {
-  const [medalsOpen, setMedalsOpen] = React.useState(true);
-  const [eventsOpen, setEventsOpen] = React.useState(true);
-  const [variantsOpen, setVariantsOpen] = React.useState(true);
+  const [medalsOpen, setMedalsOpen] = React.useState(false);
+  const [eventsOpen, setEventsOpen] = React.useState(false);
+  const [variantsOpen, setVariantsOpen] = React.useState(false);
 
   const rarityMap: Record<string, number> = { comune: 1, media: 2, rara: 3 };
   const eventMedalsList = getEventMedals(userPosts);
