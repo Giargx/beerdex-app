@@ -488,6 +488,11 @@ export const PublicProfileView: React.FC<PublicProfileViewProps> = ({
                     </div>
                   </div>
                 ))}
+              </div>
+            )}
+          </div>
+        )}
+
         {/* 3. GUSTI & VOTI (RATINGS) TAB FOR PUBLIC PROFILE */}
         {activeTab === 'ratings' && (
           <div style={{ animation: 'fadeIn 0.2s ease-out', marginBottom: '30px' }}>
