@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { TrophyGrid } from '../components/TrophyGrid';
 import type { PokedexEntry } from '../components/TrophyGrid';
-import { FoamBubbles } from '../components/FoamBubbles';
-import { getBeerType } from '../beers';
+import { beers, getBeerType } from '../beers';
+import type { Beer } from '../beers';
 import { StarRating } from '../components/StarRating';
 
 interface PublicProfileViewProps {
@@ -16,6 +16,7 @@ interface PublicProfileViewProps {
   getAvatarZoomProps?: (url: string | undefined) => any;
   posts: any[];
   onOpenPostDetail: (username: string, postId: string) => void;
+  allBeersCatalog?: Beer[];
 }
 
 export const PublicProfileView: React.FC<PublicProfileViewProps> = ({
@@ -29,6 +30,7 @@ export const PublicProfileView: React.FC<PublicProfileViewProps> = ({
   getAvatarZoomProps,
   posts,
   onOpenPostDetail,
+  allBeersCatalog = beers,
 }) => {
   const [activeTab, setActiveTab] = useState<'collection' | 'posts' | 'stats' | 'ratings'>('posts');
 
@@ -96,7 +98,7 @@ export const PublicProfileView: React.FC<PublicProfileViewProps> = ({
   const favoriteStyleMeta = favoriteStyleKey ? beerTypeMeta[favoriteStyleKey] : null;
 
   // General Stats (matching ProfileView 1:1)
-  const totalVariantsInGame = beers.reduce((acc, beer) => acc + beer.variants.length, 0);
+  const totalVariantsInGame = allBeersCatalog.reduce((acc: number, beer: Beer) => acc + beer.variants.length, 0);
   const completionPercentage = totalVariantsInGame > 0 ? Math.round((totalUnlocked / totalVariantsInGame) * 100) : 0;
 
   let shinyCount = 0;
@@ -109,7 +111,7 @@ export const PublicProfileView: React.FC<PublicProfileViewProps> = ({
   const rarityCounts = { comune: 0, media: 0, rara: 0 };
   Object.keys(pokedex || {}).forEach(key => {
     const brand = key.split('-')[0];
-    const beer = beers.find(b => b.brand === brand);
+    const beer = allBeersCatalog.find((b: Beer) => b.brand === brand);
     if (beer) {
       const r = (beer.rarity || 'comune') as 'comune' | 'media' | 'rara';
       rarityCounts[r] = (rarityCounts[r] || 0) + 1;
@@ -117,7 +119,7 @@ export const PublicProfileView: React.FC<PublicProfileViewProps> = ({
   });
 
   const countryCounts: Record<string, { unlocked: number, total: number }> = {};
-  beers.forEach(beer => {
+  allBeersCatalog.forEach((beer: Beer) => {
     const c = beer.country || 'Sconosciuta';
     if (!countryCounts[c]) {
       countryCounts[c] = { unlocked: 0, total: 0 };
@@ -126,7 +128,7 @@ export const PublicProfileView: React.FC<PublicProfileViewProps> = ({
   });
   Object.keys(pokedex || {}).forEach(key => {
     const brand = key.split('-')[0];
-    const beer = beers.find(b => b.brand === brand);
+    const beer = allBeersCatalog.find((b: Beer) => b.brand === brand);
     if (beer) {
       const c = beer.country || 'Sconosciuta';
       if (countryCounts[c]) {

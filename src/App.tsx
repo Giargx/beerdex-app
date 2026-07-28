@@ -2004,6 +2004,7 @@ export default function App() {
                 setDetailViewBackPage('page-public-profile');
                 navigateTo('page-user-posts-detail');
               }}
+              allBeersCatalog={allBeersCatalog}
             />
           ) : null}
         </div>
