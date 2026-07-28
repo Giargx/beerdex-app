@@ -49,7 +49,7 @@ export const BeerCard: React.FC<BeerCardProps> = ({
         boxSizing: 'border-box',
         display: 'flex',
         flexDirection: 'column',
-        justify: 'space-between',
+        justifyContent: 'space-between',
         padding: '16px 14px',
         overflow: 'hidden',
       }}
