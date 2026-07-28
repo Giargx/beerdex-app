@@ -2,6 +2,7 @@ import React from 'react';
 import { getBeerType, getBasePoints } from '../beers';
 import type { Beer } from '../beers';
 import type { PokedexEntry } from './TrophyGrid';
+import { StarRating } from './StarRating';
 
 interface BeerCardProps {
   beer: Beer;
@@ -11,6 +12,7 @@ interface BeerCardProps {
   onInitUnlock: (brand: string, variant: string) => void;
   onDeleteVariant: (brand: string, variant: string) => void;
   onOpenProposeModal?: (brandPrefill: string) => void;
+  onRateBeer?: (brand: string, variant: string, rating: number) => void;
 }
 
 export const BeerCard: React.FC<BeerCardProps> = ({
@@ -21,6 +23,7 @@ export const BeerCard: React.FC<BeerCardProps> = ({
   onInitUnlock,
   onDeleteVariant,
   onOpenProposeModal,
+  onRateBeer,
 }) => {
   // Check if all variants are completed
   const brandTotal = beer.variants.length;
@@ -95,25 +98,36 @@ export const BeerCard: React.FC<BeerCardProps> = ({
                 </div>
 
                 {hasPhoto ? (
-                  <div className="unlocked-status">
-                    <span className="material-symbols-outlined" style={{ marginRight: '2px', fontSize: '16px' }}>
-                      check_circle
-                    </span>
-                    <span>
-                      {entry.isShiny ? (
-                        <>
-                          <span
-                            className="material-symbols-outlined"
-                            style={{ fontSize: '14px', verticalAlign: 'text-bottom', color: 'var(--primary-dark)' }}
-                          >
-                            auto_awesome
-                          </span>{' '}
-                          Shiny
-                        </>
-                      ) : (
-                        'Sbloccato'
-                      )}
-                    </span>
+                  <div className="unlocked-status" style={{ flexWrap: 'wrap', gap: '6px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                      <span className="material-symbols-outlined" style={{ fontSize: '16px', color: '#10B981' }}>
+                        check_circle
+                      </span>
+                      <span>
+                        {entry.isShiny ? (
+                          <>
+                            <span
+                              className="material-symbols-outlined"
+                              style={{ fontSize: '14px', verticalAlign: 'text-bottom', color: 'var(--primary-dark)' }}
+                            >
+                              auto_awesome
+                            </span>{' '}
+                            Shiny
+                          </>
+                        ) : (
+                          'Sbloccato'
+                        )}
+                      </span>
+                    </div>
+
+                    <div onClick={(e) => e.stopPropagation()}>
+                      <StarRating
+                        rating={entry.rating || 0}
+                        onRate={(r) => onRateBeer?.(beer.brand, variant, r)}
+                        size={15}
+                      />
+                    </div>
+
                     <img
                       src={entry.photo}
                       className="thumb-preview"
@@ -122,7 +136,10 @@ export const BeerCard: React.FC<BeerCardProps> = ({
                     />
                     <button
                       className="btn-delete"
-                      onClick={() => onDeleteVariant(beer.brand, variant)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onDeleteVariant(beer.brand, variant);
+                      }}
                       title="Elimina foto"
                     >
                       <span className="material-symbols-outlined">delete</span>

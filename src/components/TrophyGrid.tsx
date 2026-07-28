@@ -7,6 +7,7 @@ export interface PokedexEntry {
   isShared: boolean;
   taggedFriend: string | null;
   brand: string;
+  rating?: number;
 }
 
 export interface EventMedal {

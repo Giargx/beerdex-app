@@ -1058,6 +1058,16 @@ export default function App() {
     }
   };
 
+  const handleRateBeer = async (brand: string, variant: string, rating: number) => {
+    if (!currentUserNick) return;
+    try {
+      const uniqueId = `${brand}-${variant}`;
+      await update(ref(db, `pokedex_profiles/${currentUserNick}/${uniqueId}`), { rating });
+    } catch (err) {
+      console.error("Error rating beer:", err);
+    }
+  };
+
   // Public Profile View
   const handleOpenPublicProfile = async (username: string) => {
     if (username === currentUserNick) {
@@ -1884,6 +1894,7 @@ export default function App() {
                     setProposeBrandPrefill(search);
                     setProposeModalOpen(true);
                   }}
+                  onRateBeer={handleRateBeer}
                 />
               )}
             </div>
@@ -1955,6 +1966,7 @@ export default function App() {
                   }}
                   onOpenAdminProposals={() => setAdminProposalsModalOpen(true)}
                   pendingProposalsCount={beerProposals.filter((p: BeerProposalItem) => p.status === 'pending').length}
+                  onRateBeer={handleRateBeer}
                 />
               )}
             </div>

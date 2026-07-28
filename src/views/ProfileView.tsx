@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { TrophyGrid } from '../components/TrophyGrid';
 import type { PokedexEntry } from '../components/TrophyGrid';
-import { beers } from '../beers';
+import { beers, getBeerType } from '../beers';
+import { StarRating } from '../components/StarRating';
 
 interface ProfileViewProps {
   currentUserNick: string;
@@ -18,6 +19,7 @@ interface ProfileViewProps {
   onOpenPostDetail: (username: string, postId: string) => void;
   onOpenAdminProposals?: () => void;
   pendingProposalsCount?: number;
+  onRateBeer?: (brand: string, variant: string, rating: number) => void;
 }
 
 export const ProfileView: React.FC<ProfileViewProps> = ({
@@ -35,8 +37,9 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
   onOpenPostDetail,
   onOpenAdminProposals,
   pendingProposalsCount = 0,
+  onRateBeer,
 }) => {
-  const [activeTab, setActiveTab] = useState<'collection' | 'posts' | 'stats' | 'achievements'>('posts');
+  const [activeTab, setActiveTab] = useState<'collection' | 'posts' | 'stats' | 'ratings'>('posts');
   const [variantSort, setVariantSort] = useState<'alpha' | 'unlocked' | 'rarity' | 'nation'>('unlocked');
   const [variantSortDir, setVariantSortDir] = useState<number>(1);
   const [medalSort, setMedalSort] = useState<'alpha' | 'unlocked' | 'rarity' | 'nation'>('unlocked');
@@ -104,87 +107,55 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
     .filter(stat => stat.unlocked > 0)
     .sort((a, b) => b.percentage - a.percentage);
 
-  // ----------------- CALCULATE ACHIEVEMENTS (BADGES) -----------------
-  // 1. Giro del Mondo (at least 5 different countries)
-  const distinctCountriesCount = Object.keys(
-    pokedexEntries.reduce((acc, entry) => {
-      const beer = beers.find(b => b.brand === entry.brand);
-      if (beer && beer.country) acc[beer.country] = true;
-      return acc;
-    }, {} as Record<string, boolean>)
-  ).length;
-  const badgeWorld = distinctCountriesCount >= 5;
+  // ----------------- CALCULATE BEER RATING STATS -----------------
+  const beerTypeMeta: Record<string, { label: string; icon: string; color: string }> = {
+    ipa: { label: 'IPA & Craft', icon: 'sports_bar', color: '#F59E0B' },
+    bianca: { label: 'Bianca / Weiss', icon: 'snowing', color: '#6366F1' },
+    scura: { label: 'Scura / Stout', icon: 'dark_mode', color: '#475569' },
+    rossa: { label: 'Rossa / Ambrata', icon: 'local_fire_department', color: '#EF4444' },
+    bionda: { label: 'Bionda / Lager', icon: 'glass_cup', color: '#10B981' },
+  };
 
-  // 2. Collezionista Shiny (at least 1 shiny)
-  const badgeShiny = shinyCount >= 1;
+  const styleStats: Record<string, { sum: number; count: number; average: number }> = {
+    ipa: { sum: 0, count: 0, average: 0 },
+    bianca: { sum: 0, count: 0, average: 0 },
+    scura: { sum: 0, count: 0, average: 0 },
+    rossa: { sum: 0, count: 0, average: 0 },
+    bionda: { sum: 0, count: 0, average: 0 },
+  };
 
-  // 3. Monarca delle Bionde (at least 15 comune variants)
-  const badgeComune = rarityCounts.comune >= 15;
+  let totalRatedBeers = 0;
+  let totalRatingSum = 0;
 
-  // 4. Leggenda dei Pub (at least 5 rara variants)
-  const badgeRara = rarityCounts.rara >= 5;
+  Object.entries(myPokedex || {}).forEach(([key, entry]) => {
+    if (entry.rating && entry.rating > 0) {
+      totalRatedBeers += 1;
+      totalRatingSum += entry.rating;
 
-  // 5. Socio Onorario (at least 1 tagged sblocco)
-  const badgeShared = taggedFriendsCount >= 1;
+      const brand = entry.brand || key.split('-')[0];
+      const variant = key.split('-').slice(1).join('-');
+      const beerType = getBeerType(brand, variant);
 
-  // 6. Sommelier Esperto (at least 3 variants of the same brand unlocked)
-  const brandUnlockMap: Record<string, number> = {};
-  pokedexEntries.forEach(entry => {
-    brandUnlockMap[entry.brand] = (brandUnlockMap[entry.brand] || 0) + 1;
+      if (styleStats[beerType]) {
+        styleStats[beerType].sum += entry.rating;
+        styleStats[beerType].count += 1;
+      }
+    }
   });
-  const maxVariantsOfOneBrand = Math.max(...Object.values(brandUnlockMap), 0);
-  const badgeSommelier = maxVariantsOfOneBrand >= 3;
 
-  const achievementsList = [
-    {
-      id: 'world',
-      title: '🌍 Giro del Mondo',
-      description: 'Sblocca birre provenienti da almeno 5 nazioni diverse.',
-      unlocked: badgeWorld,
-      progress: distinctCountriesCount,
-      target: 5,
-    },
-    {
-      id: 'shiny',
-      title: '✨ Collezionista Shiny',
-      description: 'Trova la tua prima variante Shiny all\'avventura.',
-      unlocked: badgeShiny,
-      progress: shinyCount,
-      target: 1,
-    },
-    {
-      id: 'comune',
-      title: '🥇 Monarca delle Bionde',
-      description: 'Sblocca almeno 15 varianti di rarità comune.',
-      unlocked: badgeComune,
-      progress: rarityCounts.comune,
-      target: 15,
-    },
-    {
-      id: 'rara',
-      title: '💎 Leggenda dei Pub',
-      description: 'Sblocca almeno 5 varianti di rarità rara.',
-      unlocked: badgeRara,
-      progress: rarityCounts.rara,
-      target: 5,
-    },
-    {
-      id: 'shared',
-      title: '🤝 Socio Onorario',
-      description: 'Tagga un amico in uno sblocco di gruppo.',
-      unlocked: badgeShared,
-      progress: taggedFriendsCount,
-      target: 1,
-    },
-    {
-      id: 'sommelier',
-      title: '🎓 Sommelier Esperto',
-      description: 'Sblocca almeno 3 varianti diverse di uno stesso brand.',
-      unlocked: badgeSommelier,
-      progress: maxVariantsOfOneBrand,
-      target: 3,
-    },
-  ];
+  Object.keys(styleStats).forEach((type) => {
+    const s = styleStats[type];
+    s.average = s.count > 0 ? parseFloat((s.sum / s.count).toFixed(1)) : 0;
+  });
+
+  const overallAverage = totalRatedBeers > 0 ? parseFloat((totalRatingSum / totalRatedBeers).toFixed(1)) : 0;
+
+  const sortedStyles = Object.entries(styleStats)
+    .filter(([_, stats]) => stats.count > 0)
+    .sort((a, b) => b[1].average - a[1].average || b[1].count - a[1].count);
+
+  const favoriteStyleKey = sortedStyles.length > 0 ? sortedStyles[0][0] : null;
+  const favoriteStyleMeta = favoriteStyleKey ? beerTypeMeta[favoriteStyleKey] : null;
 
   return (
     <div className="page-container-view" style={{ minHeight: '100%' }}>
@@ -353,7 +324,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
           { id: 'posts', label: 'I Miei Post', icon: 'photo_library' },
           { id: 'collection', label: 'Collezione', icon: 'collections_bookmark' },
           { id: 'stats', label: 'Statistiche', icon: 'bar_chart' },
-          { id: 'achievements', label: 'Traguardi', icon: 'emoji_events' }
+          { id: 'ratings', label: 'Gusti & Voti', icon: 'star' }
         ].map(tab => (
           <button
             key={tab.id}
@@ -738,84 +709,199 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
         </div>
       )}
 
-      {/* 3. ACHIEVEMENTS TAB */}
-      {activeTab === 'achievements' && (
-        <div style={{ padding: '0 20px', animation: 'fadeIn 0.2s ease-out' }}>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '15px', marginBottom: '30px' }}>
-            {achievementsList.map(badge => {
-              const progressPercentage = Math.min(Math.round((badge.progress / badge.target) * 100), 100);
-              return (
-                <div
-                  key={badge.id}
-                  style={{
-                    background: 'var(--white)',
-                    border: badge.unlocked ? '2px solid var(--primary)' : '1px solid var(--gray)',
-                    borderRadius: '16px',
-                    padding: '15px',
-                    display: 'flex',
-                    gap: '15px',
-                    alignItems: 'center',
-                    boxShadow: badge.unlocked ? '0 8px 24px rgba(245,166,35,0.08)' : 'var(--card-shadow)',
-                    transition: 'all 0.2s ease',
-                    opacity: badge.unlocked ? 1 : 0.7,
-                  }}
-                >
-                  {/* Badge Icon circle */}
-                  <div
-                    style={{
-                      width: '60px',
-                      height: '60px',
-                      borderRadius: '50%',
-                      background: badge.unlocked ? 'linear-gradient(135deg, #FFFDE7, #FFF9C4)' : '#F1F5F9',
-                      border: badge.unlocked ? '2px solid var(--primary)' : '2px dashed #CBD5E1',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      flexShrink: 0,
-                      boxShadow: badge.unlocked ? '0 4px 10px rgba(255,179,0,0.2)' : 'none',
-                    }}
-                  >
-                    {badge.unlocked ? (
-                      <span className="material-symbols-outlined" style={{ fontSize: '32px', color: 'var(--primary-dark)', animation: 'pulse 2s infinite' }}>
-                        verified
-                      </span>
-                    ) : (
-                      <span className="material-symbols-outlined" style={{ fontSize: '30px', color: '#94A3B8' }}>
-                        lock
-                      </span>
-                    )}
-                  </div>
+      {/* 3. GUSTI & VOTI (RATINGS) TAB */}
+      {activeTab === 'ratings' && (
+        <div style={{ padding: '0 20px', animation: 'fadeIn 0.2s ease-out', marginBottom: '30px' }}>
+          {/* Overview Banner */}
+          <div
+            style={{
+              background: 'linear-gradient(135deg, #1E293B 0%, #0F172A 100%)',
+              borderRadius: '20px',
+              padding: '20px',
+              color: 'white',
+              marginBottom: '20px',
+              boxShadow: '0 10px 25px rgba(15,23,42,0.15)',
+              position: 'relative',
+              overflow: 'hidden',
+            }}
+          >
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+              <div>
+                <div style={{ fontSize: '11px', color: '#94A3B8', textTransform: 'uppercase', letterSpacing: '1px', fontWeight: 700 }}>
+                  Profilo del Gusto
+                </div>
+                <h3 style={{ margin: '4px 0 0 0', fontSize: '20px', fontWeight: 900, color: 'white', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <span className="material-symbols-outlined" style={{ color: '#F59E0B' }}>star</span>
+                  Le Tue Valutazioni
+                </h3>
+              </div>
+              <div style={{ textAlign: 'right' }}>
+                <div style={{ fontSize: '26px', fontWeight: 900, color: '#F59E0B', display: 'flex', alignItems: 'center', gap: '4px', justifyContent: 'flex-end' }}>
+                  {overallAverage > 0 ? overallAverage : '-'}
+                  <span style={{ fontSize: '16px', color: '#94A3B8' }}>/5</span>
+                </div>
+                <div style={{ fontSize: '10px', color: '#94A3B8' }}>{totalRatedBeers} birre votate</div>
+              </div>
+            </div>
 
-                  {/* Badge Info */}
-                  <div style={{ flexGrow: 1 }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <h4 style={{ margin: 0, fontSize: '15px', fontWeight: 'bold', color: 'var(--dark)' }}>
-                        {badge.title}
-                      </h4>
-                      {badge.unlocked ? (
-                        <span style={{ fontSize: '10px', fontWeight: 'bold', color: 'var(--primary-dark)', background: '#FEF3C7', padding: '3px 8px', borderRadius: '10px', textTransform: 'uppercase' }}>
-                          Sbloccato
-                        </span>
-                      ) : (
-                        <span style={{ fontSize: '11px', fontWeight: 'bold', color: 'var(--text-muted)' }}>
-                          {badge.progress} / {badge.target}
-                        </span>
-                      )}
-                    </div>
-                    <p style={{ margin: '4px 0 8px 0', fontSize: '12px', color: 'var(--text-muted)', lineHeight: '1.4' }}>
-                      {badge.description}
-                    </p>
-
-                    {/* Progress bar (only if locked) */}
-                    {!badge.unlocked && (
-                      <div style={{ width: '100%', height: '6px', background: 'var(--gray)', borderRadius: '3px', overflow: 'hidden' }}>
-                        <div style={{ width: `${progressPercentage}%`, height: '100%', background: '#94A3B8', borderRadius: '3px' }} />
-                      </div>
-                    )}
+            {favoriteStyleMeta && (
+              <div
+                style={{
+                  background: 'rgba(245, 158, 11, 0.15)',
+                  border: '1px solid rgba(245, 158, 11, 0.4)',
+                  borderRadius: '12px',
+                  padding: '10px 14px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '10px',
+                  marginTop: '10px',
+                }}
+              >
+                <span className="material-symbols-outlined" style={{ color: favoriteStyleMeta.color, fontSize: '24px' }}>
+                  {favoriteStyleMeta.icon}
+                </span>
+                <div>
+                  <div style={{ fontSize: '11px', color: '#FCD34D', fontWeight: 'bold' }}>Stile Preferito</div>
+                  <div style={{ fontSize: '14px', fontWeight: 900, color: 'white' }}>
+                    {favoriteStyleMeta.label} ({styleStats[favoriteStyleKey!].average} ⭐)
                   </div>
                 </div>
-              );
-            })}
+              </div>
+            )}
+          </div>
+
+          {/* Breakdown per Stile */}
+          <div
+            style={{
+              background: 'var(--white)',
+              borderRadius: '20px',
+              padding: '18px',
+              border: '1px solid var(--gray)',
+              boxShadow: 'var(--card-shadow)',
+              marginBottom: '20px',
+            }}
+          >
+            <h4 style={{ margin: '0 0 16px 0', fontSize: '15px', fontWeight: 'bold', color: 'var(--dark)', display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <span className="material-symbols-outlined" style={{ color: 'var(--primary-dark)' }}>bar_chart</span>
+              Media Voti per Stile di Birra
+            </h4>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+              {Object.entries(beerTypeMeta).map(([typeKey, meta]) => {
+                const stat = styleStats[typeKey];
+                const pct = stat.average > 0 ? (stat.average / 5) * 100 : 0;
+                return (
+                  <div key={typeKey}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', fontWeight: 'bold', color: 'var(--dark)' }}>
+                        <span className="material-symbols-outlined" style={{ color: meta.color, fontSize: '18px' }}>
+                          {meta.icon}
+                        </span>
+                        {meta.label}
+                      </div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <StarRating rating={Math.round(stat.average)} readOnly size={14} />
+                        <span style={{ fontSize: '12px', fontWeight: 900, color: stat.average > 0 ? 'var(--dark)' : 'var(--text-muted)' }}>
+                          {stat.average > 0 ? `${stat.average} ⭐` : 'N.D.'}
+                        </span>
+                        <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>({stat.count})</span>
+                      </div>
+                    </div>
+
+                    <div style={{ width: '100%', height: '8px', background: '#F1F5F9', borderRadius: '4px', overflow: 'hidden' }}>
+                      <div
+                        style={{
+                          width: `${pct}%`,
+                          height: '100%',
+                          background: meta.color,
+                          borderRadius: '4px',
+                          transition: 'width 0.4s ease',
+                        }}
+                      />
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Lista Birre Sbloccate con Possibilità di Votarle in qualsiasi momento */}
+          <div
+            style={{
+              background: 'var(--white)',
+              borderRadius: '20px',
+              padding: '18px',
+              border: '1px solid var(--gray)',
+              boxShadow: 'var(--card-shadow)',
+            }}
+          >
+            <h4 style={{ margin: '0 0 6px 0', fontSize: '15px', fontWeight: 'bold', color: 'var(--dark)', display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <span className="material-symbols-outlined" style={{ color: '#F59E0B' }}>rate_review</span>
+              Valuta le tue Birre Sbloccate
+            </h4>
+            <p style={{ margin: '0 0 16px 0', fontSize: '12px', color: 'var(--text-muted)' }}>
+              Puoi assegnare o cambiare il tuo voto da 1 a 5 stelle in qualsiasi momento dopo averla bevuta.
+            </p>
+
+            {Object.keys(myPokedex || {}).length === 0 ? (
+              <p style={{ textAlign: 'center', color: 'var(--text-muted)', fontSize: '13px', padding: '20px 0' }}>
+                Non hai ancora sbloccato nessuna birra da valutare.
+              </p>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                {Object.entries(myPokedex || {}).map(([key, entry]) => {
+                  const brand = entry.brand || key.split('-')[0];
+                  const variant = key.split('-').slice(1).join('-');
+                  return (
+                    <div
+                      key={key}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        padding: '10px 14px',
+                        background: '#FAFAFC',
+                        borderRadius: '14px',
+                        border: '1px solid rgba(226, 232, 240, 0.8)',
+                      }}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                        <div style={{ width: '36px', height: '36px', borderRadius: '8px', overflow: 'hidden', flexShrink: 0, border: '1px solid var(--gray)' }}>
+                          {entry.photo ? (
+                            <img src={entry.photo} alt={variant} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                          ) : (
+                            <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#F1F5F9', color: '#94A3B8' }}>
+                              🍺
+                            </div>
+                          )}
+                        </div>
+                        <div>
+                          <div style={{ fontSize: '13px', fontWeight: 'bold', color: 'var(--dark)' }}>
+                            {brand}
+                          </div>
+                          <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
+                            {variant}
+                          </div>
+                        </div>
+                      </div>
+
+                      <div>
+                        <StarRating
+                          rating={entry.rating || 0}
+                          onRate={(newRating) => {
+                            if (onRateBeer) {
+                              onRateBeer(brand, variant, newRating);
+                            }
+                          }}
+                          size={18}
+                          showText
+                        />
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
           </div>
         </div>
       )}

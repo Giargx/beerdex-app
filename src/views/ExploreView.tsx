@@ -11,6 +11,7 @@ interface ExploreViewProps {
   onDeleteVariant: (brand: string, variant: string) => void;
   onOpenProposeModal: (searchTerm: string) => void;
   allBeersCatalog?: Beer[];
+  onRateBeer?: (brand: string, variant: string, rating: number) => void;
 }
 
 export const ExploreView: React.FC<ExploreViewProps> = ({
@@ -19,6 +20,7 @@ export const ExploreView: React.FC<ExploreViewProps> = ({
   onDeleteVariant,
   onOpenProposeModal,
   allBeersCatalog = beers,
+  onRateBeer,
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [countryFilter, setCountryFilter] = useState('Tutte');
@@ -242,6 +244,7 @@ export const ExploreView: React.FC<ExploreViewProps> = ({
                   onInitUnlock={onInitUnlock}
                   onDeleteVariant={onDeleteVariant}
                   onOpenProposeModal={onOpenProposeModal}
+                  onRateBeer={onRateBeer}
                 />
               ))}
 
