@@ -283,6 +283,10 @@ export const TrophyGrid: React.FC<TrophyGridProps> = ({
   userPosts = [],
   allBeersCatalog = beers,
 }) => {
+  const [medalsOpen, setMedalsOpen] = React.useState(true);
+  const [eventsOpen, setEventsOpen] = React.useState(true);
+  const [variantsOpen, setVariantsOpen] = React.useState(true);
+
   const rarityMap: Record<string, number> = { comune: 1, media: 2, rara: 3 };
   const eventMedalsList = getEventMedals(userPosts);
 
@@ -378,146 +382,267 @@ export const TrophyGrid: React.FC<TrophyGridProps> = ({
     return res * medalSortDir;
   });
 
+  const completedMedalsCount = brandMedalsList.filter((m) => m.isCompleted).length;
+  const unlockedEventsCount = eventMedalsList.filter((e) => e.isUnlocked).length;
+  const unlockedVariantsCount = allVariantsList.filter((v) => v.isUnlocked).length;
+
   return (
     <>
-      {/* Medals Grid Section */}
+      {/* 1. BRAND MEDALS ACCORDION SECTION */}
       {(!mode || mode === 'medals') && (
-        <div className="trophy-grid" id="brandMedalsGrid">
-          {brandMedalsList.map((beerObj) => {
-            const medalIcon = beerObj.isCompleted ? 'workspace_premium' : 'circle';
-            const iconColor = beerObj.isCompleted ? 'var(--gold)' : 'var(--text-muted)';
-            
-            return (
-              <div
-                key={`medal-${beerObj.brand}`}
-                className={`medal-badge-card ${beerObj.isCompleted ? 'unlocked' : ''}`}
-              >
-                {beerObj.isCompleted && (
-                  <div className="pts-badge" style={{ background: '#e67e22' }}>
-                    +{beerObj.variantsLength * 3}pt
-                  </div>
-                )}
-                <div className="medal-icon-container" style={{ color: iconColor }}>
-                  <span className="material-symbols-outlined" style={{ fontSize: '40px' }}>
-                    {medalIcon}
-                  </span>
-                </div>
-                <div style={{ fontSize: '11px', fontWeight: 'bold', color: 'var(--dark)', lineHeight: 1.2 }}>
-                  Mastro<br />{beerObj.brand}
-                </div>
+        <div style={{ marginBottom: '16px' }}>
+          {!mode && (
+            <div
+              onClick={() => setMedalsOpen(!medalsOpen)}
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                background: 'var(--white)',
+                border: '1px solid var(--gray)',
+                padding: '12px 16px',
+                borderRadius: '16px',
+                cursor: 'pointer',
+                marginBottom: '10px',
+                boxShadow: 'var(--card-shadow)',
+                userSelect: 'none',
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 'bold', fontSize: '14px', color: 'var(--dark)' }}>
+                <span className="material-symbols-outlined" style={{ color: 'var(--gold)' }}>workspace_premium</span>
+                <span>Medaglie Brand</span>
+                <span style={{ fontSize: '11px', color: 'var(--text-muted)', background: '#F1F5F9', padding: '2px 8px', borderRadius: '10px' }}>
+                  {completedMedalsCount} / {brandMedalsList.length}
+                </span>
               </div>
-            );
-          })}
-        </div>
-      )}
-
-      {/* Title separator before variants - only if rendering both */}
-      {!mode && (
-        <div style={{ borderBottom: '2px solid var(--gray)', margin: '15px 20px 20px 20px' }}></div>
-      )}
-
-      {/* Variants Grid Section */}
-      {(!mode || mode === 'variants') && (
-        <div className="trophy-grid" id="trophyGrid">
-          {allVariantsList.map((item) => {
-            const uniqueId = `${item.brand}-${item.variant}`;
-            return (
-              <div
-                key={`variant-${uniqueId}`}
-                className={`trophy-card ${item.isUnlocked ? 'unlocked' : ''} ${item.isShiny ? 'shiny-card' : ''}`}
-              >
-                {item.isUnlocked && (
-                  <div className="pts-badge">+{item.finalPts}pt</div>
-                )}
-                {item.isUnlocked && item.muls.length > 0 && (
-                  <div className="mul-badge">
-                    {item.muls.map((iconName: string) => (
-                      <span
-                        key={iconName}
-                        className="material-symbols-outlined"
-                        style={{ fontSize: '12px' }}
-                      >
-                        {iconName}
-                      </span>
-                    ))}
-                    <span>x{item.muls.length * 2}</span>
-                  </div>
-                )}
-                
-                <div className="trophy-brand">{item.brand}</div>
-                
-                <div className="trophy-img-container">
-                  {item.isUnlocked ? (
-                    <img
-                      src={item.photo}
-                      alt={item.variant}
-                      onContextMenu={(e) => e.preventDefault()}
-                    />
-                  ) : (
-                    <span className="material-symbols-outlined" style={{ fontSize: '32px' }}>
-                      sports_bar
-                    </span>
-                  )}
-                </div>
-                
-                <div className="trophy-name">{item.variant}</div>
-                
-                {showDeleteButton && item.isUnlocked && onDeleteEntry && (
-                  <button
-                    className="btn-delete"
-                    onClick={() => onDeleteEntry(item.brand, item.variant)}
-                    title="Elimina sblocco"
-                    style={{ position: 'absolute', bottom: '5px', right: '5px', opacity: 0.7 }}
-                  >
-                    <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>
-                      delete
-                    </span>
-                  </button>
-                )}
-              </div>
-            );
-          })}
-        </div>
-      )}
-
-      {/* Event Medals Grid Section */}
-      {mode === 'events' && (
-        <div className="trophy-grid" id="eventMedalsGrid">
-          {eventMedalsList.map((medal) => {
-            const iconColor = medal.isUnlocked ? medal.color : 'var(--text-muted)';
-            const medalIcon = medal.isUnlocked ? medal.icon : 'lock';
-            return (
-              <div
-                key={medal.id}
-                className={`medal-badge-card ${medal.isUnlocked ? 'unlocked' : ''}`}
+              <span
+                className="material-symbols-outlined"
                 style={{
-                  opacity: medal.isUnlocked ? 1 : 0.65,
-                  padding: '12px 10px',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                  textAlign: 'center',
+                  color: 'var(--text-muted)',
+                  transition: 'transform 0.2s ease',
+                  transform: medalsOpen ? 'rotate(180deg)' : 'rotate(0deg)',
                 }}
               >
-                {medal.isUnlocked && (
-                  <div className="pts-badge" style={{ background: '#27ae60' }}>
-                    +{medal.points}pt
+                expand_more
+              </span>
+            </div>
+          )}
+
+          {(mode === 'medals' || medalsOpen) && (
+            <div className="trophy-grid" id="brandMedalsGrid" style={{ animation: 'fadeIn 0.2s ease-out' }}>
+              {brandMedalsList.map((beerObj) => {
+                const medalIcon = beerObj.isCompleted ? 'workspace_premium' : 'circle';
+                const iconColor = beerObj.isCompleted ? 'var(--gold)' : 'var(--text-muted)';
+                return (
+                  <div
+                    key={`medal-${beerObj.brand}`}
+                    className={`medal-badge-card ${beerObj.isCompleted ? 'unlocked' : ''}`}
+                  >
+                    {beerObj.isCompleted && (
+                      <div className="pts-badge" style={{ background: '#e67e22' }}>
+                        +{beerObj.variantsLength * 3}pt
+                      </div>
+                    )}
+                    <div className="medal-icon-container" style={{ color: iconColor }}>
+                      <span className="material-symbols-outlined" style={{ fontSize: '40px' }}>
+                        {medalIcon}
+                      </span>
+                    </div>
+                    <div style={{ fontSize: '11px', fontWeight: 'bold', color: 'var(--dark)', lineHeight: 1.2 }}>
+                      Mastro<br />{beerObj.brand}
+                    </div>
                   </div>
-                )}
-                <div className="medal-icon-container" style={{ color: iconColor, marginBottom: '6px' }}>
-                  <span className="material-symbols-outlined" style={{ fontSize: '40px' }}>
-                    {medalIcon}
-                  </span>
-                </div>
-                <div style={{ fontSize: '11px', fontWeight: 'bold', color: 'var(--dark)', lineHeight: 1.2 }}>
-                  {medal.name}
-                </div>
-                <div style={{ fontSize: '9px', color: 'var(--text-muted)', marginTop: '4px', lineHeight: 1.2 }}>
-                  {medal.desc}
-                </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* 2. EVENT MEDALS ACCORDION SECTION */}
+      {(!mode || mode === 'events') && (
+        <div style={{ marginBottom: '16px' }}>
+          {!mode && (
+            <div
+              onClick={() => setEventsOpen(!eventsOpen)}
+              style={{
+                display: 'flex',
+                justify: 'space-between',
+                alignItems: 'center',
+                background: 'var(--white)',
+                border: '1px solid var(--gray)',
+                padding: '12px 16px',
+                borderRadius: '16px',
+                cursor: 'pointer',
+                marginBottom: '10px',
+                boxShadow: 'var(--card-shadow)',
+                userSelect: 'none',
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 'bold', fontSize: '14px', color: 'var(--dark)' }}>
+                <span className="material-symbols-outlined" style={{ color: '#27ae60' }}>event_available</span>
+                <span>Medaglie Evento</span>
+                <span style={{ fontSize: '11px', color: 'var(--text-muted)', background: '#F1F5F9', padding: '2px 8px', borderRadius: '10px' }}>
+                  {unlockedEventsCount} / {eventMedalsList.length}
+                </span>
               </div>
-            );
-          })}
+              <span
+                className="material-symbols-outlined"
+                style={{
+                  color: 'var(--text-muted)',
+                  transition: 'transform 0.2s ease',
+                  transform: eventsOpen ? 'rotate(180deg)' : 'rotate(0deg)',
+                }}
+              >
+                expand_more
+              </span>
+            </div>
+          )}
+
+          {(mode === 'events' || eventsOpen) && (
+            <div className="trophy-grid" id="eventMedalsGrid" style={{ animation: 'fadeIn 0.2s ease-out' }}>
+              {eventMedalsList.map((medal) => {
+                const iconColor = medal.isUnlocked ? medal.color : 'var(--text-muted)';
+                const medalIcon = medal.isUnlocked ? medal.icon : 'lock';
+                return (
+                  <div
+                    key={medal.id}
+                    className={`medal-badge-card ${medal.isUnlocked ? 'unlocked' : ''}`}
+                    style={{
+                      opacity: medal.isUnlocked ? 1 : 0.65,
+                      padding: '12px 10px',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      textAlign: 'center',
+                    }}
+                  >
+                    {medal.isUnlocked && (
+                      <div className="pts-badge" style={{ background: '#27ae60' }}>
+                        +{medal.points}pt
+                      </div>
+                    )}
+                    <div className="medal-icon-container" style={{ color: iconColor, marginBottom: '6px' }}>
+                      <span className="material-symbols-outlined" style={{ fontSize: '40px' }}>
+                        {medalIcon}
+                      </span>
+                    </div>
+                    <div style={{ fontSize: '11px', fontWeight: 'bold', color: 'var(--dark)', lineHeight: 1.2 }}>
+                      {medal.name}
+                    </div>
+                    <div style={{ fontSize: '9px', color: 'var(--text-muted)', marginTop: '4px', lineHeight: 1.2 }}>
+                      {medal.desc}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* 3. VARIANTS ACCORDION SECTION */}
+      {(!mode || mode === 'variants') && (
+        <div style={{ marginBottom: '16px' }}>
+          {!mode && (
+            <div
+              onClick={() => setVariantsOpen(!variantsOpen)}
+              style={{
+                display: 'flex',
+                justify: 'space-between',
+                alignItems: 'center',
+                background: 'var(--white)',
+                border: '1px solid var(--gray)',
+                padding: '12px 16px',
+                borderRadius: '16px',
+                cursor: 'pointer',
+                marginBottom: '10px',
+                boxShadow: 'var(--card-shadow)',
+                userSelect: 'none',
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 'bold', fontSize: '14px', color: 'var(--dark)' }}>
+                <span className="material-symbols-outlined" style={{ color: 'var(--primary-dark)' }}>sports_bar</span>
+                <span>Varianti Birre Sbloccate</span>
+                <span style={{ fontSize: '11px', color: 'var(--text-muted)', background: '#F1F5F9', padding: '2px 8px', borderRadius: '10px' }}>
+                  {unlockedVariantsCount} / {allVariantsList.length}
+                </span>
+              </div>
+              <span
+                className="material-symbols-outlined"
+                style={{
+                  color: 'var(--text-muted)',
+                  transition: 'transform 0.2s ease',
+                  transform: variantsOpen ? 'rotate(180deg)' : 'rotate(0deg)',
+                }}
+              >
+                expand_more
+              </span>
+            </div>
+          )}
+
+          {(mode === 'variants' || variantsOpen) && (
+            <div className="trophy-grid" id="trophyGrid" style={{ animation: 'fadeIn 0.2s ease-out' }}>
+              {allVariantsList.map((item) => {
+                const uniqueId = `${item.brand}-${item.variant}`;
+                return (
+                  <div
+                    key={`variant-${uniqueId}`}
+                    className={`trophy-card ${item.isUnlocked ? 'unlocked' : ''} ${item.isShiny ? 'shiny-card' : ''}`}
+                  >
+                    {item.isUnlocked && (
+                      <div className="pts-badge">+{item.finalPts}pt</div>
+                    )}
+                    {item.isUnlocked && item.muls.length > 0 && (
+                      <div className="mul-badge">
+                        {item.muls.map((iconName: string) => (
+                          <span
+                            key={iconName}
+                            className="material-symbols-outlined"
+                            style={{ fontSize: '12px' }}
+                          >
+                            {iconName}
+                          </span>
+                        ))}
+                        <span>x{item.muls.length * 2}</span>
+                      </div>
+                    )}
+
+                    <div className="trophy-brand">{item.brand}</div>
+
+                    <div className="trophy-img-container">
+                      {item.isUnlocked ? (
+                        <img
+                          src={item.photo}
+                          alt={item.variant}
+                          onContextMenu={(e) => e.preventDefault()}
+                        />
+                      ) : (
+                        <span className="material-symbols-outlined" style={{ fontSize: '32px' }}>
+                          sports_bar
+                        </span>
+                      )}
+                    </div>
+
+                    <div className="trophy-name">{item.variant}</div>
+
+                    {showDeleteButton && item.isUnlocked && onDeleteEntry && (
+                      <button
+                        className="btn-delete"
+                        onClick={() => onDeleteEntry(item.brand, item.variant)}
+                        title="Elimina sblocco"
+                        style={{ position: 'absolute', bottom: '5px', right: '5px', opacity: 0.7 }}
+                      >
+                        <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>
+                          delete
+                        </span>
+                      </button>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          )}
         </div>
       )}
     </>

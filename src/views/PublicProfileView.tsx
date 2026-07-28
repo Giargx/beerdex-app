@@ -30,7 +30,7 @@ export const PublicProfileView: React.FC<PublicProfileViewProps> = ({
   posts,
   onOpenPostDetail,
 }) => {
-  const [activeTab, setActiveTab] = useState<'collection' | 'posts' | 'ratings'>('posts');
+  const [activeTab, setActiveTab] = useState<'collection' | 'posts' | 'stats' | 'ratings'>('posts');
 
   useEffect(() => {
     setActiveTab('posts');
@@ -94,6 +94,14 @@ export const PublicProfileView: React.FC<PublicProfileViewProps> = ({
 
   const favoriteStyleKey = sortedStyles.length > 0 ? sortedStyles[0][0] : null;
   const favoriteStyleMeta = favoriteStyleKey ? beerTypeMeta[favoriteStyleKey] : null;
+
+  // General Stats
+  let shinyCount = 0;
+  let taggedCount = 0;
+  Object.values(pokedex || {}).forEach((entry) => {
+    if (entry.isShiny) shinyCount++;
+    if (entry.taggedFriend) taggedCount++;
+  });
 
   return (
     <div className="page-container-view">
@@ -218,8 +226,9 @@ export const PublicProfileView: React.FC<PublicProfileViewProps> = ({
           zIndex: 2
         }}>
           {[
-            { id: 'posts', label: 'Post Caricati', icon: 'photo_library' },
+            { id: 'posts', label: 'Post', icon: 'photo_library' },
             { id: 'collection', label: 'Collezione', icon: 'collections_bookmark' },
+            { id: 'stats', label: 'Statistiche', icon: 'bar_chart' },
             { id: 'ratings', label: 'Gusti & Voti', icon: 'star' }
           ].map(tab => (
             <button
@@ -493,7 +502,128 @@ export const PublicProfileView: React.FC<PublicProfileViewProps> = ({
           </div>
         )}
 
-        {/* 3. GUSTI & VOTI (RATINGS) TAB FOR PUBLIC PROFILE */}
+        {/* 3. STATISTICHE GENERALI (STATS) TAB FOR PUBLIC PROFILE */}
+        {activeTab === 'stats' && (
+          <div style={{ animation: 'fadeIn 0.2s ease-out', marginBottom: '30px' }}>
+            {/* Main Stats Grid */}
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(2, 1fr)',
+                gap: '12px',
+                marginBottom: '20px',
+              }}
+            >
+              <div
+                style={{
+                  background: 'var(--white)',
+                  borderRadius: '20px',
+                  padding: '16px',
+                  border: '1px solid var(--gray)',
+                  boxShadow: 'var(--card-shadow)',
+                  textAlign: 'center',
+                }}
+              >
+                <span className="material-symbols-outlined" style={{ fontSize: '32px', color: 'var(--primary-dark)', marginBottom: '4px' }}>
+                  emoji_events
+                </span>
+                <div style={{ fontSize: '22px', fontWeight: 900, color: 'var(--dark)' }}>
+                  {totalUnlocked}
+                </div>
+                <div style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: 700 }}>
+                  Birre Sbloccate
+                </div>
+              </div>
+
+              <div
+                style={{
+                  background: 'var(--white)',
+                  borderRadius: '20px',
+                  padding: '16px',
+                  border: '1px solid var(--gray)',
+                  boxShadow: 'var(--card-shadow)',
+                  textAlign: 'center',
+                }}
+              >
+                <span className="material-symbols-outlined" style={{ fontSize: '32px', color: '#F59E0B', marginBottom: '4px' }}>
+                  stars
+                </span>
+                <div style={{ fontSize: '22px', fontWeight: 900, color: 'var(--dark)' }}>
+                  {score}
+                </div>
+                <div style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: 700 }}>
+                  Punti Totali
+                </div>
+              </div>
+
+              <div
+                style={{
+                  background: 'var(--white)',
+                  borderRadius: '20px',
+                  padding: '16px',
+                  border: '1px solid var(--gray)',
+                  boxShadow: 'var(--card-shadow)',
+                  textAlign: 'center',
+                }}
+              >
+                <span className="material-symbols-outlined" style={{ fontSize: '32px', color: '#8B5CF6', marginBottom: '4px' }}>
+                  auto_awesome
+                </span>
+                <div style={{ fontSize: '22px', fontWeight: 900, color: 'var(--dark)' }}>
+                  {shinyCount}
+                </div>
+                <div style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: 700 }}>
+                  Varianti Shiny
+                </div>
+              </div>
+
+              <div
+                style={{
+                  background: 'var(--white)',
+                  borderRadius: '20px',
+                  padding: '16px',
+                  border: '1px solid var(--gray)',
+                  boxShadow: 'var(--card-shadow)',
+                  textAlign: 'center',
+                }}
+              >
+                <span className="material-symbols-outlined" style={{ fontSize: '32px', color: '#10B981', marginBottom: '4px' }}>
+                  group
+                </span>
+                <div style={{ fontSize: '22px', fontWeight: 900, color: 'var(--dark)' }}>
+                  {taggedCount}
+                </div>
+                <div style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: 700 }}>
+                  Bevute in Compagnia
+                </div>
+              </div>
+            </div>
+
+            {/* Post & Activity Banner */}
+            <div
+              style={{
+                background: 'linear-gradient(135deg, #1E293B 0%, #0F172A 100%)',
+                borderRadius: '20px',
+                padding: '20px',
+                color: 'white',
+                boxShadow: '0 10px 25px rgba(15,23,42,0.15)',
+              }}
+            >
+              <div style={{ fontSize: '11px', color: '#94A3B8', textTransform: 'uppercase', letterSpacing: '1px', fontWeight: 700, marginBottom: '4px' }}>
+                Attività Social
+              </div>
+              <h4 style={{ margin: '0 0 12px 0', fontSize: '16px', fontWeight: 900, color: 'white', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span className="material-symbols-outlined" style={{ color: '#F59E0B' }}>photo_library</span>
+                {myPosts.length} Post Pubblicati nel Pub
+              </h4>
+              <div style={{ fontSize: '13px', color: '#CBD5E1', lineHeight: 1.5 }}>
+                @{username} ha condiviso {myPosts.length} momenti speciali di degustazione con la community di BeerDex!
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* 4. GUSTI & VOTI (RATINGS) TAB FOR PUBLIC PROFILE */}
         {activeTab === 'ratings' && (
           <div style={{ animation: 'fadeIn 0.2s ease-out', marginBottom: '30px' }}>
             {/* Overview Banner */}

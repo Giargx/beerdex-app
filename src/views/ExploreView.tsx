@@ -234,19 +234,29 @@ export const ExploreView: React.FC<ExploreViewProps> = ({
             </div>
           ) : (
             <>
-              {filteredBeers.map((beer) => (
-                <BeerCard
-                  key={beer.brand}
-                  beer={beer}
-                  myPokedex={myPokedex}
-                  expanded={!!expandedCards[beer.brand]}
-                  onToggle={() => toggleCard(beer.brand)}
-                  onInitUnlock={onInitUnlock}
-                  onDeleteVariant={onDeleteVariant}
-                  onOpenProposeModal={onOpenProposeModal}
-                  onRateBeer={onRateBeer}
-                />
-              ))}
+              <div
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(2, 1fr)',
+                  gap: '12px',
+                  width: '100%',
+                  alignItems: 'start',
+                }}
+              >
+                {filteredBeers.map((beer) => (
+                  <BeerCard
+                    key={beer.brand}
+                    beer={beer}
+                    myPokedex={myPokedex}
+                    expanded={!!expandedCards[beer.brand]}
+                    onToggle={() => toggleCard(beer.brand)}
+                    onInitUnlock={onInitUnlock}
+                    onDeleteVariant={onDeleteVariant}
+                    onOpenProposeModal={onOpenProposeModal}
+                    onRateBeer={onRateBeer}
+                  />
+                ))}
+              </div>
 
               {/* Bottom Propose Banner when results are displayed */}
               <div

@@ -459,9 +459,9 @@ header.hero p {
 .card { 
     background: var(--white); 
     border-radius: 24px; 
-    padding: 24px; 
+    padding: 20px 16px; 
     width: 100%; 
-    max-width: 350px; 
+    max-width: 100%; 
     box-shadow: var(--card-shadow); 
     cursor: pointer; 
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); 
