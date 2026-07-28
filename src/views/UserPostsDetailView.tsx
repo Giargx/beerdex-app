@@ -15,6 +15,7 @@ interface UserPostsDetailViewProps {
   onDeletePost?: (postId: string, user: string, brand: string, variant: string) => void;
   onReportFakePost?: (postId: string, user: string, brand: string, variant: string) => void;
   onOpenPublicProfile: (username: string) => void;
+  isAdminUser?: boolean;
 }
 
 export const UserPostsDetailView: React.FC<UserPostsDetailViewProps> = ({
@@ -31,6 +32,7 @@ export const UserPostsDetailView: React.FC<UserPostsDetailViewProps> = ({
   onDeletePost,
   onReportFakePost,
   onOpenPublicProfile,
+  isAdminUser,
 }) => {
   const myPosts = [...posts].filter((p) => p.user === username).reverse();
 
@@ -155,7 +157,7 @@ export const UserPostsDetailView: React.FC<UserPostsDetailViewProps> = ({
                 month: 'long',
                 year: 'numeric'
               });
-              const canDelete = post.user === currentUserNick;
+              const canDelete = post.user === currentUserNick || isAdminUser;
               const canReport = post.user !== currentUserNick;
 
               return (

@@ -2144,6 +2144,7 @@ export default function App() {
               onDeletePost={handleDeletePost}
               onReportFakePost={handleReportFakePost}
               onOpenPublicProfile={handleOpenPublicProfile}
+              isAdminUser={isAdminUser}
             />
           ) : null}
         </div>
