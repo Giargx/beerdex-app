@@ -526,9 +526,10 @@ header.hero p {
 .variants-container { 
     display: grid;
     grid-template-rows: 0fr;
-    transition: grid-template-rows 0.35s cubic-bezier(0.2, 0.8, 0.2, 1), margin-top 0.35s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.3s ease; 
+    transition: grid-template-rows 0.4s cubic-bezier(0.16, 1, 0.3, 1), margin-top 0.35s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s ease; 
     opacity: 0; 
     margin-top: 0; 
+    will-change: grid-template-rows, opacity;
 }
 .card.active .variants-container { 
     grid-template-rows: 1fr; 
@@ -537,6 +538,21 @@ header.hero p {
 }
 .variants-container-inner {
     overflow: hidden;
+}
+
+@keyframes expandFadeIn {
+    0% {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.card.active .variants { 
+    animation: expandFadeIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
 .variants { 
