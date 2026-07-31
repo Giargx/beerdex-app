@@ -260,6 +260,9 @@ select:focus {
     width: 500%; /* 5 main tabs side-by-side */
     height: auto;
     will-change: transform;
+    transform: translate3d(0, 0, 0);
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
 }
 
 .main-tab-slide {
@@ -269,6 +272,10 @@ select:focus {
     height: 0;
     overflow: hidden;
     visibility: hidden;
+    will-change: transform, opacity;
+    transform: translate3d(0, 0, 0);
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
 }
 
 .main-tab-slide.active {

@@ -793,18 +793,31 @@ export default function App() {
     }, 400);
   };
 
-  // Touch swipe to drag horizontally
+  // Touch swipe to drag horizontally (Main tabs swipe + iOS-style Edge Swipe Back on sub-pages)
   useEffect(() => {
-    // Only enable swiping on main tabs
     const mainTabs = ['page-home', 'page-explore', 'page-leaderboard', 'page-social', 'page-profile'];
-    if (!mainTabs.includes(currentPage)) return;
+    const isMainTab = mainTabs.includes(currentPage) && !settingsOpen;
 
     const handleTouchStart = (e: TouchEvent) => {
-      if (isAnyModalOpen) {
+      // Don't intercept touches if modal dialogs are active
+      if (
+        authOpen ||
+        ageGateOpen ||
+        proposeModalOpen ||
+        adminProposalsModalOpen ||
+        scannerConfig.open ||
+        captureOpen ||
+        cropOpen ||
+        avatarSelectorOpen ||
+        alertConfig.open ||
+        confirmConfig.open ||
+        zoomedAvatarUrl !== null
+      ) {
         touchStartX.current = 0;
         touchStartY.current = 0;
         return;
       }
+
       const target = e.target as HTMLElement;
       if (
         target.closest('#mapContainer') ||
@@ -818,6 +831,7 @@ export default function App() {
         touchStartY.current = 0;
         return;
       }
+
       touchStartX.current = e.changedTouches[0].clientX;
       touchStartY.current = e.changedTouches[0].clientY;
       isHorizontalSwipe.current = null;
@@ -831,10 +845,21 @@ export default function App() {
       const diffY = currentY - touchStartY.current;
 
       if (isHorizontalSwipe.current === null) {
-        if (Math.abs(diffX) < 8 && Math.abs(diffY) < 8) return;
-        
+        if (Math.abs(diffX) < 6 && Math.abs(diffY) < 6) return;
+
         if (Math.abs(diffX) > Math.abs(diffY)) {
-          isHorizontalSwipe.current = true;
+          // If on a sub-page or settings drawer, ONLY allow swipe if touch started at left edge (<= 45px) moving right
+          if (!isMainTab) {
+            if (touchStartX.current <= 45 && diffX > 0) {
+              isHorizontalSwipe.current = true;
+            } else {
+              isHorizontalSwipe.current = false;
+              touchStartX.current = 0;
+              return;
+            }
+          } else {
+            isHorizontalSwipe.current = true;
+          }
         } else {
           isHorizontalSwipe.current = false;
           touchStartX.current = 0;
@@ -842,24 +867,45 @@ export default function App() {
         }
       }
 
-      if (isHorizontalSwipe.current) {
+      if (isHorizontalSwipe.current && isMainTab) {
         if (e.cancelable) {
           e.preventDefault();
         }
         setIsDragging(true);
-        setDragOffset(diffX);
+        requestAnimationFrame(() => {
+          setDragOffset(diffX);
+        });
       }
     };
 
     const handleTouchEnd = (e: TouchEvent) => {
       if (touchStartX.current === 0) return;
       const currentX = e.changedTouches[0].clientX;
+      const currentY = e.changedTouches[0].clientY;
       const diffX = currentX - touchStartX.current;
+      const diffY = currentY - touchStartY.current;
 
-      if (isHorizontalSwipe.current && isDragging) {
-        const threshold = window.innerWidth * 0.15; // 15% threshold for switching page
+      const isEdgeBack = touchStartX.current <= 45 && diffX > 50 && Math.abs(diffY) < 60;
+
+      if (isEdgeBack) {
+        // iOS-style Edge Swipe Back on sub-pages or drawers
+        if (settingsOpen) {
+          setSettingsOpen(false);
+        } else if (currentPage === 'page-public-profile') {
+          navigateTo(pubProfileBackPage || 'page-leaderboard');
+        } else if (currentPage === 'page-user-posts-detail') {
+          navigateTo(detailViewBackPage || 'page-profile');
+        } else if (currentPage === 'page-map-view') {
+          navigateTo('page-explore');
+        } else if (currentPage === 'page-friends') {
+          navigateTo('page-profile');
+        } else if (currentPage === 'page-rules') {
+          navigateTo('page-profile');
+        }
+      } else if (isMainTab && isHorizontalSwipe.current && isDragging) {
+        const threshold = window.innerWidth * 0.15; // 15% threshold for switching main tab
         const currentIndex = mainTabs.indexOf(currentPage);
-        
+
         if (diffX < -threshold && currentIndex < mainTabs.length - 1) {
           navigateTo(mainTabs[currentIndex + 1]);
         } else if (diffX > threshold && currentIndex > 0) {
@@ -883,7 +929,24 @@ export default function App() {
       document.removeEventListener('touchmove', handleTouchMove);
       document.removeEventListener('touchend', handleTouchEnd);
     };
-  }, [currentPage, isAnyModalOpen, isDragging, dragOffset]);
+  }, [
+    currentPage,
+    settingsOpen,
+    pubProfileBackPage,
+    detailViewBackPage,
+    authOpen,
+    ageGateOpen,
+    proposeModalOpen,
+    adminProposalsModalOpen,
+    scannerConfig.open,
+    captureOpen,
+    cropOpen,
+    avatarSelectorOpen,
+    alertConfig.open,
+    confirmConfig.open,
+    zoomedAvatarUrl,
+    isDragging,
+  ]);
 
   // Alert and Confirm Utilities
   const showAlert = (message: string, title = 'Avviso', showOk = true, callback?: () => void) => {
