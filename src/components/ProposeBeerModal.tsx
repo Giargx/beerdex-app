@@ -69,13 +69,13 @@ export const ProposeBeerModal: React.FC<ProposeBeerModalProps> = ({
     }
   }, [isOpen, initialBrandSearch, initialVariantPrefill, initialDescPrefill, allBeersCatalog]);
 
-  // Auto-compilazione Nazione e Regione quando la marca inserita esiste nel catalogo
+  // Auto-compilazione Nazione, Regione e Descrizione quando la marca inserita esiste nel catalogo
   useEffect(() => {
     if (existingBeer) {
       if (existingBeer.country) setCountry(existingBeer.country);
       if (existingBeer.regione) setRegione(existingBeer.regione);
       else setRegione('Tutte');
-      if (existingBeer.desc && !desc) setDesc(existingBeer.desc);
+      if (existingBeer.desc) setDesc(existingBeer.desc);
     }
   }, [brand, existingBeer]);
 
@@ -173,6 +173,8 @@ export const ProposeBeerModal: React.FC<ProposeBeerModalProps> = ({
     'Trentino-Alto Adige', 'Umbria', "Valle d'Aosta", 'Veneto'
   ];
 
+  const isBrandLocked = !!existingBeer || (!!initialBrandSearch && initialBrandSearch.trim() !== '');
+
   return (
     <div className="auth-modal" style={{ zIndex: 19000, padding: '20px 10px 70px 10px', boxSizing: 'border-box', overflowY: 'auto' }}>
       <div
@@ -212,14 +214,17 @@ export const ProposeBeerModal: React.FC<ProposeBeerModalProps> = ({
               placeholder="es. Moretti, BrewDog, Baladin..."
               value={brand}
               onChange={(e) => setBrand(e.target.value)}
-              style={{ width: '100%', boxSizing: 'border-box', margin: 0, padding: '12px' }}
+              disabled={isBrandLocked}
+              style={{
+                width: '100%',
+                boxSizing: 'border-box',
+                margin: 0,
+                padding: '12px',
+                opacity: isBrandLocked ? 0.75 : 1,
+                background: isBrandLocked ? '#F1F5F9' : 'white',
+                cursor: isBrandLocked ? 'not-allowed' : 'text',
+              }}
             />
-            {existingBeer && (
-              <div style={{ fontSize: '11px', color: '#059669', background: '#D1FAE5', padding: '6px 10px', borderRadius: '8px', marginTop: '6px', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                <span className="material-symbols-outlined" style={{ fontSize: '15px' }}>verified</span>
-                Marca esistente! Nazione ({existingBeer.country}){existingBeer.regione && existingBeer.regione !== 'Tutte' ? ` e Regione (${existingBeer.regione})` : ''} pre-compilate in automatico.
-              </div>
-            )}
           </div>
 
           <div style={{ marginBottom: '12px' }}>
@@ -238,13 +243,24 @@ export const ProposeBeerModal: React.FC<ProposeBeerModalProps> = ({
           <div style={{ display: 'grid', gridTemplateColumns: country === 'Italia' ? '1fr 1fr' : '1fr', gap: '10px', marginBottom: '12px' }}>
             <div>
               <label style={{ fontSize: '12px', fontWeight: 'bold', color: 'var(--dark)', display: 'block', marginBottom: '4px' }}>
-                Nazione {existingBeer && <span style={{ color: '#059669', fontSize: '10px' }}>(Automatico)</span>}
+                Nazione
               </label>
               <select
                 value={country}
                 onChange={(e) => setCountry(e.target.value)}
                 disabled={!!existingBeer}
-                style={{ width: '100%', padding: '12px', borderRadius: '12px', border: '1px solid var(--gray)', opacity: existingBeer ? 0.8 : 1, background: existingBeer ? '#F1F5F9' : 'white' }}
+                style={{
+                  width: '100%',
+                  padding: '12px',
+                  borderRadius: '12px',
+                  border: '1px solid var(--gray)',
+                  opacity: existingBeer ? 0.8 : 1,
+                  background: existingBeer ? '#F1F5F9' : 'white',
+                  appearance: 'none',
+                  WebkitAppearance: 'none',
+                  MozAppearance: 'none',
+                  cursor: existingBeer ? 'not-allowed' : 'pointer',
+                }}
               >
                 <option value="Non specificata">Non specificata / Non so</option>
                 <option value="Italia">Italia</option>
@@ -266,13 +282,24 @@ export const ProposeBeerModal: React.FC<ProposeBeerModalProps> = ({
             {country === 'Italia' && (
               <div>
                 <label style={{ fontSize: '12px', fontWeight: 'bold', color: 'var(--dark)', display: 'block', marginBottom: '4px' }}>
-                  Regione (opzionale) {existingBeer && <span style={{ color: '#059669', fontSize: '10px' }}>(Automatico)</span>}
+                  Regione (opzionale)
                 </label>
                 <select
                   value={regione}
                   onChange={(e) => setRegione(e.target.value)}
                   disabled={!!existingBeer}
-                  style={{ width: '100%', padding: '12px', borderRadius: '12px', border: '1px solid var(--gray)', opacity: existingBeer ? 0.8 : 1, background: existingBeer ? '#F1F5F9' : 'white' }}
+                  style={{
+                    width: '100%',
+                    padding: '12px',
+                    borderRadius: '12px',
+                    border: '1px solid var(--gray)',
+                    opacity: existingBeer ? 0.8 : 1,
+                    background: existingBeer ? '#F1F5F9' : 'white',
+                    appearance: 'none',
+                    WebkitAppearance: 'none',
+                    MozAppearance: 'none',
+                    cursor: existingBeer ? 'not-allowed' : 'pointer',
+                  }}
                 >
                   <option value="Tutte">Nessuna specifica</option>
                   {ItalianRegions.map((reg) => (
@@ -284,23 +311,39 @@ export const ProposeBeerModal: React.FC<ProposeBeerModalProps> = ({
           </div>
 
           <div style={{ marginBottom: '14px' }}>
-            <label style={{ fontSize: '12px', fontWeight: 'bold', color: 'var(--dark)', display: 'block', marginBottom: '4px' }}>
+            <label style={{ fontSize: '12px', fontWeight: 'bold', color: 'var(--dark)', display: 'block', marginBottom: '6px' }}>
               Foto della Birra *
             </label>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-              <label className="btn-secondary" style={{ flexGrow: 1, margin: 0, padding: '10px', fontSize: '13px', cursor: 'pointer' }}>
-                <span className="material-symbols-outlined">photo_camera</span>
-                {photoBase64 ? 'Cambia Foto' : 'Carica Foto'}
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={handlePhotoSelect}
-                  style={{ display: 'none' }}
-                />
-              </label>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              <div style={{ display: 'flex', gap: '8px' }}>
+                <label className="btn-secondary" style={{ flex: 1, margin: 0, padding: '10px 6px', fontSize: '12px', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '4px' }}>
+                  <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>photo_camera</span>
+                  Scatta Foto
+                  <input
+                    type="file"
+                    accept="image/*"
+                    capture="environment"
+                    onChange={handlePhotoSelect}
+                    style={{ display: 'none' }}
+                  />
+                </label>
+                <label className="btn-secondary" style={{ flex: 1, margin: 0, padding: '10px 6px', fontSize: '12px', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '4px' }}>
+                  <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>photo_library</span>
+                  Galleria
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handlePhotoSelect}
+                    style={{ display: 'none' }}
+                  />
+                </label>
+              </div>
               {photoBase64 && (
-                <div style={{ width: '48px', height: '48px', borderRadius: '10px', overflow: 'hidden', border: '2px solid var(--primary)', flexShrink: 0 }}>
-                  <img src={photoBase64} alt="Preview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', background: '#F8FAFC', padding: '8px 12px', borderRadius: '12px', border: '1px solid var(--gray)', marginTop: '2px' }}>
+                  <div style={{ width: '42px', height: '42px', borderRadius: '8px', overflow: 'hidden', border: '2px solid var(--primary)', flexShrink: 0 }}>
+                    <img src={photoBase64} alt="Preview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  </div>
+                  <span style={{ fontSize: '12px', color: '#059669', fontWeight: 'bold' }}>Foto caricata con successo!</span>
                 </div>
               )}
             </div>
@@ -315,7 +358,17 @@ export const ProposeBeerModal: React.FC<ProposeBeerModalProps> = ({
               placeholder="es. Trovata al pub X, note di gusto..."
               value={desc}
               onChange={(e) => setDesc(e.target.value)}
-              style={{ width: '100%', boxSizing: 'border-box', margin: 0, padding: '10px 12px', fontSize: '13px' }}
+              disabled={!!existingBeer}
+              style={{
+                width: '100%',
+                boxSizing: 'border-box',
+                margin: 0,
+                padding: '10px 12px',
+                fontSize: '13px',
+                opacity: existingBeer ? 0.75 : 1,
+                background: existingBeer ? '#F1F5F9' : 'white',
+                cursor: existingBeer ? 'not-allowed' : 'text',
+              }}
             />
           </div>
 

@@ -509,16 +509,27 @@ export const ScannerModal: React.FC<ScannerModalProps> = ({
           Scatta una foto chiara al codice a barre sul retro per verificare l'autenticità di <strong>{currentTargetBrand}</strong>.
         </p>
 
-        <label className="btn-main" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', textAlign: 'center', padding: '14px', cursor: 'pointer', width: '100%', boxSizing: 'border-box' }}>
-          <span className="material-symbols-outlined">photo_camera</span> Fotografa Codice a Barre
-          <input
-            type="file"
-            accept="image/*"
-            capture="environment"
-            style={{ display: 'none' }}
-            onChange={handleBarcodePhoto}
-          />
-        </label>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+          <label className="btn-main" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', textAlign: 'center', padding: '14px', cursor: 'pointer', width: '100%', boxSizing: 'border-box', margin: 0 }}>
+            <span className="material-symbols-outlined">photo_camera</span> Scatta Foto (Fotocamera)
+            <input
+              type="file"
+              accept="image/*"
+              capture="environment"
+              style={{ display: 'none' }}
+              onChange={handleBarcodePhoto}
+            />
+          </label>
+          <label className="btn-secondary" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', textAlign: 'center', padding: '12px', cursor: 'pointer', width: '100%', boxSizing: 'border-box', margin: 0 }}>
+            <span className="material-symbols-outlined">photo_library</span> Scegli da Galleria
+            <input
+              type="file"
+              accept="image/*"
+              style={{ display: 'none' }}
+              onChange={handleBarcodePhoto}
+            />
+          </label>
+        </div>
 
         <hr style={{ border: 0, borderTop: '1px solid var(--gray)', margin: '20px 0' }} />
         <p style={{ fontSize: '12px', color: 'var(--dark)', fontWeight: 'bold', marginTop: 0, textAlign: 'center' }}>

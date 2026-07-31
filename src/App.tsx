@@ -708,14 +708,19 @@ export default function App() {
 
   // Navigation Logic
   const navigateTo = (pageId: string) => {
-    // Close any active drawers or modals on view switch
+    // Close any active drawers, menus, or modals on view switch
     setSettingsOpen(false);
     setProposeModalOpen(false);
     setAdminProposalsModalOpen(false);
     setZoomedAvatarUrl(null);
-    setScannerConfig((prev) => ({ ...prev, isOpen: false }));
+    setScannerConfig((prev) => ({ ...prev, open: false, isOpen: false }));
     setCaptureOpen(false);
     setCropOpen(false);
+    setShareOpen(false);
+    setAvatarSelectorOpen(false);
+    setUnlockRatingModalState(null);
+    setAlertConfig((prev) => ({ ...prev, open: false }));
+    setConfirmConfig((prev) => ({ ...prev, open: false }));
 
     if (pageId === currentPage) {
       window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -1600,31 +1605,57 @@ export default function App() {
             <p style={{ color: 'var(--text-muted)', fontSize: '14px', marginBottom: '20px', textAlign: 'center' }}>
               Ora scatta la foto per il tuo feed social. Assicurati che si veda bene la birra!
             </p>
-            <label 
-              className="btn-main" 
-              style={{ 
-                display: 'flex', 
-                alignItems: 'center', 
-                justifyContent: 'center', 
-                gap: '8px', 
-                textAlign: 'center', 
-                padding: '14px', 
-                cursor: 'pointer',
-                marginBottom: '10px',
-                width: '100%',
-                boxSizing: 'border-box'
-              }}
-            >
-              <span className="material-symbols-outlined" style={{ fontSize: '22px' }}>photo_camera</span>
-              <span>Apri Fotocamera</span>
-              <input
-                type="file"
-                accept="image/*"
-                capture="environment"
-                style={{ display: 'none' }}
-                onChange={handlePhotoUpload}
-              />
-            </label>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '10px' }}>
+              <label 
+                className="btn-main" 
+                style={{ 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  justifyContent: 'center', 
+                  gap: '8px', 
+                  textAlign: 'center', 
+                  padding: '14px', 
+                  cursor: 'pointer',
+                  margin: 0,
+                  width: '100%',
+                  boxSizing: 'border-box'
+                }}
+              >
+                <span className="material-symbols-outlined" style={{ fontSize: '22px' }}>photo_camera</span>
+                <span>Scatta Foto (Fotocamera)</span>
+                <input
+                  type="file"
+                  accept="image/*"
+                  capture="environment"
+                  style={{ display: 'none' }}
+                  onChange={handlePhotoUpload}
+                />
+              </label>
+              <label 
+                className="btn-secondary" 
+                style={{ 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  justifyContent: 'center', 
+                  gap: '8px', 
+                  textAlign: 'center', 
+                  padding: '12px', 
+                  cursor: 'pointer',
+                  margin: 0,
+                  width: '100%',
+                  boxSizing: 'border-box'
+                }}
+              >
+                <span className="material-symbols-outlined" style={{ fontSize: '22px' }}>photo_library</span>
+                <span>Scegli da Galleria</span>
+                <input
+                  type="file"
+                  accept="image/*"
+                  style={{ display: 'none' }}
+                  onChange={handlePhotoUpload}
+                />
+              </label>
+            </div>
             <button className="btn-secondary" onClick={() => setCaptureOpen(false)} style={{ justifyContent: 'center', width: '100%', boxSizing: 'border-box' }}>
               Annulla
             </button>
