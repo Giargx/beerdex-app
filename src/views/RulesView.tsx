@@ -12,9 +12,9 @@ export const RulesView: React.FC = () => {
 
       <div className="page-container">
         <div className="rules-section">
-          <h3>🍻 Cos'è sta roba?</h3>
+          <h3>🍻 Cos'è BeerDex?</h3>
           <p>
-            BeerDex è fondamentalmente l'album Panini delle birre. Invece dei calciatori, collezioni le birre che bevi. L'obiettivo è semplice: provi una birra nuova, la scansioni, sblocchi la figurina e accumuli punti per salire in classifica e bullarti con gli amici al bancone.
+            BeerDex è la tua collezione digitale personale di birre. Invece dei soliti album di figurine, qui collezioni le birre che degusti. L'obiettivo è semplice: provi una birra nuova, la scansioni o ne scatti una foto, sblocchi la scheda virtuale nella tua collezione e accumuli punti per salire in classifica ed esplorare nuovi stili insieme agli amici.
           </p>
         </div>
 

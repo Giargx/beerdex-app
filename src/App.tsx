@@ -2501,6 +2501,7 @@ export default function App() {
         initialVariantPrefill={proposeVariantPrefill}
         initialRarityPrefill={proposeRarityPrefill}
         initialDescPrefill={proposeDescPrefill}
+        allBeersCatalog={allBeersCatalog}
         onSubmitProposal={handleProposeBeerSubmit}
       />
 

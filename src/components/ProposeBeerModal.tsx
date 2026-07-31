@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { formatBeerTitle } from '../beers';
+import { formatBeerTitle, type Beer } from '../beers';
 import { checkImageSafety } from '../utils/imageModeration';
 import { containsProfanity } from '../utils/textFilter';
 
@@ -20,6 +20,7 @@ interface ProposeBeerModalProps {
   initialVariantPrefill?: string;
   initialRarityPrefill?: "comune" | "media" | "rara";
   initialDescPrefill?: string;
+  allBeersCatalog?: Beer[];
   onSubmitProposal: (proposalData: BeerProposalData) => void;
 }
 
@@ -30,30 +31,54 @@ export const ProposeBeerModal: React.FC<ProposeBeerModalProps> = ({
   initialVariantPrefill = '',
   initialRarityPrefill = 'comune',
   initialDescPrefill = '',
+  allBeersCatalog = [],
   onSubmitProposal,
 }) => {
   const [brand, setBrand] = useState(initialBrandSearch);
   const [variant, setVariant] = useState(initialVariantPrefill);
   const [country, setCountry] = useState('Italia');
   const [regione, setRegione] = useState('Tutte');
-  const [rarity, setRarity] = useState<"comune" | "media" | "rara">(initialRarityPrefill);
   const [desc, setDesc] = useState(initialDescPrefill);
   const [photoBase64, setPhotoBase64] = useState<string>('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
 
+  // Check if current brand input matches an existing brand in catalog
+  const existingBeer = (allBeersCatalog || []).find(
+    (b) => b && b.brand && b.brand.trim().toLowerCase() === brand.trim().toLowerCase()
+  );
+
   useEffect(() => {
     if (isOpen) {
       setBrand(initialBrandSearch || '');
       setVariant(initialVariantPrefill || '');
-      setCountry('Italia');
-      setRegione('Tutte');
-      setRarity(initialRarityPrefill || 'comune');
       setDesc(initialDescPrefill || '');
       setPhotoBase64('');
       setErrorMessage('');
+
+      const matched = (allBeersCatalog || []).find(
+        (b) => b && b.brand && b.brand.trim().toLowerCase() === (initialBrandSearch || '').trim().toLowerCase()
+      );
+      if (matched) {
+        setCountry(matched.country || 'Italia');
+        setRegione(matched.regione || 'Tutte');
+        if (matched.desc) setDesc(matched.desc);
+      } else {
+        setCountry('Italia');
+        setRegione('Tutte');
+      }
     }
-  }, [isOpen, initialBrandSearch, initialVariantPrefill, initialRarityPrefill, initialDescPrefill]);
+  }, [isOpen, initialBrandSearch, initialVariantPrefill, initialDescPrefill, allBeersCatalog]);
+
+  // Auto-compilazione Nazione e Regione quando la marca inserita esiste nel catalogo
+  useEffect(() => {
+    if (existingBeer) {
+      if (existingBeer.country) setCountry(existingBeer.country);
+      if (existingBeer.regione) setRegione(existingBeer.regione);
+      else setRegione('Tutte');
+      if (existingBeer.desc && !desc) setDesc(existingBeer.desc);
+    }
+  }, [brand, existingBeer]);
 
   if (!isOpen) return null;
 
@@ -103,15 +128,14 @@ export const ProposeBeerModal: React.FC<ProposeBeerModalProps> = ({
       setErrorMessage('Inserisci la marca della birra.');
       return;
     }
-    if (!variant.trim()) {
-      setErrorMessage('Inserisci la variante / stile della birra.');
-      return;
-    }
+
+    const effectiveVariant = variant.trim() ? variant.trim() : 'Classica';
+
     if (!photoBase64) {
       setErrorMessage('Scatta o seleziona una foto della birra.');
       return;
     }
-    if (containsProfanity(brand) || containsProfanity(variant) || containsProfanity(desc)) {
+    if (containsProfanity(brand) || containsProfanity(effectiveVariant) || containsProfanity(desc)) {
       setErrorMessage('La marca, la variante o la descrizione contengono termini non appropriati o blasfemi.');
       return;
     }
@@ -128,14 +152,14 @@ export const ProposeBeerModal: React.FC<ProposeBeerModalProps> = ({
     }
 
     const formattedBrand = formatBeerTitle(brand.trim());
-    const formattedVariant = formatBeerTitle(variant.trim());
+    const formattedVariant = formatBeerTitle(effectiveVariant);
 
     onSubmitProposal({
       brand: formattedBrand,
       variant: formattedVariant,
       country,
       regione: country === 'Italia' && regione !== 'Tutte' ? regione : undefined,
-      rarity,
+      rarity: 'comune', // Impostata dagli Admin in fase di accettazione
       desc: desc.trim() || `Birra ${formattedBrand} (${formattedVariant})`,
       photo: photoBase64,
     });
@@ -191,15 +215,21 @@ export const ProposeBeerModal: React.FC<ProposeBeerModalProps> = ({
               onChange={(e) => setBrand(e.target.value)}
               style={{ width: '100%', boxSizing: 'border-box', margin: 0, padding: '12px' }}
             />
+            {existingBeer && (
+              <div style={{ fontSize: '11px', color: '#059669', background: '#D1FAE5', padding: '6px 10px', borderRadius: '8px', marginTop: '6px', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                <span className="material-symbols-outlined" style={{ fontSize: '15px' }}>verified</span>
+                Marca esistente! Nazione ({existingBeer.country}){existingBeer.regione && existingBeer.regione !== 'Tutte' ? ` e Regione (${existingBeer.regione})` : ''} pre-compilate in automatico.
+              </div>
+            )}
           </div>
 
           <div style={{ marginBottom: '12px' }}>
             <label style={{ fontSize: '12px', fontWeight: 'bold', color: 'var(--dark)', display: 'block', marginBottom: '4px' }}>
-              Variante / Nome Birra *
+              Variante / Stile <span style={{ fontWeight: 'normal', color: 'var(--text-muted)' }}>(opzionale)</span>
             </label>
             <input
               type="text"
-              placeholder="es. IPA, Non Filtrata, Blanche..."
+              placeholder="es. IPA, Non Filtrata... (Se vuoto: Classica)"
               value={variant}
               onChange={(e) => setVariant(e.target.value)}
               style={{ width: '100%', boxSizing: 'border-box', margin: 0, padding: '12px' }}
@@ -209,12 +239,13 @@ export const ProposeBeerModal: React.FC<ProposeBeerModalProps> = ({
           <div style={{ display: 'grid', gridTemplateColumns: country === 'Italia' ? '1fr 1fr' : '1fr', gap: '10px', marginBottom: '12px' }}>
             <div>
               <label style={{ fontSize: '12px', fontWeight: 'bold', color: 'var(--dark)', display: 'block', marginBottom: '4px' }}>
-                Nazione
+                Nazione {existingBeer && <span style={{ color: '#059669', fontSize: '10px' }}>(Automatico)</span>}
               </label>
               <select
                 value={country}
                 onChange={(e) => setCountry(e.target.value)}
-                style={{ width: '100%', padding: '12px', borderRadius: '12px', border: '1px solid var(--gray)' }}
+                disabled={!!existingBeer}
+                style={{ width: '100%', padding: '12px', borderRadius: '12px', border: '1px solid var(--gray)', opacity: existingBeer ? 0.8 : 1, background: existingBeer ? '#F1F5F9' : 'white' }}
               >
                 <option value="Non specificata">Non specificata / Non so</option>
                 <option value="Italia">Italia</option>
@@ -236,12 +267,13 @@ export const ProposeBeerModal: React.FC<ProposeBeerModalProps> = ({
             {country === 'Italia' && (
               <div>
                 <label style={{ fontSize: '12px', fontWeight: 'bold', color: 'var(--dark)', display: 'block', marginBottom: '4px' }}>
-                  Regione (opzionale)
+                  Regione (opzionale) {existingBeer && <span style={{ color: '#059669', fontSize: '10px' }}>(Automatico)</span>}
                 </label>
                 <select
                   value={regione}
                   onChange={(e) => setRegione(e.target.value)}
-                  style={{ width: '100%', padding: '12px', borderRadius: '12px', border: '1px solid var(--gray)' }}
+                  disabled={!!existingBeer}
+                  style={{ width: '100%', padding: '12px', borderRadius: '12px', border: '1px solid var(--gray)', opacity: existingBeer ? 0.8 : 1, background: existingBeer ? '#F1F5F9' : 'white' }}
                 >
                   <option value="Tutte">Nessuna specifica</option>
                   {ItalianRegions.map((reg) => (
@@ -250,21 +282,6 @@ export const ProposeBeerModal: React.FC<ProposeBeerModalProps> = ({
                 </select>
               </div>
             )}
-          </div>
-
-          <div style={{ marginBottom: '12px' }}>
-            <label style={{ fontSize: '12px', fontWeight: 'bold', color: 'var(--dark)', display: 'block', marginBottom: '4px' }}>
-              Rarità Presunta
-            </label>
-            <select
-              value={rarity}
-              onChange={(e) => setRarity(e.target.value as any)}
-              style={{ width: '100%', padding: '12px', borderRadius: '12px', border: '1px solid var(--gray)' }}
-            >
-              <option value="comune">Comune (1 pt - Commerciale / Supermercato)</option>
-              <option value="media">Media (2 pt - Birra speciale o nota)</option>
-              <option value="rara">Rara (5 pt - Trappista / Artigianale di nicchia)</option>
-            </select>
           </div>
 
           <div style={{ marginBottom: '14px' }}>
