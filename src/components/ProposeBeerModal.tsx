@@ -66,8 +66,8 @@ export const ProposeBeerModal: React.FC<ProposeBeerModalProps> = ({
       const img = new Image();
       img.onload = () => {
         const canvas = document.createElement('canvas');
-        const MAX_WIDTH = 600;
-        const MAX_HEIGHT = 600;
+        const MAX_WIDTH = 750;
+        const MAX_HEIGHT = 750;
         let width = img.width;
         let height = img.height;
 
@@ -88,7 +88,7 @@ export const ProposeBeerModal: React.FC<ProposeBeerModalProps> = ({
         const ctx = canvas.getContext('2d');
         if (ctx) {
           ctx.drawImage(img, 0, 0, width, height);
-          const compressed = canvas.toDataURL('image/jpeg', 0.8);
+          const compressed = canvas.toDataURL('image/jpeg', 0.65);
           setPhotoBase64(compressed);
         }
       };

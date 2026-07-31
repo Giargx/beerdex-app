@@ -943,7 +943,7 @@ export default function App() {
       const img = new Image();
       img.onload = () => {
         const canvas = document.createElement('canvas');
-        const MAX_SIZE = 800; // Risoluzione migliorata da 300 a 800 per dettagli nitidi
+        const MAX_SIZE = 750; // Risoluzione ultra-ottimizzata per leggibilità e memoria minima
         let width = img.width;
         let height = img.height;
 
@@ -965,7 +965,7 @@ export default function App() {
         const ctx = canvas.getContext('2d');
         if (ctx) {
           ctx.drawImage(img, 0, 0, width, height);
-          const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.75);
+          const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.65);
 
           // Controlla la sicurezza dell'immagine
           checkImageSafety(compressedDataUrl).then((safety) => {
