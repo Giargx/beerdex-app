@@ -3,9 +3,10 @@ import { onAuthStateChanged, signOut, updatePassword, EmailAuthProvider, reauthe
 import { ref, onValue, set, get, update, push, remove } from 'firebase/database';
 import { auth, db } from './firebase';
 
-import { beers, getBeerPoints, countryCoordinates, normalizeStr, mergeBeers, getCountryFlag } from './beers';
+import { beers, getBeerPoints, countryCoordinates, normalizeStr, mergeBeers, getCountryFlag, formatBeerTitle } from './beers';
 import type { Beer } from './beers';
 import { playPopSound } from './utils/audio';
+import { checkImageSafety } from './utils/imageModeration';
 import { getEventMedals } from './components/TrophyGrid';
 
 // Import Views
@@ -237,6 +238,8 @@ export default function App() {
 
   // Settings Overlay State
   const [settingsOpen, setSettingsOpen] = useState<boolean>(false);
+  const [isProfilePrivate, setIsProfilePrivate] = useState<boolean>(false);
+  const [globalUserPrivacy, setGlobalUserPrivacy] = useState<Record<string, boolean>>({});
   
   // Nickname & Password Input State in settings
   const [newNickname, setNewNickname] = useState<string>('');
@@ -395,6 +398,20 @@ export default function App() {
       setGlobalDisplayNames(snap.val() || {});
     });
 
+    // User Privacy Settings
+    onValue(ref(db, 'user_privacy'), (snap) => {
+      if (snap.exists()) {
+        const data = snap.val();
+        setGlobalUserPrivacy(data);
+        if (nickname && data[nickname] !== undefined) {
+          setIsProfilePrivate(data[nickname] === true);
+        }
+      } else {
+        setGlobalUserPrivacy({});
+        setIsProfilePrivate(false);
+      }
+    });
+
     // Personal Pokedex
     onValue(ref(db, `pokedex_profiles/${nickname}`), (snap) => {
       const dex = snap.val() || {};
@@ -539,14 +556,17 @@ export default function App() {
 
   const handleAcceptProposal = async (proposal: BeerProposalItem) => {
     try {
+      const formattedBrand = formatBeerTitle(proposal.brand);
+      const formattedVariant = formatBeerTitle(proposal.variant);
+
       // 1. Save new custom beer to catalog in Firebase DB
       const newCustomBeer: Beer = {
-        brand: proposal.brand,
+        brand: formattedBrand,
         country: proposal.country,
         flag: getCountryFlag(proposal.country),
         rarity: proposal.rarity,
-        desc: proposal.desc || `Birra ${proposal.brand} (${proposal.variant})`,
-        variants: [proposal.variant],
+        desc: proposal.desc || `Birra ${formattedBrand} (${formattedVariant})`,
+        variants: [formattedVariant],
         barcodes: [],
       };
       if (proposal.regione) {
@@ -555,10 +575,10 @@ export default function App() {
       await set(ref(db, `custom_beers/${proposal.proposalId}`), newCustomBeer);
 
       // 2. Unlock beer for proposing user with proposalBonus: true
-      const uniqueId = `${proposal.brand}-${proposal.variant}`;
+      const uniqueId = `${formattedBrand}-${formattedVariant}`;
       const pokedexEntry = {
-        brand: proposal.brand,
-        variant: proposal.variant,
+        brand: formattedBrand,
+        variant: formattedVariant,
         photo: proposal.photo,
         unlockedAt: Date.now(),
         isShiny: false,
@@ -571,8 +591,8 @@ export default function App() {
       const newPostRef = push(ref(db, 'social_timeline'));
       await set(newPostRef, {
         user: proposal.proposedBy,
-        brand: proposal.brand,
-        variant: proposal.variant,
+        brand: formattedBrand,
+        variant: formattedVariant,
         photo: proposal.photo,
         time: Date.now(),
         isShiny: false,
@@ -581,14 +601,22 @@ export default function App() {
         taggedFriend: null,
       });
 
-      // 4. Update proposal status to accepted
-      await update(ref(db, `beer_proposals/${proposal.proposalId}`), { status: 'accepted' });
+      // 4. Update proposal status to accepted in DB
+      await update(ref(db, `beer_proposals/${proposal.proposalId}`), {
+        brand: formattedBrand,
+        variant: formattedVariant,
+        country: proposal.country,
+        regione: proposal.regione || null,
+        rarity: proposal.rarity,
+        desc: proposal.desc || null,
+        status: 'accepted',
+      });
 
       // 5. Recalculate score for proposing user
       await recalculateTotalScore(proposal.proposedBy);
 
       showAlert(
-        `Proposta "${proposal.brand} - ${proposal.variant}" ACCETTATA! Nuova birra inserita nel catalogo e punti + 2 Bonus accreditati a @${proposal.proposedBy}.`,
+        `Proposta "${formattedBrand} - ${formattedVariant}" ACCETTATA! Nuova birra inserita nel catalogo e punti + 2 Bonus accreditati a @${proposal.proposedBy}.`,
         'Proposta Accettata!'
       );
     } catch (err: any) {
@@ -603,6 +631,50 @@ export default function App() {
     } catch (err: any) {
       showAlert('Errore durante il rifiuto della proposta: ' + err.message, 'Errore');
     }
+  };
+
+  const handleDeleteCustomBeerCatalog = (brandName: string) => {
+    if (!isAdminUser) return;
+
+    showConfirm(
+      `Sei sicuro di voler eliminare la birra/marca "${brandName}" dal catalogo custom e dal database?`,
+      'Elimina Marca dal Catalogo',
+      async () => {
+        try {
+          const snap = await get(ref(db, 'custom_beers'));
+          if (snap.exists()) {
+            const data = snap.val();
+            const updates: Record<string, null> = {};
+            Object.entries(data).forEach(([key, val]: [string, any]) => {
+              if (val && val.brand && val.brand.toLowerCase() === brandName.toLowerCase()) {
+                updates[`custom_beers/${key}`] = null;
+              }
+            });
+            if (Object.keys(updates).length > 0) {
+              await update(ref(db), updates);
+            }
+          }
+
+          const propSnap = await get(ref(db, 'beer_proposals'));
+          if (propSnap.exists()) {
+            const propData = propSnap.val();
+            const propUpdates: Record<string, null> = {};
+            Object.entries(propData).forEach(([key, val]: [string, any]) => {
+              if (val && val.brand && val.brand.toLowerCase() === brandName.toLowerCase() && val.status === 'accepted') {
+                propUpdates[`beer_proposals/${key}`] = null;
+              }
+            });
+            if (Object.keys(propUpdates).length > 0) {
+              await update(ref(db), propUpdates);
+            }
+          }
+
+          showAlert(`La marca "${brandName}" è stata eliminata dal catalogo con successo!`, 'Marca Eliminata');
+        } catch (err: any) {
+          showAlert('Errore durante l\'eliminazione della marca: ' + err.message, 'Errore');
+        }
+      }
+    );
   };
 
   // Recalculate all scores to adapt existing database records
@@ -892,25 +964,36 @@ export default function App() {
         const ctx = canvas.getContext('2d');
         if (ctx) {
           ctx.drawImage(img, 0, 0, width, height);
-          // Qualità JPEG aumentata da 0.4 (bassa) a 0.75 (alta definizione / peso ottimizzato)
           const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.75);
 
-          const uploadData = {
-            brand: scannerConfig.brand,
-            variant: scannerConfig.variant,
-            isShiny,
-            canvasBase64: compressedDataUrl,
-            lat,
-            lng,
-          };
+          // Controlla la sicurezza dell'immagine
+          checkImageSafety(compressedDataUrl).then((safety) => {
+            if (!safety.isSafe) {
+              hideAlert();
+              showAlert(
+                safety.reason || 'L\'immagine selezionata contiene contenuto non appropriato o esplicito e non può essere caricata.',
+                'Foto Rifiutata'
+              );
+              return;
+            }
 
-          if (myFriendsList.length > 0) {
-            setPendingUploadData(uploadData);
-            hideAlert();
-            setShareOpen(true);
-          } else {
-            finalizeUpload(uploadData, null);
-          }
+            const uploadData = {
+              brand: scannerConfig.brand,
+              variant: scannerConfig.variant,
+              isShiny,
+              canvasBase64: compressedDataUrl,
+              lat,
+              lng,
+            };
+
+            if (myFriendsList.length > 0) {
+              setPendingUploadData(uploadData);
+              hideAlert();
+              setShareOpen(true);
+            } else {
+              finalizeUpload(uploadData, null);
+            }
+          });
         }
       };
       img.src = e.target?.result as string;
@@ -1320,6 +1403,21 @@ export default function App() {
     }
   };
 
+  const handleToggleProfilePrivacy = async (newValue: boolean) => {
+    try {
+      setIsProfilePrivate(newValue);
+      await set(ref(db, `user_privacy/${currentUserNick}`), newValue);
+      showAlert(
+        newValue
+          ? 'Il tuo profilo è ora PRIVATO. Solo gli amici vedranno le tue foto, le tue varianti e le tue valutazioni. Le tue medaglie restano visibili a tutti.'
+          : 'Il tuo profilo è ora PUBBLICO. Tutti gli utenti possono vedere il tuo profilo e la tua collezione.',
+        'Privacy Aggiornata'
+      );
+    } catch (err: any) {
+      showAlert('Errore durante l\'aggiornamento della privacy: ' + err.message, 'Errore');
+    }
+  };
+
   const handleLogout = async () => {
     sessionStorage.removeItem('beerdex_currentPage');
     await signOut(auth);
@@ -1717,6 +1815,40 @@ export default function App() {
           {/* CATEGORY 1: PROFILO & ACCOUNT */}
           <div className="settings-instagram-section">
             <div className="section-title">Profilo e Account</div>
+
+            {/* Row Privacy Profilo */}
+            <div className="settings-row-expanded">
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                  <span className="material-symbols-outlined icon" style={{ color: isProfilePrivate ? '#EF4444' : '#10B981' }}>
+                    {isProfilePrivate ? 'lock' : 'public'}
+                  </span>
+                  <div style={{ textAlign: 'left' }}>
+                    <div className="row-label">Visibilità Profilo</div>
+                    <div className="row-desc">
+                      {isProfilePrivate ? 'Profilo Privato (foto e varianti visibili solo agli amici)' : 'Profilo Pubblico (visibile a tutta la community)'}
+                    </div>
+                  </div>
+                </div>
+                <button
+                  onClick={() => handleToggleProfilePrivacy(!isProfilePrivate)}
+                  style={{
+                    background: isProfilePrivate ? '#FEF2F2' : '#ECFDF5',
+                    border: `1px solid ${isProfilePrivate ? '#FCA5A5' : '#6EE7B7'}`,
+                    color: isProfilePrivate ? '#DC2626' : '#059669',
+                    padding: '8px 14px',
+                    borderRadius: '12px',
+                    fontWeight: 'bold',
+                    fontSize: '12px',
+                    cursor: 'pointer',
+                    whiteSpace: 'nowrap',
+                    transition: 'all 0.2s ease',
+                  }}
+                >
+                  {isProfilePrivate ? '🔒 Privato' : '🌐 Pubblico'}
+                </button>
+              </div>
+            </div>
             
             {/* Row Cambia Foto Profilo */}
             <div className="settings-row" onClick={() => setAvatarSelectorOpen(true)}>
@@ -2021,6 +2153,8 @@ export default function App() {
                     handleOpenProposeModal(search);
                   }}
                   onRateBeer={handleRateBeer}
+                  isAdminUser={isAdminUser}
+                  onDeleteCustomBeerCatalog={handleDeleteCustomBeerCatalog}
                 />
               )}
             </div>
@@ -2124,6 +2258,9 @@ export default function App() {
               allBeersCatalog={allBeersCatalog}
               isAdminUser={isAdminUser}
               onDeleteVariant={handleDeleteVariant}
+              isPrivate={globalUserPrivacy[pubProfileUser] === true}
+              isFriend={myFriendsList.includes(pubProfileUser)}
+              currentUserNick={currentUserNick}
             />
           ) : null}
         </div>

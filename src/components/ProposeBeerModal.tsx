@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import { formatBeerTitle } from '../beers';
+import { checkImageSafety } from '../utils/imageModeration';
 
 export interface BeerProposalData {
   brand: string;
@@ -94,7 +96,7 @@ export const ProposeBeerModal: React.FC<ProposeBeerModalProps> = ({
     reader.readAsDataURL(file);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!brand.trim()) {
       setErrorMessage('Inserisci la marca della birra.');
@@ -110,13 +112,26 @@ export const ProposeBeerModal: React.FC<ProposeBeerModalProps> = ({
     }
 
     setIsSubmitting(true);
+    setErrorMessage('');
+
+    // Analisi contenuti espliciti
+    const safety = await checkImageSafety(photoBase64);
+    if (!safety.isSafe) {
+      setIsSubmitting(false);
+      setErrorMessage(safety.reason || 'La foto contiene contenuto per adulti o esplicito e non può essere caricata.');
+      return;
+    }
+
+    const formattedBrand = formatBeerTitle(brand.trim());
+    const formattedVariant = formatBeerTitle(variant.trim());
+
     onSubmitProposal({
-      brand: brand.trim(),
-      variant: variant.trim(),
+      brand: formattedBrand,
+      variant: formattedVariant,
       country,
       regione: country === 'Italia' && regione !== 'Tutte' ? regione : undefined,
       rarity,
-      desc: desc.trim() || `Birra ${brand.trim()} (${variant.trim()})`,
+      desc: desc.trim() || `Birra ${formattedBrand} (${formattedVariant})`,
       photo: photoBase64,
     });
     setIsSubmitting(false);

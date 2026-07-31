@@ -12,6 +12,8 @@ interface ExploreViewProps {
   onOpenProposeModal: (searchTerm: string) => void;
   allBeersCatalog?: Beer[];
   onRateBeer?: (brand: string, variant: string, rating: number) => void;
+  isAdminUser?: boolean;
+  onDeleteCustomBeerCatalog?: (brand: string) => void;
 }
 
 export const ExploreView: React.FC<ExploreViewProps> = ({
@@ -21,6 +23,8 @@ export const ExploreView: React.FC<ExploreViewProps> = ({
   onOpenProposeModal,
   allBeersCatalog = beers,
   onRateBeer,
+  isAdminUser,
+  onDeleteCustomBeerCatalog,
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [countryFilter, setCountryFilter] = useState('Tutte');
@@ -270,6 +274,8 @@ export const ExploreView: React.FC<ExploreViewProps> = ({
                         onDeleteVariant={onDeleteVariant}
                         onOpenProposeModal={onOpenProposeModal}
                         onRateBeer={onRateBeer}
+                        isAdminUser={isAdminUser}
+                        onDeleteCustomBeerCatalog={onDeleteCustomBeerCatalog}
                       />
                     </div>
                   );

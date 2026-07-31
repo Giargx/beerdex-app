@@ -151,6 +151,22 @@ export function getCountryFlag(country?: string): string {
   return flags[country] || "🍺";
 }
 
+export function formatBeerTitle(str: string): string {
+  if (!str) return str;
+  const trimmed = str.trim();
+  if (trimmed.length === 0) return trimmed;
+  return trimmed
+    .split(/\s+/)
+    .map((word) => {
+      if (!word) return word;
+      if (word === word.toUpperCase() && word.length >= 2 && word.length <= 5) {
+        return word;
+      }
+      return word.charAt(0).toUpperCase() + word.slice(1);
+    })
+    .join(' ');
+}
+
 export function mergeBeers(staticBeers: Beer[] = beers, customBeers?: any): Beer[] {
   const safeStatic = Array.isArray(staticBeers) ? staticBeers : beers;
   if (!customBeers) return safeStatic;
@@ -168,31 +184,28 @@ export function mergeBeers(staticBeers: Beer[] = beers, customBeers?: any): Beer
 
   safeStatic.forEach((b) => {
     if (b && b.brand) {
-      mergedMap.set(b.brand, {
-        ...b,
-        variants: Array.isArray(b.variants) ? [...b.variants] : [],
-        barcodes: Array.isArray(b.barcodes) ? [...b.barcodes] : [],
-      });
+      mergedMap.set(b.brand, { ...b, variants: [...b.variants] });
     }
   });
 
   customList.forEach((cb) => {
     if (cb && cb.brand) {
-      const cbVariants = Array.isArray(cb.variants) ? cb.variants : [];
-      if (mergedMap.has(cb.brand)) {
-        const existing = mergedMap.get(cb.brand)!;
+      const cbBrand = formatBeerTitle(cb.brand);
+      const cbVariants = (Array.isArray(cb.variants) ? cb.variants : []).map((v) => formatBeerTitle(v));
+      if (mergedMap.has(cbBrand)) {
+        const existing = mergedMap.get(cbBrand)!;
         cbVariants.forEach((v) => {
           if (v && !existing.variants.includes(v)) {
             existing.variants.push(v);
           }
         });
       } else {
-        mergedMap.set(cb.brand, {
-          brand: cb.brand,
+        mergedMap.set(cbBrand, {
+          brand: cbBrand,
           country: cb.country || "Italia",
           flag: cb.flag || getCountryFlag(cb.country || "Italia"),
           rarity: cb.rarity || "comune",
-          desc: cb.desc || `Birra ${cb.brand}`,
+          desc: cb.desc || `Birra ${cbBrand}`,
           variants: cbVariants.length > 0 ? [...cbVariants] : ["Classica"],
           regione: cb.regione || undefined,
           barcodes: Array.isArray(cb.barcodes) ? [...cb.barcodes] : [],

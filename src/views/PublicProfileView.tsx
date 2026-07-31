@@ -20,6 +20,9 @@ interface PublicProfileViewProps {
   allBeersCatalog?: Beer[];
   isAdminUser?: boolean;
   onDeleteVariant?: (brand: string, variant: string, targetUser?: string) => void;
+  isPrivate?: boolean;
+  isFriend?: boolean;
+  currentUserNick?: string;
 }
 
 export const PublicProfileView: React.FC<PublicProfileViewProps> = ({
@@ -36,6 +39,9 @@ export const PublicProfileView: React.FC<PublicProfileViewProps> = ({
   allBeersCatalog = beers,
   isAdminUser,
   onDeleteVariant,
+  isPrivate = false,
+  isFriend = false,
+  currentUserNick = '',
 }) => {
   const [activeTab, setActiveTab] = useState<'collection' | 'posts' | 'stats' | 'ratings'>('posts');
 
@@ -265,8 +271,78 @@ export const PublicProfileView: React.FC<PublicProfileViewProps> = ({
         </div>
       </header>
 
-      <div className="page-container" style={{ marginTop: '-40px', paddingTop: '30px' }}>
-        {/* Tab control bar */}
+      {isPrivate && !isFriend && username.toLowerCase() !== currentUserNick.toLowerCase() && !isAdminUser ? (
+        <div className="page-container" style={{ marginTop: '-40px', paddingTop: '30px' }}>
+          {/* Private Profile Banner */}
+          <div
+            style={{
+              background: 'linear-gradient(135deg, #FFFBEB 0%, #FEF3C7 100%)',
+              border: '1px solid #FCD34D',
+              borderRadius: '20px',
+              padding: '16px 20px',
+              marginBottom: '24px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '14px',
+              boxShadow: '0 2px 10px rgba(245, 158, 11, 0.15)',
+            }}
+          >
+            <div style={{ width: '42px', height: '42px', borderRadius: '50%', background: '#F59E0B', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+              <span className="material-symbols-outlined" style={{ fontSize: '24px' }}>
+                lock
+              </span>
+            </div>
+            <div style={{ textAlign: 'left' }}>
+              <h4 style={{ margin: '0 0 2px 0', fontSize: '15px', color: '#92400E', fontWeight: 'bold' }}>
+                Profilo Privato
+              </h4>
+              <p style={{ margin: 0, fontSize: '12px', color: '#78350F', lineHeight: '1.4' }}>
+                Le foto, le valutazioni e le statistiche di @{username} sono visibili solo agli amici.<br />
+                Le sue medaglie conquistate rimangono visibili a tutti!
+              </p>
+            </div>
+          </div>
+
+          {/* Medaglie Brand Section */}
+          <div style={{ background: 'var(--white)', borderRadius: '20px', padding: '16px', border: '1px solid var(--gray)', boxShadow: 'var(--card-shadow)', marginBottom: '20px' }}>
+            <h3 style={{ margin: '0 0 12px 0', color: 'var(--dark)', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '16px', borderBottom: '2px solid var(--gray)', paddingBottom: '8px' }}>
+              <span className="material-symbols-outlined" style={{ color: 'var(--gold)' }}>workspace_premium</span>
+              Medaglie Brand
+            </h3>
+            <TrophyGrid
+              pokedex={pokedex}
+              isPub={true}
+              variantSortOption={variantSort}
+              variantSortDir={variantSortDir}
+              medalSortOption={medalSort}
+              medalSortDir={medalSortDir}
+              showDeleteButton={false}
+              mode="medals"
+            />
+          </div>
+
+          {/* Medaglie Evento Section */}
+          <div style={{ background: 'var(--white)', borderRadius: '20px', padding: '16px', border: '1px solid var(--gray)', boxShadow: 'var(--card-shadow)' }}>
+            <h3 style={{ margin: '0 0 12px 0', color: 'var(--dark)', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '16px', borderBottom: '2px solid var(--gray)', paddingBottom: '8px' }}>
+              <span className="material-symbols-outlined" style={{ color: 'var(--primary)' }}>event_note</span>
+              Medaglie Evento
+            </h3>
+            <TrophyGrid
+              pokedex={pokedex}
+              isPub={true}
+              variantSortOption={variantSort}
+              variantSortDir={variantSortDir}
+              medalSortOption={medalSort}
+              medalSortDir={medalSortDir}
+              showDeleteButton={false}
+              mode="events"
+              userPosts={myPosts}
+            />
+          </div>
+        </div>
+      ) : (
+        <div className="page-container" style={{ marginTop: '-40px', paddingTop: '30px' }}>
+          {/* Tab control bar */}
         <div style={{
           display: 'flex',
           marginBottom: '20px',
@@ -919,7 +995,7 @@ export const PublicProfileView: React.FC<PublicProfileViewProps> = ({
           </div>
         )}
       </div>
-
+      )}
 
     </div>
   );

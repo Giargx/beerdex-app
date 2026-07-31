@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useState } from 'react';
+import { formatBeerTitle } from '../beers';
 
 export interface BeerProposalItem {
   proposalId: string;
@@ -24,6 +25,13 @@ interface AdminProposalsModalProps {
   globalDisplayNames: Record<string, string>;
 }
 
+const ItalianRegions = [
+  'Abruzzo', 'Basilicata', 'Calabria', 'Campania', 'Emilia-Romagna',
+  'Friuli-Venezia Giulia', 'Lazio', 'Liguria', 'Lombardia', 'Marche',
+  'Molise', 'Piemonte', 'Puglia', 'Sardegna', 'Sicilia', 'Toscana',
+  'Trentino-Alto Adige', 'Umbria', "Valle d'Aosta", 'Veneto'
+];
+
 export const AdminProposalsModal: React.FC<AdminProposalsModalProps> = ({
   isOpen,
   onClose,
@@ -33,18 +41,91 @@ export const AdminProposalsModal: React.FC<AdminProposalsModalProps> = ({
   globalAvatars,
   globalDisplayNames,
 }) => {
+  const [showEditMap, setShowEditMap] = useState<Record<string, boolean>>({});
+  const [editedDataMap, setEditedDataMap] = useState<Record<string, {
+    brand: string;
+    variant: string;
+    country: string;
+    regione: string;
+    rarity: "comune" | "media" | "rara";
+    desc: string;
+  }>>({});
+
   if (!isOpen) return null;
 
   const pendingProposals = proposals.filter((p) => p.status === 'pending');
+
+  const toggleEdit = (item: BeerProposalItem) => {
+    const isCurrentlyEditing = !!showEditMap[item.proposalId];
+    if (!isCurrentlyEditing && !editedDataMap[item.proposalId]) {
+      setEditedDataMap((prev) => ({
+        ...prev,
+        [item.proposalId]: {
+          brand: formatBeerTitle(item.brand),
+          variant: formatBeerTitle(item.variant),
+          country: item.country || 'Italia',
+          regione: item.regione || 'Tutte',
+          rarity: item.rarity || 'comune',
+          desc: item.desc || '',
+        },
+      }));
+    }
+    setShowEditMap((prev) => ({
+      ...prev,
+      [item.proposalId]: !isCurrentlyEditing,
+    }));
+  };
+
+  const updateField = (proposalId: string, field: string, value: any) => {
+    setEditedDataMap((prev) => ({
+      ...prev,
+      [proposalId]: {
+        ...(prev[proposalId] || {
+          brand: '',
+          variant: '',
+          country: 'Italia',
+          regione: 'Tutte',
+          rarity: 'comune',
+          desc: '',
+        }),
+        [field]: value,
+      },
+    }));
+  };
+
+  const handleAcceptClick = (item: BeerProposalItem) => {
+    const edit = editedDataMap[item.proposalId];
+    const rawBrand = edit ? edit.brand : item.brand;
+    const rawVariant = edit ? edit.variant : item.variant;
+    const rawCountry = edit ? edit.country : item.country;
+    const rawRegione = edit ? edit.regione : item.regione;
+    const rawRarity = edit ? edit.rarity : item.rarity;
+    const rawDesc = edit ? edit.desc : item.desc;
+
+    const formattedBrand = formatBeerTitle(rawBrand.trim());
+    const formattedVariant = formatBeerTitle(rawVariant.trim());
+
+    const finalProposal: BeerProposalItem = {
+      ...item,
+      brand: formattedBrand,
+      variant: formattedVariant,
+      country: rawCountry || 'Italia',
+      regione: rawCountry === 'Italia' && rawRegione && rawRegione !== 'Tutte' ? rawRegione : undefined,
+      rarity: rawRarity,
+      desc: rawDesc && rawDesc.trim() ? rawDesc.trim() : `Birra ${formattedBrand} (${formattedVariant})`,
+    };
+
+    onAcceptProposal(finalProposal);
+  };
 
   return (
     <div className="auth-modal" style={{ zIndex: 19500 }}>
       <div
         className="auth-container"
         style={{
-          maxWidth: '550px',
-          width: '94%',
-          maxHeight: '85vh',
+          maxWidth: '560px',
+          width: '95%',
+          maxHeight: '88vh',
           display: 'flex',
           flexDirection: 'column',
           boxSizing: 'border-box',
@@ -91,12 +172,22 @@ export const AdminProposalsModal: React.FC<AdminProposalsModalProps> = ({
                   minute: '2-digit',
                 });
 
+                const isEditing = !!showEditMap[item.proposalId];
+                const currentData = editedDataMap[item.proposalId] || {
+                  brand: formatBeerTitle(item.brand),
+                  variant: formatBeerTitle(item.variant),
+                  country: item.country || 'Italia',
+                  regione: item.regione || 'Tutte',
+                  rarity: item.rarity || 'comune',
+                  desc: item.desc || '',
+                };
+
                 return (
                   <div
                     key={item.proposalId}
                     style={{
                       background: 'var(--white)',
-                      border: '1px solid var(--gray)',
+                      border: isEditing ? '2px solid var(--primary)' : '1px solid var(--gray)',
                       borderRadius: '16px',
                       padding: '16px',
                       boxShadow: 'var(--card-shadow)',
@@ -120,51 +211,166 @@ export const AdminProposalsModal: React.FC<AdminProposalsModalProps> = ({
                           <div style={{ fontSize: '10px', color: 'var(--text-muted)' }}>Proposta il {dateStr}</div>
                         </div>
                       </div>
-                      <span
-                        style={{
-                          fontSize: '11px',
-                          fontWeight: 'bold',
-                          padding: '3px 8px',
-                          borderRadius: '8px',
-                          background: item.rarity === 'rara' ? '#fef3c7' : item.rarity === 'media' ? '#e0f2fe' : '#f1f5f9',
-                          color: item.rarity === 'rara' ? '#b45309' : item.rarity === 'media' ? '#0369a1' : '#475569',
-                          textTransform: 'uppercase',
-                        }}
-                      >
-                        {item.rarity}
-                      </span>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <button
+                          onClick={() => toggleEdit(item)}
+                          style={{
+                            border: '1px solid var(--gray)',
+                            background: isEditing ? '#FEF3C7' : '#F8FAFC',
+                            color: isEditing ? '#92400E' : 'var(--dark)',
+                            borderRadius: '8px',
+                            padding: '4px 10px',
+                            fontSize: '11px',
+                            fontWeight: 'bold',
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '4px'
+                          }}
+                        >
+                          <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>edit</span>
+                          {isEditing ? 'Chiudi Modifica' : 'Modifica Campi'}
+                        </button>
+                        <span
+                          style={{
+                            fontSize: '11px',
+                            fontWeight: 'bold',
+                            padding: '3px 8px',
+                            borderRadius: '8px',
+                            background: currentData.rarity === 'rara' ? '#fef3c7' : currentData.rarity === 'media' ? '#e0f2fe' : '#f1f5f9',
+                            color: currentData.rarity === 'rara' ? '#b45309' : currentData.rarity === 'media' ? '#0369a1' : '#475569',
+                            textTransform: 'uppercase',
+                          }}
+                        >
+                          {currentData.rarity}
+                        </span>
+                      </div>
                     </div>
 
-                    {/* Content & Photo */}
+                    {/* Content & Photo Display */}
                     <div style={{ display: 'flex', gap: '14px', alignItems: 'center' }}>
                       {item.photo && (
                         <div style={{ width: '80px', height: '80px', borderRadius: '12px', overflow: 'hidden', flexShrink: 0, border: '2px solid var(--gray)' }}>
-                          <img src={item.photo} alt={item.brand} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                          <img src={item.photo} alt={currentData.brand} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                         </div>
                       )}
                       <div style={{ flexGrow: 1, textAlign: 'left' }}>
                         <div style={{ fontSize: '16px', fontWeight: 900, color: 'var(--primary-dark)' }}>
-                          {item.brand}
+                          {currentData.brand}
                         </div>
                         <div style={{ fontSize: '14px', fontWeight: 'bold', color: 'var(--dark)' }}>
-                          {item.variant}
+                          {currentData.variant}
                         </div>
                         <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '2px' }}>
-                          Nazione: <strong>{item.country}</strong> {item.regione ? `(${item.regione})` : ''}
+                          Nazione: <strong>{currentData.country}</strong> {currentData.country === 'Italia' && currentData.regione && currentData.regione !== 'Tutte' ? `(${currentData.regione})` : ''}
                         </div>
-                        {item.desc && (
+                        {currentData.desc && (
                           <div style={{ fontSize: '12px', color: 'var(--dark)', marginTop: '4px', fontStyle: 'italic', background: '#F8FAFC', padding: '4px 8px', borderRadius: '6px' }}>
-                            "{item.desc}"
+                            "{currentData.desc}"
                           </div>
                         )}
                       </div>
                     </div>
 
+                    {/* EDITABLE FORM FOR ADMIN */}
+                    {isEditing && (
+                      <div style={{ background: '#FFFDF5', border: '1px dashed #F59E0B', borderRadius: '12px', padding: '12px', marginTop: '4px', textAlign: 'left' }}>
+                        <div style={{ fontSize: '12px', fontWeight: 'bold', color: '#92400E', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                          <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>tune</span>
+                          Modifica Campi Proposta prima di Approvare:
+                        </div>
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '8px' }}>
+                          <div>
+                            <label style={{ fontSize: '11px', fontWeight: 'bold', display: 'block', marginBottom: '2px' }}>Marca / Birrificio</label>
+                            <input
+                              type="text"
+                              value={currentData.brand}
+                              onChange={(e) => updateField(item.proposalId, 'brand', e.target.value)}
+                              style={{ width: '100%', boxSizing: 'border-box', padding: '6px 8px', fontSize: '12px', margin: 0 }}
+                            />
+                          </div>
+                          <div>
+                            <label style={{ fontSize: '11px', fontWeight: 'bold', display: 'block', marginBottom: '2px' }}>Variante / Stile</label>
+                            <input
+                              type="text"
+                              value={currentData.variant}
+                              onChange={(e) => updateField(item.proposalId, 'variant', e.target.value)}
+                              style={{ width: '100%', boxSizing: 'border-box', padding: '6px 8px', fontSize: '12px', margin: 0 }}
+                            />
+                          </div>
+                        </div>
+
+                        <div style={{ display: 'grid', gridTemplateColumns: currentData.country === 'Italia' ? '1fr 1fr 1fr' : '1fr 1fr', gap: '8px', marginBottom: '8px' }}>
+                          <div>
+                            <label style={{ fontSize: '11px', fontWeight: 'bold', display: 'block', marginBottom: '2px' }}>Nazione</label>
+                            <select
+                              value={currentData.country}
+                              onChange={(e) => updateField(item.proposalId, 'country', e.target.value)}
+                              style={{ width: '100%', padding: '6px', fontSize: '12px', borderRadius: '8px' }}
+                            >
+                              <option value="Italia">Italia</option>
+                              <option value="Germania">Germania</option>
+                              <option value="Belgio">Belgio</option>
+                              <option value="Paesi Bassi">Paesi Bassi</option>
+                              <option value="Repubblica Ceca">Repubblica Ceca</option>
+                              <option value="Danimarca">Danimarca</option>
+                              <option value="Spagna">Spagna</option>
+                              <option value="Francia">Francia</option>
+                              <option value="Irlanda">Irlanda</option>
+                              <option value="Scozia">Scozia</option>
+                              <option value="Portogallo">Portogallo</option>
+                              <option value="Messico">Messico</option>
+                              <option value="Stati Uniti">Stati Uniti</option>
+                            </select>
+                          </div>
+
+                          {currentData.country === 'Italia' && (
+                            <div>
+                              <label style={{ fontSize: '11px', fontWeight: 'bold', display: 'block', marginBottom: '2px' }}>Regione</label>
+                              <select
+                                value={currentData.regione || 'Tutte'}
+                                onChange={(e) => updateField(item.proposalId, 'regione', e.target.value)}
+                                style={{ width: '100%', padding: '6px', fontSize: '12px', borderRadius: '8px' }}
+                              >
+                                <option value="Tutte">Nessuna specifica</option>
+                                {ItalianRegions.map((reg) => (
+                                  <option key={reg} value={reg}>{reg}</option>
+                                ))}
+                              </select>
+                            </div>
+                          )}
+
+                          <div>
+                            <label style={{ fontSize: '11px', fontWeight: 'bold', display: 'block', marginBottom: '2px' }}>Rarità</label>
+                            <select
+                              value={currentData.rarity}
+                              onChange={(e) => updateField(item.proposalId, 'rarity', e.target.value as any)}
+                              style={{ width: '100%', padding: '6px', fontSize: '12px', borderRadius: '8px' }}
+                            >
+                              <option value="comune">Comune (1 pt)</option>
+                              <option value="media">Media (2 pt)</option>
+                              <option value="rara">Rara (5 pt)</option>
+                            </select>
+                          </div>
+                        </div>
+
+                        <div>
+                          <label style={{ fontSize: '11px', fontWeight: 'bold', display: 'block', marginBottom: '2px' }}>Descrizione / Note</label>
+                          <input
+                            type="text"
+                            value={currentData.desc || ''}
+                            onChange={(e) => updateField(item.proposalId, 'desc', e.target.value)}
+                            style={{ width: '100%', boxSizing: 'border-box', padding: '6px 8px', fontSize: '12px', margin: 0 }}
+                          />
+                        </div>
+                      </div>
+                    )}
+
                     {/* Action Buttons */}
                     <div style={{ display: 'flex', gap: '10px', marginTop: '4px' }}>
                       <button
                         className="btn-main"
-                        onClick={() => onAcceptProposal(item)}
+                        onClick={() => handleAcceptClick(item)}
                         style={{
                           flex: 1,
                           margin: 0,

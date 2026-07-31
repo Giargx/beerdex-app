@@ -13,6 +13,8 @@ interface BeerCardProps {
   onDeleteVariant: (brand: string, variant: string) => void;
   onOpenProposeModal?: (brandPrefill: string) => void;
   onRateBeer?: (brand: string, variant: string, rating: number) => void;
+  isAdminUser?: boolean;
+  onDeleteCustomBeerCatalog?: (brand: string) => void;
 }
 
 export const BeerCard: React.FC<BeerCardProps> = ({
@@ -24,6 +26,8 @@ export const BeerCard: React.FC<BeerCardProps> = ({
   onDeleteVariant,
   onOpenProposeModal,
   onRateBeer,
+  isAdminUser,
+  onDeleteCustomBeerCatalog,
 }) => {
   // Check if all variants are completed
   const brandTotal = beer.variants.length;
@@ -62,17 +66,45 @@ export const BeerCard: React.FC<BeerCardProps> = ({
         
         <h2 style={{ marginTop: 0, fontSize: '17px', lineHeight: '1.2', wordBreak: 'break-word', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '6px' }}>
           <span>{beer.brand}</span>
-          <span
-            className="trophy"
-            style={{
-              display: isCompleted ? 'inline-block' : 'none',
-              color: 'var(--primary-dark)',
-              fontSize: '22px',
-              flexShrink: 0,
-            }}
-          >
-            <span className="material-symbols-outlined">workspace_premium</span>
-          </span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+            {isAdminUser && onDeleteCustomBeerCatalog && (
+              <button
+                className="btn-delete"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onDeleteCustomBeerCatalog(beer.brand);
+                }}
+                style={{
+                  background: '#FEE2E2',
+                  color: '#DC2626',
+                  border: '1px solid #FCA5A5',
+                  borderRadius: '8px',
+                  padding: '3px 7px',
+                  cursor: 'pointer',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '3px',
+                  fontSize: '11px',
+                  fontWeight: 'bold',
+                }}
+                title="Elimina marca/categoria dal catalogo (Admin)"
+              >
+                <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>delete_forever</span>
+                Elimina Marca
+              </button>
+            )}
+            <span
+              className="trophy"
+              style={{
+                display: isCompleted ? 'inline-block' : 'none',
+                color: 'var(--primary-dark)',
+                fontSize: '22px',
+                flexShrink: 0,
+              }}
+            >
+              <span className="material-symbols-outlined">workspace_premium</span>
+            </span>
+          </div>
         </h2>
         
         <div className="desc" style={{ fontSize: '12px', lineHeight: '1.35', color: 'var(--text-muted)', marginBottom: '8px', wordBreak: 'break-word' }}>{beer.desc}</div>
