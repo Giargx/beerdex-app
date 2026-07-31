@@ -11,22 +11,26 @@ export const AgeGateModal: React.FC<AgeGateModalProps> = ({ isOpen, onConfirm, o
 
   return (
     <div className="auth-modal" style={{ zIndex: 15000 }}>
-      <div className="auth-container">
-        <h1 style={{ fontSize: '40px', margin: 0, color: 'var(--danger)' }}>
-          <span className="material-symbols-outlined" style={{ fontSize: '60px' }}>
-            no_drinks
+      <div className="auth-container" style={{ borderRadius: '24px', padding: '28px 20px' }}>
+        <h1 style={{ fontSize: '40px', margin: '0 0 10px 0', color: 'var(--primary-dark)' }}>
+          <span className="material-symbols-outlined" style={{ fontSize: '56px' }}>
+            sports_bar
           </span>
         </h1>
-        <h2 style={{ color: 'var(--dark)' }}>Sei maggiorenne?</h2>
-        <p style={{ color: 'var(--text-muted)', fontSize: '14px', marginBottom: '20px' }}>
-          L'accesso a questa applicazione è consentito solo alle persone in età legale per il consumo di alcolici nel proprio paese di residenza.
+        <h2 style={{ color: 'var(--dark)', fontSize: '20px', margin: '0 0 8px 0', fontWeight: 800 }}>
+          Benvenuto su BeerDex!
+        </h2>
+        <p style={{ color: 'var(--text-muted)', fontSize: '13px', marginBottom: '22px', lineHeight: 1.5 }}>
+          Per accedere alla collezione e condividere le tue birre devi essere maggiorenne. Hai già compiuto 18 anni?
         </p>
-        <button className="btn-main" onClick={onConfirm} style={{ justifyContent: 'center' }}>
-          SÌ, SONO MAGGIORENNE
-        </button>
-        <button className="btn-secondary" onClick={onReject} style={{ justifyContent: 'center' }}>
-          NO, NON LO SONO
-        </button>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+          <button className="btn-main" onClick={onConfirm} style={{ justifyContent: 'center', width: '100%', margin: 0 }}>
+            SÌ, HO ALMENO 18 ANNI
+          </button>
+          <button className="btn-secondary" onClick={onReject} style={{ justifyContent: 'center', width: '100%', margin: 0 }}>
+            NO, NON ANCORA
+          </button>
+        </div>
       </div>
     </div>
   );

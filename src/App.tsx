@@ -830,16 +830,30 @@ export default function App() {
       if (touchStartX.current === 0) return;
       const currentX = e.changedTouches[0].clientX;
       const currentY = e.changedTouches[0].clientY;
-      const diffX = currentX - touchStartX.current;
+      const rawDiffX = currentX - touchStartX.current;
       const diffY = currentY - touchStartY.current;
 
-      if (isHorizontalSwipe.current === null) {
-        if (Math.abs(diffX) < 6 && Math.abs(diffY) < 6) return;
+      const currentIndex = mainTabs.indexOf(currentPage);
 
-        if (Math.abs(diffX) > Math.abs(diffY)) {
+      // Clamp boundary dragging:
+      // On first tab (Home, index 0), do NOT allow dragging right (rawDiffX > 0)
+      // On last tab (Profile, index 4), do NOT allow dragging left (rawDiffX < 0)
+      let diffX = rawDiffX;
+      if (isMainTab) {
+        if (currentIndex === 0 && rawDiffX > 0) {
+          diffX = 0;
+        } else if (currentIndex === mainTabs.length - 1 && rawDiffX < 0) {
+          diffX = 0;
+        }
+      }
+
+      if (isHorizontalSwipe.current === null) {
+        if (Math.abs(rawDiffX) < 6 && Math.abs(diffY) < 6) return;
+
+        if (Math.abs(rawDiffX) > Math.abs(diffY)) {
           // If on a sub-page or settings drawer, ONLY allow swipe if touch started at left edge (<= 45px) moving right
           if (!isMainTab) {
-            if (touchStartX.current <= 45 && diffX > 0) {
+            if (touchStartX.current <= 45 && rawDiffX > 0) {
               isHorizontalSwipe.current = true;
             } else {
               isHorizontalSwipe.current = false;
@@ -856,14 +870,17 @@ export default function App() {
         }
       }
 
-      if (isHorizontalSwipe.current && isMainTab) {
+      if (isHorizontalSwipe.current && isMainTab && diffX !== 0) {
         if (e.cancelable) {
           e.preventDefault();
         }
-        setIsDragging(true);
-        requestAnimationFrame(() => {
-          setDragOffset(diffX);
-        });
+        // Direct GPU hardware-accelerated DOM style transform update (0 lag, 60/120fps)
+        const container = document.querySelector('.main-tabs-slider-container') as HTMLElement;
+        if (container) {
+          const basePercent = -currentIndex * 20;
+          container.style.transition = 'none';
+          container.style.transform = `translate3d(calc(${basePercent}% + ${diffX}px), 0, 0)`;
+        }
       }
     };
 
@@ -871,10 +888,16 @@ export default function App() {
       if (touchStartX.current === 0) return;
       const currentX = e.changedTouches[0].clientX;
       const currentY = e.changedTouches[0].clientY;
-      const diffX = currentX - touchStartX.current;
+      const rawDiffX = currentX - touchStartX.current;
       const diffY = currentY - touchStartY.current;
 
-      const isEdgeBack = touchStartX.current <= 45 && diffX > 50 && Math.abs(diffY) < 60;
+      const isEdgeBack = touchStartX.current <= 45 && rawDiffX > 50 && Math.abs(diffY) < 60;
+      const container = document.querySelector('.main-tabs-slider-container') as HTMLElement;
+
+      if (container) {
+        container.style.transition = '';
+        container.style.transform = '';
+      }
 
       if (isEdgeBack) {
         // iOS-style Edge Swipe Back on sub-pages or drawers
@@ -891,19 +914,17 @@ export default function App() {
         } else if (currentPage === 'page-rules') {
           navigateTo('page-profile');
         }
-      } else if (isMainTab && isHorizontalSwipe.current && isDragging) {
+      } else if (isMainTab && isHorizontalSwipe.current) {
         const threshold = window.innerWidth * 0.15; // 15% threshold for switching main tab
         const currentIndex = mainTabs.indexOf(currentPage);
 
-        if (diffX < -threshold && currentIndex < mainTabs.length - 1) {
+        if (rawDiffX < -threshold && currentIndex < mainTabs.length - 1) {
           navigateTo(mainTabs[currentIndex + 1]);
-        } else if (diffX > threshold && currentIndex > 0) {
+        } else if (rawDiffX > threshold && currentIndex > 0) {
           navigateTo(mainTabs[currentIndex - 1]);
         }
       }
 
-      setIsDragging(false);
-      setDragOffset(0);
       touchStartX.current = 0;
       touchStartY.current = 0;
       isHorizontalSwipe.current = null;
@@ -934,7 +955,6 @@ export default function App() {
     alertConfig.open,
     confirmConfig.open,
     zoomedAvatarUrl,
-    isDragging,
   ]);
 
   // Alert and Confirm Utilities
