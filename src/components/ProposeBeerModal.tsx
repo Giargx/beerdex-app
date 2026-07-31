@@ -29,7 +29,6 @@ export const ProposeBeerModal: React.FC<ProposeBeerModalProps> = ({
   onClose,
   initialBrandSearch = '',
   initialVariantPrefill = '',
-  initialRarityPrefill = 'comune',
   initialDescPrefill = '',
   allBeersCatalog = [],
   onSubmitProposal,
