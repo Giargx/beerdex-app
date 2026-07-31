@@ -14,6 +14,9 @@ interface ProposeBeerModalProps {
   isOpen: boolean;
   onClose: () => void;
   initialBrandSearch?: string;
+  initialVariantPrefill?: string;
+  initialRarityPrefill?: "comune" | "media" | "rara";
+  initialDescPrefill?: string;
   onSubmitProposal: (proposalData: BeerProposalData) => void;
 }
 
@@ -21,30 +24,33 @@ export const ProposeBeerModal: React.FC<ProposeBeerModalProps> = ({
   isOpen,
   onClose,
   initialBrandSearch = '',
+  initialVariantPrefill = '',
+  initialRarityPrefill = 'comune',
+  initialDescPrefill = '',
   onSubmitProposal,
 }) => {
   const [brand, setBrand] = useState(initialBrandSearch);
-  const [variant, setVariant] = useState('');
+  const [variant, setVariant] = useState(initialVariantPrefill);
   const [country, setCountry] = useState('Italia');
   const [regione, setRegione] = useState('Tutte');
-  const [rarity, setRarity] = useState<"comune" | "media" | "rara">('comune');
-  const [desc, setDesc] = useState('');
+  const [rarity, setRarity] = useState<"comune" | "media" | "rara">(initialRarityPrefill);
+  const [desc, setDesc] = useState(initialDescPrefill);
   const [photoBase64, setPhotoBase64] = useState<string>('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
 
   useEffect(() => {
     if (isOpen) {
-      setBrand(initialBrandSearch);
-      setVariant('');
+      setBrand(initialBrandSearch || '');
+      setVariant(initialVariantPrefill || '');
       setCountry('Italia');
       setRegione('Tutte');
-      setRarity('comune');
-      setDesc('');
+      setRarity(initialRarityPrefill || 'comune');
+      setDesc(initialDescPrefill || '');
       setPhotoBase64('');
       setErrorMessage('');
     }
-  }, [isOpen, initialBrandSearch]);
+  }, [isOpen, initialBrandSearch, initialVariantPrefill, initialRarityPrefill, initialDescPrefill]);
 
   if (!isOpen) return null;
 

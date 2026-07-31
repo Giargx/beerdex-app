@@ -20,6 +20,8 @@ interface ProfileViewProps {
   onOpenAdminProposals?: () => void;
   pendingProposalsCount?: number;
   onRateBeer?: (brand: string, variant: string, rating: number) => void;
+  myReceivedRequests?: string[];
+  onNavigateToFriends?: () => void;
 }
 
 export const ProfileView: React.FC<ProfileViewProps> = ({
@@ -38,6 +40,8 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
   onOpenAdminProposals,
   pendingProposalsCount = 0,
   onRateBeer,
+  myReceivedRequests = [],
+  onNavigateToFriends,
 }) => {
   const [activeTab, setActiveTab] = useState<'collection' | 'posts' | 'stats' | 'ratings'>('posts');
   const [variantSort, setVariantSort] = useState<'alpha' | 'unlocked' | 'rarity' | 'nation'>('unlocked');
@@ -264,6 +268,45 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
           </div>
         </div>
       </div>
+
+      {myReceivedRequests && myReceivedRequests.length > 0 && onNavigateToFriends && (
+        <div style={{ padding: '0 20px', marginTop: '12px', marginBottom: '4px' }}>
+          <button
+            onClick={onNavigateToFriends}
+            style={{
+              width: '100%',
+              background: 'linear-gradient(135deg, #FFFBEB 0%, #FEF3C7 100%)',
+              border: '1px solid #FCD34D',
+              color: '#92400E',
+              padding: '12px 16px',
+              borderRadius: '16px',
+              fontWeight: 'bold',
+              fontSize: '13px',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              boxShadow: '0 2px 8px rgba(245, 158, 11, 0.15)'
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span
+                style={{
+                  width: '8px',
+                  height: '8px',
+                  borderRadius: '50%',
+                  background: '#EF4444',
+                  boxShadow: '0 0 6px rgba(239, 68, 68, 0.9)',
+                }}
+              />
+              <span>Hai {myReceivedRequests.length} richiesta/e di amicizia in attesa!</span>
+            </div>
+            <span style={{ fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.5px', textDecoration: 'underline' }}>
+              Gestisci
+            </span>
+          </button>
+        </div>
+      )}
 
       {isAdminUser && onOpenAdminProposals && (
         <div style={{ padding: '0 20px', marginTop: '12px', marginBottom: '8px' }}>

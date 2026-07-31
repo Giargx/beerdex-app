@@ -1,6 +1,6 @@
 import React from 'react';
 import { Html5Qrcode, Html5QrcodeSupportedFormats } from 'html5-qrcode';
-import { beers } from '../beers';
+import { beers, type Beer } from '../beers';
 
 interface ScannerModalProps {
   isOpen: boolean;
@@ -10,6 +10,8 @@ interface ScannerModalProps {
   showAlert: (message: string, title?: string, showOk?: boolean, callback?: () => void) => void;
   showConfirm: (message: string, title: string, onConfirm: () => void) => void;
   hideAlert: () => void;
+  allBeersCatalog?: Beer[];
+  onRedirectToPropose?: (prefill: { brand: string; variant: string; rarity: "comune" | "media" | "rara"; desc?: string }) => void;
 }
 
 // Synonyms map to resolve parent companies, spelling variations, and cataloging anomalies in Open Food Facts
@@ -97,6 +99,69 @@ const normalize = (s: string) =>
     .toLowerCase()
     .replace(/[^a-z0-9]/g, "");
 
+// Helper to extract brand, variant, rarity and description from Open Food Facts product data
+export const extractBeerDetailsFromOFF = (prod: any) => {
+  const prodName = (prod.product_name || prod.product_name_it || prod.product_name_en || "").trim();
+  const rawBrand = (prod.brands || "").split(',')[0].trim();
+  
+  let brand = rawBrand;
+  let variant = prodName;
+
+  if (brand && prodName) {
+    const normBrand = normalize(brand);
+    const normProdName = normalize(prodName);
+    
+    if (normProdName.startsWith(normBrand)) {
+      const sliceLength = brand.length;
+      let remaining = prodName.slice(sliceLength).trim();
+      remaining = remaining.replace(/^[:\-\s]+/, '').trim();
+      if (remaining.length > 0) {
+        variant = remaining;
+      }
+    }
+  } else if (!brand && prodName) {
+    const words = prodName.split(' ');
+    if (words.length > 1) {
+      brand = words[0];
+      variant = words.slice(1).join(' ');
+    } else {
+      brand = prodName;
+      variant = "Classica";
+    }
+  }
+
+  const textToAnalyze = `${prodName} ${prod.categories || ''} ${prod.categories_tags ? prod.categories_tags.join(' ') : ''}`.toLowerCase();
+  
+  let rarity: "comune" | "media" | "rara" = "comune";
+
+  const rareKeywords = [
+    "trappist", "trappiste", "abbey", "abbazia", "lambic", "geuze", "gueuze", 
+    "barley wine", "barleywine", "imperial stout", "quadrupel", "wild ale", "sour ale", "craft", "artigianale"
+  ];
+  const mediumKeywords = [
+    "ipa", "indian pale ale", "double ipa", "dipa", "neipa", "stout", "porter", 
+    "bock", "doppelbock", "weisse", "weissbier", "witbier", "blanche", "tripel", 
+    "dubbel", "strong ale", "amber ale", "rossa", "ambrata", "gran riserva", "speciale"
+  ];
+
+  if (rareKeywords.some(kw => textToAnalyze.includes(kw))) {
+    rarity = "rara";
+  } else if (mediumKeywords.some(kw => textToAnalyze.includes(kw))) {
+    rarity = "media";
+  } else {
+    rarity = "comune";
+  }
+
+  const desc = prodName ? `Birra ${prodName}` : undefined;
+
+  return {
+    brand: brand || prodName || "Nuova Birra",
+    variant: variant || "Classica",
+    rarity,
+    desc
+  };
+};
+
 // Check if the scanned brand matches the target brand, including synonyms
 const checkBrandMatch = (targetBrand: string, scannedBrand: string, productName: string): boolean => {
   const targetLower = targetBrand.toLowerCase();
@@ -125,7 +190,7 @@ const checkBrandMatch = (targetBrand: string, scannedBrand: string, productName:
 };
 
 // Checks if the scanned product is a known different beer brand from our list
-const getIdentifiedBrand = (scannedBrand: string, productName: string, targetBrand: string): string | null => {
+const getIdentifiedBrand = (scannedBrand: string, productName: string, targetBrand: string, catalog: Beer[] = beers): string | null => {
   const targetLower = targetBrand.toLowerCase();
   const scannedLower = scannedBrand.toLowerCase();
   const prodNameLower = productName.toLowerCase();
@@ -144,8 +209,16 @@ const getIdentifiedBrand = (scannedBrand: string, productName: string, targetBra
       // Strict matching for other brands to avoid false flags
       if (scannedNorm === synNorm || (scannedNorm.length > 3 && scannedNorm.includes(synNorm)) || prodNameNorm.includes(synNorm)) {
         // Return the user-friendly name of the identified brand
-        return beers.find((b) => b.brand.toLowerCase() === brandKey)?.brand || brandKey;
+        return catalog.find((b) => b.brand.toLowerCase() === brandKey)?.brand || brandKey;
       }
+    }
+  }
+
+  for (const b of catalog) {
+    if (b.brand.toLowerCase() === targetLower) continue;
+    const bNorm = normalize(b.brand);
+    if (scannedNorm === bNorm || (scannedNorm.length > 3 && scannedNorm.includes(bNorm)) || prodNameNorm.includes(bNorm)) {
+      return b.brand;
     }
   }
 
@@ -267,8 +340,12 @@ export const ScannerModal: React.FC<ScannerModalProps> = ({
   showAlert,
   showConfirm,
   hideAlert,
+  allBeersCatalog,
+  onRedirectToPropose,
 }) => {
   if (!isOpen) return null;
+
+  const catalog = allBeersCatalog || beers;
 
   const handleBarcodePhoto = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -305,7 +382,7 @@ export const ScannerModal: React.FC<ScannerModalProps> = ({
           .then((res) => res.json())
           .then((data) => {
             hideAlert();
-            const targetBeer = beers.find((b) => b.brand === currentTargetBrand);
+            const targetBeer = catalog.find((b) => b.brand === currentTargetBrand);
 
             const proceedToCapture = () => {
               if (targetBeer?.barcodes && targetBeer.barcodes.length > 0) {
@@ -334,15 +411,15 @@ export const ScannerModal: React.FC<ScannerModalProps> = ({
                 return;
               }
 
-              // 2. Strict anti-cheat: check if the brand matches
+              // 2. Check if the brand matches target
               const matchesTarget = checkBrandMatch(currentTargetBrand, prod.brands || "", prodName);
 
               if (!matchesTarget) {
                 // Check if it belongs to a known different brand in our database
-                const identifiedBrand = getIdentifiedBrand(prod.brands || "", prodName, currentTargetBrand);
+                const identifiedBrand = getIdentifiedBrand(prod.brands || "", prodName, currentTargetBrand, catalog);
 
                 if (identifiedBrand) {
-                  // Block them completely (no bypass allowed since it's confirmed to be a different brand)
+                  // Block them completely (no bypass allowed since it's confirmed to be a different brand in our database)
                   showAlert(
                     `Hai inquadrato una birra di marca "${identifiedBrand}" (${prodName}), ma stai cercando di sbloccare "${currentTargetBrand}". Gioca pulito!`,
                     "Sblocco Bloccato",
@@ -353,21 +430,42 @@ export const ScannerModal: React.FC<ScannerModalProps> = ({
                   );
                   return;
                 } else {
-                  // If the brand is empty or unknown (craft beers not in our DB), allow them to proceed after confirmation
+                  // The scanned beer is NOT in our catalog! Re-direct to Proponi with prefilled info!
+                  const extracted = extractBeerDetailsFromOFF(prod);
                   showConfirm(
-                    `Il codice corrisponde a "${prodName}" di marca "${prod.brands || 'Non Specificata'}" (invece di "${currentTargetBrand}"). Vuoi procedere comunque?`,
-                    "Marca Rilevata Differente",
-                    proceedToCapture
+                    `Rilevata birra: "${extracted.brand} - ${extracted.variant}".\n\nQuesta birra non è ancora presente nel catalogo di BeerDex! Vuoi andare alla pagina Proponi per aggiungerla con il nome e la rarità (${extracted.rarity}) già compilati?`,
+                    "Birra non in catalogo",
+                    () => {
+                      onClose();
+                      if (onRedirectToPropose) {
+                        onRedirectToPropose({
+                          brand: extracted.brand,
+                          variant: extracted.variant,
+                          rarity: extracted.rarity,
+                          desc: extracted.desc,
+                        });
+                      }
+                    }
                   );
                   return;
                 }
               }
             } else {
-              // Barcode not found on Open Food Facts: allow bypass in case of new/unlisted beers
+              // Barcode not found on Open Food Facts: ask if user wants to propose it or proceed
               showConfirm(
-                `Questo codice non è stato trovato nel database globale degli alimenti. Assicurati che si tratti di una birra e che sia del marchio "${currentTargetBrand}". Vuoi procedere comunque?`,
+                `Questo codice non è stato trovato nel database globale degli alimenti. Se si tratta di una nuova birra non presente nel catalogo, vuoi proporla agli admin?`,
                 "Prodotto non catalogato",
-                proceedToCapture
+                () => {
+                  onClose();
+                  if (onRedirectToPropose) {
+                    onRedirectToPropose({
+                      brand: currentTargetBrand,
+                      variant: '',
+                      rarity: 'comune',
+                      desc: `Birra con codice a barre ${decodedText}`
+                    });
+                  }
+                }
               );
               return;
             }
@@ -378,7 +476,7 @@ export const ScannerModal: React.FC<ScannerModalProps> = ({
             console.error("Open Food Facts API error:", err);
             hideAlert();
 
-            const targetBeer = beers.find((b) => b.brand === currentTargetBrand);
+            const targetBeer = catalog.find((b) => b.brand === currentTargetBrand);
             if (targetBeer?.barcodes && targetBeer.barcodes.length > 0) {
               if (!targetBeer.barcodes.includes(decodedText)) {
                 showAlert("Il codice a barre non corrisponde a questa birra. Riprova!", "Codice Errato");
@@ -433,6 +531,19 @@ export const ScannerModal: React.FC<ScannerModalProps> = ({
         >
           <span className="material-symbols-outlined">local_drink</span> È alla spina (Salta Scanner)
         </button>
+
+        {onRedirectToPropose && (
+          <button
+            className="btn-secondary"
+            onClick={() => {
+              onClose();
+              onRedirectToPropose({ brand: currentTargetBrand, variant: '', rarity: 'comune' });
+            }}
+            style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', textAlign: 'center', padding: '12px', marginTop: '10px', cursor: 'pointer', width: '100%', boxSizing: 'border-box' }}
+          >
+            <span className="material-symbols-outlined">add_circle</span> La birra non c'è? Proponila ora
+          </button>
+        )}
 
         <button
           className="btn-secondary"

@@ -104,6 +104,29 @@ export default function App() {
   const [beerProposals, setBeerProposals] = useState<BeerProposalItem[]>([]);
   const [proposeModalOpen, setProposeModalOpen] = useState<boolean>(false);
   const [proposeBrandPrefill, setProposeBrandPrefill] = useState<string>('');
+  const [proposeVariantPrefill, setProposeVariantPrefill] = useState<string>('');
+  const [proposeRarityPrefill, setProposeRarityPrefill] = useState<"comune" | "media" | "rara">('comune');
+  const [proposeDescPrefill, setProposeDescPrefill] = useState<string>('');
+
+  const handleOpenProposeModal = (prefill?: { brand?: string; variant?: string; rarity?: "comune" | "media" | "rara"; desc?: string } | string) => {
+    if (typeof prefill === 'string') {
+      setProposeBrandPrefill(prefill);
+      setProposeVariantPrefill('');
+      setProposeRarityPrefill('comune');
+      setProposeDescPrefill('');
+    } else if (prefill) {
+      setProposeBrandPrefill(prefill.brand || '');
+      setProposeVariantPrefill(prefill.variant || '');
+      setProposeRarityPrefill(prefill.rarity || 'comune');
+      setProposeDescPrefill(prefill.desc || '');
+    } else {
+      setProposeBrandPrefill('');
+      setProposeVariantPrefill('');
+      setProposeRarityPrefill('comune');
+      setProposeDescPrefill('');
+    }
+    setProposeModalOpen(true);
+  };
   const [adminProposalsModalOpen, setAdminProposalsModalOpen] = useState<boolean>(false);
   const [unlockRatingModalState, setUnlockRatingModalState] = useState<{ isOpen: boolean; brand: string; variant: string; photo?: string } | null>(null);
 
@@ -1119,6 +1142,20 @@ export default function App() {
 
   // Friends actions
   const handleAddFriend = async (targetNick: string) => {
+    if (myReceivedRequests.includes(targetNick)) {
+      showAlert(
+        `Esiste già una richiesta di amicizia pendente da parte di @${targetNick}! Vai nella sezione delle richieste di amicizia per accettarla.`,
+        'Richiesta Pendente'
+      );
+      return;
+    }
+    if (mySentRequests.includes(targetNick)) {
+      showAlert(
+        `Hai già inviato una richiesta di amicizia a @${targetNick} che è in attesa di risposta.`,
+        'Richiesta Già Inviata'
+      );
+      return;
+    }
     await set(ref(db, `friend_requests/${targetNick}/${currentUserNick}`), true);
     await set(ref(db, `friend_requests_sent/${currentUserNick}/${targetNick}`), true);
   };
@@ -1386,11 +1423,15 @@ export default function App() {
       <ScannerModal
         isOpen={scannerConfig.open}
         currentTargetBrand={scannerConfig.brand}
+        allBeersCatalog={allBeersCatalog}
         onClose={() => setScannerConfig((prev) => ({ ...prev, open: false }))}
         onSuccess={handleScannerSuccess}
         showAlert={showAlert}
         showConfirm={showConfirm}
         hideAlert={hideAlert}
+        onRedirectToPropose={(prefill) => {
+          handleOpenProposeModal(prefill);
+        }}
       />
 
       {/* Pokedex Photo upload trigger modal */}
@@ -1975,8 +2016,7 @@ export default function App() {
                   onInitUnlock={handleInitUnlock}
                   onDeleteVariant={handleDeleteVariant}
                   onOpenProposeModal={(search) => {
-                    setProposeBrandPrefill(search);
-                    setProposeModalOpen(true);
+                    handleOpenProposeModal(search);
                   }}
                   onRateBeer={handleRateBeer}
                 />
@@ -2052,6 +2092,8 @@ export default function App() {
                   onOpenAdminProposals={() => setAdminProposalsModalOpen(true)}
                   pendingProposalsCount={beerProposals.filter((p: BeerProposalItem) => p.status === 'pending').length}
                   onRateBeer={handleRateBeer}
+                  myReceivedRequests={myReceivedRequests}
+                  onNavigateToFriends={() => navigateTo('page-friends')}
                 />
               )}
             </div>
@@ -2175,23 +2217,8 @@ export default function App() {
             className={`nav-item ${currentPage === 'page-leaderboard' || currentPage === 'page-public-profile' ? 'active' : ''}`}
             onClick={() => navigateTo('page-leaderboard')}
           >
-            <div className="nav-icon" style={{ position: 'relative' }}>
+            <div className="nav-icon">
               <span className="material-symbols-outlined">leaderboard</span>
-              {myReceivedRequests.length > 0 && (
-                <span
-                  style={{
-                    position: 'absolute',
-                    top: '-1px',
-                    right: '-1px',
-                    width: '8px',
-                    height: '8px',
-                    borderRadius: '50%',
-                    background: '#EF4444',
-                    boxShadow: '0 0 6px rgba(239, 68, 68, 0.9)',
-                  }}
-                  title={`${myReceivedRequests.length} richieste di amicizia ricevute`}
-                />
-              )}
             </div>
             <div className="nav-text">Classifica</div>
           </div>
@@ -2290,6 +2317,9 @@ export default function App() {
         isOpen={proposeModalOpen}
         onClose={() => setProposeModalOpen(false)}
         initialBrandSearch={proposeBrandPrefill}
+        initialVariantPrefill={proposeVariantPrefill}
+        initialRarityPrefill={proposeRarityPrefill}
+        initialDescPrefill={proposeDescPrefill}
         onSubmitProposal={handleProposeBeerSubmit}
       />
 
