@@ -296,18 +296,7 @@ export default function App() {
     }
   };
 
-  const isAnyModalOpen =
-    authOpen ||
-    ageGateOpen ||
-    settingsOpen ||
-    scannerConfig.open ||
-    captureOpen ||
-    shareOpen ||
-    avatarSelectorOpen ||
-    cropOpen ||
-    alertConfig.open ||
-    confirmConfig.open ||
-    zoomedAvatarUrl !== null;
+
 
   // check age gate on mount
   useEffect(() => {
