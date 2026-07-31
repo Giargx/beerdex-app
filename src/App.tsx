@@ -543,13 +543,15 @@ export default function App() {
       const newCustomBeer: Beer = {
         brand: proposal.brand,
         country: proposal.country,
-        regione: proposal.regione || undefined,
         flag: getCountryFlag(proposal.country),
         rarity: proposal.rarity,
         desc: proposal.desc || `Birra ${proposal.brand} (${proposal.variant})`,
         variants: [proposal.variant],
         barcodes: [],
       };
+      if (proposal.regione) {
+        newCustomBeer.regione = proposal.regione;
+      }
       await set(ref(db, `custom_beers/${proposal.proposalId}`), newCustomBeer);
 
       // 2. Unlock beer for proposing user with proposalBonus: true
