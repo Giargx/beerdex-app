@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { formatBeerTitle } from '../beers';
 import { checkImageSafety } from '../utils/imageModeration';
+import { containsProfanity } from '../utils/textFilter';
 
 export interface BeerProposalData {
   brand: string;
@@ -108,6 +109,10 @@ export const ProposeBeerModal: React.FC<ProposeBeerModalProps> = ({
     }
     if (!photoBase64) {
       setErrorMessage('Scatta o seleziona una foto della birra.');
+      return;
+    }
+    if (containsProfanity(brand) || containsProfanity(variant) || containsProfanity(desc)) {
+      setErrorMessage('La marca, la variante o la descrizione contengono termini non appropriati o blasfemi.');
       return;
     }
 

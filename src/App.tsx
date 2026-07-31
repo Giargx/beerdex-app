@@ -7,6 +7,7 @@ import { beers, getBeerPoints, countryCoordinates, normalizeStr, mergeBeers, get
 import type { Beer } from './beers';
 import { playPopSound } from './utils/audio';
 import { checkImageSafety } from './utils/imageModeration';
+import { containsProfanity } from './utils/textFilter';
 import { getEventMedals } from './components/TrophyGrid';
 
 // Import Views
@@ -138,7 +139,7 @@ export default function App() {
   const [soundEnabled, setSoundEnabled] = useState<boolean>(() => localStorage.getItem('beerdex_sounds') !== 'no');
   const [bubblesEnabled, setBubblesEnabled] = useState<boolean>(() => localStorage.getItem('beerdex_bubbles') !== 'no');
   const [gpsEnabled, setGpsEnabled] = useState<boolean>(() => localStorage.getItem('beerdex_gps') !== 'no');
-  const [privateMode, setPrivateMode] = useState<boolean>(() => localStorage.getItem('beerdex_private_mode') === 'yes');
+
 
   // Zoomed Avatar State
   const [zoomedAvatarUrl, setZoomedAvatarUrl] = useState<string | null>(null);
@@ -1287,12 +1288,29 @@ export default function App() {
       showAlert("È già il tuo nickname!");
       return;
     }
+    if (containsProfanity(nick)) {
+      showAlert("Il nickname contiene termini non appropriati o blasfemi. Scegli un nickname diverso.", "Nickname Non Valido");
+      return;
+    }
 
     try {
       const snap = await get(ref(db, `usernames_emails/${nick.toLowerCase()}`));
       if (snap.exists()) {
-        showAlert("Questo nickname è già in uso da un altro utente!");
+        showAlert("Questo nickname è già stato preso da un altro utente. Scegli un nickname univoco diverso!", "Nickname Già In Uso");
         return;
+      }
+
+      const dirSnap = await get(ref(db, 'users_directory'));
+      if (dirSnap.exists()) {
+        const dirData = dirSnap.val();
+        const isTaken = Object.entries(dirData).some(([uKey, val]: [string, any]) => {
+          if (uKey === auth.currentUser?.uid) return false;
+          return (val || '').toString().trim().toLowerCase() === nick.toLowerCase();
+        });
+        if (isTaken) {
+          showAlert("Questo nickname è già stato preso da un altro utente. Scegli un nickname univoco diverso!", "Nickname Già In Uso");
+          return;
+        }
       }
 
       const uid = auth.currentUser?.uid;
@@ -1350,6 +1368,10 @@ export default function App() {
     const dispName = newDisplayName.trim();
     if (dispName.length < 2) {
       showAlert("Il soprannome deve avere almeno 2 caratteri.");
+      return;
+    }
+    if (containsProfanity(dispName)) {
+      showAlert("Il nome visualizzato contiene termini non appropriati o blasfemi.", "Nome Non Valido");
       return;
     }
     try {
@@ -2066,28 +2088,6 @@ export default function App() {
                 />
                 <span className="slider" style={{ position: 'absolute', cursor: 'pointer', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: gpsEnabled ? 'var(--primary)' : '#cbd5e1', transition: '.3s', borderRadius: '22px' }}>
                   <span style={{ position: 'absolute', content: '""', height: '16px', width: '16px', left: gpsEnabled ? '22px' : '4px', bottom: '3px', backgroundColor: 'white', transition: '.3s', borderRadius: '50%' }}></span>
-                </span>
-              </label>
-            </div>
-
-            {/* Row Profilo Privato */}
-            <div className="settings-row-expanded" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <div style={{ flex: 1, paddingRight: '10px' }}>
-                <div className="row-label">Profilo Privato</div>
-                <div className="row-desc">Nascondi profilo da classifiche e ricerche pubbliche.</div>
-              </div>
-              <label className="switch" style={{ position: 'relative', display: 'inline-block', width: '42px', height: '22px', flexShrink: 0 }}>
-                <input 
-                  type="checkbox" 
-                  checked={privateMode} 
-                  onChange={(e) => {
-                    setPrivateMode(e.target.checked);
-                    localStorage.setItem('beerdex_private_mode', e.target.checked ? 'yes' : 'no');
-                  }}
-                  style={{ opacity: 0, width: 0, height: 0 }}
-                />
-                <span className="slider" style={{ position: 'absolute', cursor: 'pointer', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: privateMode ? 'var(--primary)' : '#cbd5e1', transition: '.3s', borderRadius: '22px' }}>
-                  <span style={{ position: 'absolute', content: '""', height: '16px', width: '16px', left: privateMode ? '22px' : '4px', bottom: '3px', backgroundColor: 'white', transition: '.3s', borderRadius: '50%' }}></span>
                 </span>
               </label>
             </div>

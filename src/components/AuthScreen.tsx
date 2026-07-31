@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { signInWithEmailAndPassword, createUserWithEmailAndPassword, sendPasswordResetEmail } from 'firebase/auth';
 import { ref, set, get } from 'firebase/database';
 import { auth, db } from '../firebase';
+import { containsProfanity } from '../utils/textFilter';
 
 interface AuthScreenProps {
   isOpen: boolean;
@@ -67,12 +68,30 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ isOpen, onAuthSuccess, s
         return;
       }
 
+      if (containsProfanity(trimmedNickname)) {
+        showAlert("Il Nickname inserito contiene termini non appropriati o blasfemi. Scegli un nickname diverso.", "Nickname Non Valido");
+        return;
+      }
+
       try {
-        // Verifica se il nickname è già in uso
+        // Verifica se il nickname è già in uso (case-insensitive)
         const nickSnap = await get(ref(db, `usernames_emails/${trimmedNickname.toLowerCase()}`));
         if (nickSnap.exists()) {
-          showAlert("Questo nickname è già in uso da un altro utente!", "Nickname in uso");
+          showAlert("Questo nickname è già in uso da un altro utente. Scegli un nickname univoco diverso!", "Nickname Già In Uso");
           return;
+        }
+
+        // Ulteriore verifica su users_directory
+        const dirSnap = await get(ref(db, 'users_directory'));
+        if (dirSnap.exists()) {
+          const dirData = dirSnap.val();
+          const isTaken = Object.values(dirData).some(
+            (val: any) => (val || '').toString().trim().toLowerCase() === trimmedNickname.toLowerCase()
+          );
+          if (isTaken) {
+            showAlert("Questo nickname è già in uso da un altro utente. Scegli un nickname univoco diverso!", "Nickname Già In Uso");
+            return;
+          }
         }
 
         const userCredential = await createUserWithEmailAndPassword(auth, trimmedEmail, password);
