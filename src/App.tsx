@@ -34,6 +34,7 @@ import type { BeerProposalData } from './components/ProposeBeerModal';
 import { AdminProposalsModal } from './components/AdminProposalsModal';
 import type { BeerProposalItem } from './components/AdminProposalsModal';
 import { UnlockRatingModal } from './components/UnlockRatingModal';
+import { PermissionModal, type PermissionType, type PermissionChoice } from './components/PermissionModal';
 
 import { FoamBubbles } from './components/FoamBubbles';
 
@@ -259,6 +260,41 @@ export default function App() {
   const isHorizontalSwipe = useRef<boolean | null>(null);
   const [dragOffset, setDragOffset] = useState<number>(0);
   const [isDragging, setIsDragging] = useState<boolean>(false);
+
+  // Permission Modal State (Location & Gallery permissions)
+  const [permissionModalState, setPermissionModalState] = useState<{
+    isOpen: boolean;
+    type: PermissionType;
+    onGranted?: () => void;
+  }>({ isOpen: false, type: 'location' });
+
+  const requestPermission = (type: PermissionType, onGranted: () => void) => {
+    const permKey = type === 'location' ? 'beerdex_location_permission' : 'beerdex_gallery_permission';
+    const stored = localStorage.getItem(permKey);
+    if (stored === 'always' || stored === 'while_using') {
+      onGranted();
+    } else if (stored === 'denied') {
+      showAlert(
+        type === 'location'
+          ? 'Hai disattivato i permessi di Posizione per BeerDex nelle impostazioni del dispositivo.'
+          : 'Hai disattivato i permessi per le Foto per BeerDex nelle impostazioni del dispositivo.',
+        'Permesso non concesso'
+      );
+    } else {
+      setPermissionModalState({ isOpen: true, type, onGranted });
+    }
+  };
+
+  const handlePermissionChoice = (choice: PermissionChoice) => {
+    const permKey = permissionModalState.type === 'location' ? 'beerdex_location_permission' : 'beerdex_gallery_permission';
+    localStorage.setItem(permKey, choice);
+    const callback = permissionModalState.onGranted;
+    setPermissionModalState((prev) => ({ ...prev, isOpen: false }));
+
+    if ((choice === 'always' || choice === 'while_using') && callback) {
+      callback();
+    }
+  };
 
   const isAnyModalOpen =
     authOpen ||
@@ -721,6 +757,14 @@ export default function App() {
     setUnlockRatingModalState(null);
     setAlertConfig((prev) => ({ ...prev, open: false }));
     setConfirmConfig((prev) => ({ ...prev, open: false }));
+    setPermissionModalState((prev) => ({ ...prev, isOpen: false }));
+
+    if (pageId === 'page-map-view') {
+      const storedLoc = localStorage.getItem('beerdex_location_permission');
+      if (!storedLoc) {
+        requestPermission('location', () => {});
+      }
+    }
 
     if (pageId === currentPage) {
       window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -2563,6 +2607,13 @@ export default function App() {
           }}
         />
       )}
+
+      {/* Permission Modal */}
+      <PermissionModal
+        isOpen={permissionModalState.isOpen}
+        type={permissionModalState.type}
+        onChoice={handlePermissionChoice}
+      />
     </>
   );
 }

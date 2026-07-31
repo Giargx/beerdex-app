@@ -229,13 +229,98 @@ export const LeaderboardView: React.FC<LeaderboardViewProps> = ({
               const rankLabel = getUserRankTitle(player.score);
               const avatar = globalAvatars[player.name];
 
-              let medalHtml: React.ReactNode = <span style={{ fontSize: '16px' }}>{index + 1}</span>;
+              let medalHtml: React.ReactNode;
               if (index === 0) {
-                medalHtml = <span className="material-symbols-outlined" style={{ fontSize: '28px' }}>looks_one</span>;
+                medalHtml = (
+                  <div
+                    style={{
+                      width: '32px',
+                      height: '32px',
+                      borderRadius: '50%',
+                      background: 'linear-gradient(135deg, #FFE066 0%, #F59E0B 100%)',
+                      color: '#78350F',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      fontWeight: 900,
+                      fontSize: '15px',
+                      boxShadow: '0 3px 8px rgba(245, 158, 11, 0.4), inset 0 1px 2px rgba(255,255,255,0.9)',
+                      border: '1.5px solid #FEF08A',
+                      flexShrink: 0,
+                    }}
+                    title="1° Posto - Oro"
+                  >
+                    🥇
+                  </div>
+                );
               } else if (index === 1) {
-                medalHtml = <span className="material-symbols-outlined" style={{ fontSize: '28px' }}>looks_two</span>;
+                medalHtml = (
+                  <div
+                    style={{
+                      width: '32px',
+                      height: '32px',
+                      borderRadius: '50%',
+                      background: 'linear-gradient(135deg, #F3F4F6 0%, #9CA3AF 100%)',
+                      color: '#1F2937',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      fontWeight: 900,
+                      fontSize: '15px',
+                      boxShadow: '0 3px 8px rgba(156, 163, 175, 0.35), inset 0 1px 2px rgba(255,255,255,0.9)',
+                      border: '1.5px solid #FFFFFF',
+                      flexShrink: 0,
+                    }}
+                    title="2° Posto - Argento"
+                  >
+                    🥈
+                  </div>
+                );
               } else if (index === 2) {
-                medalHtml = <span className="material-symbols-outlined" style={{ fontSize: '28px' }}>looks_3</span>;
+                medalHtml = (
+                  <div
+                    style={{
+                      width: '32px',
+                      height: '32px',
+                      borderRadius: '50%',
+                      background: 'linear-gradient(135deg, #FDBA74 0%, #C2410C 100%)',
+                      color: '#FFFFFF',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      fontWeight: 900,
+                      fontSize: '15px',
+                      boxShadow: '0 3px 8px rgba(194, 65, 12, 0.35), inset 0 1px 2px rgba(255,255,255,0.7)',
+                      border: '1.5px solid #FFEDD5',
+                      flexShrink: 0,
+                    }}
+                    title="3° Posto - Bronzo"
+                  >
+                    🥉
+                  </div>
+                );
+              } else {
+                medalHtml = (
+                  <div
+                    style={{
+                      width: '28px',
+                      height: '28px',
+                      borderRadius: '50%',
+                      background: '#F8FAFC',
+                      color: '#475569',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      fontWeight: 800,
+                      fontSize: '12px',
+                      border: '1px solid #E2E8F0',
+                      boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
+                      flexShrink: 0,
+                    }}
+                  >
+                    {index + 1}
+                  </div>
+                );
               }
 
               return (

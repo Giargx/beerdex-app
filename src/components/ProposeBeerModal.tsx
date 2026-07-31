@@ -332,7 +332,7 @@ export const ProposeBeerModal: React.FC<ProposeBeerModalProps> = ({
                   Galleria
                   <input
                     type="file"
-                    accept="image/*"
+                    accept="image/png,image/jpeg,image/jpg,image/webp"
                     onChange={handlePhotoSelect}
                     style={{ display: 'none' }}
                   />
@@ -351,7 +351,7 @@ export const ProposeBeerModal: React.FC<ProposeBeerModalProps> = ({
 
           <div style={{ marginBottom: '16px' }}>
             <label style={{ fontSize: '12px', fontWeight: 'bold', color: 'var(--dark)', display: 'block', marginBottom: '4px' }}>
-              Descrizione o Note (opzionale)
+              Descrizione o Note
             </label>
             <input
               type="text"
