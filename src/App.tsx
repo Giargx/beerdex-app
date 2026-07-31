@@ -1816,26 +1816,28 @@ export default function App() {
           <div className="settings-instagram-section">
             <div className="section-title">Profilo e Account</div>
 
-            {/* Row Privacy Profilo */}
+            {/* Row Profilo Privato */}
             <div className="settings-row-expanded">
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                   <span className="material-symbols-outlined icon" style={{ color: isProfilePrivate ? '#EF4444' : '#10B981' }}>
-                    {isProfilePrivate ? 'lock' : 'public'}
+                    {isProfilePrivate ? 'lock' : 'lock_open'}
                   </span>
                   <div style={{ textAlign: 'left' }}>
-                    <div className="row-label">Visibilità Profilo</div>
+                    <div className="row-label">Profilo Privato</div>
                     <div className="row-desc">
-                      {isProfilePrivate ? 'Profilo Privato (foto e varianti visibili solo agli amici)' : 'Profilo Pubblico (visibile a tutta la community)'}
+                      {isProfilePrivate
+                        ? 'Foto e valutazioni visibili solo agli amici (medaglie visibili a tutti)'
+                        : 'Profilo pubblico visibile a tutta la community'}
                     </div>
                   </div>
                 </div>
                 <button
                   onClick={() => handleToggleProfilePrivacy(!isProfilePrivate)}
                   style={{
-                    background: isProfilePrivate ? '#FEF2F2' : '#ECFDF5',
-                    border: `1px solid ${isProfilePrivate ? '#FCA5A5' : '#6EE7B7'}`,
-                    color: isProfilePrivate ? '#DC2626' : '#059669',
+                    background: isProfilePrivate ? '#FEF2F2' : '#F1F5F9',
+                    border: `1px solid ${isProfilePrivate ? '#FCA5A5' : '#CBD5E1'}`,
+                    color: isProfilePrivate ? '#DC2626' : '#475569',
                     padding: '8px 14px',
                     borderRadius: '12px',
                     fontWeight: 'bold',
@@ -1845,7 +1847,7 @@ export default function App() {
                     transition: 'all 0.2s ease',
                   }}
                 >
-                  {isProfilePrivate ? '🔒 Privato' : '🌐 Pubblico'}
+                  {isProfilePrivate ? 'ATTIVO (Privato)' : 'DISATTIVO (Pubblico)'}
                 </button>
               </div>
             </div>

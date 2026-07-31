@@ -119,11 +119,10 @@ export const LeaderboardView: React.FC<LeaderboardViewProps> = ({
     }
 
     return (
-      <button className="btn-action btn-add" onClick={() => onAddFriend(targetName)}>
-        <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>
+      <button className="btn-action btn-add" onClick={() => onAddFriend(targetName)} title={`Aggiungi @${targetName}`}>
+        <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>
           person_add
-        </span>{' '}
-        Aggiungi
+        </span>
       </button>
     );
   };
