@@ -99,7 +99,6 @@ export default function App() {
   const [myRejectedRequests, setMyRejectedRequests] = useState<string[]>([]);
   const [globalAvatars, setGlobalAvatars] = useState<Record<string, string>>({});
   const [globalDisplayNames, setGlobalDisplayNames] = useState<Record<string, string>>({});
-  const [totalUsersCount, setTotalUsersCount] = useState<number>(1);
 
   // Proposal & Custom Beers State
   const [customBeers, setCustomBeers] = useState<Beer[]>([]);
@@ -130,6 +129,7 @@ export default function App() {
     setProposeModalOpen(true);
   };
   const [adminProposalsModalOpen, setAdminProposalsModalOpen] = useState<boolean>(false);
+  const [flaggedPosts, setFlaggedPosts] = useState<Record<string, any>>({});
   const [unlockRatingModalState, setUnlockRatingModalState] = useState<{ isOpen: boolean; brand: string; variant: string; photo?: string } | null>(null);
 
   const allBeersCatalog = mergeBeers(beers, customBeers);
@@ -382,12 +382,7 @@ export default function App() {
       setBeerProposals(proposalsList);
     });
 
-    // Total Users
-    onValue(ref(db, 'users_directory'), (snap) => {
-      if (snap.exists()) {
-        setTotalUsersCount(Object.keys(snap.val()).length);
-      }
-    });
+
 
     // Avatars
     onValue(ref(db, 'users_avatars'), (snap) => {
@@ -397,6 +392,11 @@ export default function App() {
     // Display Names
     onValue(ref(db, 'users_display_names'), (snap) => {
       setGlobalDisplayNames(snap.val() || {});
+    });
+
+    // Flagged Posts for Admin Review
+    onValue(ref(db, 'flagged_posts'), (snap) => {
+      setFlaggedPosts(snap.val() || {});
     });
 
     // User Privacy Settings
@@ -1138,25 +1138,33 @@ export default function App() {
   // Flag post as fake
   const handleReportFakePost = (postId: string, postUser: string, brand: string, variant: string) => {
     showConfirm(
-      `Sei sicuro di voler segnalare la ${brand} di ${postUser} come falsa o contro le regole?`,
-      'Segnala Post',
+      `Sei sicuro di voler segnalare la ${brand} (${variant}) di @${postUser} come foto inappropriata o non valida?`,
+      'Segnala Foto',
       async () => {
         try {
           await set(ref(db, `social_timeline/${postId}/fakeVotes/${currentUserNick}`), true);
           const snap = await get(ref(db, `social_timeline/${postId}/fakeVotes`));
           const votesCount = snap.exists() ? Object.keys(snap.val()).length : 0;
-          const maxThreshold = Math.max(1, Math.ceil(totalUsersCount / 2));
 
-          if (votesCount >= maxThreshold) {
-            // Auto delete
-            const uniqueId = `${brand}-${variant}`;
-            await remove(ref(db, `pokedex_profiles/${postUser}/${uniqueId}`));
-            await remove(ref(db, `social_timeline/${postId}`));
-            await recalculateTotalScore(postUser);
-            showAlert('Il post è stato rimosso in automatico dalla moderazione di BeerDex.', 'Post Rimosso');
+          if (votesCount >= 4) {
+            // Dopo 4 segnalazioni, invia al pannello Admin per la verifica
+            const postSnap = await get(ref(db, `social_timeline/${postId}`));
+            await set(ref(db, `flagged_posts/${postId}`), {
+              postId,
+              postUser,
+              brand,
+              variant,
+              reportCount: votesCount,
+              timestamp: Date.now(),
+              postData: postSnap.exists() ? postSnap.val() : null,
+            });
+            showAlert(
+              'Questa foto ha raggiunto 4 segnalazioni ed è stata inviata agli Admin per la verifica.',
+              'Segnalazione Inviata'
+            );
           } else {
             showAlert(
-              `Segnalazione inviata. Se altri utenti confermano, il post verrà eliminato. (${votesCount}/${maxThreshold} voti necessari).`,
+              `Segnalazione inviata. Se il post raggiunge 4 segnalazioni verrà inviato all'Admin per la moderazione (${votesCount}/4 segnalazioni).`,
               'Grazie'
             );
           }
@@ -1165,6 +1173,29 @@ export default function App() {
         }
       }
     );
+  };
+
+  const handleRemoveFlaggedPost = async (postId: string, postUser: string, brand: string, variant: string) => {
+    try {
+      const uniqueId = `${brand}-${variant}`;
+      await remove(ref(db, `pokedex_profiles/${postUser}/${uniqueId}`));
+      await remove(ref(db, `social_timeline/${postId}`));
+      await remove(ref(db, `flagged_posts/${postId}`));
+      await recalculateTotalScore(postUser);
+      showAlert(`Il post di @${postUser} è stato eliminato con successo.`, 'Post Eliminato');
+    } catch (err: any) {
+      showAlert('Errore eliminazione post: ' + err.message);
+    }
+  };
+
+  const handleDismissFlaggedPost = async (postId: string) => {
+    try {
+      await remove(ref(db, `flagged_posts/${postId}`));
+      await remove(ref(db, `social_timeline/${postId}/fakeVotes`));
+      showAlert('Segnalazione ignorata e rimossa.', 'Segnalazione Chiusa');
+    } catch (err: any) {
+      showAlert('Errore: ' + err.message);
+    }
   };
 
   // Avatar Management
@@ -2430,12 +2461,12 @@ export default function App() {
           <div
             onClick={(e) => e.stopPropagation()} // Prevent closing when clicking the image container directly
             style={{
-              width: '280px',
-              height: '280px',
-              borderRadius: '24px',
+              width: '260px',
+              height: '260px',
+              borderRadius: '50%',
               overflow: 'hidden',
-              boxShadow: '0 10px 30px rgba(0,0,0,0.5)',
-              border: '4px solid var(--white)',
+              boxShadow: '0 12px 35px rgba(0,0,0,0.6)',
+              border: '5px solid var(--white)',
               background: '#e0e6ed',
               display: 'flex',
               alignItems: 'center',
@@ -2479,6 +2510,9 @@ export default function App() {
         onRejectProposal={handleRejectProposal}
         globalAvatars={globalAvatars}
         globalDisplayNames={globalDisplayNames}
+        flaggedPosts={flaggedPosts}
+        onRemoveFlaggedPost={handleRemoveFlaggedPost}
+        onDismissFlaggedPost={handleDismissFlaggedPost}
       />
 
       {/* Unlock Rating Modal */}

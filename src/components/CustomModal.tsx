@@ -22,8 +22,10 @@ export const CustomModal: React.FC<CustomModalProps> = ({
   return (
     <div className="auth-modal" style={{ zIndex: 20000 }}>
       <div className="auth-container" style={{ maxWidth: '350px' }}>
-        <h3 style={{ marginTop: 0, color: 'var(--dark)', fontSize: '22px' }}>{title}</h3>
-        <p style={{ color: 'var(--text-muted)', fontSize: '15px', marginBottom: '25px', lineHeight: 1.5 }}>
+        {title && title.trim() !== '' && title.toLowerCase() !== 'avviso' && (
+          <h3 style={{ marginTop: 0, color: 'var(--dark)', fontSize: '20px' }}>{title}</h3>
+        )}
+        <p style={{ color: 'var(--text-muted)', fontSize: '15px', marginBottom: '25px', lineHeight: 1.5, marginTop: (!title || title.toLowerCase() === 'avviso') ? '10px' : 0 }}>
           {text}
         </p>
         <div style={{ display: 'flex', gap: '10px', justifyContent: 'center' }}>

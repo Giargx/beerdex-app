@@ -23,6 +23,9 @@ interface AdminProposalsModalProps {
   onRejectProposal: (proposalId: string) => void;
   globalAvatars: Record<string, string>;
   globalDisplayNames: Record<string, string>;
+  flaggedPosts?: Record<string, any>;
+  onRemoveFlaggedPost?: (postId: string, postUser: string, brand: string, variant: string) => void;
+  onDismissFlaggedPost?: (postId: string) => void;
 }
 
 const ItalianRegions = [
@@ -40,7 +43,11 @@ export const AdminProposalsModal: React.FC<AdminProposalsModalProps> = ({
   onRejectProposal,
   globalAvatars,
   globalDisplayNames,
+  flaggedPosts = {},
+  onRemoveFlaggedPost,
+  onDismissFlaggedPost,
 }) => {
+  const [activeTab, setActiveTab] = useState<'proposals' | 'flagged'>('proposals');
   const [showEditMap, setShowEditMap] = useState<Record<string, boolean>>({});
   const [editedDataMap, setEditedDataMap] = useState<Record<string, {
     brand: string;
@@ -52,8 +59,6 @@ export const AdminProposalsModal: React.FC<AdminProposalsModalProps> = ({
   }>>({});
 
   if (!isOpen) return null;
-
-  const pendingProposals = proposals.filter((p) => p.status === 'pending');
 
   const toggleEdit = (item: BeerProposalItem) => {
     const isCurrentlyEditing = !!showEditMap[item.proposalId];
@@ -118,6 +123,9 @@ export const AdminProposalsModal: React.FC<AdminProposalsModalProps> = ({
     onAcceptProposal(finalProposal);
   };
 
+  const pendingProposals = proposals.filter((p) => p.status === 'pending');
+  const flaggedList = Object.values(flaggedPosts);
+
   return (
     <div className="auth-modal" style={{ zIndex: 19500 }}>
       <div
@@ -132,10 +140,10 @@ export const AdminProposalsModal: React.FC<AdminProposalsModalProps> = ({
           padding: '24px 20px',
         }}
       >
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px', borderBottom: '1px solid var(--gray)', paddingBottom: '12px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px', borderBottom: '1px solid var(--gray)', paddingBottom: '12px' }}>
           <h3 style={{ margin: 0, color: 'var(--dark)', fontSize: '18px', display: 'flex', alignItems: 'center', gap: '8px' }}>
             <span className="material-symbols-outlined" style={{ color: 'var(--primary-dark)' }}>admin_panel_settings</span>
-            Proposte Birre Pendenti ({pendingProposals.length})
+            Pannello Moderazione Admin
           </h3>
           <button
             onClick={onClose}
@@ -154,8 +162,170 @@ export const AdminProposalsModal: React.FC<AdminProposalsModalProps> = ({
           </button>
         </div>
 
+        {/* Tab Navigation */}
+        <div style={{ display: 'flex', gap: '8px', marginBottom: '14px' }}>
+          <button
+            onClick={() => setActiveTab('proposals')}
+            style={{
+              flex: 1,
+              padding: '8px 12px',
+              borderRadius: '12px',
+              border: activeTab === 'proposals' ? '2px solid var(--primary-dark)' : '1px solid var(--gray)',
+              background: activeTab === 'proposals' ? '#FFFBEB' : 'white',
+              color: activeTab === 'proposals' ? 'var(--dark)' : 'var(--text-muted)',
+              fontWeight: 'bold',
+              fontSize: '13px',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '6px',
+            }}
+          >
+            <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>sports_bar</span>
+            Proposte ({pendingProposals.length})
+          </button>
+          <button
+            onClick={() => setActiveTab('flagged')}
+            style={{
+              flex: 1,
+              padding: '8px 12px',
+              borderRadius: '12px',
+              border: activeTab === 'flagged' ? '2px solid #EF4444' : '1px solid var(--gray)',
+              background: activeTab === 'flagged' ? '#FEF2F2' : 'white',
+              color: activeTab === 'flagged' ? '#DC2626' : 'var(--text-muted)',
+              fontWeight: 'bold',
+              fontSize: '13px',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '6px',
+            }}
+          >
+            <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>warning</span>
+            Post Segnalati ({flaggedList.length})
+          </button>
+        </div>
+
         <div style={{ overflowY: 'auto', flexGrow: 1, paddingRight: '4px' }}>
-          {pendingProposals.length === 0 ? (
+          {activeTab === 'flagged' ? (
+            flaggedList.length === 0 ? (
+              <div style={{ textAlign: 'center', padding: '40px 20px', color: 'var(--text-muted)' }}>
+                <span className="material-symbols-outlined" style={{ fontSize: '48px', marginBottom: '10px', color: '#10B981' }}>verified_user</span>
+                <p style={{ margin: 0, fontWeight: 'bold' }}>Nessun post segnalato al momento</p>
+                <p style={{ fontSize: '12px', marginTop: '4px' }}>I post con 4+ segnalazioni appariranno qui per la revisione.</p>
+              </div>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                {flaggedList.map((item: any) => {
+                  const pData = item.postData || {};
+                  const userDisp = globalDisplayNames[item.postUser] || item.postUser;
+                  const userAvat = globalAvatars[item.postUser];
+
+                  return (
+                    <div
+                      key={item.postId}
+                      style={{
+                        background: '#FEF2F2',
+                        border: '1px solid #FCA5A5',
+                        borderRadius: '16px',
+                        padding: '14px',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: '10px',
+                      }}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                          <div style={{ width: '36px', height: '36px', borderRadius: '50%', background: '#e0e6ed', overflow: 'hidden' }}>
+                            {userAvat ? (
+                              <img src={userAvat} alt={item.postUser} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                            ) : (
+                              <span className="material-symbols-outlined" style={{ fontSize: '24px', color: 'var(--text-muted)' }}>person</span>
+                            )}
+                          </div>
+                          <div style={{ textAlign: 'left' }}>
+                            <div style={{ fontWeight: 'bold', fontSize: '13px', color: 'var(--dark)' }}>{userDisp}</div>
+                            <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>@{item.postUser}</div>
+                          </div>
+                        </div>
+                        <span style={{ background: '#DC2626', color: 'white', fontSize: '11px', fontWeight: 'bold', padding: '4px 10px', borderRadius: '20px' }}>
+                          ⚠️ {item.reportCount || 4} Segnalazioni
+                        </span>
+                      </div>
+
+                      <div style={{ display: 'flex', gap: '12px', alignItems: 'center', background: 'white', padding: '10px', borderRadius: '12px', border: '1px solid #FECACA' }}>
+                        {(pData.photo || pData.photoUrl) ? (
+                          <img
+                            src={pData.photo || pData.photoUrl}
+                            alt={item.brand}
+                            style={{ width: '75px', height: '75px', borderRadius: '10px', objectFit: 'cover', border: '1px solid var(--gray)' }}
+                          />
+                        ) : (
+                          <div style={{ width: '75px', height: '75px', borderRadius: '10px', background: '#F3F4F6', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                            <span className="material-symbols-outlined" style={{ color: 'var(--text-muted)' }}>sports_bar</span>
+                          </div>
+                        )}
+                        <div style={{ textAlign: 'left', flex: 1 }}>
+                          <h4 style={{ margin: '0 0 2px 0', fontSize: '15px', color: 'var(--dark)' }}>{item.brand}</h4>
+                          <p style={{ margin: 0, fontSize: '13px', color: 'var(--text-muted)', fontWeight: 'bold' }}>{item.variant}</p>
+                          {pData.notes && (
+                            <p style={{ margin: '4px 0 0 0', fontSize: '11px', color: '#4B5563', fontStyle: 'italic' }}>"{pData.notes}"</p>
+                          )}
+                        </div>
+                      </div>
+
+                      <div style={{ display: 'flex', gap: '8px', marginTop: '4px' }}>
+                        <button
+                          onClick={() => onRemoveFlaggedPost && onRemoveFlaggedPost(item.postId, item.postUser, item.brand, item.variant)}
+                          style={{
+                            flex: 1,
+                            background: '#DC2626',
+                            color: 'white',
+                            border: 'none',
+                            borderRadius: '10px',
+                            padding: '9px',
+                            fontWeight: 'bold',
+                            fontSize: '12px',
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            gap: '4px',
+                          }}
+                        >
+                          <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>delete</span>
+                          Rimuovi Post & Foto
+                        </button>
+                        <button
+                          onClick={() => onDismissFlaggedPost && onDismissFlaggedPost(item.postId)}
+                          style={{
+                            flex: 1,
+                            background: '#E5E7EB',
+                            color: '#374151',
+                            border: 'none',
+                            borderRadius: '10px',
+                            padding: '9px',
+                            fontWeight: 'bold',
+                            fontSize: '12px',
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            gap: '4px',
+                          }}
+                        >
+                          <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>check_circle</span>
+                          Ignora / Mantieni
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )
+          ) : pendingProposals.length === 0 ? (
             <div style={{ textAlign: 'center', padding: '40px 20px', color: 'var(--text-muted)' }}>
               <span className="material-symbols-outlined" style={{ fontSize: '48px', marginBottom: '10px' }}>check_circle</span>
               <p style={{ margin: 0, fontSize: '14px' }}>Nessuna proposta pendente al momento.</p>
