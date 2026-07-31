@@ -991,13 +991,34 @@ header.hero p {
 .cin-mug {
     display: inline-block;
     transition: all 0.2s;
-    filter: drop-shadow(0 4px 12px rgba(15, 23, 42, 0.35));
+    filter: drop-shadow(0 6px 16px rgba(15, 23, 42, 0.45));
 }
 .left-mug {
-    animation: swingLeftMug 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.1) forwards;
+    animation: swingLeftMug 0.65s cubic-bezier(0.175, 0.885, 0.32, 1.2) forwards;
 }
 .right-mug {
-    animation: swingRightMug 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.1) forwards;
+    animation: swingRightMug 0.65s cubic-bezier(0.175, 0.885, 0.32, 1.2) forwards;
+}
+
+/* Impact Spark Flash */
+.clink-spark-flash {
+    position: absolute;
+    top: 25%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(0);
+    width: 48px;
+    height: 48px;
+    background: radial-gradient(circle, #FFFFFF 0%, #FEF08A 45%, rgba(245, 158, 11, 0) 80%);
+    border-radius: 50%;
+    z-index: 15;
+    pointer-events: none;
+    animation: sparkFlash 0.45s ease-out 0.35s forwards;
+}
+
+@keyframes sparkFlash {
+    0% { transform: translate(-50%, -50%) scale(0); opacity: 1; }
+    50% { transform: translate(-50%, -50%) scale(2); opacity: 0.95; }
+    100% { transform: translate(-50%, -50%) scale(2.8); opacity: 0; }
 }
 
 /* Beer splash droplets */
@@ -1018,16 +1039,16 @@ header.hero p {
     opacity: 0;
 }
 .drop-1 {
-    animation: splashDrop1 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) 0.22s forwards;
+    animation: splashDrop1 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) 0.32s forwards;
 }
 .drop-2 {
-    animation: splashDrop2 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) 0.22s forwards;
+    animation: splashDrop2 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) 0.32s forwards;
 }
 .drop-3 {
-    animation: splashDrop3 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) 0.22s forwards;
+    animation: splashDrop3 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) 0.32s forwards;
 }
 .drop-4 {
-    animation: splashDrop4 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) 0.22s forwards;
+    animation: splashDrop4 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) 0.32s forwards;
 }
 
 @keyframes cinPopIn {
@@ -1039,16 +1060,18 @@ header.hero p {
     100% { transform: translate(-50%, -50%) scale(0.8); opacity: 0; }
 }
 @keyframes swingLeftMug {
-    0% { transform: translateX(-85px) rotate(-25deg) scale(0.75); opacity: 0; }
+    0% { transform: translateX(-80px) rotate(-35deg) scale(0.7); opacity: 0; }
     30% { opacity: 1; }
-    70% { transform: translateX(-2px) rotate(12deg) scale(1.05); }
-    100% { transform: translateX(-5px) rotate(5deg) scale(1); }
+    65% { transform: translateX(12px) rotate(16deg) scale(1.1); }
+    80% { transform: translateX(6px) rotate(8deg) scale(1.02); }
+    100% { transform: translateX(2px) rotate(4deg) scale(1); }
 }
 @keyframes swingRightMug {
-    0% { transform: translateX(85px) rotate(25deg) scale(0.75); opacity: 0; }
+    0% { transform: translateX(80px) rotate(30deg) scale(0.7); opacity: 0; }
     30% { opacity: 1; }
-    70% { transform: translateX(2px) rotate(-12deg) scale(1.05); }
-    100% { transform: translateX(5px) rotate(-5deg) scale(1); }
+    65% { transform: translateX(-12px) rotate(-16deg) scale(1.1); }
+    80% { transform: translateX(-6px) rotate(-8deg) scale(1.02); }
+    100% { transform: translateX(-2px) rotate(-4deg) scale(1); }
 }
 @keyframes splashDrop1 {
     0% { transform: translate(0, -15px) scale(0.3); opacity: 0; }

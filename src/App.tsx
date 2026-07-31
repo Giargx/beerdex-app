@@ -893,7 +893,7 @@ export default function App() {
       const rawDiffX = currentX - touchStartX.current;
       const diffY = currentY - touchStartY.current;
 
-      const isEdgeBack = touchStartX.current <= 45 && rawDiffX > 50 && Math.abs(diffY) < 60;
+      const isEdgeBack = !isMainTab && touchStartX.current <= 45 && rawDiffX > 50 && Math.abs(diffY) < 60;
       const container = document.querySelector('.main-tabs-slider-container') as HTMLElement;
 
       if (container) {

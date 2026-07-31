@@ -68,41 +68,35 @@ export const PubView: React.FC<PubViewProps> = ({
     container.className = 'cin-toast-container';
     container.innerHTML = `
       <div class="cin-toast-content">
-          <div style="display:flex; align-items:center; gap:0px; position:relative; z-index: 10;">
-              <!-- Left beer mug: handle on left, mouth on right -->
+          <div style="display:flex; align-items:center; justify-content:center; position:relative; width:160px; height:110px;">
+              <!-- Impact Spark Flash -->
+              <div class="clink-spark-flash"></div>
+              
+              <!-- Left Beer Mug -->
               <div class="cin-mug left-mug">
-                  <svg viewBox="0 0 100 100" width="80" height="80">
-                      <!-- Handle -->
-                      <path d="M35,38 C20,38 20,68 35,68" fill="none" stroke="#F8FAFC" stroke-width="7" stroke-linecap="round"/>
-                      <path d="M35,38 C20,38 20,68 35,68" fill="none" stroke="#E2E8F0" stroke-width="3" stroke-linecap="round"/>
-                      <!-- Mug glass container -->
-                      <path d="M35,28 L72,28 C77,28 77,78 72,78 L35,78 C30,78 30,28 35,28 Z" fill="rgba(255,255,255,0.18)" stroke="#F8FAFC" stroke-width="3.5"/>
-                      <!-- Beer Liquid inside -->
-                      <path d="M36,44 L70,44 C73,44 73,76 70,76 L36,76 C33,76 33,44 36,44 Z" fill="#FFB300"/>
-                      <!-- Foam top overflow -->
-                      <path d="M30,30 C30,18 43,14 52,22 C60,14 74,18 74,30 C74,34 30,34 30,30 Z" fill="#FFFFFF"/>
-                      <!-- Glass reflection stripes -->
-                      <rect x="42" y="48" width="5" height="24" rx="2" fill="#FFE082" opacity="0.75"/>
-                      <rect x="52" y="48" width="5" height="24" rx="2" fill="#FFE082" opacity="0.75"/>
-                      <rect x="62" y="48" width="5" height="24" rx="2" fill="#FFE082" opacity="0.75"/>
+                  <svg viewBox="0 0 100 110" width="85" height="95">
+                      <path d="M 28 35 C 10 35 10 75 28 75" fill="none" stroke="#FFFFFF" stroke-width="7" stroke-linecap="round"/>
+                      <path d="M 28 35 C 10 35 10 75 28 75" fill="none" stroke="#E2E8F0" stroke-width="3" stroke-linecap="round"/>
+                      <path d="M 30 26 L 76 26 C 82 26 80 84 74 84 L 32 84 C 26 84 24 26 30 26 Z" fill="rgba(255, 255, 255, 0.22)" stroke="#FFFFFF" stroke-width="3.5"/>
+                      <path d="M 32 40 L 74 40 C 77 40 76 81 72 81 L 34 81 C 30 81 29 40 32 40 Z" fill="#F59E0B"/>
+                      <path d="M 25 28 C 25 14 42 10 52 18 C 62 10 78 14 78 28 C 78 32 25 32 25 28 Z" fill="#FFFFFF"/>
+                      <rect x="42" y="44" width="6" height="30" rx="3" fill="#FDE68A" opacity="0.8"/>
+                      <rect x="54" y="44" width="6" height="30" rx="3" fill="#FDE68A" opacity="0.8"/>
+                      <rect x="66" y="44" width="6" height="30" rx="3" fill="#FDE68A" opacity="0.8"/>
                   </svg>
               </div>
-              <!-- Right beer mug: handle on right, mouth on left -->
+              
+              <!-- Right Beer Mug -->
               <div class="cin-mug right-mug">
-                  <svg viewBox="0 0 100 100" width="80" height="80">
-                      <!-- Handle -->
-                      <path d="M65,38 C80,38 80,68 65,68" fill="none" stroke="#F8FAFC" stroke-width="7" stroke-linecap="round"/>
-                      <path d="M65,38 C80,38 80,68 65,68" fill="none" stroke="#E2E8F0" stroke-width="3" stroke-linecap="round"/>
-                      <!-- Mug glass container -->
-                      <path d="M65,28 L28,28 C23,28 23,78 28,78 L65,78 C70,78 70,28 65,28 Z" fill="rgba(255,255,255,0.18)" stroke="#F8FAFC" stroke-width="3.5"/>
-                      <!-- Beer Liquid inside -->
-                      <path d="M64,44 L30,44 C27,44 27,76 30,76 L64,76 C67,76 67,44 64,44 Z" fill="#FFB300"/>
-                      <!-- Foam top overflow -->
-                      <path d="M70,30 C70,18 57,14 48,22 C40,14 26,18 26,30 C26,34 70,34 70,30 Z" fill="#FFFFFF"/>
-                      <!-- Glass reflection stripes -->
-                      <rect x="53" y="48" width="5" height="24" rx="2" fill="#FFE082" opacity="0.75"/>
-                      <rect x="43" y="48" width="5" height="24" rx="2" fill="#FFE082" opacity="0.75"/>
-                      <rect x="33" y="48" width="5" height="24" rx="2" fill="#FFE082" opacity="0.75"/>
+                  <svg viewBox="0 0 100 110" width="85" height="95">
+                      <path d="M 72 35 C 90 35 90 75 72 75" fill="none" stroke="#FFFFFF" stroke-width="7" stroke-linecap="round"/>
+                      <path d="M 72 35 C 90 35 90 75 72 75" fill="none" stroke="#E2E8F0" stroke-width="3" stroke-linecap="round"/>
+                      <path d="M 70 26 L 24 26 C 18 26 20 84 26 84 L 68 84 C 74 84 76 26 70 26 Z" fill="rgba(255, 255, 255, 0.22)" stroke="#FFFFFF" stroke-width="3.5"/>
+                      <path d="M 68 40 L 26 40 C 23 40 24 81 28 81 L 66 81 C 70 81 71 40 68 40 Z" fill="#F59E0B"/>
+                      <path d="M 75 28 C 75 14 58 10 48 18 C 38 10 22 14 22 28 C 22 32 75 32 75 28 Z" fill="#FFFFFF"/>
+                      <rect x="52" y="44" width="6" height="30" rx="3" fill="#FDE68A" opacity="0.8"/>
+                      <rect x="40" y="44" width="6" height="30" rx="3" fill="#FDE68A" opacity="0.8"/>
+                      <rect x="28" y="44" width="6" height="30" rx="3" fill="#FDE68A" opacity="0.8"/>
                   </svg>
               </div>
           </div>

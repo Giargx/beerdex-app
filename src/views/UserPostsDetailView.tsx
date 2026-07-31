@@ -50,42 +50,61 @@ export const UserPostsDetailView: React.FC<UserPostsDetailViewProps> = ({
 
   // Support Toast Double Tap Like Animation
   const triggerCinAnimation = (container: HTMLElement) => {
-    const exists = container.querySelector('.cin-brindisi-anim');
+    const exists = container.querySelector('.cin-toast-container');
     if (exists) return;
 
     const animDiv = document.createElement('div');
-    animDiv.className = 'cin-brindisi-anim';
+    animDiv.className = 'cin-toast-container';
     animDiv.innerHTML = `
-      <svg class="cin-glasses" viewBox="0 0 100 100" style="width: 80px; height: 80px;">
-        <!-- Left Mug -->
-        <g class="glass-left">
-          <rect x="25" y="45" width="20" height="30" rx="3" fill="rgba(255, 255, 255, 0.2)" stroke="white" stroke-width="3"/>
-          <path d="M 25 50 L 15 50 C 12 50, 12 70, 15 70 L 25 70" fill="none" stroke="white" stroke-width="3"/>
-          <rect x="28" y="48" width="14" height="24" rx="1" fill="#FFC107"/>
-          <path d="M 25 45 Q 35 38 45 45" fill="none" stroke="white" stroke-width="3"/>
-        </g>
-        <!-- Right Mug -->
-        <g class="glass-right">
-          <rect x="55" y="45" width="20" height="30" rx="3" fill="rgba(255, 255, 255, 0.2)" stroke="white" stroke-width="3"/>
-          <path d="M 75 50 L 85 50 C 88 50, 88 70, 85 70 L 75 70" fill="none" stroke="white" stroke-width="3"/>
-          <rect x="58" y="48" width="14" height="24" rx="1" fill="#FFC107"/>
-          <path d="M 55 45 Q 65 38 75 45" fill="none" stroke="white" stroke-width="3"/>
-        </g>
-        <!-- Collision Sparkle -->
-        <circle cx="50" cy="42" r="8" fill="#FFFBEB" class="sparkle" opacity="0"/>
-      </svg>
+      <div class="cin-toast-content">
+          <div style="display:flex; align-items:center; justify-content:center; position:relative; width:160px; height:110px;">
+              <!-- Impact Spark Flash -->
+              <div class="clink-spark-flash"></div>
+              
+              <!-- Left Beer Mug -->
+              <div class="cin-mug left-mug">
+                  <svg viewBox="0 0 100 110" width="85" height="95">
+                      <path d="M 28 35 C 10 35 10 75 28 75" fill="none" stroke="#FFFFFF" stroke-width="7" stroke-linecap="round"/>
+                      <path d="M 28 35 C 10 35 10 75 28 75" fill="none" stroke="#E2E8F0" stroke-width="3" stroke-linecap="round"/>
+                      <path d="M 30 26 L 76 26 C 82 26 80 84 74 84 L 32 84 C 26 84 24 26 30 26 Z" fill="rgba(255, 255, 255, 0.22)" stroke="#FFFFFF" stroke-width="3.5"/>
+                      <path d="M 32 40 L 74 40 C 77 40 76 81 72 81 L 34 81 C 30 81 29 40 32 40 Z" fill="#F59E0B"/>
+                      <path d="M 25 28 C 25 14 42 10 52 18 C 62 10 78 14 78 28 C 78 32 25 32 25 28 Z" fill="#FFFFFF"/>
+                      <rect x="42" y="44" width="6" height="30" rx="3" fill="#FDE68A" opacity="0.8"/>
+                      <rect x="54" y="44" width="6" height="30" rx="3" fill="#FDE68A" opacity="0.8"/>
+                      <rect x="66" y="44" width="6" height="30" rx="3" fill="#FDE68A" opacity="0.8"/>
+                  </svg>
+              </div>
+              
+              <!-- Right Beer Mug -->
+              <div class="cin-mug right-mug">
+                  <svg viewBox="0 0 100 110" width="85" height="95">
+                      <path d="M 72 35 C 90 35 90 75 72 75" fill="none" stroke="#FFFFFF" stroke-width="7" stroke-linecap="round"/>
+                      <path d="M 72 35 C 90 35 90 75 72 75" fill="none" stroke="#E2E8F0" stroke-width="3" stroke-linecap="round"/>
+                      <path d="M 70 26 L 24 26 C 18 26 20 84 26 84 L 68 84 C 74 84 76 26 70 26 Z" fill="rgba(255, 255, 255, 0.22)" stroke="#FFFFFF" stroke-width="3.5"/>
+                      <path d="M 68 40 L 26 40 C 23 40 24 81 28 81 L 66 81 C 70 81 71 40 68 40 Z" fill="#F59E0B"/>
+                      <path d="M 75 28 C 75 14 58 10 48 18 C 38 10 22 14 22 28 C 22 32 75 32 75 28 Z" fill="#FFFFFF"/>
+                      <rect x="52" y="44" width="6" height="30" rx="3" fill="#FDE68A" opacity="0.8"/>
+                      <rect x="40" y="44" width="6" height="30" rx="3" fill="#FDE68A" opacity="0.8"/>
+                      <rect x="28" y="44" width="6" height="30" rx="3" fill="#FDE68A" opacity="0.8"/>
+                  </svg>
+              </div>
+          </div>
+          <div class="beer-splash-container">
+              <div class="beer-drop drop-1"></div>
+              <div class="beer-drop drop-2"></div>
+              <div class="beer-drop drop-3"></div>
+              <div class="beer-drop drop-4"></div>
+          </div>
+      </div>
     `;
-    animDiv.style.position = 'absolute';
-    animDiv.style.top = '50%';
-    animDiv.style.left = '50%';
-    animDiv.style.transform = 'translate(-50%, -50%)';
-    animDiv.style.pointerEvents = 'none';
-    animDiv.style.zIndex = '100';
     container.appendChild(animDiv);
 
     setTimeout(() => {
-      animDiv.remove();
-    }, 1000);
+      animDiv.classList.add('fade-out');
+      setTimeout(() => {
+        animDiv.remove();
+      }, 400);
+    }, 1200);
   };
 
   const handlePostDoubleTap = (postId: string, e: React.MouseEvent<HTMLImageElement>) => {
