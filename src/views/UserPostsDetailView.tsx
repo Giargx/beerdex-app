@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react';
 import { StarRating } from '../components/StarRating';
+import { formatBeerTitle } from '../beers';
 
 interface UserPostsDetailViewProps {
   username: string;
@@ -327,7 +328,7 @@ export const UserPostsDetailView: React.FC<UserPostsDetailViewProps> = ({
                     >
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
                         <div style={{ fontWeight: 800, fontSize: '14px', color: 'var(--dark)' }}>
-                          {post.brand}
+                          {formatBeerTitle(post.brand)}
                         </div>
                         <div
                           style={{
@@ -354,7 +355,7 @@ export const UserPostsDetailView: React.FC<UserPostsDetailViewProps> = ({
                         </div>
                       </div>
                       <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '2px' }}>
-                        {post.variant}
+                        {formatBeerTitle(post.variant)}
                       </div>
                       {post.pubName && (
                         <div

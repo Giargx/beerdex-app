@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { TrophyGrid } from '../components/TrophyGrid';
 import type { PokedexEntry } from '../components/TrophyGrid';
-import { beers, getBeerType } from '../beers';
+import { beers, getBeerType, formatBeerTitle } from '../beers';
 import { StarRating } from '../components/StarRating';
 
 interface ProfileViewProps {
@@ -714,10 +714,10 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
                     }}
                   >
                     <div style={{ fontWeight: 'bold', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                      {post.brand}
+                      {formatBeerTitle(post.brand)}
                     </div>
                     <div style={{ opacity: 0.8, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                      {post.variant}
+                      {formatBeerTitle(post.variant)}
                     </div>
                   </div>
                 </div>

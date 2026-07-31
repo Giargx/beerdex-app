@@ -83,14 +83,13 @@ export const BeerCard: React.FC<BeerCardProps> = ({
                   cursor: 'pointer',
                   display: 'inline-flex',
                   alignItems: 'center',
-                  gap: '3px',
+                  justifyContent: 'center',
                   fontSize: '11px',
                   fontWeight: 'bold',
                 }}
                 title="Elimina marca/categoria dal catalogo (Admin)"
               >
                 <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>delete_forever</span>
-                Elimina Marca
               </button>
             )}
             <span

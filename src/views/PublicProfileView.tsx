@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { TrophyGrid } from '../components/TrophyGrid';
 import type { PokedexEntry } from '../components/TrophyGrid';
 import { FoamBubbles } from '../components/FoamBubbles';
-import { beers, getBeerType } from '../beers';
+import { beers, getBeerType, formatBeerTitle } from '../beers';
 import type { Beer } from '../beers';
 import { StarRating } from '../components/StarRating';
 
@@ -693,10 +693,10 @@ export const PublicProfileView: React.FC<PublicProfileViewProps> = ({
                       }}
                     >
                       <div style={{ fontWeight: 'bold', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                        {post.brand}
+                        {formatBeerTitle(post.brand)}
                       </div>
                       <div style={{ opacity: 0.8, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                        {post.variant}
+                        {formatBeerTitle(post.variant)}
                       </div>
                     </div>
                   </div>

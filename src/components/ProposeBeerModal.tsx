@@ -216,6 +216,7 @@ export const ProposeBeerModal: React.FC<ProposeBeerModalProps> = ({
                 onChange={(e) => setCountry(e.target.value)}
                 style={{ width: '100%', padding: '12px', borderRadius: '12px', border: '1px solid var(--gray)' }}
               >
+                <option value="Non specificata">Non specificata / Non so</option>
                 <option value="Italia">Italia</option>
                 <option value="Germania">Germania</option>
                 <option value="Belgio">Belgio</option>

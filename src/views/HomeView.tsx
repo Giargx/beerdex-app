@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { FoamBubbles } from '../components/FoamBubbles';
-import { beers } from '../beers';
+import { beers, formatBeerTitle } from '../beers';
 
 interface Post {
   postId: string;
@@ -567,10 +567,10 @@ export const HomeView: React.FC<HomeViewProps> = ({
             <img src={lastPost.photo} className="dash-last-img" alt="Ultima Birra" />
             <div className="dash-last-info">
               <h4 style={{ margin: '0 0 5px 0', color: 'var(--dark)', fontSize: '18px' }}>
-                {lastPost.brand}
+                {formatBeerTitle(lastPost.brand)}
               </h4>
               <div style={{ color: 'var(--primary-dark)', fontWeight: 'bold', fontSize: '14px', marginBottom: '5px', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                {lastPost.variant}
+                {formatBeerTitle(lastPost.variant)}
                 {lastPost.isShiny && (
                   <span style={{ color: 'var(--primary-dark)', fontWeight: 'bold', display: 'inline-flex', alignItems: 'center', gap: '2px' }}>
                     <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>

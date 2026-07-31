@@ -1,7 +1,7 @@
 import React from 'react';
 import { playClinkSound } from '../utils/audio';
 import { FoamBubbles } from '../components/FoamBubbles';
-import { getBasePoints } from '../beers';
+import { getBasePoints, formatBeerTitle } from '../beers';
 import { StarRating } from '../components/StarRating';
 import type { PokedexEntry } from '../components/TrophyGrid';
 
@@ -188,7 +188,7 @@ export const PubView: React.FC<PubViewProps> = ({
 
               let actionText: React.ReactNode = (
                 <>
-                  ha sbloccato la 🍺 <strong className="beer-highlight">{post.brand}</strong> ({post.variant})
+                  ha sbloccato la 🍺 <strong className="beer-highlight">{formatBeerTitle(post.brand)}</strong> ({formatBeerTitle(post.variant)})
                   {pointsBadge}
                 </>
               );
@@ -196,7 +196,7 @@ export const PubView: React.FC<PubViewProps> = ({
               if (post.isShared && post.taggedFriend) {
                 actionText = (
                   <>
-                    sta bevendo una 🍻 <strong className="beer-highlight">{post.brand}</strong> ({post.variant}) con{' '}
+                    sta bevendo una 🍻 <strong className="beer-highlight">{formatBeerTitle(post.brand)}</strong> ({formatBeerTitle(post.variant)}) con{' '}
                     <strong className="clickable-user" onClick={() => onOpenPublicProfile(post.taggedFriend!)}>
                       {post.taggedFriend}
                     </strong>

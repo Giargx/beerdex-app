@@ -68,7 +68,7 @@ export const AdminProposalsModal: React.FC<AdminProposalsModalProps> = ({
         [item.proposalId]: {
           brand: formatBeerTitle(item.brand),
           variant: formatBeerTitle(item.variant),
-          country: item.country || 'Italia',
+          country: item.country || 'Non specificata',
           regione: item.regione || 'Tutte',
           rarity: item.rarity || 'comune',
           desc: item.desc || '',
@@ -346,7 +346,7 @@ export const AdminProposalsModal: React.FC<AdminProposalsModalProps> = ({
                 const currentData = editedDataMap[item.proposalId] || {
                   brand: formatBeerTitle(item.brand),
                   variant: formatBeerTitle(item.variant),
-                  country: item.country || 'Italia',
+                  country: item.country || 'Non specificata',
                   regione: item.regione || 'Tutte',
                   rarity: item.rarity || 'comune',
                   desc: item.desc || '',
@@ -439,6 +439,12 @@ export const AdminProposalsModal: React.FC<AdminProposalsModalProps> = ({
                             "{currentData.desc}"
                           </div>
                         )}
+                        {(!currentData.country || currentData.country === 'Non specificata' || (currentData.country === 'Italia' && (!currentData.regione || currentData.regione === 'Tutte'))) && (
+                          <div style={{ fontSize: '11px', background: '#FEF3C7', color: '#92400E', padding: '6px 10px', borderRadius: '8px', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '6px', marginTop: '6px' }}>
+                            <span className="material-symbols-outlined" style={{ fontSize: '15px' }}>warning</span>
+                            Info mancanti: {!currentData.country || currentData.country === 'Non specificata' ? 'Nazione non specificata. ' : ''}{currentData.country === 'Italia' && (!currentData.regione || currentData.regione === 'Tutte') ? 'Regione italiana non specificata.' : ''} Completa i campi prima di approvare!
+                          </div>
+                        )}
                       </div>
                     </div>
 
@@ -447,7 +453,7 @@ export const AdminProposalsModal: React.FC<AdminProposalsModalProps> = ({
                       <div style={{ background: '#FFFDF5', border: '1px dashed #F59E0B', borderRadius: '12px', padding: '12px', marginTop: '4px', textAlign: 'left' }}>
                         <div style={{ fontSize: '12px', fontWeight: 'bold', color: '#92400E', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '4px' }}>
                           <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>tune</span>
-                          Modifica Campi Proposta prima di Approvare:
+                          Modifica / Completa Campi Proposta prima di Approvare:
                         </div>
                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '8px' }}>
                           <div>
@@ -478,6 +484,7 @@ export const AdminProposalsModal: React.FC<AdminProposalsModalProps> = ({
                               onChange={(e) => updateField(item.proposalId, 'country', e.target.value)}
                               style={{ width: '100%', padding: '6px', fontSize: '12px', borderRadius: '8px' }}
                             >
+                              <option value="Non specificata">Non specificata</option>
                               <option value="Italia">Italia</option>
                               <option value="Germania">Germania</option>
                               <option value="Belgio">Belgio</option>
@@ -491,6 +498,8 @@ export const AdminProposalsModal: React.FC<AdminProposalsModalProps> = ({
                               <option value="Portogallo">Portogallo</option>
                               <option value="Messico">Messico</option>
                               <option value="Stati Uniti">Stati Uniti</option>
+                              <option value="Giappone">Giappone</option>
+                              <option value="Altra">Altra</option>
                             </select>
                           </div>
 

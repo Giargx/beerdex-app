@@ -155,14 +155,21 @@ export function formatBeerTitle(str: string): string {
   if (!str) return str;
   const trimmed = str.trim();
   if (trimmed.length === 0) return trimmed;
+
+  const acronyms = new Set(["IPA", "APA", "NEIPA", "DIPA", "TIPA", "RIS", "ESB", "ABV", "IBU", "IIPA"]);
+
   return trimmed
     .split(/\s+/)
     .map((word) => {
       if (!word) return word;
-      if (word === word.toUpperCase() && word.length >= 2 && word.length <= 5) {
-        return word;
+      const upper = word.toUpperCase();
+      if (acronyms.has(upper)) {
+        return upper;
       }
-      return word.charAt(0).toUpperCase() + word.slice(1);
+      if (word === upper && word.length >= 2 && word.length <= 4) {
+        return upper;
+      }
+      return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
     })
     .join(' ');
 }

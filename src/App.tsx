@@ -1008,6 +1008,8 @@ export default function App() {
     
     showAlert("Caricamento sblocco in corso...", "Cloud Sync", false);
     const { brand, variant, isShiny, canvasBase64, lat, lng } = uploadData;
+    const formattedBrand = formatBeerTitle(brand);
+    const formattedVariant = formatBeerTitle(variant);
 
     let taggedFriendsList: string[] = [];
     if (Array.isArray(taggedFriendsInput)) {
@@ -1019,14 +1021,15 @@ export default function App() {
     const taggedFriendStr = taggedFriendsList.length > 0 ? taggedFriendsList.join(', ') : null;
     const isShared = taggedFriendsList.length > 0;
 
-    const uniqueId = `${brand}-${variant}`;
+    const uniqueId = `${formattedBrand}-${formattedVariant}`;
     const pokedexEntry = {
       photo: canvasBase64,
       isShiny,
       isShared,
       taggedFriend: taggedFriendStr,
       taggedFriends: taggedFriendsList,
-      brand,
+      brand: formattedBrand,
+      variant: formattedVariant,
     };
 
     try {
@@ -1035,8 +1038,8 @@ export default function App() {
       const newPostRef = push(ref(db, 'social_timeline'));
       const postData: any = {
         user: currentUserNick,
-        brand,
-        variant,
+        brand: formattedBrand,
+        variant: formattedVariant,
         photo: canvasBase64,
         time: new Date().getTime(),
         isShiny,
