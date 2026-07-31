@@ -874,7 +874,9 @@ export default function App() {
         if (e.cancelable) {
           e.preventDefault();
         }
-        // Direct GPU hardware-accelerated DOM style transform update (0 lag, 60/120fps)
+        setIsDragging(true);
+        setDragOffset(diffX);
+
         const container = document.querySelector('.main-tabs-slider-container') as HTMLElement;
         if (container) {
           const basePercent = -currentIndex * 20;
@@ -898,6 +900,9 @@ export default function App() {
         container.style.transition = '';
         container.style.transform = '';
       }
+
+      setIsDragging(false);
+      setDragOffset(0);
 
       if (isEdgeBack) {
         // iOS-style Edge Swipe Back on sub-pages or drawers
