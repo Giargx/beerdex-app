@@ -1817,38 +1817,44 @@ export default function App() {
             <div className="section-title">Profilo e Account</div>
 
             {/* Row Profilo Privato */}
-            <div className="settings-row-expanded">
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                  <span className="material-symbols-outlined icon" style={{ color: isProfilePrivate ? '#EF4444' : '#10B981' }}>
-                    {isProfilePrivate ? 'lock' : 'lock_open'}
-                  </span>
-                  <div style={{ textAlign: 'left' }}>
-                    <div className="row-label">Profilo Privato</div>
-                    <div className="row-desc">
-                      {isProfilePrivate
-                        ? 'Foto e valutazioni visibili solo agli amici (medaglie visibili a tutti)'
-                        : 'Profilo pubblico visibile a tutta la community'}
-                    </div>
+            <div className="settings-row" onClick={() => handleToggleProfilePrivacy(!isProfilePrivate)} style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                <span className="material-symbols-outlined icon" style={{ color: isProfilePrivate ? '#EF4444' : '#64748B' }}>
+                  {isProfilePrivate ? 'lock' : 'lock_open'}
+                </span>
+                <div style={{ textAlign: 'left' }}>
+                  <div className="row-label">Profilo Privato</div>
+                  <div className="row-desc">
+                    {isProfilePrivate
+                      ? 'Attivo: Foto e voti personali visibili solo agli amici'
+                      : 'Disattivo: Profilo visibile a tutti'}
                   </div>
                 </div>
-                <button
-                  onClick={() => handleToggleProfilePrivacy(!isProfilePrivate)}
+              </div>
+              <div
+                style={{
+                  width: '46px',
+                  height: '26px',
+                  borderRadius: '13px',
+                  background: isProfilePrivate ? '#EF4444' : '#CBD5E1',
+                  position: 'relative',
+                  transition: 'background 0.25s ease',
+                  flexShrink: 0,
+                }}
+              >
+                <div
                   style={{
-                    background: isProfilePrivate ? '#FEF2F2' : '#F1F5F9',
-                    border: `1px solid ${isProfilePrivate ? '#FCA5A5' : '#CBD5E1'}`,
-                    color: isProfilePrivate ? '#DC2626' : '#475569',
-                    padding: '8px 14px',
-                    borderRadius: '12px',
-                    fontWeight: 'bold',
-                    fontSize: '12px',
-                    cursor: 'pointer',
-                    whiteSpace: 'nowrap',
-                    transition: 'all 0.2s ease',
+                    width: '22px',
+                    height: '22px',
+                    borderRadius: '50%',
+                    background: 'white',
+                    position: 'absolute',
+                    top: '2px',
+                    left: isProfilePrivate ? '22px' : '2px',
+                    transition: 'left 0.25s cubic-bezier(0.16, 1, 0.3, 1)',
+                    boxShadow: '0 1px 3px rgba(0,0,0,0.2)',
                   }}
-                >
-                  {isProfilePrivate ? 'ATTIVO (Privato)' : 'DISATTIVO (Pubblico)'}
-                </button>
+                />
               </div>
             </div>
             
