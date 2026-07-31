@@ -848,12 +848,13 @@ export default function App() {
       }
 
       if (isHorizontalSwipe.current === null) {
-        if (Math.abs(rawDiffX) < 6 && Math.abs(diffY) < 6) return;
+        // Require at least 20px horizontal movement before engaging swipe mode so taps on buttons and profiles work cleanly!
+        if (Math.abs(rawDiffX) < 20 && Math.abs(diffY) < 20) return;
 
-        if (Math.abs(rawDiffX) > Math.abs(diffY)) {
+        if (Math.abs(rawDiffX) > Math.abs(diffY) * 1.2) {
           // If on a sub-page or settings drawer, ONLY allow swipe if touch started at left edge (<= 45px) moving right
           if (!isMainTab) {
-            if (touchStartX.current <= 45 && rawDiffX > 0) {
+            if (touchStartX.current <= 45 && rawDiffX > 20) {
               isHorizontalSwipe.current = true;
             } else {
               isHorizontalSwipe.current = false;
@@ -1369,21 +1370,26 @@ export default function App() {
 
   // Public Profile View
   const handleOpenPublicProfile = async (username: string) => {
-    if (username === currentUserNick) {
+    if (!username) return;
+    if (username.toLowerCase() === currentUserNick.toLowerCase()) {
       navigateTo('page-profile');
       return;
     }
     setPubProfileBackPage(currentPage);
-    const snap = await get(ref(db, `pokedex_profiles/${username}`));
-    const dex = snap.val() || {};
-    setPubProfileDex(dex);
-
-    const scoreSnap = await get(ref(db, `leaderboard_scores/${username}`));
-    const scoreVal = scoreSnap.val() || 0;
-    setPubProfileScore(scoreVal);
     setPubProfileUser(username);
-
     navigateTo('page-public-profile');
+
+    try {
+      const snap = await get(ref(db, `pokedex_profiles/${username}`));
+      const dex = snap.val() || {};
+      setPubProfileDex(dex);
+
+      const scoreSnap = await get(ref(db, `leaderboard_scores/${username}`));
+      const scoreVal = scoreSnap.val() || 0;
+      setPubProfileScore(scoreVal);
+    } catch (e) {
+      console.error("Error loading public profile:", e);
+    }
   };
 
   // Friends actions
