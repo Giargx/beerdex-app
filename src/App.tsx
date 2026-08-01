@@ -2475,8 +2475,8 @@ export default function App() {
               allBeersCatalog={allBeersCatalog}
               isAdminUser={isAdminUser}
               onDeleteVariant={handleDeleteVariant}
-              isPrivate={globalUserPrivacy[pubProfileUser] === true}
-              isFriend={myFriendsList.includes(pubProfileUser)}
+              isPrivate={globalUserPrivacy && pubProfileUser ? globalUserPrivacy[pubProfileUser] === true : false}
+              isFriend={Array.isArray(myFriendsList) && pubProfileUser ? myFriendsList.includes(pubProfileUser) : false}
               currentUserNick={currentUserNick}
             />
           ) : null}
