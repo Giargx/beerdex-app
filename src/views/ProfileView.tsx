@@ -65,7 +65,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
   const roleColor = isAdminUser ? "var(--danger)" : "var(--text-muted)";
 
   // ----------------- CALCULATE STATS -----------------
-  const pokedexEntries = Object.values(myPokedex || {});
+  const pokedexEntries = Object.values(myPokedex || {}).filter((entry) => entry && typeof entry === 'object');
   const totalUnlocked = pokedexEntries.length;
   
   // Total variants in the game
@@ -73,14 +73,15 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
   const completionPercentage = totalVariantsInGame > 0 ? Math.round((totalUnlocked / totalVariantsInGame) * 100) : 0;
   
   // Shiny count
-  const shinyCount = pokedexEntries.filter(entry => entry.isShiny).length;
+  const shinyCount = pokedexEntries.filter(entry => entry && entry.isShiny).length;
   
   // Tagged friends count
-  const taggedFriendsCount = pokedexEntries.filter(entry => entry.taggedFriend).length;
+  const taggedFriendsCount = pokedexEntries.filter(entry => entry && entry.taggedFriend).length;
 
   // Rarity distribution
   const rarityCounts = { comune: 0, media: 0, rara: 0 };
   Object.keys(myPokedex || {}).forEach(key => {
+    if (!myPokedex[key]) return;
     const brand = key.split('-')[0];
     const beer = (beers || []).find(b => b.brand === brand);
     if (beer) {
@@ -99,6 +100,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
     countryCounts[c].total += Array.isArray(beer?.variants) ? beer.variants.length : 1;
   });
   Object.keys(myPokedex || {}).forEach(key => {
+    if (!myPokedex[key]) return;
     const brand = key.split('-')[0];
     const beer = beers.find(b => b.brand === brand);
     if (beer) {
@@ -140,7 +142,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
   let totalRatingSum = 0;
 
   Object.entries(myPokedex || {}).forEach(([key, entry]) => {
-    if (entry.rating && entry.rating > 0) {
+    if (entry && entry.rating && entry.rating > 0) {
       totalRatedBeers += 1;
       totalRatingSum += entry.rating;
 

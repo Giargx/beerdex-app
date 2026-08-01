@@ -1,4 +1,4 @@
-const CACHE_NAME = 'beerdex-v3.0'; // ⬅️ CAMBIA QUESTO NUMERO OGNI VOLTA CHE MODIFICHI IL SITO
+const CACHE_NAME = 'beerdex-v3.1'; // ⬅️ CAMBIA QUESTO NUMERO OGNI VOLTA CHE MODIFICHI IL SITO
 
 self.addEventListener('install', event => {
     self.skipWaiting(); // Forza l'installazione del nuovo codice
