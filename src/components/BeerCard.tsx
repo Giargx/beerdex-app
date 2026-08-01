@@ -29,11 +29,14 @@ export const BeerCard: React.FC<BeerCardProps> = ({
   isAdminUser,
   onDeleteCustomBeerCatalog,
 }) => {
-  // Check if all variants are completed
-  const brandTotal = beer.variants.length;
+  if (!beer || !beer.brand) return null;
+
+  const safePokedex = myPokedex || {};
+  const variants = Array.isArray(beer.variants) && beer.variants.length > 0 ? beer.variants : ['Classica'];
+  const brandTotal = variants.length;
   let brandDrunk = 0;
-  beer.variants.forEach((v) => {
-    if (myPokedex[`${beer.brand}-${v}`]) {
+  variants.forEach((v) => {
+    if (safePokedex[`${beer.brand}-${v}`]) {
       brandDrunk++;
     }
   });
@@ -113,9 +116,9 @@ export const BeerCard: React.FC<BeerCardProps> = ({
         <div className="variants-container-inner">
           <div className="variants" onClick={(e) => e.stopPropagation()}>
             <p>Varianti da trovare:</p>
-          {beer.variants.map((variant) => {
+          {variants.map((variant) => {
             const uniqueId = `${beer.brand}-${variant}`;
-            const entry = myPokedex[uniqueId];
+            const entry = safePokedex[uniqueId];
             const hasPhoto = entry !== undefined;
             const specificPts = getBasePoints(beer.brand, variant);
             const typeKey = getBeerType(beer.brand, variant);

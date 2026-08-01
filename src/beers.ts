@@ -152,7 +152,7 @@ export function getCountryFlag(country?: string): string {
 }
 
 export function formatBeerTitle(str: string): string {
-  if (!str) return str;
+  if (!str || typeof str !== 'string') return (str as any) || '';
   const trimmed = str.trim();
   if (trimmed.length === 0) return trimmed;
 
@@ -178,7 +178,7 @@ export function mergeBeers(staticBeers: Beer[] = beers, customBeers?: any): Beer
   const safeStatic = Array.isArray(staticBeers) ? staticBeers : beers;
   if (!customBeers) return safeStatic;
 
-  let customList: Beer[] = [];
+  let customList: any[] = [];
   if (Array.isArray(customBeers)) {
     customList = customBeers;
   } else if (typeof customBeers === 'object') {
@@ -191,17 +191,23 @@ export function mergeBeers(staticBeers: Beer[] = beers, customBeers?: any): Beer
 
   safeStatic.forEach((b) => {
     if (b && b.brand) {
-      mergedMap.set(b.brand, { ...b, variants: [...b.variants] });
+      const safeVars = Array.isArray(b.variants) ? b.variants : ['Classica'];
+      mergedMap.set(b.brand, { ...b, variants: [...safeVars] });
     }
   });
 
   customList.forEach((cb) => {
     if (cb && cb.brand) {
       const cbBrand = formatBeerTitle(cb.brand);
-      const cbVariants = (Array.isArray(cb.variants) ? cb.variants : []).map((v) => formatBeerTitle(v));
+      const rawVars = Array.isArray(cb.variants)
+        ? cb.variants
+        : ((cb as any).variant ? [(cb as any).variant] : ['Classica']);
+      const cbVariants = rawVars.map((v: string) => formatBeerTitle(v || 'Classica'));
+
       if (mergedMap.has(cbBrand)) {
         const existing = mergedMap.get(cbBrand)!;
-        cbVariants.forEach((v) => {
+        if (!Array.isArray(existing.variants)) existing.variants = ['Classica'];
+        cbVariants.forEach((v: string) => {
           if (v && !existing.variants.includes(v)) {
             existing.variants.push(v);
           }

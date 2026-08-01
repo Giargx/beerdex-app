@@ -526,8 +526,9 @@ export default function App() {
     }
 
     currentCatalog.forEach((beer) => {
-      if (beer.variants.length > 0 && brandUnlockCounts[beer.brand] === beer.variants.length) {
-        totalScore += beer.variants.length * 3;
+      const vars = Array.isArray(beer?.variants) ? beer.variants : ['Classica'];
+      if (vars.length > 0 && brandUnlockCounts[beer.brand] === vars.length) {
+        totalScore += vars.length * 3;
       }
     });
 
@@ -720,7 +721,7 @@ export default function App() {
 
   // Helper visibility titles
   const getUserRankTitle = (score: number, unlockedCount?: number) => {
-    const totalVariants = beers.reduce((acc, b) => acc + b.variants.length, 0);
+    const totalVariants = (beers || []).reduce((acc, b) => acc + (Array.isArray(b?.variants) ? b.variants.length : 1), 0);
     if (unlockedCount !== undefined && unlockedCount >= totalVariants) {
       return "Ægir (Divinità Norrena della Birra)";
     }

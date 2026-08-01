@@ -113,7 +113,7 @@ export const PublicProfileView: React.FC<PublicProfileViewProps> = ({
   const favoriteStyleMeta = favoriteStyleKey ? beerTypeMeta[favoriteStyleKey] : null;
 
   // General Stats (matching ProfileView 1:1)
-  const totalVariantsInGame = allBeersCatalog.reduce((acc: number, beer: Beer) => acc + beer.variants.length, 0);
+  const totalVariantsInGame = (allBeersCatalog || []).reduce((acc: number, beer: Beer) => acc + (Array.isArray(beer?.variants) ? beer.variants.length : 1), 0);
   const completionPercentage = totalVariantsInGame > 0 ? Math.round((totalUnlocked / totalVariantsInGame) * 100) : 0;
 
   let shinyCount = 0;
@@ -126,7 +126,7 @@ export const PublicProfileView: React.FC<PublicProfileViewProps> = ({
   const rarityCounts = { comune: 0, media: 0, rara: 0 };
   Object.keys(pokedex || {}).forEach(key => {
     const brand = key.split('-')[0];
-    const beer = allBeersCatalog.find((b: Beer) => b.brand === brand);
+    const beer = (allBeersCatalog || []).find((b: Beer) => b.brand === brand);
     if (beer) {
       const r = (beer.rarity || 'comune') as 'comune' | 'media' | 'rara';
       rarityCounts[r] = (rarityCounts[r] || 0) + 1;
@@ -134,12 +134,12 @@ export const PublicProfileView: React.FC<PublicProfileViewProps> = ({
   });
 
   const countryCounts: Record<string, { unlocked: number, total: number }> = {};
-  allBeersCatalog.forEach((beer: Beer) => {
+  (allBeersCatalog || []).forEach((beer: Beer) => {
     const c = beer.country || 'Sconosciuta';
     if (!countryCounts[c]) {
       countryCounts[c] = { unlocked: 0, total: 0 };
     }
-    countryCounts[c].total += beer.variants.length;
+    countryCounts[c].total += Array.isArray(beer?.variants) ? beer.variants.length : 1;
   });
   Object.keys(pokedex || {}).forEach(key => {
     const brand = key.split('-')[0];

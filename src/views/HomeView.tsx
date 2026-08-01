@@ -143,7 +143,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
   let prevTargetPoints = 0;
   let nextRankName = "Apprendista Bevitore";
 
-  const totalVariants = beers.reduce((acc, b) => acc + b.variants.length, 0);
+  const totalVariants = (beers || []).reduce((acc, b) => acc + (Array.isArray(b?.variants) ? b.variants.length : 1), 0);
   const isDioDellaBirra = totalUnlockedCount >= totalVariants;
 
   if (isDioDellaBirra) {
@@ -531,7 +531,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
               </div>
             </div>
             <p style={{ margin: '12px 0 0 0', fontSize: '13px', color: 'var(--text-muted)', lineHeight: '1.4' }}>
-              <strong>Varianti:</strong> {beerOfTheWeek.variants.join(', ')}. Una birra fantastica da aggiungere alla tua collezione. Clicca sotto per cercarla nel catalogo!
+              <strong>Varianti:</strong> {Array.isArray(beerOfTheWeek?.variants) ? beerOfTheWeek.variants.join(', ') : 'Classica'}. Una birra fantastica da aggiungere alla tua collezione. Clicca sotto per cercarla nel catalogo!
             </p>
             <button
               onClick={() => onNavigate('page-explore')}

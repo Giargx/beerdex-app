@@ -297,8 +297,10 @@ export const TrophyGrid: React.FC<TrophyGridProps> = ({
   });
 
   // Build the list of all variants
-  const allVariantsList = allBeersCatalog.flatMap((beer) => {
-    return beer.variants.map((variant: string) => {
+  const allVariantsList = (allBeersCatalog || []).flatMap((beer) => {
+    if (!beer || !beer.brand) return [];
+    const vars = Array.isArray(beer.variants) && beer.variants.length > 0 ? beer.variants : ['Classica'];
+    return vars.map((variant: string) => {
       const uniqueId = `${beer.brand}-${variant}`;
       const entry = pokedex ? pokedex[uniqueId] : undefined;
       const isUnlocked = entry !== undefined;
@@ -328,8 +330,8 @@ export const TrophyGrid: React.FC<TrophyGridProps> = ({
       return {
         brand: beer.brand,
         variant,
-        country: beer.country,
-        rarity: beer.rarity,
+        country: beer.country || 'Italia',
+        rarity: beer.rarity || 'comune',
         isUnlocked,
         isShiny,
         isShared,
@@ -356,14 +358,15 @@ export const TrophyGrid: React.FC<TrophyGridProps> = ({
   });
 
   // Build the completed brand medals
-  const brandMedalsList = allBeersCatalog.map((beer) => {
-    const isCompleted = beer.variants.length > 0 && brandUnlockCounts[beer.brand] === beer.variants.length;
+  const brandMedalsList = (allBeersCatalog || []).map((beer) => {
+    const vars = Array.isArray(beer?.variants) && beer.variants.length > 0 ? beer.variants : ['Classica'];
+    const isCompleted = vars.length > 0 && brandUnlockCounts[beer.brand] === vars.length;
     return {
       brand: beer.brand,
       isCompleted,
-      country: beer.country,
-      rarity: beer.rarity,
-      variantsLength: beer.variants.length,
+      country: beer.country || 'Italia',
+      rarity: beer.rarity || 'comune',
+      variantsLength: vars.length,
     };
   });
 
