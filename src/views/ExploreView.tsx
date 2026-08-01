@@ -29,10 +29,14 @@ export const ExploreView: React.FC<ExploreViewProps> = ({
   const [searchTerm, setSearchTerm] = useState('');
   const [countryFilter, setCountryFilter] = useState('Tutte');
   const [regionFilter, setRegionFilter] = useState('Tutte');
-  const [sortFilter, setSortFilter] = useState(() => localStorage.getItem('beerdex_catalog_sort') || 'alpha');
+  const [sortFilter, setSortFilter] = useState(() => {
+    try { return localStorage.getItem('beerdex_catalog_sort') || 'alpha'; } catch { return 'alpha'; }
+  });
   const [sortDir, setSortDir] = useState<number>(() => {
-    const saved = localStorage.getItem('beerdex_catalog_sort_dir');
-    return saved ? parseInt(saved, 10) : 1;
+    try {
+      const saved = localStorage.getItem('beerdex_catalog_sort_dir');
+      return saved ? parseInt(saved, 10) : 1;
+    } catch { return 1; }
   });
   
   // Track expanded state for each beer brand card

@@ -138,9 +138,15 @@ export default function App() {
 
   // Enriched settings states
   const [newDisplayName, setNewDisplayName] = useState<string>('');
-  const [soundEnabled, setSoundEnabled] = useState<boolean>(() => localStorage.getItem('beerdex_sounds') !== 'no');
-  const [bubblesEnabled, setBubblesEnabled] = useState<boolean>(() => localStorage.getItem('beerdex_bubbles') !== 'no');
-  const [gpsEnabled, setGpsEnabled] = useState<boolean>(() => localStorage.getItem('beerdex_gps') !== 'no');
+  const [soundEnabled, setSoundEnabled] = useState<boolean>(() => {
+    try { return localStorage.getItem('beerdex_sounds') !== 'no'; } catch { return true; }
+  });
+  const [bubblesEnabled, setBubblesEnabled] = useState<boolean>(() => {
+    try { return localStorage.getItem('beerdex_bubbles') !== 'no'; } catch { return true; }
+  });
+  const [gpsEnabled, setGpsEnabled] = useState<boolean>(() => {
+    try { return localStorage.getItem('beerdex_gps') !== 'no'; } catch { return true; }
+  });
 
 
   // Zoomed Avatar State
@@ -178,11 +184,11 @@ export default function App() {
 
   // Load and apply interface brewery themes
   const [currentTheme, setCurrentTheme] = useState<string>(() => {
-    return localStorage.getItem('beerdex_theme') || 'classic';
+    try { return localStorage.getItem('beerdex_theme') || 'classic'; } catch { return 'classic'; }
   });
 
   useEffect(() => {
-    localStorage.setItem('beerdex_theme', currentTheme);
+    try { localStorage.setItem('beerdex_theme', currentTheme); } catch {}
     const root = document.documentElement;
     if (currentTheme === 'amber') {
       root.style.setProperty('--primary', '#D35400');
@@ -758,9 +764,9 @@ export default function App() {
     }
 
     if (pageId === currentPage) {
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+      window.scrollTo(0, 0);
       document.querySelectorAll('.page-container-view, .page-container, .main-tab-slide').forEach((el) => {
-        el.scrollTo({ top: 0, behavior: 'smooth' });
+        el.scrollTop = 0;
       });
       return;
     }
@@ -773,10 +779,14 @@ export default function App() {
     setCurrentPage(pageId);
     setTransitionDir(isForward ? 'left' : 'right');
 
-    sessionStorage.setItem('beerdex_currentPage', pageId);
+    try {
+      sessionStorage.setItem('beerdex_currentPage', pageId);
+    } catch (e) {
+      // Ignore storage errors in private browsing
+    }
 
     // Scroll to the top when page changes
-    window.scrollTo({ top: 0, behavior: 'instant' });
+    window.scrollTo(0, 0);
 
     setTimeout(() => {
       setPrevPage(null);
