@@ -8,10 +8,17 @@ L'applicazione si interfaccia in tempo reale con **Firebase Realtime Database** 
 
 ## 🚀 Caratteristiche Principali
 
+### 🏠 Home View "Pub Luxury" & Hub Missioni
+* **Design Luxury Glassmorphism**: Interfaccia ridisegnata con stile pub di lusso, saluto dinamico in base all'orario (*"Buongiorno ☕"*, *"Buon pomeriggio 🍺"*, *"Buona serata al pub! 🌙"*), e barra di avanzamento Livello/XP.
+* **Hub Missioni del Pub**: 3 sfide giornaliere con badge di completamento e premi in XP.
+* **La Spina del Giorno**: Schede di raccomandazione birre con filtri per stile (*Top*, *Rara*, *Estera*).
+* **Attività al Bancone**: Carosello interattivo delle bevute degli amici con pulsante *"Brinda 🍻"* e animazione toast in tempo reale.
+* **Dock Azioni Rapide**: Barra galleggiante per sblocco, esplorazione, classifica e mappa.
+
 ### 📱 Esperienza Mobile e Navigazione Nativa-style
 * **Slider a Scorrimento Fluido (Touch-Drag)**: Navigazione orizzontale fluida tra le 5 tab principali (*Home*, *Esplora*, *Classifica*, *Pub* e *Profilo*) trascinando le pagine con il dito. Uno snapping intelligente allinea la vista al rilascio del tocco. Le sotto-pagine mantengono la transizione slide-in classica.
-* **Scroll Reset**: La posizione dello scorrimento verticale viene ripristinata in cima alla pagina ogni volta che si cambia tab o si naviga verso una nuova sezione.
-* **Interazioni Social**: Visualizzazione a griglia dei post dei profili (personale/pubblico) con visualizzazione a schermo intero dei singoli post tramite scroll verticale continuo. Doppio tocco sull'immagine per mettere like istantaneo con animazione SVG di calici incrociati.
+* **Scroll Reset & Gesture Exceptions**: La posizione dello scorrimento verticale viene ripristinata in cima alla pagina ad ogni cambio tab. I caroselli orizzontali prevengono l'intercettazione dello swipe delle tab.
+* **Interazioni Social**: Visualizzazione a griglia dei post dei profili con vista dettaglio a schermo intero. Doppio tocco sull'immagine per mettere like istantaneo con animazione SVG di calici incrociati.
 
 ### 📷 Scanner & Sistema Anti-Cheat Avanzato
 * **Validazione tramite Barcode**: Integrazione con la libreria `Html5-Qrcode` e le API di **Open Food Facts** per analizzare il codice a barre e convalidare il prodotto inquadrato.
@@ -26,34 +33,11 @@ L'applicazione si interfaccia in tempo reale con **Firebase Realtime Database** 
   * 🔴 *Sommelier del Bancone* (500-1199 pt)
   * 👑 *Mastro Birraio* (1200+ pt)
   * ⚡ **Dio della Birra** (Sblocco del 100% del catalogo dell'app)
-* **Medaglie completamento Brand**: Completare tutte le varianti di un singolo brand sblocca la medaglia *"Mastro [Brand]"* con un bonus proporzionale di **+3 Punti per ogni variante** del brand (es. +9pt per 3 varianti, +15pt per 5).
-* **Medaglie Evento Temporali (2026+)**:
-  * **Gradualità e Calendario**: Vengono generati gli anni dal 2026 fino all'anno corrente. Gli eventi futuri non vengono mostrati e le sfide dell'anno in corso vengono visualizzate gradualmente man mano che si entra nel mese di riferimento.
-  * **Eventi Stagionali (+10 Punti, 10 Birre Richieste)**:
-    * 🌸 *Primavera* (Mar-Mag): Sblocca 10 birre Bianche (Blanche, Weizen, Saison).
-    * ☀️ *Estate* (Giu-Ago): Sblocca 10 birre Bionde o IPA.
-    * 🍁 *Autunno* (Set-Nov): Sblocca 10 birre Rosse, IPA o Tedesche.
-    * ❄ *Inverno* (Dic-Feb): Sblocca 10 birre Scure o Rosse.
-  * **Eventi Festività (+5 Punti, 1 Birra Richiesta - Sblocchi Contemporanei)**:
-    * 🎉 *Capodanno* (Gennaio)
-    * 💖 *San Valentino* (Febbraio - 1 Rossa o Scura)
-    * 🍀 *San Patrizio* (Marzo - 1 Irlandese/Scozzese)
-    * 👨 *Festa del Papà* (Marzo - 1 Rara o Media)
-    * 🥚 *Pasqua* (Aprile - 1 Belga)
-    * 🛠 *Festa del Lavoro* (Maggio - 1 Bionda)
-    * 🇮🇹 *Festa della Repubblica* (Giugno - 1 Italiana)
-    * 🔥 *Grigliata di Luglio* (Luglio - 1 IPA o Bionda)
-    * 🍉 *Ferragosto* (Agosto - 1 qualsiasi)
-    * 🍻 *Oktoberfest Start* (Settembre - 1 Tedesca)
-    * 🍻 *Oktoberfest End* (Ottobre - 1 Tedesca)
-    * 🎃 *Halloween* (Ottobre - 1 Scura o Rossa)
-    * 🍁 *Castagnata* (Novembre - 1 Scura o Rossa)
-    * 🎄 *Natale* (Dicembre - 1 Rara o Media)
-    * 🎆 *Vigilia di Capodanno* (Dicembre - 1 qualsiasi)
+* **Medaglie completamento Brand**: Completare tutte le varianti di un singolo brand sblocca la medaglia *"Mastro [Brand]"* con un bonus proporzionale di **+3 Punti per ogni variante** del brand.
+* **Medaglie Evento Temporali (2026+)**: Eventi stagionali (Primavera, Estate, Autunno, Inverno) e festività dell'anno in corso mostrati gradualmente nel mese di riferimento.
 
 ### 🎨 Grafica Premium e Audio Fisico
-* **Interfaccia Pulita**: Sezioni eleganti con elementi minimali (come il feed "Pub" semplificato con boccale e logo premium).
-* **Temi Brewery Dinamici**: Temi cromatici personalizzabili basati sullo stile di fermentazione (Pilsner, Amber Ale, Stout, Pale IPA).
+* **Interfaccia Pulita & Temi Dinamici**: Temi cromatici personalizzabili basati sullo stile di fermentazione (Pilsner, Amber Ale, Stout, Pale IPA).
 * **Audio Clink & Pop**: Emulatore di suoni sintetizzati tramite Web Audio API nativa per il brindisi e lo stappo del tappo a corona.
 
 ---
@@ -64,32 +48,44 @@ L'applicazione si interfaccia in tempo reale con **Firebase Realtime Database** 
 * **Mappe**: Leaflet (Beer Radar per posizionare le bevute)
 * **Scanner**: Html5-Qrcode + Open Food Facts REST API
 * **Audio**: Web Audio API nativa
-* **CI/CD**: GitHub Actions (per deploy automatico su GitHub Pages) + Vercel integration
+* **CI/CD**: GitHub Actions (deploy su GitHub Pages) + Vercel integration
 
 ---
 
-## 📦 Sviluppo Locale
+## 📦 Sviluppo Locale & Configurazione Firebase
 
 ### Prerequisiti
 * Node.js (v18 o superiore)
 * npm
 
-### Installazione ed Avvio
+### Installazione ed Avvio Locale
 1. Installa le dipendenze:
    ```bash
    npm install
    ```
-2. Avvia il server di sviluppo locale:
+2. Avvia il server di sviluppo locale (Vite):
    ```bash
    npm run dev
    ```
+   > ⚠️ **Nota**: Non aprire direttamente il file `index.html` via `file:///` per evitare blocchi CORS sui moduli JS. Apri l'indirizzo `http://localhost:5173/`.
+
 3. Compila per la produzione:
    ```bash
    npm run build
    ```
 
+### Configurazione Domini & Chiavi API Firebase / Google Cloud
+Se riscontri l'errore `auth/requests-from-referer-...-are-blocked`:
+1. In **Firebase Console ➔ Authentication ➔ Impostazioni ➔ Domini Autorizzati**, aggiungi:
+   - `localhost`
+   - `giargx.github.io`
+2. In **Google Cloud Console ➔ APIs & Services ➔ Credentials ➔ Chiave API Web**, aggiungi ai **Referrer HTTP**:
+   - `http://localhost:*`
+   - `https://giargx.github.io/*`
+   - `https://giargx.github.io/beerdex-app/*`
+
 ---
 
 ## 🚀 Deploy Automatico (CI/CD)
 1. **Vercel** (`beerdex-app.vercel.app`): Rileva i push sul branch `main` e distribuisce l'applicazione in tempo reale sulla radice (`/`).
-2. **GitHub Pages** (`giargx.github.io/beerdex-app`): Tramite una GitHub Action configurata in `.github/workflows/deploy.yml`, compila il progetto con il base-path corretto e ne fa il deploy sul branch `gh-pages`.
+2. **GitHub Pages** (`giargx.github.io/beerdex-app`): Tramite una GitHub Action configurata in `.github/workflows/deploy.yml`, compila il progetto con il base-path corretto e ne fa il deploy sul branch `gh-pages`./workflows/deploy.yml`, compila il progetto con il base-path corretto e ne fa il deploy sul branch `gh-pages`.
