@@ -131,8 +131,8 @@ export const AdminProposalsModal: React.FC<AdminProposalsModalProps> = ({
     onAcceptProposal(finalProposal);
   };
 
-  const pendingProposals = proposals.filter((p) => p.status === 'pending');
-  const flaggedList = Object.values(flaggedPosts);
+  const pendingProposals = (proposals || []).filter((p) => p && p.status === 'pending');
+  const flaggedList = Object.values(flaggedPosts || {});
 
   return (
     <div className="auth-modal" style={{ zIndex: 19500 }}>

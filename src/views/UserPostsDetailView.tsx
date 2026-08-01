@@ -35,7 +35,8 @@ export const UserPostsDetailView: React.FC<UserPostsDetailViewProps> = ({
   onOpenPublicProfile,
   isAdminUser,
 }) => {
-  const myPosts = [...posts].filter((p) => p.user === username).reverse();
+  const safePosts = Array.isArray(posts) ? posts : [];
+  const myPosts = safePosts.filter((p) => p && p.user === username).reverse();
 
   useEffect(() => {
     if (initialPostId) {

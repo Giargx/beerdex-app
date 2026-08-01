@@ -113,8 +113,8 @@ export const MapContainer: React.FC<MapContainerProps> = ({
         popupAnchor: [0, -36],
       });
 
-      const myPosts = posts.filter(
-        (p) => p.user === currentUserNick && p.lat !== undefined && p.lng !== undefined
+      const myPosts = (posts || []).filter(
+        (p) => p && p.user === currentUserNick && p.lat !== undefined && p.lng !== undefined
       );
 
       myPosts.forEach((p) => {
