@@ -131,7 +131,7 @@ export default function App() {
   };
   const [adminProposalsModalOpen, setAdminProposalsModalOpen] = useState(false);
   const [adminModalTab, setAdminModalTab] = useState<'proposals' | 'flagged'>('proposals');
-  const [beerProposals, setBeerProposals] = useState<BeerProposalItem[]>([]);
+  const [flaggedPosts, setFlaggedPosts] = useState<Record<string, any>>({});
   const [unlockRatingModalState, setUnlockRatingModalState] = useState<{ isOpen: boolean; brand: string; variant: string; photo?: string } | null>(null);
 
   const allBeersCatalog = mergeBeers(beers, customBeers);

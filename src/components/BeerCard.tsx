@@ -1,5 +1,5 @@
 import React from 'react';
-import { getBeerType, getBasePoints } from '../beers';
+import { getBeerType, getBasePoints, getCountryFlag } from '../beers';
 import type { Beer } from '../beers';
 import type { PokedexEntry } from './TrophyGrid';
 import { StarRating } from './StarRating';
