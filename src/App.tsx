@@ -337,6 +337,9 @@ export default function App() {
     if (settingsOpen) {
       setNewDisplayName(globalDisplayNames[currentUserNick] || '');
       setNewNickname(currentUserNick);
+      document.body.classList.add('settings-open');
+    } else {
+      document.body.classList.remove('settings-open');
     }
   }, [settingsOpen, globalDisplayNames, currentUserNick]);
 
