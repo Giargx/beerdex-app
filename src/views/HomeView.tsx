@@ -21,6 +21,11 @@ interface HomeViewProps {
   leaderboardScores: Record<string, number>;
   onNavigate: (pageId: string) => void;
   getUserRankTitle: (score: number, unlockedCount?: number) => string;
+  myPokedex?: Record<string, any>;
+  allBeersCatalog?: any[];
+  onInitUnlock?: (brand: string, variant: string) => void;
+  onOpenScanner?: () => void;
+  onOpenPublicProfile?: (username: string) => void;
 }
 
 export const HomeView: React.FC<HomeViewProps> = ({
@@ -30,8 +35,24 @@ export const HomeView: React.FC<HomeViewProps> = ({
   leaderboardScores,
   onNavigate,
   getUserRankTitle,
+  myPokedex = {},
+  allBeersCatalog = beers,
+  onInitUnlock: _onInitUnlock,
+  onOpenScanner,
+  onOpenPublicProfile,
 }) => {
   const [timedEvent, setTimedEvent] = useState<{ name: string; desc: string } | null>(null);
+  const [recommendTab, setRecommendTab] = useState<'recommended' | 'rare' | 'foreign'>('recommended');
+  const [cheersToast, setCheersToast] = useState<string | null>(null);
+  const [cheeredPosts, setCheeredPosts] = useState<Record<string, boolean>>({});
+
+  // Dynamic greeting based on time of day
+  const getGreeting = () => {
+    const hour = new Date().getHours();
+    if (hour >= 5 && hour < 12) return 'Buongiorno ☕';
+    if (hour >= 12 && hour < 18) return 'Buon pomeriggio 🍺';
+    return 'Buona serata al pub! 🌙';
+  };
 
   useEffect(() => {
     const now = new Date();
@@ -131,25 +152,30 @@ export const HomeView: React.FC<HomeViewProps> = ({
   }, []);
 
   const myPosts = posts.filter((p) => p.user === currentUserNick);
-  const totalUnlockedCount = new Set(myPosts.map(p => p.brand + ' - ' + p.variant)).size;
+  const totalUnlockedCount = Object.keys(myPokedex).length > 0
+    ? Object.keys(myPokedex).length
+    : new Set(myPosts.map(p => p.brand + ' - ' + p.variant)).size;
+
   const totalPoints = leaderboardScores[currentUserNick] || 0;
   const rankLabel = getUserRankTitle(totalPoints, totalUnlockedCount);
 
   // Get last beer unlocked by user
   const lastPost = myPosts.length > 0 ? [...myPosts].sort((a, b) => b.time - a.time)[0] : null;
 
-  // New Rank Progression Tiers
+  // Catalog total count
+  const catalogList = allBeersCatalog.length > 0 ? allBeersCatalog : beers;
+  const totalVariants = catalogList.reduce((acc, b) => acc + (Array.isArray(b?.variants) ? b.variants.length : 1), 0);
+  const isDioDellaBirra = totalUnlockedCount >= totalVariants;
+
+  // Level Progression Calculation
   let nextTargetPoints = 50;
   let prevTargetPoints = 0;
   let nextRankName = "Apprendista Bevitore";
 
-  const totalVariants = (beers || []).reduce((acc, b) => acc + (Array.isArray(b?.variants) ? b.variants.length : 1), 0);
-  const isDioDellaBirra = totalUnlockedCount >= totalVariants;
-
   if (isDioDellaBirra) {
     nextTargetPoints = totalPoints;
     prevTargetPoints = totalPoints;
-    nextRankName = "Massimo Livello: Ægir (Divinità Norrena della Birra)!";
+    nextRankName = "Massimo Livello: Ægir (Divinità Norrena)!";
   } else if (totalPoints < 50) {
     nextTargetPoints = 50;
     prevTargetPoints = 0;
@@ -177,37 +203,68 @@ export const HomeView: React.FC<HomeViewProps> = ({
     ? 100
     : Math.min(((totalPoints - prevTargetPoints) / (nextTargetPoints - prevTargetPoints)) * 100, 100);
 
-  // New Collector Metrics
+  // Collector Metrics
   const shinyCount = myPosts.filter(p => p.isShiny).length;
   const countriesExplored = new Set(myPosts.map(p => {
-    const b = beers.find(beerItem => beerItem.brand === p.brand);
+    const b = catalogList.find(beerItem => beerItem.brand === p.brand);
     return b ? b.country : '';
   }).filter(Boolean)).size;
 
-  // Deterministic pick of a missing beer of the week
+  // Unlocked Brands Set
   const unlockedBrands = new Set(myPosts.map((p) => p.brand));
-  const missingBeers = beers.filter((b) => !unlockedBrands.has(b.brand));
-  const getBeerOfTheWeek = () => {
-    const list = missingBeers.length > 0 ? missingBeers : beers;
+  const missingBeers = catalogList.filter((b) => !unlockedBrands.has(b.brand));
+
+  // Beer Recommendations logic
+  const getRecommendedBeer = () => {
+    const list = missingBeers.length > 0 ? missingBeers : catalogList;
+    if (recommendTab === 'rare') {
+      const rareList = list.filter(b => b.rarity === 'rara' || b.rarity === 'media');
+      if (rareList.length > 0) return rareList[0];
+    }
+    if (recommendTab === 'foreign') {
+      const foreignList = list.filter(b => b.country && b.country.toLowerCase() !== 'italia');
+      if (foreignList.length > 0) return foreignList[0];
+    }
+    // Default weekly recommended
     const today = new Date();
     const firstDayOfYear = new Date(today.getFullYear(), 0, 1);
     const pastDaysOfYear = (today.getTime() - firstDayOfYear.getTime()) / 86400000;
     const weekNum = Math.ceil((pastDaysOfYear + firstDayOfYear.getDay() + 1) / 7);
     const index = (weekNum + today.getFullYear()) % list.length;
-    return list[index];
+    return list[index] || catalogList[0];
   };
-  const beerOfTheWeek = getBeerOfTheWeek();
+
+  const featuredBeer = getRecommendedBeer();
+
+  // Daily Quests Calculation
+  const todayStr = new Date().toLocaleDateString();
+  const unlockedTodayCount = myPosts.filter(p => new Date(p.time).toLocaleDateString() === todayStr).length;
+  const quest1Completed = unlockedTodayCount > 0;
+  const quest2Completed = countriesExplored >= 3;
+  const quest3Completed = shinyCount > 0 || myPosts.some(p => p.isShared);
+  const completedQuestsCount = (quest1Completed ? 1 : 0) + (quest2Completed ? 1 : 0) + (quest3Completed ? 1 : 0);
+
+  // Community / Friends Posts
+  const recentCommunityPosts = posts.filter(p => p.user !== currentUserNick).slice(0, 5);
+
+  const handleTriggerCheers = (postUser: string, postId: string) => {
+    setCheeredPosts(prev => ({ ...prev, [postId]: true }));
+    setCheersToast(`Hai brindato con ${postUser}! 🥂✨`);
+    setTimeout(() => {
+      setCheersToast(null);
+    }, 2800);
+  };
 
   // Timed Event Banner Styles configuration
   const getEventConfig = () => {
     if (!timedEvent) {
       return {
-        background: 'linear-gradient(135deg, #F8FAFC 0%, #F1F5F9 100%)',
-        border: '1px solid rgba(148, 163, 184, 0.25)',
-        color: 'var(--dark)',
-        titleColor: 'var(--dark)',
-        descColor: 'var(--text-muted)',
-        iconColor: '#64748B',
+        background: 'linear-gradient(135deg, #1E293B 0%, #0F172A 100%)',
+        border: '1px solid rgba(255, 255, 255, 0.1)',
+        color: '#FFFFFF',
+        titleColor: '#F8FAFC',
+        descColor: '#94A3B8',
+        iconColor: '#FFB300',
         icon: 'calendar_month',
         badge: null
       };
@@ -216,7 +273,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
     if (timedEvent.name === "San Patrizio") {
       return {
         background: 'linear-gradient(135deg, #065F46 0%, #047857 100%)',
-        border: '1px solid rgba(16, 185, 129, 0.2)',
+        border: '1px solid rgba(16, 185, 129, 0.3)',
         color: '#FFFFFF',
         titleColor: '#A7F3D0',
         descColor: '#E6FDF4',
@@ -229,7 +286,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
     if (timedEvent.name === "Estate") {
       return {
         background: 'linear-gradient(135deg, #D97706 0%, #92400E 100%)',
-        border: '1px solid rgba(245, 158, 11, 0.2)',
+        border: '1px solid rgba(245, 158, 11, 0.3)',
         color: '#FFFFFF',
         titleColor: '#FDE68A',
         descColor: '#FEF3C7',
@@ -242,7 +299,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
     if (timedEvent.name === "Ferragosto") {
       return {
         background: 'linear-gradient(135deg, #DC2626 0%, #991B1B 100%)',
-        border: '1px solid rgba(239, 68, 68, 0.2)',
+        border: '1px solid rgba(239, 68, 68, 0.3)',
         color: '#FFFFFF',
         titleColor: '#FCA5A5',
         descColor: '#FEF2F2',
@@ -255,7 +312,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
     if (timedEvent.name === "Oktoberfest") {
       return {
         background: 'linear-gradient(135deg, #B45309 0%, #78350F 100%)',
-        border: '1px solid rgba(245, 158, 11, 0.2)',
+        border: '1px solid rgba(245, 158, 11, 0.3)',
         color: '#FFFFFF',
         titleColor: '#FDE68A',
         descColor: '#FEF3C7',
@@ -265,61 +322,9 @@ export const HomeView: React.FC<HomeViewProps> = ({
       };
     }
 
-    if (timedEvent.name === "Primavera") {
-      return {
-        background: 'linear-gradient(135deg, #0284C7 0%, #0369A1 100%)',
-        border: '1px solid rgba(56, 189, 248, 0.2)',
-        color: '#FFFFFF',
-        titleColor: '#BAE6FD',
-        descColor: '#F0F9FF',
-        iconColor: '#38BDF8',
-        icon: 'local_florist',
-        badge: '🌸 SFIDA STAGIONALE ATTIVA'
-      };
-    }
-
-    if (timedEvent.name === "Autunno") {
-      return {
-        background: 'linear-gradient(135deg, #C2410C 0%, #7C2D12 100%)',
-        border: '1px solid rgba(249, 115, 22, 0.2)',
-        color: '#FFFFFF',
-        titleColor: '#FFEDD5',
-        descColor: '#FFF7ED',
-        iconColor: '#FB923C',
-        icon: 'wb_twilight',
-        badge: '🍁 SFIDA STAGIONALE ATTIVA'
-      };
-    }
-
-    if (timedEvent.name === "Inverno") {
-      return {
-        background: 'linear-gradient(135deg, #1E40AF 0%, #1E3A8A 100%)',
-        border: '1px solid rgba(96, 165, 250, 0.2)',
-        color: '#FFFFFF',
-        titleColor: '#BFDBFE',
-        descColor: '#EFF6FF',
-        iconColor: '#60A5FA',
-        icon: 'ac_unit',
-        badge: '❄️ SFIDA STAGIONALE ATTIVA'
-      };
-    }
-
-    if (timedEvent.name === "Pasquetta") {
-      return {
-        background: 'linear-gradient(135deg, #CA8A04 0%, #854D0E 100%)',
-        border: '1px solid rgba(234, 179, 8, 0.2)',
-        color: '#FFFFFF',
-        titleColor: '#FEF08A',
-        descColor: '#FEFCE8',
-        iconColor: '#FACC15',
-        icon: 'egg',
-        badge: '🧺 FESTIVITÀ ATTIVA'
-      };
-    }
-
     return {
-      background: 'linear-gradient(135deg, #3B82F6 0%, #1D4ED8 100%)',
-      border: '1px solid rgba(59, 130, 246, 0.2)',
+      background: 'linear-gradient(135deg, #1D4ED8 0%, #1E40AF 100%)',
+      border: '1px solid rgba(59, 130, 246, 0.3)',
       color: '#FFFFFF',
       titleColor: '#BFDBFE',
       descColor: '#EFF6FF',
@@ -333,56 +338,430 @@ export const HomeView: React.FC<HomeViewProps> = ({
   const greetingName = currentUserDisplayName ? currentUserDisplayName : currentUserNick;
 
   return (
-    <div className="page-container-view">
-      <header className="hero">
+    <div className="page-container-view" style={{ paddingBottom: '90px' }}>
+      {/* Toast notification for cheers */}
+      {cheersToast && (
+        <div style={{
+          position: 'fixed',
+          top: '20px',
+          left: '50%',
+          transform: 'translateX(-50%)',
+          zIndex: 9999,
+          background: 'linear-gradient(135deg, #1E293B, #0F172A)',
+          color: '#FFB300',
+          padding: '12px 22px',
+          borderRadius: '30px',
+          boxShadow: '0 10px 30px rgba(0,0,0,0.3)',
+          border: '1px solid rgba(255,179,0,0.4)',
+          fontWeight: 'bold',
+          fontSize: '14px',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '8px',
+          animation: 'fadeIn 0.25s ease-out'
+        }}>
+          <span className="material-symbols-outlined" style={{ fontSize: '20px', color: '#FFB300' }}>sports_bar</span>
+          {cheersToast}
+        </div>
+      )}
+
+      {/* LUXURY HERO HEADER */}
+      <header className="hero" style={{
+        padding: '30px 20px 25px 20px',
+        background: 'linear-gradient(180deg, #1E293B 0%, #0F172A 100%)',
+        borderRadius: '0 0 32px 32px',
+        position: 'relative',
+        overflow: 'hidden',
+        boxShadow: '0 15px 35px rgba(15, 23, 42, 0.15)',
+        marginBottom: '20px'
+      }}>
         <FoamBubbles />
-        <h1 style={{ position: 'relative', zIndex: 2 }}>Il mio Bancone</h1>
-        <p style={{ position: 'relative', zIndex: 2 }}>
-          Bentornato nel pub, <span style={{ fontWeight: 'bold' }}>{greetingName}</span>!
-        </p>
+        <div style={{ position: 'relative', zIndex: 2 }}>
+          {/* Header Row */}
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <div style={{
+                width: '46px',
+                height: '46px',
+                borderRadius: '50%',
+                background: 'linear-gradient(135deg, var(--primary), var(--primary-dark))',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: '#0F172A',
+                fontWeight: 900,
+                fontSize: '20px',
+                boxShadow: '0 4px 15px rgba(255, 179, 0, 0.3)',
+                border: '2px solid rgba(255, 255, 255, 0.8)'
+              }}>
+                {greetingName.charAt(0).toUpperCase()}
+              </div>
+              <div style={{ textAlign: 'left' }}>
+                <div style={{ fontSize: '12px', color: '#94A3B8', fontWeight: 600 }}>
+                  {getGreeting()}
+                </div>
+                <h2 style={{ margin: 0, color: '#FFFFFF', fontSize: '20px', fontWeight: 800 }}>
+                  {greetingName}
+                </h2>
+              </div>
+            </div>
+
+            <span 
+              className="user-rank-title"
+              style={{
+                fontSize: '11px',
+                padding: '6px 14px',
+                background: 'rgba(255, 179, 0, 0.15)',
+                color: '#FFB300',
+                border: '1px solid rgba(255, 179, 0, 0.3)',
+                fontWeight: 800,
+                borderRadius: '20px',
+                backdropFilter: 'blur(8px)',
+                letterSpacing: '0.3px'
+              }}
+            >
+              👑 {rankLabel}
+            </span>
+          </div>
+
+          {/* Level Progress Banner */}
+          <div style={{
+            background: 'rgba(255, 255, 255, 0.06)',
+            borderRadius: '20px',
+            padding: '16px',
+            border: '1px solid rgba(255, 255, 255, 0.08)',
+            backdropFilter: 'blur(10px)',
+            textAlign: 'left'
+          }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+              <span style={{ color: '#E2E8F0', fontSize: '13px', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <span className="material-symbols-outlined" style={{ color: '#FFB300', fontSize: '18px' }}>military_tech</span>
+                Livello & XP
+              </span>
+              <span style={{ color: '#FFB300', fontWeight: 900, fontSize: '16px' }}>
+                {totalPoints} <span style={{ fontSize: '12px', opacity: 0.8 }}>pt</span>
+              </span>
+            </div>
+
+            <div className="progress-container" style={{ height: '8px', borderRadius: '10px', background: 'rgba(255, 255, 255, 0.1)', overflow: 'hidden', marginBottom: '8px' }}>
+              <div
+                className="progress-bar"
+                style={{
+                  borderRadius: '10px',
+                  width: `${progressPct}%`,
+                  background: 'linear-gradient(90deg, #FFB300, #FF6F00)',
+                  height: '100%'
+                }}
+              ></div>
+            </div>
+
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: '#94A3B8' }}>
+              <span>{prevTargetPoints} pt</span>
+              {pointsToNextLevel > 0 ? (
+                <span>Mancano <strong style={{ color: '#F8FAFC' }}>{pointsToNextLevel} pt</strong> per <strong style={{ color: '#FFB300' }}>{nextRankName}</strong></span>
+              ) : (
+                <span style={{ color: '#34D399', fontWeight: 'bold' }}>Massimo Livello Conseguito! 🏆</span>
+              )}
+              <span>{nextTargetPoints} pt</span>
+            </div>
+          </div>
+        </div>
       </header>
 
-      <div className="page-container">
-        {/* Dynamic Timed Event Banner */}
+      <div className="page-container" style={{ paddingTop: 0 }}>
+        {/* QUICK ACTION DOCK (FLOATING PILL GRID) */}
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(4, 1fr)',
+          gap: '10px',
+          marginBottom: '25px'
+        }}>
+          <button
+            onClick={() => onOpenScanner ? onOpenScanner() : onNavigate('page-explore')}
+            style={{
+              background: 'linear-gradient(135deg, #FFB300, #FF6F00)',
+              border: 'none',
+              borderRadius: '20px',
+              padding: '14px 6px',
+              color: '#0F172A',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '4px',
+              cursor: 'pointer',
+              boxShadow: '0 8px 20px rgba(255, 111, 0, 0.25)',
+              transition: 'transform 0.15s ease'
+            }}
+          >
+            <span className="material-symbols-outlined" style={{ fontSize: '26px' }}>photo_camera</span>
+            <span style={{ fontSize: '11px', fontWeight: 850 }}>Sblocca</span>
+          </button>
+
+          <button
+            onClick={() => onNavigate('page-explore')}
+            style={{
+              background: 'var(--white)',
+              border: '1px solid var(--gray)',
+              borderRadius: '20px',
+              padding: '14px 6px',
+              color: 'var(--dark)',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '4px',
+              cursor: 'pointer',
+              boxShadow: 'var(--card-shadow)',
+              transition: 'transform 0.15s ease'
+            }}
+          >
+            <span className="material-symbols-outlined" style={{ fontSize: '26px', color: 'var(--primary-dark)' }}>search</span>
+            <span style={{ fontSize: '11px', fontWeight: 800 }}>Esplora</span>
+          </button>
+
+          <button
+            onClick={() => onNavigate('page-leaderboard')}
+            style={{
+              background: 'var(--white)',
+              border: '1px solid var(--gray)',
+              borderRadius: '20px',
+              padding: '14px 6px',
+              color: 'var(--dark)',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '4px',
+              cursor: 'pointer',
+              boxShadow: 'var(--card-shadow)',
+              transition: 'transform 0.15s ease'
+            }}
+          >
+            <span className="material-symbols-outlined" style={{ fontSize: '26px', color: '#EAB308' }}>leaderboard</span>
+            <span style={{ fontSize: '11px', fontWeight: 800 }}>Ranking</span>
+          </button>
+
+          <button
+            onClick={() => onNavigate('page-map-view')}
+            style={{
+              background: 'var(--white)',
+              border: '1px solid var(--gray)',
+              borderRadius: '20px',
+              padding: '14px 6px',
+              color: 'var(--dark)',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '4px',
+              cursor: 'pointer',
+              boxShadow: 'var(--card-shadow)',
+              transition: 'transform 0.15s ease'
+            }}
+          >
+            <span className="material-symbols-outlined" style={{ fontSize: '26px', color: '#10B981' }}>map</span>
+            <span style={{ fontSize: '11px', fontWeight: 800 }}>Mappa</span>
+          </button>
+        </div>
+
+        {/* METRICS DASHBOARD (4 CARDS) */}
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(4, 1fr)',
+          gap: '10px',
+          marginBottom: '25px'
+        }}>
+          <div style={{ background: 'var(--white)', border: '1px solid var(--gray)', borderRadius: '20px', padding: '12px 4px', textAlign: 'center', boxShadow: 'var(--card-shadow)' }}>
+            <span className="material-symbols-outlined" style={{ fontSize: '22px', color: 'var(--primary-dark)', marginBottom: '2px' }}>sports_bar</span>
+            <div style={{ fontSize: '15px', fontWeight: 900, color: 'var(--dark)' }}>{totalUnlockedCount}</div>
+            <div style={{ fontSize: '9px', color: 'var(--text-muted)', fontWeight: 750, textTransform: 'uppercase' }}>Sbloccate</div>
+          </div>
+          <div style={{ background: 'var(--white)', border: '1px solid var(--gray)', borderRadius: '20px', padding: '12px 4px', textAlign: 'center', boxShadow: 'var(--card-shadow)' }}>
+            <span className="material-symbols-outlined" style={{ fontSize: '22px', color: '#EAB308', marginBottom: '2px' }}>auto_awesome</span>
+            <div style={{ fontSize: '15px', fontWeight: 900, color: 'var(--dark)' }}>{shinyCount}</div>
+            <div style={{ fontSize: '9px', color: 'var(--text-muted)', fontWeight: 750, textTransform: 'uppercase' }}>Shiny</div>
+          </div>
+          <div style={{ background: 'var(--white)', border: '1px solid var(--gray)', borderRadius: '20px', padding: '12px 4px', textAlign: 'center', boxShadow: 'var(--card-shadow)' }}>
+            <span className="material-symbols-outlined" style={{ fontSize: '22px', color: '#10B981', marginBottom: '2px' }}>public</span>
+            <div style={{ fontSize: '15px', fontWeight: 900, color: 'var(--dark)' }}>{countriesExplored}</div>
+            <div style={{ fontSize: '9px', color: 'var(--text-muted)', fontWeight: 750, textTransform: 'uppercase' }}>Paesi</div>
+          </div>
+          <div style={{ background: 'var(--white)', border: '1px solid var(--gray)', borderRadius: '20px', padding: '12px 4px', textAlign: 'center', boxShadow: 'var(--card-shadow)' }}>
+            <span className="material-symbols-outlined" style={{ fontSize: '22px', color: '#3B82F6', marginBottom: '2px' }}>task_alt</span>
+            <div style={{ fontSize: '15px', fontWeight: 900, color: 'var(--dark)' }}>{completedQuestsCount}/3</div>
+            <div style={{ fontSize: '9px', color: 'var(--text-muted)', fontWeight: 750, textTransform: 'uppercase' }}>Sfide</div>
+          </div>
+        </div>
+
+        {/* HUB SFIDE & MISSIONI DEL GIORNO */}
+        <div style={{
+          background: 'var(--white)',
+          border: '1px solid var(--gray)',
+          borderRadius: '24px',
+          padding: '20px',
+          marginBottom: '25px',
+          boxShadow: 'var(--card-shadow)',
+          textAlign: 'left'
+        }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
+            <h3 style={{ margin: 0, color: 'var(--dark)', fontSize: '16px', fontWeight: 850, display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span className="material-symbols-outlined" style={{ color: '#FFB300', fontSize: '22px' }}>verified</span>
+              Missioni del Pub
+            </h3>
+            <span style={{ fontSize: '11px', color: 'var(--text-muted)', fontWeight: 700, background: 'var(--gray)', padding: '4px 10px', borderRadius: '12px' }}>
+              Oggi
+            </span>
+          </div>
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+            {/* Quest 1 */}
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              padding: '12px 14px',
+              borderRadius: '16px',
+              background: quest1Completed ? 'rgba(16, 185, 129, 0.08)' : '#F8FAFC',
+              border: quest1Completed ? '1px solid rgba(16, 185, 129, 0.25)' : '1px solid #E2E8F0'
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <span className="material-symbols-outlined" style={{ color: quest1Completed ? '#10B981' : '#64748B', fontSize: '20px' }}>
+                  {quest1Completed ? 'check_circle' : 'radio_button_unchecked'}
+                </span>
+                <div>
+                  <div style={{ fontSize: '13px', fontWeight: 750, color: 'var(--dark)' }}>
+                    Primo Stappo del Giorno
+                  </div>
+                  <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
+                    Esplora o sblocca 1 birra oggi (+10 XP)
+                  </div>
+                </div>
+              </div>
+              <span style={{
+                fontSize: '10px',
+                fontWeight: 800,
+                padding: '3px 8px',
+                borderRadius: '10px',
+                background: quest1Completed ? '#10B981' : '#CBD5E1',
+                color: '#FFFFFF'
+              }}>
+                {quest1Completed ? 'COMPLETA' : '0/1'}
+              </span>
+            </div>
+
+            {/* Quest 2 */}
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              padding: '12px 14px',
+              borderRadius: '16px',
+              background: quest2Completed ? 'rgba(16, 185, 129, 0.08)' : '#F8FAFC',
+              border: quest2Completed ? '1px solid rgba(16, 185, 129, 0.25)' : '1px solid #E2E8F0'
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <span className="material-symbols-outlined" style={{ color: quest2Completed ? '#10B981' : '#64748B', fontSize: '20px' }}>
+                  {quest2Completed ? 'check_circle' : 'radio_button_unchecked'}
+                </span>
+                <div>
+                  <div style={{ fontSize: '13px', fontWeight: 750, color: 'var(--dark)' }}>
+                    Sommelier Globale
+                  </div>
+                  <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
+                    Esplora birre da almeno 3 Paesi diversi (+15 XP)
+                  </div>
+                </div>
+              </div>
+              <span style={{
+                fontSize: '10px',
+                fontWeight: 800,
+                padding: '3px 8px',
+                borderRadius: '10px',
+                background: quest2Completed ? '#10B981' : '#CBD5E1',
+                color: '#FFFFFF'
+              }}>
+                {quest2Completed ? 'COMPLETA' : `${countriesExplored}/3`}
+              </span>
+            </div>
+
+            {/* Quest 3 */}
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              padding: '12px 14px',
+              borderRadius: '16px',
+              background: quest3Completed ? 'rgba(16, 185, 129, 0.08)' : '#F8FAFC',
+              border: quest3Completed ? '1px solid rgba(16, 185, 129, 0.25)' : '1px solid #E2E8F0'
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <span className="material-symbols-outlined" style={{ color: quest3Completed ? '#10B981' : '#64748B', fontSize: '20px' }}>
+                  {quest3Completed ? 'check_circle' : 'radio_button_unchecked'}
+                </span>
+                <div>
+                  <div style={{ fontSize: '13px', fontWeight: 750, color: 'var(--dark)' }}>
+                    Cacciatore di Perle
+                  </div>
+                  <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
+                    Sblocca una Shiny o condividi uno stappo (+20 XP)
+                  </div>
+                </div>
+              </div>
+              <span style={{
+                fontSize: '10px',
+                fontWeight: 800,
+                padding: '3px 8px',
+                borderRadius: '10px',
+                background: quest3Completed ? '#10B981' : '#CBD5E1',
+                color: '#FFFFFF'
+              }}>
+                {quest3Completed ? 'COMPLETA' : '0/1'}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        {/* DYNAMIC TIMED EVENT BANNER */}
         <div 
           className="dashboard-event" 
           id="dashEventBox"
           style={{
             background: eventConfig.background,
             border: eventConfig.border,
-            padding: '22px',
+            padding: '20px',
             borderRadius: '24px',
             marginBottom: '25px',
             display: 'flex',
             alignItems: 'center',
-            gap: '18px',
+            gap: '16px',
             textAlign: 'left',
-            boxShadow: timedEvent ? '0 10px 25px rgba(180, 83, 9, 0.15)' : '0 4px 15px rgba(148, 163, 184, 0.05)',
+            boxShadow: timedEvent ? '0 10px 25px rgba(180, 83, 9, 0.2)' : '0 4px 15px rgba(15, 23, 42, 0.05)',
             position: 'relative',
             overflow: 'hidden'
           }}
         >
           <div style={{ 
             color: eventConfig.iconColor,
-            background: timedEvent ? 'rgba(255, 255, 255, 0.1)' : 'rgba(100, 116, 139, 0.08)',
+            background: timedEvent ? 'rgba(255, 255, 255, 0.12)' : 'rgba(255, 179, 0, 0.12)',
             padding: '12px',
-            borderRadius: '16px',
+            borderRadius: '18px',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center'
           }}>
-            <span className="material-symbols-outlined" style={{ fontSize: '32px' }}>
+            <span className="material-symbols-outlined" style={{ fontSize: '30px' }}>
               {eventConfig.icon}
             </span>
           </div>
           <div style={{ flex: 1 }}>
-            <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+            <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
               <h4 style={{ margin: 0, color: eventConfig.titleColor, fontSize: '14px', fontWeight: 800 }}>
-                Evento a Tempo Limitato
+                Evento Speciale
               </h4>
               {eventConfig.badge && (
                 <span style={{
-                  background: 'rgba(255, 255, 255, 0.25)',
+                  background: 'rgba(255, 255, 255, 0.2)',
                   color: '#FFFFFF',
                   fontSize: '9px',
                   fontWeight: 'bold',
@@ -412,64 +791,8 @@ export const HomeView: React.FC<HomeViewProps> = ({
           </div>
         </div>
 
-        {/* Level & Points Progress Section */}
-        <div className="dashboard-stats" style={{ padding: '20px', borderRadius: '24px', background: 'var(--white)', border: '1px solid var(--gray)', boxShadow: 'var(--card-shadow)', marginBottom: '25px', textAlign: 'left' }}>
-          <h3 style={{ marginTop: 0, marginBottom: '15px', color: 'var(--dark)', fontSize: '15px', display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 800 }}>
-            <span className="material-symbols-outlined" style={{ color: 'var(--primary)', fontSize: '20px' }}>military_tech</span>
-            Progresso Collezionista
-          </h3>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-            <span className="user-rank-title" style={{ fontSize: '12px', padding: '5px 10px', background: 'linear-gradient(135deg, #1e293b, #0f172a)', color: '#FFFFFF', fontWeight: 'bold', borderRadius: '8px' }}>
-              {rankLabel}
-            </span>
-            <div style={{ fontSize: '18px', fontWeight: 900, color: 'var(--dark)', display: 'flex', alignItems: 'center', gap: '4px' }}>
-              {totalPoints} <span style={{ fontSize: '14px', color: 'var(--primary)', fontWeight: 'bold' }}>pt</span>
-            </div>
-          </div>
-
-          <div className="progress-container" style={{ height: '10px', borderRadius: '20px', background: 'var(--gray)', overflow: 'hidden', marginTop: '12px', marginBottom: '8px' }}>
-            <div
-              className="progress-bar"
-              style={{ borderRadius: '20px', width: `${progressPct}%`, background: 'linear-gradient(90deg, var(--primary), var(--primary-dark))', height: '100%' }}
-            ></div>
-          </div>
-          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: 'var(--text-muted)', fontWeight: 500 }}>
-            <span>{prevTargetPoints} pt</span>
-            {pointsToNextLevel > 0 ? (
-              <span>Mancano <strong>{pointsToNextLevel} pt</strong> per diventare <strong>{nextRankName}</strong></span>
-            ) : (
-              <span>Sei al livello massimo! 🏆</span>
-            )}
-            <span>{nextTargetPoints} pt</span>
-          </div>
-        </div>
-
-        {/* Collector Metrics Dashboard Row */}
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(3, 1fr)',
-          gap: '12px',
-          marginBottom: '25px'
-        }}>
-          <div style={{ background: 'var(--white)', border: '1px solid var(--gray)', borderRadius: '20px', padding: '12px 6px', textAlign: 'center', boxShadow: 'var(--card-shadow)' }}>
-            <span className="material-symbols-outlined" style={{ fontSize: '24px', color: 'var(--primary-dark)', marginBottom: '4px' }}>sports_bar</span>
-            <div style={{ fontSize: '16px', fontWeight: 900, color: 'var(--dark)' }}>{totalUnlockedCount}</div>
-            <div style={{ fontSize: '9px', color: 'var(--text-muted)', fontWeight: 750, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Sbloccate</div>
-          </div>
-          <div style={{ background: 'var(--white)', border: '1px solid var(--gray)', borderRadius: '20px', padding: '12px 6px', textAlign: 'center', boxShadow: 'var(--card-shadow)' }}>
-            <span className="material-symbols-outlined" style={{ fontSize: '24px', color: '#EAB308', marginBottom: '4px' }}>auto_awesome</span>
-            <div style={{ fontSize: '16px', fontWeight: 900, color: 'var(--dark)' }}>{shinyCount}</div>
-            <div style={{ fontSize: '9px', color: 'var(--text-muted)', fontWeight: 750, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Shiny</div>
-          </div>
-          <div style={{ background: 'var(--white)', border: '1px solid var(--gray)', borderRadius: '20px', padding: '12px 6px', textAlign: 'center', boxShadow: 'var(--card-shadow)' }}>
-            <span className="material-symbols-outlined" style={{ fontSize: '24px', color: '#10B981', marginBottom: '4px' }}>public</span>
-            <div style={{ fontSize: '16px', fontWeight: 900, color: 'var(--dark)' }}>{countriesExplored}</div>
-            <div style={{ fontSize: '9px', color: 'var(--text-muted)', fontWeight: 750, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Paesi</div>
-          </div>
-        </div>
-
-        {/* Beer of the Week Card */}
-        {beerOfTheWeek && (
+        {/* LA SPINA DEL GIORNO & CAROSELLO CONSIGLIATI */}
+        {featuredBeer && (
           <div style={{
             background: 'linear-gradient(135deg, #FFFDF5 0%, #FFF9E6 100%)',
             border: '1px dashed #F59E0B',
@@ -480,67 +803,118 @@ export const HomeView: React.FC<HomeViewProps> = ({
             position: 'relative',
             textAlign: 'left'
           }}>
-            <span style={{
-              position: 'absolute',
-              top: '-10px',
-              left: '20px',
-              background: 'linear-gradient(135deg, #F59E0B, #D97706)',
-              color: 'white',
-              fontSize: '10px',
-              fontWeight: 800,
-              padding: '4px 10px',
-              borderRadius: '20px',
-              boxShadow: '0 4px 10px rgba(245,158,11,0.2)'
-            }}>
-              CONSIGLIATA DELLA SETTIMANA
-            </span>
-            <div style={{ display: 'flex', gap: '15px', alignItems: 'center', marginTop: '5px' }}>
+            {/* Header pill & filters */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
+              <span style={{
+                background: 'linear-gradient(135deg, #F59E0B, #D97706)',
+                color: 'white',
+                fontSize: '10px',
+                fontWeight: 850,
+                padding: '4px 12px',
+                borderRadius: '20px',
+                boxShadow: '0 4px 10px rgba(245,158,11,0.25)'
+              }}>
+                🍺 LA SPINA DEL GIORNO
+              </span>
+
+              <div style={{ display: 'flex', gap: '4px' }}>
+                <button
+                  onClick={() => setRecommendTab('recommended')}
+                  style={{
+                    border: 'none',
+                    background: recommendTab === 'recommended' ? '#D97706' : 'rgba(217, 119, 6, 0.15)',
+                    color: recommendTab === 'recommended' ? '#FFFFFF' : '#92400E',
+                    fontSize: '10px',
+                    fontWeight: 750,
+                    padding: '4px 8px',
+                    borderRadius: '8px',
+                    cursor: 'pointer'
+                  }}
+                >
+                  Top
+                </button>
+                <button
+                  onClick={() => setRecommendTab('rare')}
+                  style={{
+                    border: 'none',
+                    background: recommendTab === 'rare' ? '#D97706' : 'rgba(217, 119, 6, 0.15)',
+                    color: recommendTab === 'rare' ? '#FFFFFF' : '#92400E',
+                    fontSize: '10px',
+                    fontWeight: 750,
+                    padding: '4px 8px',
+                    borderRadius: '8px',
+                    cursor: 'pointer'
+                  }}
+                >
+                  Rara
+                </button>
+                <button
+                  onClick={() => setRecommendTab('foreign')}
+                  style={{
+                    border: 'none',
+                    background: recommendTab === 'foreign' ? '#D97706' : 'rgba(217, 119, 6, 0.15)',
+                    color: recommendTab === 'foreign' ? '#FFFFFF' : '#92400E',
+                    fontSize: '10px',
+                    fontWeight: 750,
+                    padding: '4px 8px',
+                    borderRadius: '8px',
+                    cursor: 'pointer'
+                  }}
+                >
+                  Estera
+                </button>
+              </div>
+            </div>
+
+            <div style={{ display: 'flex', gap: '15px', alignItems: 'center' }}>
               <div style={{
                 background: 'white',
-                borderRadius: '16px',
-                width: '50px',
-                height: '50px',
+                borderRadius: '18px',
+                width: '56px',
+                height: '56px',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                fontSize: '26px',
-                border: '1px solid rgba(245,158,11,0.15)',
-                boxShadow: '0 4px 10px rgba(0,0,0,0.02)'
+                fontSize: '28px',
+                border: '1px solid rgba(245,158,11,0.2)',
+                boxShadow: '0 4px 12px rgba(0,0,0,0.04)'
               }}>
                 🍺
               </div>
               <div style={{ flex: 1 }}>
-                <h4 style={{ margin: 0, fontSize: '15px', color: 'var(--dark)', fontWeight: 'bold' }}>
-                  {beerOfTheWeek.brand}
+                <h4 style={{ margin: 0, fontSize: '16px', color: 'var(--dark)', fontWeight: '800' }}>
+                  {featuredBeer.brand}
                 </h4>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '4px' }}>
                   <span style={{ fontSize: '11px', color: 'var(--text-muted)', display: 'inline-flex', alignItems: 'center', gap: '3px' }}>
-                    📍 {beerOfTheWeek.country}
+                    📍 {featuredBeer.country}
                   </span>
                   <span style={{
                     fontSize: '9px',
                     fontWeight: 'bold',
                     padding: '2px 6px',
                     borderRadius: '6px',
-                    background: beerOfTheWeek.rarity === 'rara' ? '#F3E8FF' : beerOfTheWeek.rarity === 'media' ? '#FEF3C7' : '#E0F2FE',
-                    color: beerOfTheWeek.rarity === 'rara' ? '#6B21A8' : beerOfTheWeek.rarity === 'media' ? '#92400E' : '#0369A1'
+                    background: featuredBeer.rarity === 'rara' ? '#F3E8FF' : featuredBeer.rarity === 'media' ? '#FEF3C7' : '#E0F2FE',
+                    color: featuredBeer.rarity === 'rara' ? '#6B21A8' : featuredBeer.rarity === 'media' ? '#92400E' : '#0369A1'
                   }}>
-                    {beerOfTheWeek.rarity.toUpperCase()}
+                    {featuredBeer.rarity ? featuredBeer.rarity.toUpperCase() : 'COMUNE'}
                   </span>
                 </div>
               </div>
             </div>
+            
             <p style={{ margin: '12px 0 0 0', fontSize: '13px', color: 'var(--text-muted)', lineHeight: '1.4' }}>
-              <strong>Varianti:</strong> {Array.isArray(beerOfTheWeek?.variants) ? beerOfTheWeek.variants.join(', ') : 'Classica'}. Una birra fantastica da aggiungere alla tua collezione. Clicca sotto per cercarla nel catalogo!
+              <strong>Varianti:</strong> {Array.isArray(featuredBeer?.variants) ? featuredBeer.variants.join(', ') : 'Classica'}. Una birra fantastica da aggiungere al tuo Pokedex del Pub!
             </p>
+
             <button
               onClick={() => onNavigate('page-explore')}
               style={{
-                marginTop: '12px',
+                marginTop: '14px',
                 width: '100%',
-                padding: '10px',
+                padding: '12px',
                 fontSize: '13px',
-                borderRadius: '12px',
+                borderRadius: '14px',
                 background: 'linear-gradient(135deg, #F59E0B, #D97706)',
                 border: 'none',
                 color: 'white',
@@ -549,31 +923,156 @@ export const HomeView: React.FC<HomeViewProps> = ({
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                gap: '5px'
+                gap: '6px',
+                boxShadow: '0 4px 15px rgba(245, 158, 11, 0.25)'
               }}
             >
-              <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>search</span>
+              <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>search</span>
               Trovala in Esplora
             </button>
           </div>
         )}
 
-        <h3 className="hero-section-title" style={{ marginTop: '10px', color: 'var(--dark)', textAlign: 'center' }}>
-          Ultima Conquista
+        {/* WIDGET AMICI AL PUB */}
+        {recentCommunityPosts.length > 0 && (
+          <div style={{
+            background: 'var(--white)',
+            border: '1px solid var(--gray)',
+            borderRadius: '24px',
+            padding: '20px',
+            marginBottom: '25px',
+            boxShadow: 'var(--card-shadow)',
+            textAlign: 'left'
+          }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
+              <h3 style={{ margin: 0, color: 'var(--dark)', fontSize: '16px', fontWeight: 850, display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span className="material-symbols-outlined" style={{ color: 'var(--primary-dark)', fontSize: '22px' }}>group</span>
+                Attività al Bancone
+              </h3>
+              <button
+                onClick={() => onNavigate('page-social')}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  color: 'var(--primary-dark)',
+                  fontSize: '12px',
+                  fontWeight: 800,
+                  cursor: 'pointer',
+                  padding: 0
+                }}
+              >
+                Vedi Tutti →
+              </button>
+            </div>
+
+            <div style={{
+              display: 'flex',
+              gap: '12px',
+              overflowX: 'auto',
+              paddingBottom: '6px',
+              scrollbarWidth: 'none'
+            }}>
+              {recentCommunityPosts.map((p) => {
+                const isCheered = cheeredPosts[p.postId];
+                return (
+                  <div key={p.postId} style={{
+                    minWidth: '150px',
+                    maxWidth: '150px',
+                    background: '#F8FAFC',
+                    border: '1px solid #E2E8F0',
+                    borderRadius: '18px',
+                    padding: '10px',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    textAlign: 'center',
+                    flexShrink: 0
+                  }}>
+                    <img
+                      src={p.photo}
+                      alt={p.brand}
+                      style={{
+                        width: '100%',
+                        height: '110px',
+                        objectFit: 'cover',
+                        borderRadius: '12px',
+                        marginBottom: '8px',
+                        cursor: 'pointer'
+                      }}
+                      onClick={() => onOpenPublicProfile ? onOpenPublicProfile(p.user) : onNavigate('page-social')}
+                    />
+                    <div
+                      style={{
+                        fontSize: '12px',
+                        fontWeight: 800,
+                        color: 'var(--dark)',
+                        whiteSpace: 'nowrap',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        width: '100%',
+                        cursor: 'pointer'
+                      }}
+                      onClick={() => onOpenPublicProfile ? onOpenPublicProfile(p.user) : onNavigate('page-social')}
+                    >
+                      {p.user}
+                    </div>
+                    <div style={{
+                      fontSize: '11px',
+                      color: 'var(--primary-dark)',
+                      fontWeight: 700,
+                      whiteSpace: 'nowrap',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      width: '100%',
+                      marginBottom: '8px'
+                    }}>
+                      {formatBeerTitle(p.brand)}
+                    </div>
+                    <button
+                      onClick={() => handleTriggerCheers(p.user, p.postId)}
+                      style={{
+                        width: '100%',
+                        padding: '6px 4px',
+                        borderRadius: '10px',
+                        border: 'none',
+                        background: isCheered ? '#10B981' : 'linear-gradient(135deg, #FFB300, #FF6F00)',
+                        color: isCheered ? '#FFFFFF' : '#0F172A',
+                        fontSize: '10px',
+                        fontWeight: 850,
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '4px'
+                      }}
+                    >
+                      <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>sports_bar</span>
+                      {isCheered ? 'Brindato! 🥂' : 'Brinda 🍻'}
+                    </button>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* ULTIMA CONQUISTA CARD */}
+        <h3 className="hero-section-title" style={{ marginTop: '10px', color: 'var(--dark)', textAlign: 'center', fontSize: '16px', fontWeight: 850 }}>
+          Ultimo Stappo
         </h3>
 
         {lastPost ? (
-          <div className="dash-last-card" style={{ margin: '0 0 25px 0' }}>
-            <img src={lastPost.photo} className="dash-last-img" alt="Ultima Birra" />
-            <div className="dash-last-info">
-              <h4 style={{ margin: '0 0 5px 0', color: 'var(--dark)', fontSize: '18px' }}>
+          <div className="dash-last-card" style={{ margin: '0 0 25px 0', borderRadius: '24px', overflow: 'hidden', boxShadow: 'var(--card-shadow)' }}>
+            <img src={lastPost.photo} className="dash-last-img" alt="Ultima Birra" style={{ borderRadius: '20px 20px 0 0' }} />
+            <div className="dash-last-info" style={{ padding: '16px' }}>
+              <h4 style={{ margin: '0 0 5px 0', color: 'var(--dark)', fontSize: '18px', fontWeight: 800 }}>
                 {formatBeerTitle(lastPost.brand)}
               </h4>
               <div style={{ color: 'var(--primary-dark)', fontWeight: 'bold', fontSize: '14px', marginBottom: '5px', display: 'flex', alignItems: 'center', gap: '4px' }}>
                 {formatBeerTitle(lastPost.variant)}
                 {lastPost.isShiny && (
-                  <span style={{ color: 'var(--primary-dark)', fontWeight: 'bold', display: 'inline-flex', alignItems: 'center', gap: '2px' }}>
-                    <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>
+                  <span style={{ color: '#EAB308', fontWeight: 'bold', display: 'inline-flex', alignItems: 'center', gap: '2px', background: '#FEF9C3', padding: '2px 8px', borderRadius: '12px', fontSize: '10px' }}>
+                    <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>
                       auto_awesome
                     </span>{' '}
                     SHINY
@@ -581,35 +1080,40 @@ export const HomeView: React.FC<HomeViewProps> = ({
                 )}
               </div>
               <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
-                Sbloccata il: {new Date(lastPost.time).toLocaleDateString()} alle {new Date(lastPost.time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                Sbloccata il {new Date(lastPost.time).toLocaleDateString()} alle {new Date(lastPost.time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
               </div>
             </div>
           </div>
         ) : (
-          <div className="dash-empty" style={{ margin: '0 0 25px 0' }}>
-            Nessuna birra sbloccata!
+          <div className="dash-empty" style={{ margin: '0 0 25px 0', padding: '30px', borderRadius: '24px', background: 'var(--white)', border: '1px dashed var(--gray)', color: 'var(--text-muted)' }}>
+            Nessuna birra sbloccata ancora!
             <br />
-            Inizia la tua avventura!
+            <strong style={{ color: 'var(--dark)' }}>Inizia subito il tuo viaggio al pub! 🍺</strong>
           </div>
         )}
 
-        <div style={{ padding: 0, display: 'flex', flexDirection: 'column', gap: '10px', marginTop: '30px' }}>
+        {/* BOTTOM ACTION BUTTONS */}
+        <div style={{ padding: 0, display: 'flex', flexDirection: 'column', gap: '10px', marginTop: '10px' }}>
           <button
             className="btn-main"
             style={{
               marginTop: 0,
               fontSize: '16px',
-              padding: '14px',
-              background: 'linear-gradient(135deg, #f39c12, #e67e22)',
+              padding: '16px',
+              borderRadius: '18px',
+              background: 'linear-gradient(135deg, #FFB300, #FF6F00)',
               justifyContent: 'center',
+              boxShadow: '0 8px 25px rgba(255, 111, 0, 0.25)',
+              color: '#0F172A',
+              fontWeight: 900
             }}
             onClick={() => onNavigate('page-explore')}
           >
-            <span className="material-symbols-outlined">search</span> Vai a Esplorare e Scatta
+            <span className="material-symbols-outlined">search</span> Esplora Catalogo & Scatta
           </button>
           <button
             className="btn-secondary"
-            style={{ marginTop: 0, fontSize: '16px', padding: '14px', justifyContent: 'center' }}
+            style={{ marginTop: 0, fontSize: '16px', padding: '14px', borderRadius: '18px', justifyContent: 'center' }}
             onClick={() => onNavigate('page-profile')}
           >
             <span className="material-symbols-outlined">collections_bookmark</span> La Mia Collezione
@@ -619,4 +1123,3 @@ export const HomeView: React.FC<HomeViewProps> = ({
     </div>
   );
 };
-
