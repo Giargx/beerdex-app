@@ -870,24 +870,24 @@ export default function App() {
 
       const currentIndex = mainTabs.indexOf(currentPage);
 
-      // Clamp boundary dragging:
+      // Block boundary swiping completely:
       // On first tab (Home, index 0), do NOT allow dragging right (rawDiffX > 0)
       // On last tab (Profile, index 4), do NOT allow dragging left (rawDiffX < 0)
-      let diffX = rawDiffX;
       if (isMainTab) {
-        if (currentIndex === 0 && rawDiffX > 0) {
-          diffX = 0;
-        } else if (currentIndex === mainTabs.length - 1 && rawDiffX < 0) {
-          diffX = 0;
+        if ((currentIndex === 0 && rawDiffX > 0) || (currentIndex === mainTabs.length - 1 && rawDiffX < 0)) {
+          isHorizontalSwipe.current = false;
+          touchStartX.current = 0;
+          setIsDragging(false);
+          setDragOffset(0);
+          return;
         }
       }
 
       if (isHorizontalSwipe.current === null) {
-        // Require at least 20px horizontal movement before engaging swipe mode so taps on buttons and profiles work cleanly!
+        // Require at least 20px horizontal movement before engaging swipe mode so taps on buttons work cleanly
         if (Math.abs(rawDiffX) < 20 && Math.abs(diffY) < 20) return;
 
         if (Math.abs(rawDiffX) > Math.abs(diffY) * 1.2) {
-          // If on a sub-page or settings drawer, ONLY allow swipe if touch started at left edge (<= 45px) moving right
           if (!isMainTab) {
             if (touchStartX.current <= 45 && rawDiffX > 20) {
               isHorizontalSwipe.current = true;
@@ -906,18 +906,18 @@ export default function App() {
         }
       }
 
-      if (isHorizontalSwipe.current && isMainTab && diffX !== 0) {
+      if (isHorizontalSwipe.current && isMainTab && rawDiffX !== 0) {
         if (e.cancelable) {
           e.preventDefault();
         }
         setIsDragging(true);
-        setDragOffset(diffX);
+        setDragOffset(rawDiffX);
 
         const container = document.querySelector('.main-tabs-slider-container') as HTMLElement;
         if (container) {
           const basePercent = -currentIndex * 20;
           container.style.transition = 'none';
-          container.style.transform = `translate3d(calc(${basePercent}% + ${diffX}px), 0, 0)`;
+          container.style.transform = `translate3d(calc(${basePercent}% + ${rawDiffX}px), 0, 0)`;
         }
       }
     };
