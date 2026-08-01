@@ -2438,7 +2438,7 @@ export default function App() {
                     setAdminModalTab('proposals');
                     setAdminProposalsModalOpen(true);
                   }}
-                  pendingProposalsCount={beerProposals.filter((p: BeerProposalItem) => p.status === 'pending').length}
+                  pendingProposalsCount={(beerProposals || []).filter((p: BeerProposalItem) => p && p.status === 'pending').length}
                   onOpenAdminReports={() => {
                     setAdminModalTab('flagged');
                     setAdminProposalsModalOpen(true);
@@ -2593,7 +2593,7 @@ export default function App() {
           >
             <div className="nav-icon" style={{ position: 'relative' }}>
               <span className="material-symbols-outlined">person</span>
-              {((isAdminUser && beerProposals.filter((p: BeerProposalItem) => p.status === 'pending').length > 0) || myReceivedRequests.length > 0) && (
+              {((isAdminUser && (beerProposals || []).filter((p: BeerProposalItem) => p && p.status === 'pending').length > 0) || (myReceivedRequests || []).length > 0) && (
                 <span
                   style={{
                     position: 'absolute',
