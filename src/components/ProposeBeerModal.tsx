@@ -128,6 +128,11 @@ export const ProposeBeerModal: React.FC<ProposeBeerModalProps> = ({
       return;
     }
 
+    if (existingBeer && !variant.trim()) {
+      setErrorMessage('Inserisci la variante o lo stile per questa marca.');
+      return;
+    }
+
     const effectiveVariant = variant.trim() ? variant.trim() : 'Classica';
 
     if (!photoBase64) {
@@ -211,7 +216,7 @@ export const ProposeBeerModal: React.FC<ProposeBeerModalProps> = ({
             </label>
             <input
               type="text"
-              placeholder="es. Moretti, BrewDog, Baladin..."
+              placeholder="Moretti, Ichnusa, Guinness..."
               value={brand}
               onChange={(e) => setBrand(e.target.value)}
               disabled={isBrandLocked}
@@ -229,11 +234,11 @@ export const ProposeBeerModal: React.FC<ProposeBeerModalProps> = ({
 
           <div style={{ marginBottom: '12px' }}>
             <label style={{ fontSize: '12px', fontWeight: 'bold', color: 'var(--dark)', display: 'block', marginBottom: '4px' }}>
-              Variante / Stile <span style={{ fontWeight: 'normal', color: 'var(--text-muted)' }}>(opzionale)</span>
+              Variante / Stile {existingBeer ? '*' : <span style={{ fontWeight: 'normal', color: 'var(--text-muted)' }}>(opzionale)</span>}
             </label>
             <input
               type="text"
-              placeholder="es. IPA, Non Filtrata... (Se vuoto: Classica)"
+              placeholder="IPA, Weiss, Non Filtrata..."
               value={variant}
               onChange={(e) => setVariant(e.target.value)}
               style={{ width: '100%', boxSizing: 'border-box', margin: 0, padding: '12px' }}
@@ -355,7 +360,7 @@ export const ProposeBeerModal: React.FC<ProposeBeerModalProps> = ({
             </label>
             <input
               type="text"
-              placeholder="es. Trovata al pub X, note di gusto..."
+              placeholder=""
               value={desc}
               onChange={(e) => setDesc(e.target.value)}
               disabled={!!existingBeer}
