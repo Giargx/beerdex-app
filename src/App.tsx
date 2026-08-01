@@ -129,8 +129,9 @@ export default function App() {
     }
     setProposeModalOpen(true);
   };
-  const [adminProposalsModalOpen, setAdminProposalsModalOpen] = useState<boolean>(false);
-  const [flaggedPosts, setFlaggedPosts] = useState<Record<string, any>>({});
+  const [adminProposalsModalOpen, setAdminProposalsModalOpen] = useState(false);
+  const [adminModalTab, setAdminModalTab] = useState<'proposals' | 'flagged'>('proposals');
+  const [beerProposals, setBeerProposals] = useState<BeerProposalItem[]>([]);
   const [unlockRatingModalState, setUnlockRatingModalState] = useState<{ isOpen: boolean; brand: string; variant: string; photo?: string } | null>(null);
 
   const allBeersCatalog = mergeBeers(beers, customBeers);
@@ -2428,8 +2429,16 @@ export default function App() {
                     setDetailViewBackPage('page-profile');
                     navigateTo('page-user-posts-detail');
                   }}
-                  onOpenAdminProposals={() => setAdminProposalsModalOpen(true)}
+                  onOpenAdminProposals={() => {
+                    setAdminModalTab('proposals');
+                    setAdminProposalsModalOpen(true);
+                  }}
                   pendingProposalsCount={beerProposals.filter((p: BeerProposalItem) => p.status === 'pending').length}
+                  onOpenAdminReports={() => {
+                    setAdminModalTab('flagged');
+                    setAdminProposalsModalOpen(true);
+                  }}
+                  flaggedPostsCount={Object.keys(flaggedPosts || {}).length}
                   onRateBeer={handleRateBeer}
                   myReceivedRequests={myReceivedRequests}
                   onNavigateToFriends={() => navigateTo('page-friends')}
@@ -2666,7 +2675,7 @@ export default function App() {
         onSubmitProposal={handleProposeBeerSubmit}
       />
 
-      {/* Admin Proposals Modal */}
+      {/* Admin Proposals & Reports Modal */}
       <AdminProposalsModal
         isOpen={adminProposalsModalOpen}
         onClose={() => setAdminProposalsModalOpen(false)}
@@ -2678,6 +2687,7 @@ export default function App() {
         flaggedPosts={flaggedPosts}
         onRemoveFlaggedPost={handleRemoveFlaggedPost}
         onDismissFlaggedPost={handleDismissFlaggedPost}
+        initialTab={adminModalTab}
       />
 
       {/* Unlock Rating Modal */}

@@ -43,9 +43,15 @@ export const BeerCard: React.FC<BeerCardProps> = ({
 
   const isCompleted = brandTotal > 0 && brandDrunk === brandTotal;
 
-  const regionLabel = beer.country === 'Italia' && beer.regione
-    ? `${beer.flag} ${beer.country} (${beer.regione})`
-    : `${beer.flag} ${beer.country}`;
+  const rawCode = beer.flag && beer.flag !== '🍺' ? beer.flag : getCountryFlag(beer.country);
+  const countryCode = rawCode !== 'IT' && rawCode !== '🍺' ? rawCode : '';
+
+  let regionLabel = '';
+  if (beer.country === 'Italia') {
+    regionLabel = beer.regione ? `Italia (${beer.regione})` : 'Italia';
+  } else {
+    regionLabel = countryCode ? `${beer.country} (${countryCode})` : beer.country;
+  }
 
   return (
     <div

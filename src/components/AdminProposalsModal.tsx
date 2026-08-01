@@ -26,6 +26,7 @@ interface AdminProposalsModalProps {
   flaggedPosts?: Record<string, any>;
   onRemoveFlaggedPost?: (postId: string, postUser: string, brand: string, variant: string) => void;
   onDismissFlaggedPost?: (postId: string) => void;
+  initialTab?: 'proposals' | 'flagged';
 }
 
 const ItalianRegions = [
@@ -46,8 +47,9 @@ export const AdminProposalsModal: React.FC<AdminProposalsModalProps> = ({
   flaggedPosts = {},
   onRemoveFlaggedPost,
   onDismissFlaggedPost,
+  initialTab = 'proposals',
 }) => {
-  const [activeTab, setActiveTab] = useState<'proposals' | 'flagged'>('proposals');
+  const [activeTab, setActiveTab] = useState<'proposals' | 'flagged'>(initialTab);
   const [showEditMap, setShowEditMap] = useState<Record<string, boolean>>({});
   const [editedDataMap, setEditedDataMap] = useState<Record<string, {
     brand: string;
@@ -57,6 +59,12 @@ export const AdminProposalsModal: React.FC<AdminProposalsModalProps> = ({
     rarity: "comune" | "media" | "rara";
     desc: string;
   }>>({});
+
+  React.useEffect(() => {
+    if (isOpen) {
+      setActiveTab(initialTab);
+    }
+  }, [isOpen, initialTab]);
 
   if (!isOpen) return null;
 

@@ -19,6 +19,8 @@ interface ProfileViewProps {
   onOpenPostDetail: (username: string, postId: string) => void;
   onOpenAdminProposals?: () => void;
   pendingProposalsCount?: number;
+  onOpenAdminReports?: () => void;
+  flaggedPostsCount?: number;
   onRateBeer?: (brand: string, variant: string, rating: number) => void;
   myReceivedRequests?: string[];
   onNavigateToFriends?: () => void;
@@ -39,6 +41,8 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
   onOpenPostDetail,
   onOpenAdminProposals,
   pendingProposalsCount = 0,
+  onOpenAdminReports,
+  flaggedPostsCount = 0,
   onRateBeer,
   myReceivedRequests = [],
   onNavigateToFriends,
@@ -308,53 +312,103 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
         </div>
       )}
 
-      {isAdminUser && onOpenAdminProposals && (
-        <div style={{ padding: '0 20px', marginTop: '12px', marginBottom: '8px' }}>
-          <button
-            onClick={onOpenAdminProposals}
-            style={{
-              width: '100%',
-              background: 'linear-gradient(135deg, #0F172A 0%, #1E293B 100%)',
-              color: 'white',
-              border: 'none',
-              padding: '12px 16px',
-              borderRadius: '16px',
-              fontWeight: 'bold',
-              fontSize: '14px',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: '8px',
-              boxShadow: '0 4px 12px rgba(15,23,42,0.15)'
-            }}
-          >
-            <span className="material-symbols-outlined" style={{ color: 'var(--primary)' }}>admin_panel_settings</span>
-            <span>Gestisci Proposte Birre</span>
-            {pendingProposalsCount > 0 && (
-              <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', marginLeft: '4px' }}>
-                <span
-                  style={{
-                    width: '8px',
-                    height: '8px',
-                    borderRadius: '50%',
+      {isAdminUser && (
+        <div style={{ padding: '0 20px', marginTop: '12px', marginBottom: '8px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+          {onOpenAdminProposals && (
+            <button
+              onClick={onOpenAdminProposals}
+              style={{
+                width: '100%',
+                background: 'linear-gradient(135deg, #0F172A 0%, #1E293B 100%)',
+                color: 'white',
+                border: 'none',
+                padding: '12px 16px',
+                borderRadius: '16px',
+                fontWeight: 'bold',
+                fontSize: '14px',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '8px',
+                boxShadow: '0 4px 12px rgba(15,23,42,0.15)'
+              }}
+            >
+              <span className="material-symbols-outlined" style={{ color: 'var(--primary)' }}>admin_panel_settings</span>
+              <span>Gestisci Proposte Birre</span>
+              {pendingProposalsCount > 0 && (
+                <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', marginLeft: '4px' }}>
+                  <span
+                    style={{
+                      width: '8px',
+                      height: '8px',
+                      borderRadius: '50%',
+                      background: '#EF4444',
+                      boxShadow: '0 0 8px rgba(239, 68, 68, 0.9)',
+                    }}
+                  />
+                  <span style={{
+                    background: 'var(--danger)',
+                    color: 'white',
+                    borderRadius: '10px',
+                    padding: '2px 8px',
+                    fontSize: '11px',
+                    fontWeight: '900'
+                  }}>
+                    {pendingProposalsCount}
+                  </span>
+                </div>
+              )}
+            </button>
+          )}
+
+          {onOpenAdminReports && (
+            <button
+              onClick={onOpenAdminReports}
+              style={{
+                width: '100%',
+                background: 'linear-gradient(135deg, #451A03 0%, #78350F 100%)',
+                color: 'white',
+                border: '1px solid #B45309',
+                padding: '12px 16px',
+                borderRadius: '16px',
+                fontWeight: 'bold',
+                fontSize: '14px',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '8px',
+                boxShadow: '0 4px 12px rgba(120,53,15,0.2)'
+              }}
+            >
+              <span className="material-symbols-outlined" style={{ color: '#FBBF24' }}>report_problem</span>
+              <span>Gestisci Segnalazioni Post</span>
+              {flaggedPostsCount > 0 && (
+                <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', marginLeft: '4px' }}>
+                  <span
+                    style={{
+                      width: '8px',
+                      height: '8px',
+                      borderRadius: '50%',
+                      background: '#EF4444',
+                      boxShadow: '0 0 8px rgba(239, 68, 68, 0.9)',
+                    }}
+                  />
+                  <span style={{
                     background: '#EF4444',
-                    boxShadow: '0 0 8px rgba(239, 68, 68, 0.9)',
-                  }}
-                />
-                <span style={{
-                  background: 'var(--danger)',
-                  color: 'white',
-                  borderRadius: '10px',
-                  padding: '2px 8px',
-                  fontSize: '11px',
-                  fontWeight: '900'
-                }}>
-                  {pendingProposalsCount}
-                </span>
-              </div>
-            )}
-          </button>
+                    color: 'white',
+                    borderRadius: '10px',
+                    padding: '2px 8px',
+                    fontSize: '11px',
+                    fontWeight: '900'
+                  }}>
+                    {flaggedPostsCount}
+                  </span>
+                </div>
+              )}
+            </button>
+          )}
         </div>
       )}
 
