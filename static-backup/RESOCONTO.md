@@ -102,3 +102,12 @@ Ecco il riepilogo dettagliato di tutte le migliorie, funzionalità e modifiche g
 ## ⚙️ 13. Service Worker e PWA Fix
 * **Deploy e Aggiornamento**: Corretto il percorso di registrazione del Service Worker in `index.html` da `/sw.js` (che falliva su GitHub Pages) a `sw.js` (relativo). 
 * **Aggiornamento Cache**: Incrementata la versione della cache in `sw.js` a `beerdex-v2.3` per forzare i telefoni cellulari che hanno installato l'app a scaricare immediatamente il codice aggiornato.
+
+---
+
+## 📱 14. Risoluzione Definitiva Bug "Pagine Bianche su Mobile" (Impostazioni, Esplora, Classifica)
+* **Esclusione Gesture Touch**: Aggiornato il gestore degli eventi touch in `App.tsx` (`handleTouchStart`) per escludere tutti gli elementi interattivi (`.card`, `.beer-card`, `.leaderboard-item`, `.tab`, `.variant-item`, `.switch`, `.slider`, `button`, `select`). Questo impedisce che un tap con un leggerissimo movimento del dito venga scambiato per uno swipe orizzontale di cambio pagina (che traslava la vista fuori dallo schermo lasciando uno sfondo bianco).
+* **Rimozione CSS Distruttivo**: Rimosso la regola `body.settings-open .main-tabs-slider-wrapper { display: none !important; }` da `index.css`. La modale Impostazioni sfrutta `position: fixed` e `z-index: 100001` per coprire lo schermo senza nascondere o smontare i tab sottostanti dal DOM.
+* **Eliminazione `window.location.reload()`**: Rimosso il ricaricamento forzato della pagina sia dallo switch dell'effetto bollicine sia dalla registrazione del Service Worker in `main.tsx`.
+* **Safe Fallback Props**: Inseriti valori di default difensivi (`= {}`, `= []`) nelle viste `ProfileView` e `PublicProfileView` per evitare eccezioni `TypeError` durante i re-render veloci su mobile.
+

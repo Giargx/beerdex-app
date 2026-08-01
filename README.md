@@ -88,4 +88,24 @@ Se riscontri l'errore `auth/requests-from-referer-...-are-blocked`:
 
 ## 🚀 Deploy Automatico (CI/CD)
 1. **Vercel** (`beerdex-app.vercel.app`): Rileva i push sul branch `main` e distribuisce l'applicazione in tempo reale sulla radice (`/`).
-2. **GitHub Pages** (`giargx.github.io/beerdex-app`): Tramite una GitHub Action configurata in `.github/workflows/deploy.yml`, compila il progetto con il base-path corretto e ne fa il deploy sul branch `gh-pages`./workflows/deploy.yml`, compila il progetto con il base-path corretto e ne fa il deploy sul branch `gh-pages`.
+2. **GitHub Pages** (`giargx.github.io/beerdex-app`): Tramite una GitHub Action configurata in `.github/workflows/deploy.yml`, compila il progetto con il base-path corretto e ne fa il deploy sul branch `gh-pages`.
+
+---
+
+## 🤖 Note Tecniche per AGY (Vision AI) & Sviluppatori: Fix "Schermata Bianca su Mobile"
+
+### 🐛 Cause del Problema Riscontrato su Mobile:
+Sui dispositivi cellulari (iOS Safari / Android Chrome / PWA), alcune interazioni (apertura Impostazioni, tap sulle card delle birre in *Esplora*, o selezione utenti nella *Classifica Globale*) causavano una **schermata totalmente bianca**.
+
+### 🔬 Diagnosi Dettagliata:
+1. **Gestione Touch Swipe troppo aggressiva**: Il listener `handleTouchStart`/`handleTouchMove` in `App.tsx` intercettava anche i tap su card, righe della classifica, switch e pulsanti. Un impercettibile scorrimento del dito (1-2px) durante il tocco veniva scambiato per uno swipe orizzontale di cambio tab, traslando la vista fuori dallo schermo (`translateX`).
+2. **CSS Distruttivo `body.settings-open .main-tabs-slider-wrapper { display: none !important; }`**: Nascondeva fisicamente i tab dal DOM quando le impostazioni erano aperte. In caso di chiusura da gesture o desincronizzazione dello stato `settingsOpen`, sia le impostazioni sia i tab risultavano con `display: none`.
+3. **Loop da `window.location.reload()`**: Inserito nello switch *Bollicine* e nella registrazione del Service Worker in `main.tsx`. Sui browser mobile, ricaricare la pagina con il Service Worker in stato pendente bloccava l'avvio della PWA.
+4. **Parametri indefiniti (`TypeError`)**: Nelle viste `ProfileView` e `PublicProfileView` mancavano i valori predefiniti per oggetti come `myPokedex`, `globalAvatars`, `leaderboardScores` o `posts`.
+
+### 🛡️ Linee Guida per Futuri Sviluppi & Agenti AGY:
+* **Gesture Swipe**: Mantenere sempre aggiornato il filtro `.closest(...)` in `handleTouchStart` in `App.tsx` aggiungendo tutti i nuovi elementi interattivi creati nell'app per evitare che lo swipe intercetti i tap degli utenti.
+* **Stili Overlay**: Non usare mai `display: none !important` sui container di pagina principali quando si aprono modali o drawer; affidarsi sempre al layering via `position: fixed` e `z-index`.
+* **Zero Reload Forzati**: Non chiamare mai `window.location.reload()` all'interno dei componenti React o nei gestori di stato su mobile.
+* **Props Difensive**: Inizializzare sempre le props dei componenti con safe fallbacks (`= {}`, `= []`) per evitare crash da de-strutturazione.
+
