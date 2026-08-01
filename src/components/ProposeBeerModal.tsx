@@ -49,35 +49,40 @@ export const ProposeBeerModal: React.FC<ProposeBeerModalProps> = ({
 
   useEffect(() => {
     if (isOpen) {
-      setBrand(initialBrandSearch || '');
+      const searchBrand = (initialBrandSearch || '').trim();
+      setBrand(searchBrand);
       setVariant(initialVariantPrefill || '');
-      setDesc(initialDescPrefill || '');
       setPhotoBase64('');
       setErrorMessage('');
 
       const matched = (allBeersCatalog || []).find(
-        (b) => b && b.brand && b.brand.trim().toLowerCase() === (initialBrandSearch || '').trim().toLowerCase()
+        (b) => b && b.brand && b.brand.trim().toLowerCase() === searchBrand.toLowerCase()
       );
       if (matched) {
         setCountry(matched.country || 'Italia');
         setRegione(matched.regione || 'Tutte');
-        if (matched.desc) setDesc(matched.desc);
+        setDesc(matched.desc || '');
       } else {
         setCountry('Italia');
         setRegione('Tutte');
+        setDesc(initialDescPrefill || '');
       }
     }
   }, [isOpen, initialBrandSearch, initialVariantPrefill, initialDescPrefill, allBeersCatalog]);
 
   // Auto-compilazione Nazione, Regione e Descrizione quando la marca inserita esiste nel catalogo
   useEffect(() => {
+    if (!isOpen) return;
     if (existingBeer) {
       if (existingBeer.country) setCountry(existingBeer.country);
       if (existingBeer.regione) setRegione(existingBeer.regione);
       else setRegione('Tutte');
       if (existingBeer.desc) setDesc(existingBeer.desc);
+    } else if (!initialBrandSearch) {
+      // Se si sta proponendo una nuova marca generica (non pre-compilata), mantieni pulita la descrizione
+      setDesc('');
     }
-  }, [brand, existingBeer]);
+  }, [brand, existingBeer, isOpen, initialBrandSearch]);
 
   if (!isOpen) return null;
 
