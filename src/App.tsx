@@ -898,13 +898,15 @@ export default function App() {
       const isEdgeBack = !isMainTab && touchStartX.current <= 45 && rawDiffX > 50 && Math.abs(diffY) < 60;
       const container = document.querySelector('.main-tabs-slider-container') as HTMLElement;
 
-      if (container) {
+      if (isHorizontalSwipe.current && container) {
         container.style.transition = '';
         container.style.transform = '';
       }
 
-      setIsDragging(false);
-      setDragOffset(0);
+      if (isDragging) {
+        setIsDragging(false);
+        setDragOffset(0);
+      }
 
       if (isEdgeBack) {
         // iOS-style Edge Swipe Back on sub-pages or drawers
