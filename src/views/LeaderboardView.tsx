@@ -17,13 +17,13 @@ interface LeaderboardViewProps {
 }
 
 export const LeaderboardView: React.FC<LeaderboardViewProps> = ({
-  currentUserNick,
-  leaderboardScores,
-  myFriendsList,
-  mySentRequests,
-  myReceivedRequests,
-  globalAvatars,
-  globalDisplayNames,
+  currentUserNick = '',
+  leaderboardScores = {},
+  myFriendsList = [],
+  mySentRequests = [],
+  myReceivedRequests = [],
+  globalAvatars = {},
+  globalDisplayNames = {},
   onAddFriend,
   onOpenPublicProfile,
   onNavigateToFriends,
@@ -34,13 +34,23 @@ export const LeaderboardView: React.FC<LeaderboardViewProps> = ({
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [searchResult, setSearchResult] = useState<string | null>(null);
 
+  // Safe data fallbacks
+  const safeScores = leaderboardScores && typeof leaderboardScores === 'object' ? leaderboardScores : {};
+  const safeFriends = Array.isArray(myFriendsList) ? myFriendsList : [];
+  const safeSent = Array.isArray(mySentRequests) ? mySentRequests : [];
+  const safeReceived = Array.isArray(myReceivedRequests) ? myReceivedRequests : [];
+  const safeAvatars = globalAvatars && typeof globalAvatars === 'object' ? globalAvatars : {};
+  const safeDisplayNames = globalDisplayNames && typeof globalDisplayNames === 'object' ? globalDisplayNames : {};
+  const safeUserNick = currentUserNick || '';
+
   // Suggestions logic
-  const normalizedQuery = normalizeStr(searchQuery);
+  const normalizedQuery = normalizeStr(searchQuery || '');
   const suggestions = searchQuery.length > 0
-    ? Object.keys(leaderboardScores).filter(
+    ? Object.keys(safeScores).filter(
         (name) =>
+          name &&
           normalizeStr(name).includes(normalizedQuery) &&
-          name.toLowerCase() !== currentUserNick.toLowerCase()
+          name.toLowerCase() !== safeUserNick.toLowerCase()
       )
     : [];
 
@@ -48,13 +58,13 @@ export const LeaderboardView: React.FC<LeaderboardViewProps> = ({
     if (!searchQuery) return;
     const normalizedTarget = normalizeStr(searchQuery);
     
-    if (normalizedTarget === normalizeStr(currentUserNick)) {
+    if (normalizedTarget === normalizeStr(safeUserNick)) {
       setSearchResult('self');
       return;
     }
 
-    const matchedName = Object.keys(leaderboardScores).find(
-      (name) => normalizeStr(name) === normalizedTarget
+    const matchedName = Object.keys(safeScores).find(
+      (name) => name && normalizeStr(name) === normalizedTarget
     );
 
     if (matchedName) {
@@ -72,23 +82,24 @@ export const LeaderboardView: React.FC<LeaderboardViewProps> = ({
   };
 
   // Build the list of players to show
-  const players = Object.keys(leaderboardScores)
+  const players = Object.keys(safeScores)
     .filter((name) => {
+      if (!name) return false;
       if (activeTab === 'friends') {
-        return name === currentUserNick || myFriendsList.includes(name);
+        return name === safeUserNick || safeFriends.includes(name);
       }
       return true;
     })
     .map((name) => ({
       name,
-      score: leaderboardScores[name] || 0,
+      score: typeof safeScores[name] === 'number' ? safeScores[name] : 0,
     }))
     .sort((a, b) => b.score - a.score);
 
   const getFriendActionHtml = (targetName: string) => {
-    if (targetName === currentUserNick) return null;
+    if (!targetName || targetName === safeUserNick) return null;
     
-    if (myFriendsList.includes(targetName)) {
+    if (safeFriends.includes(targetName)) {
       return (
         <span className="badge-status" style={{ color: 'var(--social-blue)' }}>
           <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>
@@ -99,7 +110,7 @@ export const LeaderboardView: React.FC<LeaderboardViewProps> = ({
       );
     }
     
-    if (mySentRequests.includes(targetName)) {
+    if (safeSent.includes(targetName)) {
       return (
         <span className="badge-status" style={{ color: 'var(--text-muted)' }}>
           <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>
@@ -110,16 +121,16 @@ export const LeaderboardView: React.FC<LeaderboardViewProps> = ({
       );
     }
     
-    if (myReceivedRequests.includes(targetName)) {
+    if (safeReceived.includes(targetName)) {
       return (
-        <button className="btn-action btn-accept" onClick={onNavigateToFriends}>
+        <button className="btn-action btn-accept" onClick={() => onNavigateToFriends ? onNavigateToFriends() : null}>
           Rispondi
         </button>
       );
     }
 
     return (
-      <button className="btn-action btn-add" onClick={() => onAddFriend(targetName)} title={`Aggiungi @${targetName}`}>
+      <button className="btn-action btn-add" onClick={() => onAddFriend ? onAddFriend(targetName) : null} title={`Aggiungi @${targetName}`}>
         <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>
           person_add
         </span>
@@ -211,7 +222,7 @@ export const LeaderboardView: React.FC<LeaderboardViewProps> = ({
                     alignItems: 'center',
                     gap: '5px',
                   }}
-                  onClick={() => onOpenPublicProfile(searchResult)}
+                  onClick={() => onOpenPublicProfile ? onOpenPublicProfile(searchResult) : null}
                 >
                   <span className="material-symbols-outlined">person</span> {searchResult}
                 </div>
@@ -223,11 +234,15 @@ export const LeaderboardView: React.FC<LeaderboardViewProps> = ({
 
         <div className="list-container leaderboard-list" id="leaderboardList">
           {players.length === 0 ? (
-            <p style={{ textAlign: 'center' }}>Caricamento classifica...</p>
+            <p style={{ textAlign: 'center', color: 'var(--text-muted)', padding: '20px' }}>
+              Nessun utente trovato in questa classifica.
+            </p>
           ) : (
             players.map((player, index) => {
-              const rankLabel = getUserRankTitle(player.score);
-              const avatar = globalAvatars[player.name];
+              const rankLabel = typeof getUserRankTitle === 'function' 
+                ? getUserRankTitle(player.score) 
+                : 'Bevitore';
+              const avatar = safeAvatars[player.name];
 
               let medalHtml: React.ReactNode;
               if (index === 0) {
@@ -326,13 +341,13 @@ export const LeaderboardView: React.FC<LeaderboardViewProps> = ({
               return (
                 <div
                   key={player.name}
-                  className={`leaderboard-item ${player.name === currentUserNick ? 'is-current-user' : ''}`}
+                  className={`leaderboard-item ${player.name === safeUserNick ? 'is-current-user' : ''}`}
                 >
                   <div className="lb-player-left" style={{ display: 'flex', alignItems: 'center', flexGrow: 1 }}>
                     <div className="rank">{medalHtml}</div>
                     <div
                       className="post-avatar"
-                      onClick={() => onOpenPublicProfile(player.name)}
+                      onClick={() => onOpenPublicProfile ? onOpenPublicProfile(player.name) : null}
                       style={{ width: '40px', height: '40px', margin: '0 10px 0 5px', cursor: 'pointer' }}
                     >
                       {avatar ? (
@@ -345,11 +360,11 @@ export const LeaderboardView: React.FC<LeaderboardViewProps> = ({
                     </div>
                     <div 
                       className="lb-user" 
-                      onClick={() => onOpenPublicProfile(player.name)}
+                      onClick={() => onOpenPublicProfile ? onOpenPublicProfile(player.name) : null}
                       style={{ cursor: 'pointer' }}
                     >
                       <span className="clickable-user" style={{ fontWeight: 'bold', display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
-                        <span>{globalDisplayNames?.[player.name] ? globalDisplayNames[player.name] : player.name}</span>
+                        <span>{safeDisplayNames?.[player.name] ? safeDisplayNames[player.name] : player.name}</span>
                         {['gargo', 'forne02', 'aviatore'].includes((player.name || '').toLowerCase()) && (
                           <span
                             style={{
@@ -372,7 +387,7 @@ export const LeaderboardView: React.FC<LeaderboardViewProps> = ({
                       </span>
                       <br />
                       <small style={{ fontSize: '11px', color: 'var(--text-muted)', fontWeight: 'normal' }}>
-                        {globalDisplayNames?.[player.name] ? `@${player.name} • ${rankLabel}` : rankLabel}
+                        {safeDisplayNames?.[player.name] ? `@${player.name} • ${rankLabel}` : rankLabel}
                       </small>
                     </div>
                   </div>

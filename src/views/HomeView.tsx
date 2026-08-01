@@ -965,13 +965,16 @@ export const HomeView: React.FC<HomeViewProps> = ({
               </button>
             </div>
 
-            <div style={{
-              display: 'flex',
-              gap: '12px',
-              overflowX: 'auto',
-              paddingBottom: '6px',
-              scrollbarWidth: 'none'
-            }}>
+            <div 
+              className="no-swipe"
+              style={{
+                display: 'flex',
+                gap: '12px',
+                overflowX: 'auto',
+                paddingBottom: '6px',
+                scrollbarWidth: 'none'
+              }}
+            >
               {recentCommunityPosts.map((p) => {
                 const isCheered = cheeredPosts[p.postId];
                 return (
