@@ -26,15 +26,15 @@ interface PublicProfileViewProps {
 }
 
 export const PublicProfileView: React.FC<PublicProfileViewProps> = ({
-  username,
+  username = '',
   displayName,
-  pokedex,
-  score,
+  pokedex = {},
+  score = 0,
   avatar,
   onBack,
   getUserRankTitle,
   getAvatarZoomProps,
-  posts,
+  posts = [],
   onOpenPostDetail,
   allBeersCatalog = beers,
   isAdminUser,

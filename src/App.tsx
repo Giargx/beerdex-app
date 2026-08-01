@@ -837,7 +837,19 @@ export default function App() {
         target.closest('.slider') ||
         target.closest('.leaflet-container') ||
         target.closest('.no-swipe') ||
-        target.closest('.leaflet-interactive')
+        target.closest('.leaflet-interactive') ||
+        target.closest('.card') ||
+        target.closest('.beer-card') ||
+        target.closest('.leaderboard-item') ||
+        target.closest('.search-result-card') ||
+        target.closest('.tab') ||
+        target.closest('.tabs') ||
+        target.closest('.variant-item') ||
+        target.closest('.add-friend-box') ||
+        target.closest('.lb-user') ||
+        target.closest('.post-avatar') ||
+        target.closest('.clickable-user') ||
+        target.closest('.suggestions-box')
       ) {
         touchStartX.current = 0;
         touchStartY.current = 0;
