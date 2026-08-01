@@ -341,6 +341,9 @@ export default function App() {
     } else {
       document.body.classList.remove('settings-open');
     }
+    return () => {
+      document.body.classList.remove('settings-open');
+    };
   }, [settingsOpen, globalDisplayNames, currentUserNick]);
 
   // Listen to Auth State
@@ -827,6 +830,11 @@ export default function App() {
         target.closest('#mapContainer') ||
         target.closest('.crop-viewport-container') ||
         target.closest('input[type="range"]') ||
+        target.closest('input') ||
+        target.closest('button') ||
+        target.closest('select') ||
+        target.closest('.switch') ||
+        target.closest('.slider') ||
         target.closest('.leaflet-container') ||
         target.closest('.no-swipe') ||
         target.closest('.leaflet-interactive')
@@ -2269,7 +2277,6 @@ export default function App() {
                   onChange={(e) => {
                     setBubblesEnabled(e.target.checked);
                     localStorage.setItem('beerdex_bubbles', e.target.checked ? 'yes' : 'no');
-                    window.location.reload();
                   }}
                   style={{ opacity: 0, width: 0, height: 0 }}
                 />

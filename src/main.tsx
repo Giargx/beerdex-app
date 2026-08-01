@@ -22,7 +22,7 @@ if ('serviceWorker' in navigator) {
           if (installingWorker) {
             installingWorker.onstatechange = () => {
               if (installingWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                window.location.reload();
+                console.log('Nuova versione PWA disponibile. Verrà caricata al prossimo avvio.');
               }
             };
           }

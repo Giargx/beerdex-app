@@ -30,14 +30,14 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
   currentUserNick,
   currentUserDisplayName,
   isAdminUser,
-  myPokedex,
-  globalAvatars,
-  leaderboardScores,
+  myPokedex = {},
+  globalAvatars = {},
+  leaderboardScores = {},
   onToggleSettings,
   onDeleteVariant,
   getUserRankTitle,
   getAvatarZoomProps,
-  posts,
+  posts = [],
   onOpenPostDetail,
   onOpenAdminProposals,
   pendingProposalsCount = 0,
@@ -57,9 +57,9 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
   const [eventsOpen, setEventsOpen] = useState<boolean>(false);
   const [variantsOpen, setVariantsOpen] = useState<boolean>(false);
 
-  const score = leaderboardScores[currentUserNick] || 0;
-  const rankTitle = getUserRankTitle(score, Object.keys(myPokedex || {}).length);
-  const avatar = globalAvatars[currentUserNick];
+  const score = (leaderboardScores && leaderboardScores[currentUserNick]) || 0;
+  const rankTitle = typeof getUserRankTitle === 'function' ? getUserRankTitle(score, Object.keys(myPokedex || {}).length) : '';
+  const avatar = (globalAvatars && globalAvatars[currentUserNick]) || undefined;
 
   const roleText = isAdminUser ? "ADMIN" : "UTENTE";
   const roleColor = isAdminUser ? "var(--danger)" : "var(--text-muted)";

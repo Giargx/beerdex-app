@@ -565,9 +565,7 @@ header.hero p {
 .settings-overlay.active {
     display: block;
 }
-body.settings-open .main-tabs-slider-wrapper {
-    display: none !important;
-}
+/* Note: .settings-overlay uses position:fixed and z-index:100001 to seamlessly layer above the main tabs without hiding them from the DOM */
 
 @keyframes expandFadeIn {
     0% {
