@@ -451,22 +451,8 @@ export const ScannerModal: React.FC<ScannerModalProps> = ({
                 }
               }
             } else {
-              // Barcode not found on Open Food Facts: ask if user wants to propose it or proceed
-              showConfirm(
-                `Questo codice non è stato trovato nel database globale degli alimenti. Se si tratta di una nuova birra non presente nel catalogo, vuoi proporla agli admin?`,
-                "Prodotto non catalogato",
-                () => {
-                  onClose();
-                  if (onRedirectToPropose) {
-                    onRedirectToPropose({
-                      brand: currentTargetBrand,
-                      variant: '',
-                      rarity: 'comune',
-                      desc: `Birra con codice a barre ${decodedText}`
-                    });
-                  }
-                }
-              );
+              // Barcode not found on Open Food Facts: since user is unlocking an existing beer, proceed to photo capture
+              proceedToCapture();
               return;
             }
 
@@ -543,18 +529,7 @@ export const ScannerModal: React.FC<ScannerModalProps> = ({
           <span className="material-symbols-outlined">local_drink</span> È alla spina (Salta Scanner)
         </button>
 
-        {onRedirectToPropose && (
-          <button
-            className="btn-secondary"
-            onClick={() => {
-              onClose();
-              onRedirectToPropose({ brand: currentTargetBrand, variant: '', rarity: 'comune' });
-            }}
-            style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', textAlign: 'center', padding: '12px', marginTop: '10px', cursor: 'pointer', width: '100%', boxSizing: 'border-box' }}
-          >
-            <span className="material-symbols-outlined">add_circle</span> La birra non c'è? Proponila ora
-          </button>
-        )}
+        {/* Cancel button */}
 
         <button
           className="btn-secondary"
