@@ -24,6 +24,8 @@ interface ProfileViewProps {
   onRateBeer?: (brand: string, variant: string, rating: number) => void;
   myReceivedRequests?: string[];
   onNavigateToFriends?: () => void;
+  myTagRequests?: any[];
+  onOpenTagRequest?: (req: any) => void;
 }
 
 export const ProfileView: React.FC<ProfileViewProps> = ({
@@ -46,6 +48,8 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
   onRateBeer,
   myReceivedRequests = [],
   onNavigateToFriends,
+  myTagRequests = [],
+  onOpenTagRequest,
 }) => {
   const [activeTab, setActiveTab] = useState<'collection' | 'posts' | 'stats' | 'ratings'>('posts');
   const [variantSort, setVariantSort] = useState<'alpha' | 'unlocked' | 'rarity' | 'nation'>('unlocked');
@@ -199,6 +203,39 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
             settings
           </span>
         </button>
+
+        {/* Pending Tag Requests Banner */}
+        {Array.isArray(myTagRequests) && myTagRequests.length > 0 && (
+          <div
+            onClick={() => onOpenTagRequest && onOpenTagRequest(myTagRequests[0])}
+            style={{
+              margin: '60px 20px 0 20px',
+              background: 'linear-gradient(135deg, #FF6F00, #FFB300)',
+              borderRadius: '16px',
+              padding: '14px 16px',
+              color: 'var(--white)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              cursor: 'pointer',
+              boxShadow: '0 6px 18px rgba(255, 111, 0, 0.35)',
+              animation: 'fadeIn 0.2s ease-out',
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <span className="material-symbols-outlined" style={{ fontSize: '26px' }}>group_add</span>
+              <div style={{ textAlign: 'left' }}>
+                <div style={{ fontWeight: 900, fontSize: '14px' }}>
+                  Richiesta Sblocco in Compagnia ({myTagRequests.length})
+                </div>
+                <div style={{ fontSize: '11px', opacity: 0.95 }}>
+                  @{myTagRequests[0].fromUser} ti ha taggato in una bevuta! Tocca per rispondere.
+                </div>
+              </div>
+            </div>
+            <span className="material-symbols-outlined">chevron_right</span>
+          </div>
+        )}
 
         {/* User avatar display card */}
         <div style={{ textAlign: 'center', padding: '30px 20px 20px 20px' }}>

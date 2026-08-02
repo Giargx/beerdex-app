@@ -35,6 +35,7 @@ import { AdminProposalsModal } from './components/AdminProposalsModal';
 import type { BeerProposalItem } from './components/AdminProposalsModal';
 import { UnlockRatingModal } from './components/UnlockRatingModal';
 import { PermissionModal, type PermissionType, type PermissionChoice } from './components/PermissionModal';
+import { TagRequestModal, type TagRequestItem } from './components/TagRequestModal';
 
 import { FoamBubbles } from './components/FoamBubbles';
 
@@ -309,6 +310,101 @@ export default function App() {
     isHorizontalSwipe.current = null;
     setIsDragging(false);
     setDragOffset(0);
+  };
+
+  // Tag Requests (Sblocco in Compagnia) State & Listeners
+  const [myTagRequests, setMyTagRequests] = useState<TagRequestItem[]>([]);
+  const [activeTagRequestModal, setActiveTagRequestModal] = useState<TagRequestItem | null>(null);
+
+  useEffect(() => {
+    if (!currentUserNick) return;
+    const tagReqRef = ref(db, `tag_requests/${currentUserNick}`);
+    const unsubscribe = onValue(tagReqRef, (snapshot) => {
+      if (snapshot.exists()) {
+        const data = snapshot.val();
+        const pendingList: TagRequestItem[] = Object.values(data).filter(
+          (item: any) => item && item.status === 'pending'
+        );
+        setMyTagRequests(pendingList);
+      } else {
+        setMyTagRequests([]);
+      }
+    });
+    return () => unsubscribe();
+  }, [currentUserNick]);
+
+  const handleAcceptTagRequest = async (request: TagRequestItem, replaceExisting: boolean) => {
+    try {
+      const formattedBrand = formatBeerTitle(request.brand);
+      const formattedVariant = formatBeerTitle(request.variant);
+      const uniqueId = `${formattedBrand}-${formattedVariant}`;
+
+      // 1. Save entry to current user's pokedex profile
+      const pokedexEntry = {
+        photo: request.photo,
+        isShiny: request.isShiny || false,
+        isShared: true,
+        taggedFriend: request.fromUser,
+        taggedFriends: [request.fromUser],
+        brand: formattedBrand,
+        variant: formattedVariant,
+        timestamp: Date.now(),
+      };
+
+      await set(ref(db, `pokedex_profiles/${currentUserNick}/${uniqueId}`), pokedexEntry);
+
+      // 2. Publish post to social timeline for current user
+      const newPostRef = push(ref(db, 'social_timeline'));
+      const postData: any = {
+        user: currentUserNick,
+        brand: formattedBrand,
+        variant: formattedVariant,
+        photo: request.photo,
+        time: Date.now(),
+        isShiny: request.isShiny || false,
+        isShared: true,
+        taggedFriend: request.fromUser,
+        taggedFriends: [request.fromUser],
+        fakeVotes: {},
+      };
+      if (request.lat !== null && request.lat !== undefined && request.lng !== null && request.lng !== undefined) {
+        postData.lat = request.lat;
+        postData.lng = request.lng;
+      }
+
+      await set(newPostRef, postData);
+
+      // 3. Mark tag request as accepted in DB
+      await update(ref(db, `tag_requests/${currentUserNick}/${request.requestId}`), {
+        status: 'accepted',
+      });
+
+      // 4. Recalculate score & trigger pop sound
+      await recalculateTotalScore(currentUserNick);
+      playPopSound();
+
+      setActiveTagRequestModal(null);
+      showAlert(
+        replaceExisting
+          ? `Sblocco per "${formattedBrand} - ${formattedVariant}" sostituito con successo! Foto e punti aggiornati.`
+          : `Sblocco in compagnia per "${formattedBrand} - ${formattedVariant}" accettato e pubblicato sul tuo profilo!`,
+        'Sblocco Conquistato! 🍺'
+      );
+    } catch (err: any) {
+      showAlert('Errore durante l\'accettazione dello sblocco: ' + err.message, 'Errore');
+    }
+  };
+
+  const handleRejectTagRequest = async (requestId: string) => {
+    try {
+      await update(ref(db, `tag_requests/${currentUserNick}/${requestId}`), {
+        status: 'rejected',
+      });
+      setActiveTagRequestModal(null);
+      showAlert('Richiesta di sblocco in compagnia rifiutata.', 'Info');
+    } catch (err: any) {
+      showAlert('Errore durante il rifiuto della richiesta: ' + err.message, 'Errore');
+    }
   };
   const [permissionModalState, setPermissionModalState] = useState<{
     isOpen: boolean;
@@ -1042,6 +1138,31 @@ export default function App() {
       }
 
       await set(newPostRef, postData);
+
+      // Send tag_requests in Realtime Database to tagged friends!
+      if (Array.isArray(taggedFriendsList) && taggedFriendsList.length > 0) {
+        taggedFriendsList.forEach(async (friendNick) => {
+          try {
+            const reqRef = push(ref(db, `tag_requests/${friendNick}`));
+            await set(reqRef, {
+              requestId: reqRef.key,
+              fromUser: currentUserNick,
+              fromDisplayName: globalDisplayNames[currentUserNick] || currentUserNick,
+              brand: formattedBrand,
+              variant: formattedVariant,
+              photo: canvasBase64,
+              isShiny,
+              lat: lat || null,
+              lng: lng || null,
+              timestamp: Date.now(),
+              status: 'pending',
+            });
+          } catch (e) {
+            console.error("Error creating tag request for friend:", e);
+          }
+        });
+      }
+
       await recalculateTotalScore(currentUserNick);
       playPopSound();
 
@@ -2242,6 +2363,8 @@ export default function App() {
                     onRateBeer={handleRateBeer}
                     myReceivedRequests={myReceivedRequests}
                     onNavigateToFriends={() => navigateTo('page-friends')}
+                    myTagRequests={myTagRequests}
+                    onOpenTagRequest={(req) => setActiveTagRequestModal(req)}
                   />
                 )}
               </div>
@@ -2389,7 +2512,7 @@ export default function App() {
           >
             <div className="nav-icon" style={{ position: 'relative' }}>
               <span className="material-symbols-outlined">person</span>
-              {((isAdminUser && (beerProposals || []).filter((p: BeerProposalItem) => p && p.status === 'pending').length > 0) || (myReceivedRequests || []).length > 0) && (
+              {((isAdminUser && (beerProposals || []).filter((p: BeerProposalItem) => p && p.status === 'pending').length > 0) || (myReceivedRequests || []).length > 0 || (myTagRequests || []).length > 0) && (
                 <span
                   style={{
                     position: 'absolute',
@@ -2510,6 +2633,18 @@ export default function App() {
         isOpen={permissionModalState.isOpen}
         type={permissionModalState.type}
         onChoice={handlePermissionChoice}
+      />
+
+      {/* Tag Request (Sblocco in Compagnia) Modal */}
+      <TagRequestModal
+        isOpen={activeTagRequestModal !== null || myTagRequests.length > 0}
+        request={activeTagRequestModal || (myTagRequests.length > 0 ? myTagRequests[0] : null)}
+        onClose={() => setActiveTagRequestModal(null)}
+        onAccept={handleAcceptTagRequest}
+        onReject={handleRejectTagRequest}
+        myPokedex={myPokedex}
+        globalDisplayNames={globalDisplayNames}
+        globalAvatars={globalAvatars}
       />
     </>
   );
