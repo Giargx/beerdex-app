@@ -2114,7 +2114,7 @@ export default function App() {
         <div className={`page-view ${isMainTab ? 'active' : ''}`}>
           <div className="main-tabs-wrapper">
             <div
-              className="main-tabs-slider-container"
+              className={`main-tabs-slider-container ${isDragging ? 'is-transitioning' : ''}`}
               style={{
                 transform: isDragging
                   ? `translateX(calc(-${activeIndex * 20}% + ${dragOffset}px))`
@@ -2127,7 +2127,7 @@ export default function App() {
               onTouchCancel={handleMainTouchEnd}
             >
               {/* Page 0: Home */}
-              <div className="main-tab-slide">
+              <div className={`main-tab-slide ${activeIndex === 0 ? 'active' : ''}`}>
                 {currentUser && (
                   <HomeView
                     currentUserNick={currentUserNick}
@@ -2146,7 +2146,7 @@ export default function App() {
               </div>
 
               {/* Page 1: Explore */}
-              <div className="main-tab-slide">
+              <div className={`main-tab-slide ${activeIndex === 1 ? 'active' : ''}`}>
                 {currentUser && (
                   <ExploreView
                     myPokedex={myPokedex}
@@ -2164,7 +2164,7 @@ export default function App() {
               </div>
 
               {/* Page 2: Leaderboard */}
-              <div className="main-tab-slide">
+              <div className={`main-tab-slide ${activeIndex === 2 ? 'active' : ''}`}>
                 {currentUser && (
                   <LeaderboardView
                     currentUserNick={currentUserNick}
@@ -2183,7 +2183,7 @@ export default function App() {
               </div>
 
               {/* Page 3: Social Pub */}
-              <div className="main-tab-slide">
+              <div className={`main-tab-slide ${activeIndex === 3 ? 'active' : ''}`}>
                 {currentUser && (
                   <PubView
                     currentUserNick={currentUserNick}
@@ -2203,7 +2203,7 @@ export default function App() {
               </div>
 
               {/* Page 4: Profile */}
-              <div className="main-tab-slide">
+              <div className={`main-tab-slide ${activeIndex === 4 ? 'active' : ''}`}>
                 {currentUser && (
                   <ProfileView
                     currentUserNick={currentUserNick}

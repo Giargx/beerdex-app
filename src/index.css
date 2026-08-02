@@ -23,7 +23,7 @@ body {
     color: var(--dark); 
     margin: 0; 
     padding-top: 0px; 
-    padding-bottom: 110px; 
+    padding-bottom: 0px; 
     overflow-x: hidden; 
     -webkit-font-smoothing: antialiased;
 }
@@ -258,7 +258,21 @@ select:focus {
     width: 20%; /* 100% of screen width (500% / 5) */
     flex-shrink: 0;
     box-sizing: border-box;
-    min-height: calc(100vh - 110px);
+    height: 0;
+    overflow: hidden;
+    visibility: hidden;
+}
+
+.main-tab-slide.active {
+    height: auto;
+    overflow: visible;
+    visibility: visible;
+}
+
+.main-tabs-slider-container.is-transitioning .main-tab-slide {
+    height: auto !important;
+    overflow: visible !important;
+    visibility: visible !important;
 }
 
 @keyframes pageFadeIn {
