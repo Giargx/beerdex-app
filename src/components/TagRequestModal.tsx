@@ -29,7 +29,7 @@ interface TagRequestModalProps {
 export const TagRequestModal: React.FC<TagRequestModalProps> = ({
   isOpen,
   request,
-  onClose,
+  onClose: _onClose,
   onAccept,
   onReject,
   myPokedex = {},

@@ -322,7 +322,7 @@ export default function App() {
     const unsubscribe = onValue(tagReqRef, (snapshot) => {
       if (snapshot.exists()) {
         const data = snapshot.val();
-        const pendingList: TagRequestItem[] = Object.values(data).filter(
+        const pendingList: TagRequestItem[] = (Object.values(data) as any[]).filter(
           (item: any) => item && item.status === 'pending'
         );
         setMyTagRequests(pendingList);
