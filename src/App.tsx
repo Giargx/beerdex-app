@@ -312,14 +312,9 @@ export default function App() {
     }
   }, []);
 
-  // Adjust body padding-top dynamically based on pages that have their own custom headers and reset scroll positions
+  // Adjust body padding-top dynamically and reset scroll positions
   useEffect(() => {
-    const noHeaderPages = ['page-user-posts-detail', 'page-public-profile'];
-    if (noHeaderPages.includes(currentPage)) {
-      document.body.style.paddingTop = '0px';
-    } else {
-      document.body.style.paddingTop = '70px';
-    }
+    document.body.style.paddingTop = '0px';
 
     // Reset window, body and inner scroll container scroll positions
     window.scrollTo(0, 0);
@@ -732,17 +727,17 @@ export default function App() {
     }
   };
 
-  // Helper visibility titles
+  // Helper visibility titles with matching rank icons
   const getUserRankTitle = (score: number, unlockedCount?: number) => {
     const totalVariants = (beers || []).reduce((acc, b) => acc + (Array.isArray(b?.variants) ? b.variants.length : 1), 0);
     if (unlockedCount !== undefined && unlockedCount >= totalVariants) {
-      return "Ægir (Divinità Norrena della Birra)";
+      return "⚡ Ægir (Divinità Norrena della Birra)";
     }
-    if (score < 50) return "Novizio del Pub";
-    if (score < 200) return "Apprendista Bevitore";
-    if (score < 500) return "Esploratore di Luppoli";
-    if (score < 1200) return "Sommelier del Bancone";
-    return "Mastro Birraio";
+    if (score < 50) return "🍺 Novizio del Pub";
+    if (score < 200) return "🍺 Apprendista Bevitore";
+    if (score < 500) return "🍺 Esploratore di Luppoli";
+    if (score < 1200) return "🍺 Sommelier del Bancone";
+    return "👑 Mastro Birraio";
   };
 
   // Navigation Logic

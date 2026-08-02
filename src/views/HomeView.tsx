@@ -406,7 +406,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
                 letterSpacing: '0.3px'
               }}
             >
-              👑 {rankLabel}
+              {rankLabel}
             </span>
           </div>
 
@@ -422,7 +422,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
               <span style={{ color: '#E2E8F0', fontSize: '13px', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '6px' }}>
                 <span className="material-symbols-outlined" style={{ color: '#FFB300', fontSize: '18px' }}>military_tech</span>
-                Livello & XP
+                Livello
               </span>
               <span style={{ color: '#FFB300', fontWeight: 900, fontSize: '16px' }}>
                 {totalPoints} <span style={{ fontSize: '12px', opacity: 0.8 }}>pt</span>
