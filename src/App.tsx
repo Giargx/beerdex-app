@@ -71,6 +71,7 @@ export default function App() {
   const [currentPage, setCurrentPage] = useState<string>('page-home');
   const [prevPage, setPrevPage] = useState<string | null>(null);
   const [transitionDir, setTransitionDir] = useState<'left' | 'right' | null>(null);
+  const transitionTimeoutRef = useRef<number | null>(null);
 
   // User Posts Detail View State
   const [detailViewUser, setDetailViewUser] = useState<string>('');
@@ -764,13 +765,22 @@ export default function App() {
       }
     }
 
+    // Cancel any ongoing transition timeout from a previous fast click
+    if (transitionTimeoutRef.current) {
+      clearTimeout(transitionTimeoutRef.current);
+      transitionTimeoutRef.current = null;
+    }
+
     if (pageId === currentPage) {
+      setPrevPage(null);
+      setTransitionDir(null);
       window.scrollTo(0, 0);
       document.querySelectorAll('.page-container-view, .page-container, .main-tab-slide').forEach((el) => {
         el.scrollTop = 0;
       });
       return;
     }
+
     const currIdx = pagesMapList.indexOf(currentPage);
     const targetIdx = pagesMapList.indexOf(pageId);
     if (targetIdx === -1) return;
@@ -789,9 +799,10 @@ export default function App() {
     // Scroll to the top when page changes
     window.scrollTo(0, 0);
 
-    setTimeout(() => {
+    transitionTimeoutRef.current = window.setTimeout(() => {
       setPrevPage(null);
       setTransitionDir(null);
+      transitionTimeoutRef.current = null;
     }, 400);
   };
 
@@ -1645,12 +1656,15 @@ export default function App() {
   };
 
   const getPageClass = (pageId: string) => {
+    const validPrevPage = prevPage && prevPage !== currentPage ? prevPage : null;
     if (pageId === currentPage) {
-      if (transitionDir === 'left') return 'page-view active slide-in-right';
-      if (transitionDir === 'right') return 'page-view active slide-in-left';
+      if (validPrevPage) {
+        if (transitionDir === 'left') return 'page-view active slide-in-right';
+        if (transitionDir === 'right') return 'page-view active slide-in-left';
+      }
       return 'page-view active';
     }
-    if (pageId === prevPage) {
+    if (validPrevPage && pageId === validPrevPage) {
       if (transitionDir === 'left') return 'page-view slide-out-left';
       if (transitionDir === 'right') return 'page-view slide-out-right';
     }
@@ -1660,17 +1674,18 @@ export default function App() {
   const getSliderWrapperClass = () => {
     const mainTabs = ['page-home', 'page-explore', 'page-leaderboard', 'page-social', 'page-profile'];
     const isCurrentMain = mainTabs.includes(currentPage);
-    const isPrevMain = prevPage ? mainTabs.includes(prevPage) : false;
+    const validPrevPage = prevPage && prevPage !== currentPage ? prevPage : null;
+    const isPrevMain = validPrevPage ? mainTabs.includes(validPrevPage) : false;
 
     if (isCurrentMain) {
-      if (prevPage && !isPrevMain) {
+      if (validPrevPage && !isPrevMain) {
         if (transitionDir === 'left') return 'main-tabs-slider-wrapper active slide-in-right';
         if (transitionDir === 'right') return 'main-tabs-slider-wrapper active slide-in-left';
       }
       return 'main-tabs-slider-wrapper active';
     }
     
-    if (prevPage && isPrevMain) {
+    if (validPrevPage && isPrevMain) {
       if (transitionDir === 'left') return 'main-tabs-slider-wrapper slide-out-left';
       if (transitionDir === 'right') return 'main-tabs-slider-wrapper slide-out-right';
     }
