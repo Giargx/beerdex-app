@@ -248,10 +248,68 @@ export default function App() {
   const [pubProfileDex, setPubProfileDex] = useState<Record<string, any>>({});
   const [pubProfileScore, setPubProfileScore] = useState<number>(0);
   const [pubProfileBackPage, setPubProfileBackPage] = useState<string>('page-leaderboard');
+  // Main Tab Touch Swipe State & Handlers
+  const touchStartX = useRef<number>(0);
+  const touchStartY = useRef<number>(0);
+  const isHorizontalSwipe = useRef<boolean | null>(null);
+  const [dragOffset, setDragOffset] = useState<number>(0);
+  const [isDragging, setIsDragging] = useState<boolean>(false);
 
+  const handleMainTouchStart = (e: React.TouchEvent) => {
+    touchStartX.current = e.touches[0].clientX;
+    touchStartY.current = e.touches[0].clientY;
+    isHorizontalSwipe.current = null;
+    setIsDragging(false);
+    setDragOffset(0);
+  };
 
+  const handleMainTouchMove = (e: React.TouchEvent) => {
+    if (touchStartX.current === 0) return;
+    const currentX = e.touches[0].clientX;
+    const currentY = e.touches[0].clientY;
+    const diffX = currentX - touchStartX.current;
+    const diffY = currentY - touchStartY.current;
 
-  // Permission Modal State (Location & Gallery permissions)
+    const mainTabs = ['page-home', 'page-explore', 'page-leaderboard', 'page-social', 'page-profile'];
+    const currentIndex = mainTabs.indexOf(currentPage);
+
+    // Prevent dragging past left edge on Home or past right edge on Profile
+    if ((currentIndex === 0 && diffX > 0) || (currentIndex === mainTabs.length - 1 && diffX < 0)) {
+      return;
+    }
+
+    if (isHorizontalSwipe.current === null) {
+      if (Math.abs(diffX) > 15 && Math.abs(diffX) > Math.abs(diffY) * 1.2) {
+        isHorizontalSwipe.current = true;
+      } else if (Math.abs(diffY) > 15) {
+        isHorizontalSwipe.current = false;
+      }
+    }
+
+    if (isHorizontalSwipe.current) {
+      setIsDragging(true);
+      setDragOffset(diffX);
+    }
+  };
+
+  const handleMainTouchEnd = () => {
+    if (isDragging && touchStartX.current !== 0) {
+      const threshold = window.innerWidth * 0.18; // 18% drag threshold to switch tab
+      const mainTabs = ['page-home', 'page-explore', 'page-leaderboard', 'page-social', 'page-profile'];
+      const currentIndex = mainTabs.indexOf(currentPage);
+
+      if (dragOffset < -threshold && currentIndex < mainTabs.length - 1) {
+        navigateTo(mainTabs[currentIndex + 1]);
+      } else if (dragOffset > threshold && currentIndex > 0) {
+        navigateTo(mainTabs[currentIndex - 1]);
+      }
+    }
+    touchStartX.current = 0;
+    touchStartY.current = 0;
+    isHorizontalSwipe.current = null;
+    setIsDragging(false);
+    setDragOffset(0);
+  };
   const [permissionModalState, setPermissionModalState] = useState<{
     isOpen: boolean;
     type: PermissionType;
@@ -1417,6 +1475,10 @@ export default function App() {
 
 
 
+  const mainTabs = ['page-home', 'page-explore', 'page-leaderboard', 'page-social', 'page-profile'];
+  const isMainTab = mainTabs.includes(currentPage);
+  const activeIndex = mainTabs.indexOf(currentPage) !== -1 ? mainTabs.indexOf(currentPage) : 0;
+
   return (
     <>
       {/* Age Restriction Gate */}
@@ -2048,124 +2110,143 @@ export default function App() {
 
       {/* MAIN CONTAINER CONTENT VIEW */}
       <div className="main-content">
-        {/* Page Home */}
-        <div className={`page-view ${currentPage === 'page-home' ? 'active' : ''}`}>
-          {currentUser && (
-            <HomeView
-              currentUserNick={currentUserNick}
-              currentUserDisplayName={globalDisplayNames[currentUserNick]}
-              posts={globalPosts}
-              leaderboardScores={globalLeaderboardScores}
-              onNavigate={navigateTo}
-              getUserRankTitle={getUserRankTitle}
-              myPokedex={myPokedex}
-              allBeersCatalog={allBeersCatalog}
-              onInitUnlock={handleInitUnlock}
-              onOpenScanner={() => setScannerConfig({ open: true, brand: '', variant: '' })}
-              onOpenPublicProfile={handleOpenPublicProfile}
-            />
-          )}
-        </div>
+        {/* Main 5 Tabs Horizontal Slider */}
+        <div className={`page-view ${isMainTab ? 'active' : ''}`}>
+          <div className="main-tabs-wrapper">
+            <div
+              className="main-tabs-slider-container"
+              style={{
+                transform: isDragging
+                  ? `translateX(calc(-${activeIndex * 20}% + ${dragOffset}px))`
+                  : `translateX(-${activeIndex * 20}%)`,
+                transition: isDragging ? 'none' : 'transform 0.35s cubic-bezier(0.16, 1, 0.3, 1)',
+              }}
+              onTouchStart={handleMainTouchStart}
+              onTouchMove={handleMainTouchMove}
+              onTouchEnd={handleMainTouchEnd}
+              onTouchCancel={handleMainTouchEnd}
+            >
+              {/* Page 0: Home */}
+              <div className="main-tab-slide">
+                {currentUser && (
+                  <HomeView
+                    currentUserNick={currentUserNick}
+                    currentUserDisplayName={globalDisplayNames[currentUserNick]}
+                    posts={globalPosts}
+                    leaderboardScores={globalLeaderboardScores}
+                    onNavigate={navigateTo}
+                    getUserRankTitle={getUserRankTitle}
+                    myPokedex={myPokedex}
+                    allBeersCatalog={allBeersCatalog}
+                    onInitUnlock={handleInitUnlock}
+                    onOpenScanner={() => setScannerConfig({ open: true, brand: '', variant: '' })}
+                    onOpenPublicProfile={handleOpenPublicProfile}
+                  />
+                )}
+              </div>
 
-        {/* Page Explore */}
-        <div className={`page-view ${currentPage === 'page-explore' ? 'active' : ''}`}>
-          {currentUser && (
-            <ExploreView
-              myPokedex={myPokedex}
-              allBeersCatalog={allBeersCatalog}
-              onInitUnlock={handleInitUnlock}
-              onDeleteVariant={handleDeleteVariant}
-              onOpenProposeModal={(search) => {
-                handleOpenProposeModal(search);
-              }}
-              onRateBeer={handleRateBeer}
-              isAdminUser={isAdminUser}
-              onDeleteCustomBeerCatalog={handleDeleteCustomBeerCatalog}
-            />
-          )}
-        </div>
+              {/* Page 1: Explore */}
+              <div className="main-tab-slide">
+                {currentUser && (
+                  <ExploreView
+                    myPokedex={myPokedex}
+                    allBeersCatalog={allBeersCatalog}
+                    onInitUnlock={handleInitUnlock}
+                    onDeleteVariant={handleDeleteVariant}
+                    onOpenProposeModal={(search) => {
+                      handleOpenProposeModal(search);
+                    }}
+                    onRateBeer={handleRateBeer}
+                    isAdminUser={isAdminUser}
+                    onDeleteCustomBeerCatalog={handleDeleteCustomBeerCatalog}
+                  />
+                )}
+              </div>
 
-        {/* Page Leaderboard */}
-        <div className={`page-view ${currentPage === 'page-leaderboard' ? 'active' : ''}`}>
-          {currentUser && (
-            <LeaderboardView
-              currentUserNick={currentUserNick}
-              leaderboardScores={globalLeaderboardScores}
-              myFriendsList={myFriendsList}
-              mySentRequests={mySentRequests}
-              myReceivedRequests={myReceivedRequests}
-              globalAvatars={globalAvatars}
-              globalDisplayNames={globalDisplayNames}
-              onAddFriend={handleAddFriend}
-              onOpenPublicProfile={handleOpenPublicProfile}
-              onNavigateToFriends={() => navigateTo('page-friends')}
-              getUserRankTitle={getUserRankTitle}
-            />
-          )}
-        </div>
+              {/* Page 2: Leaderboard */}
+              <div className="main-tab-slide">
+                {currentUser && (
+                  <LeaderboardView
+                    currentUserNick={currentUserNick}
+                    leaderboardScores={globalLeaderboardScores}
+                    myFriendsList={myFriendsList}
+                    mySentRequests={mySentRequests}
+                    myReceivedRequests={myReceivedRequests}
+                    globalAvatars={globalAvatars}
+                    globalDisplayNames={globalDisplayNames}
+                    onAddFriend={handleAddFriend}
+                    onOpenPublicProfile={handleOpenPublicProfile}
+                    onNavigateToFriends={() => navigateTo('page-friends')}
+                    getUserRankTitle={getUserRankTitle}
+                  />
+                )}
+              </div>
 
-        {/* Page Social (Pub feed) */}
-        <div className={`page-view ${currentPage === 'page-social' ? 'active' : ''}`}>
-          {currentUser && (
-            <PubView
-              currentUserNick={currentUserNick}
-              posts={globalPosts}
-              globalAvatars={globalAvatars}
-              globalDisplayNames={globalDisplayNames}
-              myFriendsList={myFriendsList}
-              isAdminUser={isAdminUser}
-              myPokedex={myPokedex}
-              onToggleLike={handleToggleLike}
-              onDeletePost={handleDeletePost}
-              onReportFakePost={handleReportFakePost}
-              onOpenPublicProfile={handleOpenPublicProfile}
-              getAvatarZoomProps={getAvatarZoomProps}
-            />
-          )}
-        </div>
+              {/* Page 3: Social Pub */}
+              <div className="main-tab-slide">
+                {currentUser && (
+                  <PubView
+                    currentUserNick={currentUserNick}
+                    posts={globalPosts}
+                    globalAvatars={globalAvatars}
+                    globalDisplayNames={globalDisplayNames}
+                    myFriendsList={myFriendsList}
+                    isAdminUser={isAdminUser}
+                    myPokedex={myPokedex}
+                    onToggleLike={handleToggleLike}
+                    onDeletePost={handleDeletePost}
+                    onReportFakePost={handleReportFakePost}
+                    onOpenPublicProfile={handleOpenPublicProfile}
+                    getAvatarZoomProps={getAvatarZoomProps}
+                  />
+                )}
+              </div>
 
-        {/* Page Profile */}
-        <div className={`page-view ${currentPage === 'page-profile' ? 'active' : ''}`}>
-          {currentUser && (
-            <ProfileView
-              currentUserNick={currentUserNick}
-              currentUserDisplayName={globalDisplayNames[currentUserNick]}
-              isAdminUser={isAdminUser}
-              myPokedex={myPokedex}
-              globalAvatars={globalAvatars}
-              leaderboardScores={globalLeaderboardScores}
-              onToggleSettings={() => {
-                setNewNickname('');
-                setOldPassword('');
-                setNewPassword('');
-                setConfirmNewPassword('');
-                setSettingsOpen(true);
-              }}
-              onDeleteVariant={handleDeleteVariant}
-              getUserRankTitle={getUserRankTitle}
-              getAvatarZoomProps={getAvatarZoomProps}
-              posts={globalPosts}
-              onOpenPostDetail={(uname, pid) => {
-                setDetailViewUser(uname);
-                setDetailViewPostId(pid);
-                setDetailViewBackPage('page-profile');
-                navigateTo('page-user-posts-detail');
-              }}
-              onOpenAdminProposals={() => {
-                setAdminModalTab('proposals');
-                setAdminProposalsModalOpen(true);
-              }}
-              pendingProposalsCount={(beerProposals || []).filter((p: BeerProposalItem) => p && p.status === 'pending').length}
-              onOpenAdminReports={() => {
-                setAdminModalTab('flagged');
-                setAdminProposalsModalOpen(true);
-              }}
-              flaggedPostsCount={Object.keys(flaggedPosts || {}).length}
-              onRateBeer={handleRateBeer}
-              myReceivedRequests={myReceivedRequests}
-              onNavigateToFriends={() => navigateTo('page-friends')}
-            />
-          )}
+              {/* Page 4: Profile */}
+              <div className="main-tab-slide">
+                {currentUser && (
+                  <ProfileView
+                    currentUserNick={currentUserNick}
+                    currentUserDisplayName={globalDisplayNames[currentUserNick]}
+                    isAdminUser={isAdminUser}
+                    myPokedex={myPokedex}
+                    globalAvatars={globalAvatars}
+                    leaderboardScores={globalLeaderboardScores}
+                    onToggleSettings={() => {
+                      setNewNickname('');
+                      setOldPassword('');
+                      setNewPassword('');
+                      setConfirmNewPassword('');
+                      setSettingsOpen(true);
+                    }}
+                    onDeleteVariant={handleDeleteVariant}
+                    getUserRankTitle={getUserRankTitle}
+                    getAvatarZoomProps={getAvatarZoomProps}
+                    posts={globalPosts}
+                    onOpenPostDetail={(uname, pid) => {
+                      setDetailViewUser(uname);
+                      setDetailViewPostId(pid);
+                      setDetailViewBackPage('page-profile');
+                      navigateTo('page-user-posts-detail');
+                    }}
+                    onOpenAdminProposals={() => {
+                      setAdminModalTab('proposals');
+                      setAdminProposalsModalOpen(true);
+                    }}
+                    pendingProposalsCount={(beerProposals || []).filter((p: BeerProposalItem) => p && p.status === 'pending').length}
+                    onOpenAdminReports={() => {
+                      setAdminModalTab('flagged');
+                      setAdminProposalsModalOpen(true);
+                    }}
+                    flaggedPostsCount={Object.keys(flaggedPosts || {}).length}
+                    onRateBeer={handleRateBeer}
+                    myReceivedRequests={myReceivedRequests}
+                    onNavigateToFriends={() => navigateTo('page-friends')}
+                  />
+                )}
+              </div>
+            </div>
+          </div>
         </div>
 
         {/* Page Public Profile */}

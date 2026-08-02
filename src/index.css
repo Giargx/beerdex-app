@@ -227,7 +227,7 @@ select:focus {
     box-sizing: border-box;
 }
 
-/* Page views */
+/* Page views & Main Tabs Slider */
 .page-view { 
     width: 100%;
     min-height: calc(100vh - 110px);
@@ -237,6 +237,28 @@ select:focus {
 .page-view.active {
     display: block;
     animation: pageFadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.main-tabs-wrapper {
+    width: 100%;
+    overflow: hidden;
+    position: relative;
+    box-sizing: border-box;
+}
+
+.main-tabs-slider-container {
+    display: flex;
+    width: 500%; /* 5 main tabs side by side */
+    align-items: flex-start;
+    box-sizing: border-box;
+    will-change: transform;
+}
+
+.main-tab-slide {
+    width: 20%; /* 100% of screen width (500% / 5) */
+    flex-shrink: 0;
+    box-sizing: border-box;
+    min-height: calc(100vh - 110px);
 }
 
 @keyframes pageFadeIn {
