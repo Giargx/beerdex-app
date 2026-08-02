@@ -38,18 +38,7 @@ import { PermissionModal, type PermissionType, type PermissionChoice } from './c
 
 import { FoamBubbles } from './components/FoamBubbles';
 
-const pagesMapList = [
-  'page-home',
-  'page-explore',
-  'page-leaderboard',
-  'page-social',
-  'page-profile',
-  'page-friends',
-  'page-rules',
-  'page-public-profile',
-  'page-user-posts-detail',
-  'page-map-view',
-];
+
 
 interface Post {
   postId: string;
