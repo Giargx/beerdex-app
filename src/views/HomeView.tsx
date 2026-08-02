@@ -164,51 +164,6 @@ export const HomeView: React.FC<HomeViewProps> = ({
 
   // Catalog total count
   const catalogList = allBeersCatalog.length > 0 ? allBeersCatalog : beers;
-  const totalVariants = catalogList.reduce((acc, b) => acc + (Array.isArray(b?.variants) ? b.variants.length : 1), 0);
-  const isDioDellaBirra = totalUnlockedCount >= totalVariants;
-
-  // Level Progression Calculation
-  let nextTargetPoints = 50;
-  let prevTargetPoints = 0;
-  let nextRankName = "Apprendista Bevitore";
-
-  if (isDioDellaBirra) {
-    nextTargetPoints = totalPoints;
-    prevTargetPoints = totalPoints;
-    nextRankName = "Massimo Livello: Ægir (Divinità Norrena)!";
-  } else if (totalPoints < 50) {
-    nextTargetPoints = 50;
-    prevTargetPoints = 0;
-    nextRankName = "Apprendista Bevitore";
-  } else if (totalPoints < 200) {
-    nextTargetPoints = 200;
-    prevTargetPoints = 50;
-    nextRankName = "Esploratore di Luppoli";
-  } else if (totalPoints < 500) {
-    nextTargetPoints = 500;
-    prevTargetPoints = 200;
-    nextRankName = "Sommelier del Bancone";
-  } else if (totalPoints < 1200) {
-    nextTargetPoints = 1200;
-    prevTargetPoints = 500;
-    nextRankName = "Mastro Birraio";
-  } else {
-    nextTargetPoints = totalPoints;
-    prevTargetPoints = totalPoints;
-    nextRankName = "Massimo Livello Conseguito!";
-  }
-
-  const pointsToNextLevel = nextTargetPoints - totalPoints;
-  const progressPct = nextTargetPoints === prevTargetPoints
-    ? 100
-    : Math.min(((totalPoints - prevTargetPoints) / (nextTargetPoints - prevTargetPoints)) * 100, 100);
-
-  // Collector Metrics
-  const shinyCount = myPosts.filter(p => p.isShiny).length;
-  const countriesExplored = new Set(myPosts.map(p => {
-    const b = catalogList.find(beerItem => beerItem.brand === p.brand);
-    return b ? b.country : '';
-  }).filter(Boolean)).size;
 
   // Unlocked Brands Set
   const unlockedBrands = new Set(myPosts.map((p) => p.brand));
@@ -235,14 +190,6 @@ export const HomeView: React.FC<HomeViewProps> = ({
   };
 
   const featuredBeer = getRecommendedBeer();
-
-  // Daily Quests Calculation
-  const todayStr = new Date().toLocaleDateString();
-  const unlockedTodayCount = myPosts.filter(p => new Date(p.time).toLocaleDateString() === todayStr).length;
-  const quest1Completed = unlockedTodayCount > 0;
-  const quest2Completed = countriesExplored >= 3;
-  const quest3Completed = shinyCount > 0 || myPosts.some(p => p.isShared);
-  const completedQuestsCount = (quest1Completed ? 1 : 0) + (quest2Completed ? 1 : 0) + (quest3Completed ? 1 : 0);
 
   // Community / Friends Posts
   const recentCommunityPosts = posts.filter(p => p.user !== currentUserNick).slice(0, 5);
@@ -424,52 +371,11 @@ export const HomeView: React.FC<HomeViewProps> = ({
             </span>
           </div>
 
-          {/* Level Progress Banner */}
-          <div style={{
-            background: 'rgba(255, 255, 255, 0.06)',
-            borderRadius: '20px',
-            padding: '16px',
-            border: '1px solid rgba(255, 255, 255, 0.08)',
-            backdropFilter: 'blur(10px)',
-            textAlign: 'left'
-          }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-              <span style={{ color: '#E2E8F0', fontSize: '13px', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <span className="material-symbols-outlined" style={{ color: '#FFB300', fontSize: '18px' }}>military_tech</span>
-                Livello & XP
-              </span>
-              <span style={{ color: '#FFB300', fontWeight: 900, fontSize: '16px' }}>
-                {totalPoints} <span style={{ fontSize: '12px', opacity: 0.8 }}>pt</span>
-              </span>
-            </div>
-
-            <div className="progress-container" style={{ height: '8px', borderRadius: '10px', background: 'rgba(255, 255, 255, 0.1)', overflow: 'hidden', marginBottom: '8px' }}>
-              <div
-                className="progress-bar"
-                style={{
-                  borderRadius: '10px',
-                  width: `${progressPct}%`,
-                  background: 'linear-gradient(90deg, #FFB300, #FF6F00)',
-                  height: '100%'
-                }}
-              ></div>
-            </div>
-
-            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: '#94A3B8' }}>
-              <span>{prevTargetPoints} pt</span>
-              {pointsToNextLevel > 0 ? (
-                <span>Mancano <strong style={{ color: '#F8FAFC' }}>{pointsToNextLevel} pt</strong> per <strong style={{ color: '#FFB300' }}>{nextRankName}</strong></span>
-              ) : (
-                <span style={{ color: '#34D399', fontWeight: 'bold' }}>Massimo Livello Conseguito! 🏆</span>
-              )}
-              <span>{nextTargetPoints} pt</span>
-            </div>
-          </div>
         </div>
       </header>
 
       <div className="page-container" style={{ paddingTop: 0 }}>
-        {/* QUICK ACTION DOCK (FLOATING PILL GRID) */}
+        {/* 4 MAIN ACTION TILES */}
         <div style={{
           display: 'grid',
           gridTemplateColumns: 'repeat(4, 1fr)',
@@ -482,13 +388,13 @@ export const HomeView: React.FC<HomeViewProps> = ({
               background: 'linear-gradient(135deg, #FFB300, #FF6F00)',
               border: 'none',
               borderRadius: '20px',
-              padding: '14px 6px',
+              padding: '16px 6px',
               color: '#0F172A',
               display: 'flex',
               flexDirection: 'column',
               alignItems: 'center',
               justifyContent: 'center',
-              gap: '4px',
+              gap: '6px',
               cursor: 'pointer',
               boxShadow: '0 8px 20px rgba(255, 111, 0, 0.25)',
               transition: 'transform 0.15s ease'
@@ -499,47 +405,25 @@ export const HomeView: React.FC<HomeViewProps> = ({
           </button>
 
           <button
-            onClick={() => onNavigate('page-explore')}
+            onClick={() => onNavigate('page-friends')}
             style={{
               background: 'var(--white)',
               border: '1px solid var(--gray)',
               borderRadius: '20px',
-              padding: '14px 6px',
+              padding: '16px 6px',
               color: 'var(--dark)',
               display: 'flex',
               flexDirection: 'column',
               alignItems: 'center',
               justifyContent: 'center',
-              gap: '4px',
+              gap: '6px',
               cursor: 'pointer',
               boxShadow: 'var(--card-shadow)',
               transition: 'transform 0.15s ease'
             }}
           >
-            <span className="material-symbols-outlined" style={{ fontSize: '26px', color: 'var(--primary-dark)' }}>search</span>
-            <span style={{ fontSize: '11px', fontWeight: 800 }}>Esplora</span>
-          </button>
-
-          <button
-            onClick={() => onNavigate('page-leaderboard')}
-            style={{
-              background: 'var(--white)',
-              border: '1px solid var(--gray)',
-              borderRadius: '20px',
-              padding: '14px 6px',
-              color: 'var(--dark)',
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: '4px',
-              cursor: 'pointer',
-              boxShadow: 'var(--card-shadow)',
-              transition: 'transform 0.15s ease'
-            }}
-          >
-            <span className="material-symbols-outlined" style={{ fontSize: '26px', color: '#EAB308' }}>leaderboard</span>
-            <span style={{ fontSize: '11px', fontWeight: 800 }}>Ranking</span>
+            <span className="material-symbols-outlined" style={{ fontSize: '26px', color: 'var(--primary-dark)' }}>group</span>
+            <span style={{ fontSize: '11px', fontWeight: 800 }}>Amici</span>
           </button>
 
           <button
@@ -548,13 +432,13 @@ export const HomeView: React.FC<HomeViewProps> = ({
               background: 'var(--white)',
               border: '1px solid var(--gray)',
               borderRadius: '20px',
-              padding: '14px 6px',
+              padding: '16px 6px',
               color: 'var(--dark)',
               display: 'flex',
               flexDirection: 'column',
               alignItems: 'center',
               justifyContent: 'center',
-              gap: '4px',
+              gap: '6px',
               cursor: 'pointer',
               boxShadow: 'var(--card-shadow)',
               transition: 'transform 0.15s ease'
@@ -563,163 +447,28 @@ export const HomeView: React.FC<HomeViewProps> = ({
             <span className="material-symbols-outlined" style={{ fontSize: '26px', color: '#10B981' }}>map</span>
             <span style={{ fontSize: '11px', fontWeight: 800 }}>Mappa</span>
           </button>
-        </div>
 
-        {/* METRICS DASHBOARD (4 CARDS) */}
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(4, 1fr)',
-          gap: '10px',
-          marginBottom: '25px'
-        }}>
-          <div style={{ background: 'var(--white)', border: '1px solid var(--gray)', borderRadius: '20px', padding: '12px 4px', textAlign: 'center', boxShadow: 'var(--card-shadow)' }}>
-            <span className="material-symbols-outlined" style={{ fontSize: '22px', color: 'var(--primary-dark)', marginBottom: '2px' }}>sports_bar</span>
-            <div style={{ fontSize: '15px', fontWeight: 900, color: 'var(--dark)' }}>{totalUnlockedCount}</div>
-            <div style={{ fontSize: '9px', color: 'var(--text-muted)', fontWeight: 750, textTransform: 'uppercase' }}>Sbloccate</div>
-          </div>
-          <div style={{ background: 'var(--white)', border: '1px solid var(--gray)', borderRadius: '20px', padding: '12px 4px', textAlign: 'center', boxShadow: 'var(--card-shadow)' }}>
-            <span className="material-symbols-outlined" style={{ fontSize: '22px', color: '#EAB308', marginBottom: '2px' }}>auto_awesome</span>
-            <div style={{ fontSize: '15px', fontWeight: 900, color: 'var(--dark)' }}>{shinyCount}</div>
-            <div style={{ fontSize: '9px', color: 'var(--text-muted)', fontWeight: 750, textTransform: 'uppercase' }}>Shiny</div>
-          </div>
-          <div style={{ background: 'var(--white)', border: '1px solid var(--gray)', borderRadius: '20px', padding: '12px 4px', textAlign: 'center', boxShadow: 'var(--card-shadow)' }}>
-            <span className="material-symbols-outlined" style={{ fontSize: '22px', color: '#10B981', marginBottom: '2px' }}>public</span>
-            <div style={{ fontSize: '15px', fontWeight: 900, color: 'var(--dark)' }}>{countriesExplored}</div>
-            <div style={{ fontSize: '9px', color: 'var(--text-muted)', fontWeight: 750, textTransform: 'uppercase' }}>Paesi</div>
-          </div>
-          <div style={{ background: 'var(--white)', border: '1px solid var(--gray)', borderRadius: '20px', padding: '12px 4px', textAlign: 'center', boxShadow: 'var(--card-shadow)' }}>
-            <span className="material-symbols-outlined" style={{ fontSize: '22px', color: '#3B82F6', marginBottom: '2px' }}>task_alt</span>
-            <div style={{ fontSize: '15px', fontWeight: 900, color: 'var(--dark)' }}>{completedQuestsCount}/3</div>
-            <div style={{ fontSize: '9px', color: 'var(--text-muted)', fontWeight: 750, textTransform: 'uppercase' }}>Sfide</div>
-          </div>
-        </div>
-
-        {/* HUB SFIDE & MISSIONI DEL GIORNO */}
-        <div style={{
-          background: 'var(--white)',
-          border: '1px solid var(--gray)',
-          borderRadius: '24px',
-          padding: '20px',
-          marginBottom: '25px',
-          boxShadow: 'var(--card-shadow)',
-          textAlign: 'left'
-        }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
-            <h3 style={{ margin: 0, color: 'var(--dark)', fontSize: '16px', fontWeight: 850, display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <span className="material-symbols-outlined" style={{ color: '#FFB300', fontSize: '22px' }}>verified</span>
-              Missioni del Pub
-            </h3>
-            <span style={{ fontSize: '11px', color: 'var(--text-muted)', fontWeight: 700, background: 'var(--gray)', padding: '4px 10px', borderRadius: '12px' }}>
-              Oggi
-            </span>
-          </div>
-
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-            {/* Quest 1 */}
-            <div style={{
+          <button
+            onClick={() => onNavigate('page-rules')}
+            style={{
+              background: 'var(--white)',
+              border: '1px solid var(--gray)',
+              borderRadius: '20px',
+              padding: '16px 6px',
+              color: 'var(--dark)',
               display: 'flex',
+              flexDirection: 'column',
               alignItems: 'center',
-              justifyContent: 'space-between',
-              padding: '12px 14px',
-              borderRadius: '16px',
-              background: quest1Completed ? 'rgba(16, 185, 129, 0.08)' : '#F8FAFC',
-              border: quest1Completed ? '1px solid rgba(16, 185, 129, 0.25)' : '1px solid #E2E8F0'
-            }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <span className="material-symbols-outlined" style={{ color: quest1Completed ? '#10B981' : '#64748B', fontSize: '20px' }}>
-                  {quest1Completed ? 'check_circle' : 'radio_button_unchecked'}
-                </span>
-                <div>
-                  <div style={{ fontSize: '13px', fontWeight: 750, color: 'var(--dark)' }}>
-                    Primo Stappo del Giorno
-                  </div>
-                  <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
-                    Esplora o sblocca 1 birra oggi (+10 XP)
-                  </div>
-                </div>
-              </div>
-              <span style={{
-                fontSize: '10px',
-                fontWeight: 800,
-                padding: '3px 8px',
-                borderRadius: '10px',
-                background: quest1Completed ? '#10B981' : '#CBD5E1',
-                color: '#FFFFFF'
-              }}>
-                {quest1Completed ? 'COMPLETA' : '0/1'}
-              </span>
-            </div>
-
-            {/* Quest 2 */}
-            <div style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              padding: '12px 14px',
-              borderRadius: '16px',
-              background: quest2Completed ? 'rgba(16, 185, 129, 0.08)' : '#F8FAFC',
-              border: quest2Completed ? '1px solid rgba(16, 185, 129, 0.25)' : '1px solid #E2E8F0'
-            }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <span className="material-symbols-outlined" style={{ color: quest2Completed ? '#10B981' : '#64748B', fontSize: '20px' }}>
-                  {quest2Completed ? 'check_circle' : 'radio_button_unchecked'}
-                </span>
-                <div>
-                  <div style={{ fontSize: '13px', fontWeight: 750, color: 'var(--dark)' }}>
-                    Sommelier Globale
-                  </div>
-                  <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
-                    Esplora birre da almeno 3 Paesi diversi (+15 XP)
-                  </div>
-                </div>
-              </div>
-              <span style={{
-                fontSize: '10px',
-                fontWeight: 800,
-                padding: '3px 8px',
-                borderRadius: '10px',
-                background: quest2Completed ? '#10B981' : '#CBD5E1',
-                color: '#FFFFFF'
-              }}>
-                {quest2Completed ? 'COMPLETA' : `${countriesExplored}/3`}
-              </span>
-            </div>
-
-            {/* Quest 3 */}
-            <div style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              padding: '12px 14px',
-              borderRadius: '16px',
-              background: quest3Completed ? 'rgba(16, 185, 129, 0.08)' : '#F8FAFC',
-              border: quest3Completed ? '1px solid rgba(16, 185, 129, 0.25)' : '1px solid #E2E8F0'
-            }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <span className="material-symbols-outlined" style={{ color: quest3Completed ? '#10B981' : '#64748B', fontSize: '20px' }}>
-                  {quest3Completed ? 'check_circle' : 'radio_button_unchecked'}
-                </span>
-                <div>
-                  <div style={{ fontSize: '13px', fontWeight: 750, color: 'var(--dark)' }}>
-                    Cacciatore di Perle
-                  </div>
-                  <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
-                    Sblocca una Shiny o condividi uno stappo (+20 XP)
-                  </div>
-                </div>
-              </div>
-              <span style={{
-                fontSize: '10px',
-                fontWeight: 800,
-                padding: '3px 8px',
-                borderRadius: '10px',
-                background: quest3Completed ? '#10B981' : '#CBD5E1',
-                color: '#FFFFFF'
-              }}>
-                {quest3Completed ? 'COMPLETA' : '0/1'}
-              </span>
-            </div>
-          </div>
+              justifyContent: 'center',
+              gap: '6px',
+              cursor: 'pointer',
+              boxShadow: 'var(--card-shadow)',
+              transition: 'transform 0.15s ease'
+            }}
+          >
+            <span className="material-symbols-outlined" style={{ fontSize: '26px', color: '#3B82F6' }}>description</span>
+            <span style={{ fontSize: '11px', fontWeight: 800 }}>Regolamento</span>
+          </button>
         </div>
 
         {/* DYNAMIC TIMED EVENT BANNER */}

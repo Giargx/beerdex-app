@@ -22,7 +22,7 @@ body {
     background-color: var(--light); 
     color: var(--dark); 
     margin: 0; 
-    padding-top: 70px; 
+    padding-top: 0px; 
     padding-bottom: 110px; 
     overflow-x: hidden; 
     -webkit-font-smoothing: antialiased;

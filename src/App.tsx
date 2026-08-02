@@ -1992,34 +1992,7 @@ export default function App() {
         onConfirm={handleConfirmCrop}
       />
 
-      {/* TOP HEADER BAR */}
-      {currentPage !== 'page-user-posts-detail' && currentPage !== 'page-public-profile' && (
-        <div className="top-bar">
-          <div className="top-bar-side">
-            <button className="top-action-btn" onClick={() => navigateTo('page-map-view')} title="Mappa Sblocchi">
-              <span className="material-symbols-outlined">map</span>
-            </button>
-          </div>
-          <div className="top-bar-logo">
-            <span className="material-symbols-outlined" style={{ fontSize: '26px' }}>sports_bar</span> BeerDex
-          </div>
-          <div className="top-bar-side right">
-            <button className="top-action-btn" onClick={() => navigateTo('page-friends')} title="Gestione Amici">
-              <span className="material-symbols-outlined">group</span>
-              <span
-                className="top-badge"
-                id="topBeerBadge"
-                style={{ display: myReceivedRequests.length > 0 ? 'inline-block' : 'none' }}
-              >
-                !
-              </span>
-            </button>
-            <button className="top-action-btn" onClick={() => navigateTo('page-rules')} title="Regolamento Ufficiale">
-              <span className="material-symbols-outlined">description</span>
-            </button>
-          </div>
-        </div>
-      )}
+
 
       {/* SETTINGS DRAWER OVERLAY */}
       <div className={`settings-overlay ${settingsOpen ? 'active' : ''}`} style={{ transition: 'all 0.3s ease' }}>
