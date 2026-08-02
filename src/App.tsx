@@ -2046,8 +2046,6 @@ export default function App() {
         </div>
       </div>
 
-      {/* MAIN CONTAINER CONTENT VIEW WITH TRANSITIONS */}
-      <div className="main-content">
       {/* MAIN CONTAINER CONTENT VIEW */}
       <div className="main-content">
         {/* Page Home */}
