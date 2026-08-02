@@ -69,9 +69,6 @@ interface Post {
 export default function App() {
   // Navigation State
   const [currentPage, setCurrentPage] = useState<string>('page-home');
-  const [prevPage, setPrevPage] = useState<string | null>(null);
-  const [transitionDir, setTransitionDir] = useState<'left' | 'right' | null>(null);
-  const transitionTimeoutRef = useRef<number | null>(null);
 
   // User Posts Detail View State
   const [detailViewUser, setDetailViewUser] = useState<string>('');
@@ -765,45 +762,21 @@ export default function App() {
       }
     }
 
-    // Cancel any ongoing transition timeout from a previous fast click
-    if (transitionTimeoutRef.current) {
-      clearTimeout(transitionTimeoutRef.current);
-      transitionTimeoutRef.current = null;
-    }
+    // Scroll to the top when page changes or when active tab is re-pressed
+    window.scrollTo(0, 0);
+    document.querySelectorAll('.page-container-view, .page-container, .main-tab-slide').forEach((el) => {
+      el.scrollTop = 0;
+    });
 
-    if (pageId === currentPage) {
-      setPrevPage(null);
-      setTransitionDir(null);
-      window.scrollTo(0, 0);
-      document.querySelectorAll('.page-container-view, .page-container, .main-tab-slide').forEach((el) => {
-        el.scrollTop = 0;
-      });
-      return;
-    }
+    if (pageId === currentPage) return;
 
-    const currIdx = pagesMapList.indexOf(currentPage);
-    const targetIdx = pagesMapList.indexOf(pageId);
-    if (targetIdx === -1) return;
-
-    const isForward = targetIdx > currIdx;
-    setPrevPage(currentPage);
     setCurrentPage(pageId);
-    setTransitionDir(isForward ? 'left' : 'right');
 
     try {
       sessionStorage.setItem('beerdex_currentPage', pageId);
     } catch (e) {
       // Ignore storage errors in private browsing
     }
-
-    // Scroll to the top when page changes
-    window.scrollTo(0, 0);
-
-    transitionTimeoutRef.current = window.setTimeout(() => {
-      setPrevPage(null);
-      setTransitionDir(null);
-      transitionTimeoutRef.current = null;
-    }, 400);
   };
 
   // Touch swipe to drag horizontally (Main tabs swipe + iOS-style Edge Swipe Back on sub-pages)
@@ -1656,40 +1629,15 @@ export default function App() {
   };
 
   const getPageClass = (pageId: string) => {
-    const validPrevPage = prevPage && prevPage !== currentPage ? prevPage : null;
-    if (pageId === currentPage) {
-      if (validPrevPage) {
-        if (transitionDir === 'left') return 'page-view active slide-in-right';
-        if (transitionDir === 'right') return 'page-view active slide-in-left';
-      }
-      return 'page-view active';
-    }
-    if (validPrevPage && pageId === validPrevPage) {
-      if (transitionDir === 'left') return 'page-view slide-out-left';
-      if (transitionDir === 'right') return 'page-view slide-out-right';
-    }
+    if (pageId === currentPage) return 'page-view active';
     return 'page-view'; // display: none
   };
 
   const getSliderWrapperClass = () => {
     const mainTabs = ['page-home', 'page-explore', 'page-leaderboard', 'page-social', 'page-profile'];
-    const isCurrentMain = mainTabs.includes(currentPage);
-    const validPrevPage = prevPage && prevPage !== currentPage ? prevPage : null;
-    const isPrevMain = validPrevPage ? mainTabs.includes(validPrevPage) : false;
-
-    if (isCurrentMain) {
-      if (validPrevPage && !isPrevMain) {
-        if (transitionDir === 'left') return 'main-tabs-slider-wrapper active slide-in-right';
-        if (transitionDir === 'right') return 'main-tabs-slider-wrapper active slide-in-left';
-      }
+    if (mainTabs.includes(currentPage)) {
       return 'main-tabs-slider-wrapper active';
     }
-    
-    if (validPrevPage && isPrevMain) {
-      if (transitionDir === 'left') return 'main-tabs-slider-wrapper slide-out-left';
-      if (transitionDir === 'right') return 'main-tabs-slider-wrapper slide-out-right';
-    }
-
     return 'main-tabs-slider-wrapper';
   };
 
@@ -1697,10 +1645,6 @@ export default function App() {
     const mainTabs = ['page-home', 'page-explore', 'page-leaderboard', 'page-social', 'page-profile'];
     const idx = mainTabs.indexOf(currentPage);
     if (idx !== -1) return idx;
-    if (prevPage) {
-      const prevIdx = mainTabs.indexOf(prevPage);
-      if (prevIdx !== -1) return prevIdx;
-    }
     return 0;
   })();
 
@@ -2338,7 +2282,7 @@ export default function App() {
         {/* Main Tabs Slider */}
         <div className={getSliderWrapperClass()}>
           <div
-            className={`main-tabs-slider-container ${prevPage !== null || transitionDir !== null || isDragging ? 'is-transitioning' : ''}`}
+            className={`main-tabs-slider-container ${isDragging ? 'is-transitioning' : ''}`}
             style={{
               transform: isDragging
                 ? `translateX(calc(-${activeIndex * 20}% + ${dragOffset}px))`
@@ -2470,7 +2414,7 @@ export default function App() {
 
         {/* Page Public Profile */}
         <div className={getPageClass('page-public-profile')}>
-          {currentPage === 'page-public-profile' || prevPage === 'page-public-profile' ? (
+          {currentPage === 'page-public-profile' ? (
             <PublicProfileView
               username={pubProfileUser}
               displayName={globalDisplayNames[pubProfileUser]}
@@ -2499,7 +2443,7 @@ export default function App() {
 
         {/* Page Map */}
         <div className={getPageClass('page-map-view')}>
-          {(currentPage === 'page-map-view' || prevPage === 'page-map-view') && (
+          {currentPage === 'page-map-view' && (
             <div id="page-map-view">
               <header className="hero">
                 <FoamBubbles />
@@ -2519,7 +2463,7 @@ export default function App() {
 
         {/* Page Friends Manager */}
         <div className={getPageClass('page-friends')}>
-          {currentPage === 'page-friends' || prevPage === 'page-friends' ? (
+          {currentPage === 'page-friends' ? (
             <FriendsView
               myFriendsList={myFriendsList}
               myReceivedRequests={myReceivedRequests}
@@ -2537,12 +2481,12 @@ export default function App() {
 
         {/* Page Rules */}
         <div className={getPageClass('page-rules')}>
-          {currentPage === 'page-rules' || prevPage === 'page-rules' ? <RulesView /> : null}
+          {currentPage === 'page-rules' ? <RulesView /> : null}
         </div>
 
         {/* Page User Posts Detail */}
         <div className={getPageClass('page-user-posts-detail')}>
-          {currentPage === 'page-user-posts-detail' || prevPage === 'page-user-posts-detail' ? (
+          {currentPage === 'page-user-posts-detail' ? (
             <UserPostsDetailView
               username={detailViewUser}
               displayName={globalDisplayNames[detailViewUser]}
