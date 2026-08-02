@@ -1192,11 +1192,9 @@ header.hero p {
 .btn-close-settings { position: absolute; top: 16px; right: 24px; background: none; border: none; font-size: 36px; color: var(--dark); cursor: pointer; line-height: 1; transition: transform 0.2s; }
 .btn-close-settings:hover { transform: scale(1.1); }
 
-/* MOBILE MEDIA QUERIES DETAILED OPTIMIZATIONS */
 @media (max-width: 480px) {
-    .top-bar { padding: 0 16px; height: 64px; }
-    body { padding-top: 64px; }
-    #page-map-view { height: calc(100vh - 149px); }
+    body { padding-top: 0px; }
+    #page-map-view { height: calc(100vh - 90px); }
 
     .auth-container { 
         padding: 24px 18px !important; 

@@ -164,6 +164,44 @@ export const HomeView: React.FC<HomeViewProps> = ({
 
   // Catalog total count
   const catalogList = allBeersCatalog.length > 0 ? allBeersCatalog : beers;
+  const totalVariants = catalogList.reduce((acc, b) => acc + (Array.isArray(b?.variants) ? b.variants.length : 1), 0);
+  const isDioDellaBirra = totalUnlockedCount >= totalVariants;
+
+  // Level Progression Calculation
+  let nextTargetPoints = 50;
+  let prevTargetPoints = 0;
+  let nextRankName = "Apprendista Bevitore";
+
+  if (isDioDellaBirra) {
+    nextTargetPoints = totalPoints;
+    prevTargetPoints = totalPoints;
+    nextRankName = "Massimo Livello: Ægir (Divinità Norrena)!";
+  } else if (totalPoints < 50) {
+    nextTargetPoints = 50;
+    prevTargetPoints = 0;
+    nextRankName = "Apprendista Bevitore";
+  } else if (totalPoints < 200) {
+    nextTargetPoints = 200;
+    prevTargetPoints = 50;
+    nextRankName = "Esploratore di Luppoli";
+  } else if (totalPoints < 500) {
+    nextTargetPoints = 500;
+    prevTargetPoints = 200;
+    nextRankName = "Sommelier del Bancone";
+  } else if (totalPoints < 1200) {
+    nextTargetPoints = 1200;
+    prevTargetPoints = 500;
+    nextRankName = "Mastro Birraio";
+  } else {
+    nextTargetPoints = totalPoints;
+    prevTargetPoints = totalPoints;
+    nextRankName = "Massimo Livello Conseguito!";
+  }
+
+  const pointsToNextLevel = nextTargetPoints - totalPoints;
+  const progressPct = nextTargetPoints === prevTargetPoints
+    ? 100
+    : Math.min(((totalPoints - prevTargetPoints) / (nextTargetPoints - prevTargetPoints)) * 100, 100);
 
   // Unlocked Brands Set
   const unlockedBrands = new Set(myPosts.map((p) => p.brand));
@@ -314,6 +352,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
 
       {/* LUXURY HERO HEADER */}
       <header className="hero" style={{
+        marginTop: 0,
         padding: '30px 20px 25px 20px',
         background: 'linear-gradient(180deg, #1E293B 0%, #0F172A 100%)',
         borderRadius: '0 0 32px 32px',
@@ -371,6 +410,47 @@ export const HomeView: React.FC<HomeViewProps> = ({
             </span>
           </div>
 
+          {/* Level Progress Banner */}
+          <div style={{
+            background: 'rgba(255, 255, 255, 0.06)',
+            borderRadius: '20px',
+            padding: '16px',
+            border: '1px solid rgba(255, 255, 255, 0.08)',
+            backdropFilter: 'blur(10px)',
+            textAlign: 'left'
+          }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+              <span style={{ color: '#E2E8F0', fontSize: '13px', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <span className="material-symbols-outlined" style={{ color: '#FFB300', fontSize: '18px' }}>military_tech</span>
+                Livello & XP
+              </span>
+              <span style={{ color: '#FFB300', fontWeight: 900, fontSize: '16px' }}>
+                {totalPoints} <span style={{ fontSize: '12px', opacity: 0.8 }}>pt</span>
+              </span>
+            </div>
+
+            <div className="progress-container" style={{ height: '8px', borderRadius: '10px', background: 'rgba(255, 255, 255, 0.1)', overflow: 'hidden', marginBottom: '8px' }}>
+              <div
+                className="progress-bar"
+                style={{
+                  borderRadius: '10px',
+                  width: `${progressPct}%`,
+                  background: 'linear-gradient(90deg, #FFB300, #FF6F00)',
+                  height: '100%'
+                }}
+              ></div>
+            </div>
+
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: '#94A3B8' }}>
+              <span>{prevTargetPoints} pt</span>
+              {pointsToNextLevel > 0 ? (
+                <span>Mancano <strong style={{ color: '#F8FAFC' }}>{pointsToNextLevel} pt</strong> per <strong style={{ color: '#FFB300' }}>{nextRankName}</strong></span>
+              ) : (
+                <span style={{ color: '#34D399', fontWeight: 'bold' }}>Massimo Livello Conseguito! 🏆</span>
+              )}
+              <span>{nextTargetPoints} pt</span>
+            </div>
+          </div>
         </div>
       </header>
 
