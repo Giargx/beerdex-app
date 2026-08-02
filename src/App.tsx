@@ -2255,6 +2255,7 @@ export default function App() {
                     currentUserDisplayName={globalDisplayNames[currentUserNick]}
                     posts={globalPosts}
                     leaderboardScores={globalLeaderboardScores}
+                    myFriendsList={myFriendsList}
                     onNavigate={navigateTo}
                     getUserRankTitle={getUserRankTitle}
                     myPokedex={myPokedex}

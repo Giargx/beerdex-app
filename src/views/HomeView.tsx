@@ -19,6 +19,7 @@ interface HomeViewProps {
   currentUserDisplayName?: string;
   posts: Post[];
   leaderboardScores: Record<string, number>;
+  myFriendsList?: string[];
   onNavigate: (pageId: string) => void;
   getUserRankTitle: (score: number, unlockedCount?: number) => string;
   myPokedex?: Record<string, any>;
@@ -33,6 +34,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
   currentUserDisplayName,
   posts,
   leaderboardScores,
+  myFriendsList = [],
   onNavigate,
   getUserRankTitle,
   myPokedex = {},
@@ -229,8 +231,33 @@ export const HomeView: React.FC<HomeViewProps> = ({
 
   const featuredBeer = getRecommendedBeer();
 
-  // Community / Friends Posts
-  const recentCommunityPosts = posts.filter(p => p.user !== currentUserNick).slice(0, 5);
+  // Relative time formatter helper
+  const formatRelativeTime = (timestamp: number) => {
+    if (!timestamp) return '';
+    const diffMs = Date.now() - timestamp;
+    const diffMins = Math.floor(diffMs / 60000);
+    if (diffMins < 1) return 'ora';
+    if (diffMins < 60) return `${diffMins}m fa`;
+    const diffHours = Math.floor(diffMins / 60);
+    if (diffHours < 24) return `${diffHours}h fa`;
+    const diffDays = Math.floor(diffHours / 24);
+    if (diffDays < 7) return `${diffDays}gg fa`;
+    return new Date(timestamp).toLocaleDateString([], { day: '2-digit', month: '2-digit' });
+  };
+
+  // Filter posts from friends, sorted chronologically descending (newest first)
+  const friendsPosts = posts.filter(
+    (p) => p && p.user && Array.isArray(myFriendsList) && myFriendsList.includes(p.user) && p.user !== currentUserNick
+  );
+
+  // If user has friends with posts, display them; otherwise fallback to recent global community posts so it's not empty
+  const recentCommunityPosts = (
+    friendsPosts.length > 0
+      ? [...friendsPosts]
+      : [...posts.filter((p) => p && p.user && p.user !== currentUserNick)]
+  )
+    .sort((a, b) => (b.time || 0) - (a.time || 0))
+    .slice(0, 10);
 
   const handleTriggerCheers = (postUser: string, postId: string) => {
     setCheeredPosts(prev => ({ ...prev, [postId]: true }));
@@ -796,16 +823,22 @@ export const HomeView: React.FC<HomeViewProps> = ({
 
             <div 
               className="no-swipe"
+              onTouchStart={(e) => e.stopPropagation()}
+              onTouchMove={(e) => e.stopPropagation()}
+              onTouchEnd={(e) => e.stopPropagation()}
               style={{
                 display: 'flex',
                 gap: '12px',
                 overflowX: 'auto',
                 paddingBottom: '6px',
+                WebkitOverflowScrolling: 'touch',
+                touchAction: 'pan-x',
                 scrollbarWidth: 'none'
               }}
             >
               {recentCommunityPosts.map((p) => {
                 const isCheered = cheeredPosts[p.postId];
+                const timeAgo = formatRelativeTime(p.time);
                 return (
                   <div key={p.postId} style={{
                     minWidth: '150px',
@@ -818,21 +851,42 @@ export const HomeView: React.FC<HomeViewProps> = ({
                     flexDirection: 'column',
                     alignItems: 'center',
                     textAlign: 'center',
-                    flexShrink: 0
+                    flexShrink: 0,
+                    position: 'relative'
                   }}>
-                    <img
-                      src={p.photo}
-                      alt={p.brand}
-                      style={{
-                        width: '100%',
-                        height: '110px',
-                        objectFit: 'cover',
-                        borderRadius: '12px',
-                        marginBottom: '8px',
-                        cursor: 'pointer'
-                      }}
-                      onClick={() => onOpenPublicProfile ? onOpenPublicProfile(p.user) : onNavigate('page-social')}
-                    />
+                    <div style={{ position: 'relative', width: '100%' }}>
+                      <img
+                        src={p.photo}
+                        alt={p.brand}
+                        style={{
+                          width: '100%',
+                          height: '110px',
+                          objectFit: 'cover',
+                          borderRadius: '12px',
+                          marginBottom: '8px',
+                          cursor: 'pointer'
+                        }}
+                        onClick={() => onOpenPublicProfile ? onOpenPublicProfile(p.user) : onNavigate('page-social')}
+                      />
+                      {timeAgo && (
+                        <span
+                          style={{
+                            position: 'absolute',
+                            top: '6px',
+                            right: '6px',
+                            background: 'rgba(15, 23, 42, 0.75)',
+                            color: '#FFFFFF',
+                            fontSize: '9px',
+                            fontWeight: 800,
+                            padding: '2px 6px',
+                            borderRadius: '10px',
+                            backdropFilter: 'blur(4px)',
+                          }}
+                        >
+                          {timeAgo}
+                        </span>
+                      )}
+                    </div>
                     <div
                       style={{
                         fontSize: '12px',
