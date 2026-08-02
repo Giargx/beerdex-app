@@ -312,6 +312,80 @@ export default function App() {
     setDragOffset(0);
   };
 
+  // iOS-style Edge Swipe Back for subpages & settings drawer
+  const edgeStartX = useRef<number>(0);
+  const edgeStartY = useRef<number>(0);
+  const isEdgeSwiping = useRef<boolean>(false);
+
+  useEffect(() => {
+    const mainTabs = ['page-home', 'page-explore', 'page-leaderboard', 'page-social', 'page-profile'];
+    const isSubPage = !mainTabs.includes(currentPage) || settingsOpen;
+
+    if (!isSubPage) return;
+
+    const handleTouchStart = (e: TouchEvent) => {
+      // Only initiate if touch starts within 45px from the left edge
+      if (e.touches[0].clientX <= 45) {
+        edgeStartX.current = e.touches[0].clientX;
+        edgeStartY.current = e.touches[0].clientY;
+        isEdgeSwiping.current = false;
+      } else {
+        edgeStartX.current = 0;
+        edgeStartY.current = 0;
+        isEdgeSwiping.current = false;
+      }
+    };
+
+    const handleTouchMove = (e: TouchEvent) => {
+      if (edgeStartX.current === 0) return;
+      const currentX = e.touches[0].clientX;
+      const currentY = e.touches[0].clientY;
+      const diffX = currentX - edgeStartX.current;
+      const diffY = currentY - edgeStartY.current;
+
+      if (diffX > 10 && diffX > Math.abs(diffY)) {
+        isEdgeSwiping.current = true;
+      }
+    };
+
+    const handleTouchEnd = (e: TouchEvent) => {
+      if (edgeStartX.current === 0) return;
+      const currentX = e.changedTouches[0].clientX;
+      const diffX = currentX - edgeStartX.current;
+
+      if (isEdgeSwiping.current && diffX > 35) {
+        // Perform Back Action
+        if (settingsOpen) {
+          setSettingsOpen(false);
+        } else if (currentPage === 'page-public-profile') {
+          navigateTo(pubProfileBackPage || 'page-leaderboard');
+        } else if (currentPage === 'page-user-posts-detail') {
+          navigateTo(detailViewBackPage || 'page-profile');
+        } else if (currentPage === 'page-map-view') {
+          navigateTo('page-explore');
+        } else if (currentPage === 'page-friends') {
+          navigateTo('page-profile');
+        } else if (currentPage === 'page-rules') {
+          navigateTo('page-profile');
+        }
+      }
+
+      edgeStartX.current = 0;
+      edgeStartY.current = 0;
+      isEdgeSwiping.current = false;
+    };
+
+    document.addEventListener('touchstart', handleTouchStart, { passive: true });
+    document.addEventListener('touchmove', handleTouchMove, { passive: true });
+    document.addEventListener('touchend', handleTouchEnd, { passive: true });
+
+    return () => {
+      document.removeEventListener('touchstart', handleTouchStart);
+      document.removeEventListener('touchmove', handleTouchMove);
+      document.removeEventListener('touchend', handleTouchEnd);
+    };
+  }, [currentPage, settingsOpen, pubProfileBackPage, detailViewBackPage]);
+
   // Tag Requests (Sblocco in Compagnia) State & Listeners
   const [myTagRequests, setMyTagRequests] = useState<TagRequestItem[]>([]);
   const [activeTagRequestModal, setActiveTagRequestModal] = useState<TagRequestItem | null>(null);
