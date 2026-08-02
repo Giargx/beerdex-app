@@ -280,9 +280,9 @@ export default function App() {
     }
 
     if (isHorizontalSwipe.current === null) {
-      if (Math.abs(diffX) > 15 && Math.abs(diffX) > Math.abs(diffY) * 1.2) {
+      if (Math.abs(diffX) > 8 && Math.abs(diffX) > Math.abs(diffY)) {
         isHorizontalSwipe.current = true;
-      } else if (Math.abs(diffY) > 15) {
+      } else if (Math.abs(diffY) > 8) {
         isHorizontalSwipe.current = false;
       }
     }
@@ -295,7 +295,7 @@ export default function App() {
 
   const handleMainTouchEnd = () => {
     if (isDragging && touchStartX.current !== 0) {
-      const threshold = window.innerWidth * 0.18; // 18% drag threshold to switch tab
+      const threshold = 32; // Effortless 32px swipe threshold to switch tab
       const mainTabs = ['page-home', 'page-explore', 'page-leaderboard', 'page-social', 'page-profile'];
       const currentIndex = mainTabs.indexOf(currentPage);
 
@@ -2240,7 +2240,7 @@ export default function App() {
                 transform: isDragging
                   ? `translateX(calc(-${activeIndex * 20}% + ${dragOffset}px))`
                   : `translateX(-${activeIndex * 20}%)`,
-                transition: isDragging ? 'none' : 'transform 0.35s cubic-bezier(0.16, 1, 0.3, 1)',
+                transition: isDragging ? 'none' : 'transform 0.28s cubic-bezier(0.25, 1, 0.5, 1)',
               }}
               onTouchStart={handleMainTouchStart}
               onTouchMove={handleMainTouchMove}
