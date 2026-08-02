@@ -225,6 +225,7 @@ select:focus {
     min-height: calc(100vh - 165px); 
     position: relative; 
     box-sizing: border-box;
+    padding-bottom: 105px;
 }
 
 /* Page views & Main Tabs Slider */
@@ -233,6 +234,7 @@ select:focus {
     min-height: calc(100vh - 110px);
     box-sizing: border-box;
     display: none;
+    padding-bottom: 105px;
 }
 .page-view.active {
     display: block;
@@ -267,6 +269,7 @@ select:focus {
     height: auto;
     overflow: visible;
     visibility: visible;
+    padding-bottom: 105px;
 }
 
 .main-tabs-slider-container.is-transitioning .main-tab-slide {
