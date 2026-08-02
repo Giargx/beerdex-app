@@ -280,9 +280,9 @@ export default function App() {
     }
 
     if (isHorizontalSwipe.current === null) {
-      if (Math.abs(diffX) > 8 && Math.abs(diffX) > Math.abs(diffY)) {
+      if (Math.abs(diffX) > 5 && Math.abs(diffX) > Math.abs(diffY)) {
         isHorizontalSwipe.current = true;
-      } else if (Math.abs(diffY) > 8) {
+      } else if (Math.abs(diffY) > 5) {
         isHorizontalSwipe.current = false;
       }
     }
@@ -295,7 +295,7 @@ export default function App() {
 
   const handleMainTouchEnd = () => {
     if (isDragging && touchStartX.current !== 0) {
-      const threshold = 32; // Effortless 32px swipe threshold to switch tab
+      const threshold = 18; // Ultra-sensitive 18px swipe threshold to switch tab
       const mainTabs = ['page-home', 'page-explore', 'page-leaderboard', 'page-social', 'page-profile'];
       const currentIndex = mainTabs.indexOf(currentPage);
 
