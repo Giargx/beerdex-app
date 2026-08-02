@@ -2264,26 +2264,6 @@ export default function App() {
           ) : null}
         </div>
       </div>
-          {currentPage === 'page-user-posts-detail' ? (
-            <UserPostsDetailView
-              username={detailViewUser}
-              displayName={globalDisplayNames[detailViewUser]}
-              avatar={globalAvatars[detailViewUser]}
-              posts={globalPosts}
-              currentUserNick={currentUserNick}
-              onToggleLike={handleToggleLike}
-              onBack={() => navigateTo(detailViewBackPage)}
-              initialPostId={detailViewPostId}
-              globalDisplayNames={globalDisplayNames}
-              globalAvatars={globalAvatars}
-              onDeletePost={handleDeletePost}
-              onReportFakePost={handleReportFakePost}
-              onOpenPublicProfile={handleOpenPublicProfile}
-              isAdminUser={isAdminUser}
-            />
-          ) : null}
-        </div>
-      </div>
 
       {/* FLOATING NAVIGATION CAP BAR */}
       {currentUser && (
