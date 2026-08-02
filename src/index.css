@@ -227,143 +227,27 @@ select:focus {
     box-sizing: border-box;
 }
 
-/* Page transitions */
+/* Page views */
 .page-view { 
     width: 100%;
+    min-height: calc(100vh - 110px);
     box-sizing: border-box;
     display: none;
 }
-.page-view.active,
-.page-view.slide-in-left,
-.page-view.slide-in-right,
-.page-view.slide-out-left,
-.page-view.slide-out-right {
+.page-view.active {
     display: block;
+    animation: pageFadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-/* Main Tabs Slider Styles */
-.main-tabs-slider-wrapper {
-    width: 100%;
-    box-sizing: border-box;
-    display: none;
-    overflow: hidden;
-    position: relative;
-}
-
-.main-tabs-slider-wrapper.active {
-    display: block;
-}
-
-.main-tabs-slider-container {
-    display: flex;
-    align-items: flex-start;
-    width: 500%; /* 5 main tabs side-by-side */
-    height: auto;
-    transform: translate3d(0, 0, 0);
-}
-
-.main-tabs-slider-container.is-transitioning {
-    will-change: transform;
-    -webkit-backface-visibility: hidden;
-    backface-visibility: hidden;
-}
-
-.main-tab-slide {
-    width: 20%; /* 100% / 5 */
-    flex-shrink: 0;
-    box-sizing: border-box;
-    height: 0;
-    overflow: hidden;
-    visibility: hidden;
-}
-
-.main-tab-slide.active {
-    height: auto;
-    overflow: visible;
-    visibility: visible;
-}
-
-.main-tabs-slider-container.is-transitioning .main-tab-slide {
-    height: auto !important;
-    overflow: visible !important;
-    visibility: visible !important;
-    will-change: transform, opacity;
-    -webkit-backface-visibility: hidden;
-    backface-visibility: hidden;
-}
-
-/* Slide transitions for the wrapper when navigating to/from subpages */
-.main-tabs-slider-wrapper.slide-out-left {
-    display: block;
-    position: absolute;
-    top: 0; left: 0;
-    width: 100%;
-    animation: slideOutLeftKey 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-    pointer-events: none;
-}
-.main-tabs-slider-wrapper.slide-in-right {
-    display: block;
-    position: relative;
-    width: 100%;
-    animation: slideInRightKey 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-}
-.main-tabs-slider-wrapper.slide-out-right {
-    display: block;
-    position: absolute;
-    top: 0; left: 0;
-    width: 100%;
-    animation: slideOutRightKey 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-    pointer-events: none;
-}
-.main-tabs-slider-wrapper.slide-in-left {
-    display: block;
-    position: relative;
-    width: 100%;
-    animation: slideInLeftKey 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-}
-
-
-/* High-performance hardware-accelerated transition styling */
-.page-view.slide-out-left {
-    position: absolute;
-    top: 0; left: 0;
-    width: 100%;
-    animation: slideOutLeftKey 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-    pointer-events: none;
-}
-.page-view.slide-in-right {
-    position: relative;
-    width: 100%;
-    animation: slideInRightKey 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-}
-.page-view.slide-out-right {
-    position: absolute;
-    top: 0; left: 0;
-    width: 100%;
-    animation: slideOutRightKey 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-    pointer-events: none;
-}
-.page-view.slide-in-left {
-    position: relative;
-    width: 100%;
-    animation: slideInLeftKey 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-}
-
-@keyframes slideOutLeftKey {
-    0% { transform: translateX(0); opacity: 1; }
-    100% { transform: translateX(-100%); opacity: 0; }
-}
-@keyframes slideInRightKey {
-    0% { transform: translateX(100%); opacity: 0; }
-    100% { transform: translateX(0); opacity: 1; }
-}
-@keyframes slideOutRightKey {
-    0% { transform: translateX(0); opacity: 1; }
-    100% { transform: translateX(100%); opacity: 0; }
-}
-@keyframes slideInLeftKey {
-    0% { transform: translateX(-100%); opacity: 0; }
-    100% { transform: translateX(0); opacity: 1; }
+@keyframes pageFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(4px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 @keyframes fadeIn { 
