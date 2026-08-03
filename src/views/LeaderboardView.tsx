@@ -193,31 +193,11 @@ export const LeaderboardView: React.FC<LeaderboardViewProps> = ({
 
   return (
     <div className="page-container-view" style={{ paddingBottom: '90px' }}>
-      {/* HERO HEADER */}
-      <header className="hero" style={{
-        marginTop: 0,
-        padding: '30px 20px 25px 20px',
-        background: 'linear-gradient(180deg, #1E293B 0%, #0F172A 100%)',
-        borderRadius: '0 0 32px 32px',
-        position: 'relative',
-        overflow: 'hidden',
-        boxShadow: '0 15px 35px rgba(15, 23, 42, 0.15)',
-        marginBottom: '20px',
-        textAlign: 'center'
-      }}>
+      {/* HERO HEADER (CLASSIC STYLE LIKE PUB & EXPLORE) */}
+      <header className="hero">
         <FoamBubbles />
-        <div style={{ position: 'relative', zIndex: 2 }}>
-          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', background: 'rgba(255, 179, 0, 0.15)', border: '1px solid rgba(255, 179, 0, 0.3)', padding: '4px 14px', borderRadius: '20px', color: '#FFB300', fontSize: '11px', fontWeight: 800, marginBottom: '8px' }}>
-            <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>emoji_events</span>
-            SFIDA DEL BANCONE
-          </div>
-          <h1 style={{ color: '#FFFFFF', fontSize: '28px', fontWeight: 900, margin: '0 0 6px 0', letterSpacing: '-0.5px' }}>
-            Classifica
-          </h1>
-          <p style={{ color: '#94A3B8', fontSize: '13px', margin: 0, fontWeight: 500 }}>
-            Scopri chi domina il Pub a colpi di stappi e boccali!
-          </p>
-        </div>
+        <h1 style={{ position: 'relative', zIndex: 2 }}>Classifiche</h1>
+        <p style={{ position: 'relative', zIndex: 2 }}>Sfidali a colpi di boccali e controlla chi domina il Pub.</p>
       </header>
 
       <div className="page-container" style={{ paddingTop: 0 }}>
@@ -440,7 +420,7 @@ export const LeaderboardView: React.FC<LeaderboardViewProps> = ({
             }}>
               <FoamBubbles />
               
-              <div style={{ position: 'relative', zIndex: 2, textAlign: 'center', marginBottom: '18px' }}>
+              <div style={{ position: 'relative', zIndex: 2, textAlign: 'center', marginBottom: '34px', paddingTop: '4px' }}>
                 <span style={{ fontSize: '11px', fontWeight: 900, letterSpacing: '1px', color: '#FFB300', textTransform: 'uppercase' }}>
                   🏆 Podio del Bancone
                 </span>
@@ -837,21 +817,23 @@ export const LeaderboardView: React.FC<LeaderboardViewProps> = ({
           }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
               <div style={{
-                width: '36px',
-                height: '36px',
-                borderRadius: '50%',
+                padding: '6px 12px',
+                borderRadius: '16px',
                 background: 'linear-gradient(135deg, #FFB300, #FF6F00)',
                 color: '#0F172A',
                 fontWeight: 900,
                 fontSize: '13px',
                 display: 'flex',
                 alignItems: 'center',
-                justifyContent: 'center'
+                justifyContent: 'center',
+                whiteSpace: 'nowrap'
               }}>
-                #{myRank}
+                #{myRank} / {players.length}
               </div>
               <div style={{ textAlign: 'left' }}>
-                <div style={{ fontSize: '11px', color: '#94A3B8', fontWeight: 600 }}>La tua posizione attuale</div>
+                <div style={{ fontSize: '11px', color: '#94A3B8', fontWeight: 600 }}>
+                  La tua posizione ({activeTab === 'friends' ? 'Amici' : 'Globale'})
+                </div>
                 <div style={{ fontSize: '14px', fontWeight: 800, color: '#FFFFFF' }}>
                   {safeDisplayNames[safeUserNick] || safeUserNick}
                 </div>
