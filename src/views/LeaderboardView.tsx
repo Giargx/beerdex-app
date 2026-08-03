@@ -96,78 +96,205 @@ export const LeaderboardView: React.FC<LeaderboardViewProps> = ({
     }))
     .sort((a, b) => b.score - a.score);
 
+  // Top 3 for Podium graphic
+  const top1 = players[0];
+  const top2 = players[1];
+  const top3 = players[2];
+  const remainingPlayers = players.slice(3);
+
+  // User position in current view
+  const myRankIndex = players.findIndex(p => p.name === safeUserNick);
+  const myRank = myRankIndex !== -1 ? myRankIndex + 1 : null;
+  const myScore = safeScores[safeUserNick] || 0;
+
   const getFriendActionHtml = (targetName: string) => {
     if (!targetName || targetName === safeUserNick) return null;
     
     if (safeFriends.includes(targetName)) {
       return (
-        <span className="badge-status" style={{ color: 'var(--social-blue)' }}>
-          <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>
-            group
-          </span>{' '}
-          Amici
+        <span style={{
+          fontSize: '11px',
+          fontWeight: 800,
+          color: '#10B981',
+          background: '#ECFDF5',
+          border: '1px solid #A7F3D0',
+          padding: '4px 10px',
+          borderRadius: '12px',
+          display: 'inline-flex',
+          alignItems: 'center',
+          gap: '4px'
+        }}>
+          <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>group</span> Amici
         </span>
       );
     }
     
     if (safeSent.includes(targetName)) {
       return (
-        <span className="badge-status" style={{ color: 'var(--text-muted)' }}>
-          <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>
-            schedule
-          </span>{' '}
-          In attesa
+        <span style={{
+          fontSize: '11px',
+          fontWeight: 700,
+          color: '#64748B',
+          background: '#F1F5F9',
+          border: '1px solid #E2E8F0',
+          padding: '4px 10px',
+          borderRadius: '12px',
+          display: 'inline-flex',
+          alignItems: 'center',
+          gap: '4px'
+        }}>
+          <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>schedule</span> In attesa
         </span>
       );
     }
     
     if (safeReceived.includes(targetName)) {
       return (
-        <button className="btn-action btn-accept" onClick={() => onNavigateToFriends ? onNavigateToFriends() : null}>
+        <button
+          onClick={() => onNavigateToFriends ? onNavigateToFriends() : null}
+          style={{
+            background: 'linear-gradient(135deg, #10B981, #059669)',
+            border: 'none',
+            color: '#FFFFFF',
+            padding: '6px 12px',
+            borderRadius: '12px',
+            fontSize: '11px',
+            fontWeight: 800,
+            cursor: 'pointer'
+          }}
+        >
           Rispondi
         </button>
       );
     }
 
     return (
-      <button className="btn-action btn-add" onClick={() => onAddFriend ? onAddFriend(targetName) : null} title={`Aggiungi @${targetName}`}>
-        <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>
-          person_add
-        </span>
+      <button
+        onClick={() => onAddFriend ? onAddFriend(targetName) : null}
+        title={`Aggiungi @${targetName}`}
+        style={{
+          background: 'linear-gradient(135deg, #FFB300, #FF6F00)',
+          border: 'none',
+          color: '#0F172A',
+          padding: '6px 10px',
+          borderRadius: '12px',
+          fontSize: '11px',
+          fontWeight: 800,
+          cursor: 'pointer',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '4px'
+        }}
+      >
+        <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>person_add</span>
       </button>
     );
   };
 
   return (
-    <div className="page-container-view">
-      <header className="hero">
+    <div className="page-container-view" style={{ paddingBottom: '90px' }}>
+      {/* HERO HEADER */}
+      <header className="hero" style={{
+        marginTop: 0,
+        padding: '30px 20px 25px 20px',
+        background: 'linear-gradient(180deg, #1E293B 0%, #0F172A 100%)',
+        borderRadius: '0 0 32px 32px',
+        position: 'relative',
+        overflow: 'hidden',
+        boxShadow: '0 15px 35px rgba(15, 23, 42, 0.15)',
+        marginBottom: '20px',
+        textAlign: 'center'
+      }}>
         <FoamBubbles />
-        <h1 style={{ position: 'relative', zIndex: 2 }}>Classifiche</h1>
-        <p style={{ position: 'relative', zIndex: 2 }}>Sfidali a colpi di boccali e controlla chi domina il Pub.</p>
+        <div style={{ position: 'relative', zIndex: 2 }}>
+          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', background: 'rgba(255, 179, 0, 0.15)', border: '1px solid rgba(255, 179, 0, 0.3)', padding: '4px 14px', borderRadius: '20px', color: '#FFB300', fontSize: '11px', fontWeight: 800, marginBottom: '8px' }}>
+            <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>emoji_events</span>
+            SFIDA DEL BANCONE
+          </div>
+          <h1 style={{ color: '#FFFFFF', fontSize: '28px', fontWeight: 900, margin: '0 0 6px 0', letterSpacing: '-0.5px' }}>
+            Classifica
+          </h1>
+          <p style={{ color: '#94A3B8', fontSize: '13px', margin: 0, fontWeight: 500 }}>
+            Scopri chi domina il Pub a colpi di stappi e boccali!
+          </p>
+        </div>
       </header>
 
-      <div className="page-container">
-        <div className="tabs">
-          <div
-            className={`tab ${activeTab === 'friends' ? 'active' : ''}`}
+      <div className="page-container" style={{ paddingTop: 0 }}>
+        {/* SEGMENTED TAB SWITCHER */}
+        <div style={{
+          display: 'flex',
+          background: '#FFFFFF',
+          borderRadius: '20px',
+          padding: '5px',
+          marginBottom: '20px',
+          border: '1px solid rgba(226, 232, 240, 0.8)',
+          boxShadow: '0 4px 15px rgba(15, 23, 42, 0.03)'
+        }}>
+          <button
             onClick={() => setActiveTab('friends')}
+            style={{
+              flex: 1,
+              padding: '12px 16px',
+              borderRadius: '16px',
+              border: 'none',
+              background: activeTab === 'friends' ? 'linear-gradient(135deg, #FFB300, #FF6F00)' : 'transparent',
+              color: activeTab === 'friends' ? '#0F172A' : '#64748B',
+              fontWeight: 850,
+              fontSize: '13px',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '8px',
+              boxShadow: activeTab === 'friends' ? '0 4px 15px rgba(255, 111, 0, 0.25)' : 'none',
+              transition: 'all 0.2s ease'
+            }}
           >
+            <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>group</span>
             Solo Amici
-          </div>
-          <div
-            className={`tab ${activeTab === 'global' ? 'active' : ''}`}
+          </button>
+          <button
             onClick={() => setActiveTab('global')}
+            style={{
+              flex: 1,
+              padding: '12px 16px',
+              borderRadius: '16px',
+              border: 'none',
+              background: activeTab === 'global' ? 'linear-gradient(135deg, #FFB300, #FF6F00)' : 'transparent',
+              color: activeTab === 'global' ? '#0F172A' : '#64748B',
+              fontWeight: 850,
+              fontSize: '13px',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '8px',
+              boxShadow: activeTab === 'global' ? '0 4px 15px rgba(255, 111, 0, 0.25)' : 'none',
+              transition: 'all 0.2s ease'
+            }}
           >
+            <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>public</span>
             Globale
-          </div>
+          </button>
         </div>
 
+        {/* SEARCH BAR (GLOBAL MODE) */}
         {activeTab === 'global' && (
-          <div className="add-friend-wrapper">
-            <div className="add-friend-box">
+          <div style={{ position: 'relative', marginBottom: '20px' }}>
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              background: '#FFFFFF',
+              border: '1px solid #E2E8F0',
+              borderRadius: '18px',
+              padding: '6px 8px 6px 16px',
+              boxShadow: '0 4px 15px rgba(0,0,0,0.03)'
+            }}>
+              <span className="material-symbols-outlined" style={{ color: '#94A3B8', fontSize: '20px', marginRight: '8px' }}>search</span>
               <input
                 type="text"
-                placeholder="Digita un Nickname per cercare..."
+                placeholder="Cerca un utente per nickname..."
                 autoComplete="off"
                 value={searchQuery}
                 onChange={(e) => {
@@ -178,233 +305,564 @@ export const LeaderboardView: React.FC<LeaderboardViewProps> = ({
                   }
                 }}
                 onFocus={() => setShowSuggestions(true)}
+                style={{
+                  border: 'none',
+                  outline: 'none',
+                  width: '100%',
+                  fontSize: '14px',
+                  background: 'transparent',
+                  color: 'var(--dark)'
+                }}
               />
-              <button onClick={handleSearchSubmit}>Cerca</button>
+              <button
+                onClick={handleSearchSubmit}
+                style={{
+                  background: 'linear-gradient(135deg, #FFB300, #FF6F00)',
+                  border: 'none',
+                  color: '#0F172A',
+                  padding: '8px 16px',
+                  borderRadius: '12px',
+                  fontWeight: 800,
+                  fontSize: '12px',
+                  cursor: 'pointer'
+                }}
+              >
+                Cerca
+              </button>
             </div>
 
             {showSuggestions && suggestions.length > 0 && (
-              <div className="suggestions-box" style={{ display: 'block' }}>
+              <div style={{
+                position: 'absolute',
+                top: '100%',
+                left: 0,
+                right: 0,
+                marginTop: '6px',
+                background: '#FFFFFF',
+                border: '1px solid #E2E8F0',
+                borderRadius: '16px',
+                boxShadow: '0 10px 25px rgba(0,0,0,0.1)',
+                zIndex: 20,
+                overflow: 'hidden'
+              }}>
                 {suggestions.slice(0, 5).map((match) => (
                   <div
                     key={match}
-                    className="suggestion-item"
                     onClick={() => handleSuggestionClick(match)}
+                    style={{
+                      padding: '12px 16px',
+                      cursor: 'pointer',
+                      borderBottom: '1px solid #F1F5F9',
+                      fontSize: '14px',
+                      fontWeight: 600,
+                      color: 'var(--dark)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px'
+                    }}
                   >
+                    <span className="material-symbols-outlined" style={{ fontSize: '18px', color: '#94A3B8' }}>person</span>
                     {match}
                   </div>
                 ))}
               </div>
             )}
-          </div>
-        )}
 
-        {searchResult && activeTab === 'global' && (
-          <div id="searchResultArea">
-            {searchResult === 'self' && (
-              <p style={{ color: 'var(--danger)', textAlign: 'center', fontSize: '14px', fontWeight: 'bold' }}>
-                Non puoi cercare te stesso!
-              </p>
-            )}
-            {searchResult === 'not_found' && (
-              <p style={{ color: 'var(--danger)', textAlign: 'center', fontSize: '14px', fontWeight: 'bold' }}>
-                Utente non trovato.
-              </p>
-            )}
-            {searchResult !== 'self' && searchResult !== 'not_found' && (
-              <div className="search-result-card">
-                <div
-                  style={{
-                    fontWeight: 'bold',
-                    fontSize: '18px',
-                    color: 'var(--dark)',
-                    cursor: 'pointer',
+            {searchResult && (
+              <div style={{ marginTop: '12px' }}>
+                {searchResult === 'self' && (
+                  <p style={{ color: 'var(--danger)', textAlign: 'center', fontSize: '13px', fontWeight: 'bold' }}>
+                    Non puoi cercare te stesso!
+                  </p>
+                )}
+                {searchResult === 'not_found' && (
+                  <p style={{ color: 'var(--danger)', textAlign: 'center', fontSize: '13px', fontWeight: 'bold' }}>
+                    Utente non trovato.
+                  </p>
+                )}
+                {searchResult !== 'self' && searchResult !== 'not_found' && (
+                  <div style={{
+                    background: 'linear-gradient(135deg, #FFFDF5, #FFF9E6)',
+                    border: '1px solid #F59E0B',
+                    borderRadius: '18px',
+                    padding: '12px 16px',
                     display: 'flex',
                     alignItems: 'center',
-                    gap: '5px',
-                  }}
-                  onClick={() => onOpenPublicProfile ? onOpenPublicProfile(searchResult) : null}
-                >
-                  <span className="material-symbols-outlined">person</span> {searchResult}
-                </div>
-                <div>{getFriendActionHtml(searchResult)}</div>
+                    justifyContent: 'space-between'
+                  }}>
+                    <div
+                      style={{
+                        fontWeight: 800,
+                        fontSize: '15px',
+                        color: 'var(--dark)',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '8px'
+                      }}
+                      onClick={() => onOpenPublicProfile ? onOpenPublicProfile(searchResult) : null}
+                    >
+                      <span className="material-symbols-outlined" style={{ color: '#F59E0B' }}>person</span> @{searchResult}
+                    </div>
+                    <div>{getFriendActionHtml(searchResult)}</div>
+                  </div>
+                )}
               </div>
             )}
           </div>
         )}
 
-        <div className="list-container leaderboard-list" id="leaderboardList">
-          {players.length === 0 ? (
-            <p style={{ textAlign: 'center', color: 'var(--text-muted)', padding: '20px' }}>
-              Nessun utente trovato in questa classifica.
-            </p>
-          ) : (
-            players.map((player, index) => {
-              const rankLabel = typeof getUserRankTitle === 'function' 
-                ? getUserRankTitle(player.score) 
-                : 'Bevitore';
-              const avatar = safeAvatars[player.name];
+        {players.length === 0 ? (
+          <div style={{
+            textAlign: 'center',
+            padding: '40px 20px',
+            background: '#FFFFFF',
+            borderRadius: '24px',
+            border: '1px dashed #E2E8F0',
+            color: 'var(--text-muted)'
+          }}>
+            <span className="material-symbols-outlined" style={{ fontSize: '48px', color: '#94A3B8', marginBottom: '10px' }}>emoji_events</span>
+            <p style={{ margin: 0, fontSize: '14px', fontWeight: 600 }}>Nessun utente trovato in questa classifica.</p>
+          </div>
+        ) : (
+          <>
+            {/* GORGEOUS PODIUM FOR TOP 3 */}
+            <div style={{
+              background: 'linear-gradient(180deg, #1E293B 0%, #0F172A 100%)',
+              borderRadius: '28px',
+              padding: '24px 14px 18px 14px',
+              marginBottom: '25px',
+              color: '#FFFFFF',
+              boxShadow: '0 15px 35px rgba(15, 23, 42, 0.15)',
+              position: 'relative',
+              overflow: 'hidden',
+              border: '1px solid rgba(255, 255, 255, 0.08)'
+            }}>
+              <FoamBubbles />
+              
+              <div style={{ position: 'relative', zIndex: 2, textAlign: 'center', marginBottom: '18px' }}>
+                <span style={{ fontSize: '11px', fontWeight: 900, letterSpacing: '1px', color: '#FFB300', textTransform: 'uppercase' }}>
+                  🏆 Podio del Bancone
+                </span>
+              </div>
 
-              let medalHtml: React.ReactNode;
-              if (index === 0) {
-                medalHtml = (
+              {/* PODIUM 3 COLUMNS */}
+              <div style={{
+                display: 'flex',
+                alignItems: 'flex-end',
+                justifyContent: 'center',
+                gap: '8px',
+                position: 'relative',
+                zIndex: 2
+              }}>
+                {/* 2nd PLACE (LEFT) */}
+                {top2 ? (
                   <div
+                    onClick={() => onOpenPublicProfile ? onOpenPublicProfile(top2.name) : null}
                     style={{
-                      width: '32px',
-                      height: '32px',
-                      borderRadius: '50%',
-                      background: 'linear-gradient(135deg, #FFE066 0%, #F59E0B 100%)',
-                      color: '#78350F',
+                      flex: 1,
                       display: 'flex',
+                      flexDirection: 'column',
                       alignItems: 'center',
-                      justifyContent: 'center',
-                      fontWeight: 900,
-                      fontSize: '15px',
-                      boxShadow: '0 3px 8px rgba(245, 158, 11, 0.4), inset 0 1px 2px rgba(255,255,255,0.9)',
-                      border: '1.5px solid #FEF08A',
-                      flexShrink: 0,
-                    }}
-                    title="1° Posto - Oro"
-                  >
-                    🥇
-                  </div>
-                );
-              } else if (index === 1) {
-                medalHtml = (
-                  <div
-                    style={{
-                      width: '32px',
-                      height: '32px',
-                      borderRadius: '50%',
-                      background: 'linear-gradient(135deg, #F3F4F6 0%, #9CA3AF 100%)',
-                      color: '#1F2937',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      fontWeight: 900,
-                      fontSize: '15px',
-                      boxShadow: '0 3px 8px rgba(156, 163, 175, 0.35), inset 0 1px 2px rgba(255,255,255,0.9)',
-                      border: '1.5px solid #FFFFFF',
-                      flexShrink: 0,
-                    }}
-                    title="2° Posto - Argento"
-                  >
-                    🥈
-                  </div>
-                );
-              } else if (index === 2) {
-                medalHtml = (
-                  <div
-                    style={{
-                      width: '32px',
-                      height: '32px',
-                      borderRadius: '50%',
-                      background: 'linear-gradient(135deg, #FDBA74 0%, #C2410C 100%)',
-                      color: '#FFFFFF',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      fontWeight: 900,
-                      fontSize: '15px',
-                      boxShadow: '0 3px 8px rgba(194, 65, 12, 0.35), inset 0 1px 2px rgba(255,255,255,0.7)',
-                      border: '1.5px solid #FFEDD5',
-                      flexShrink: 0,
-                    }}
-                    title="3° Posto - Bronzo"
-                  >
-                    🥉
-                  </div>
-                );
-              } else {
-                medalHtml = (
-                  <div
-                    style={{
-                      width: '28px',
-                      height: '28px',
-                      borderRadius: '50%',
-                      background: '#F8FAFC',
-                      color: '#475569',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      fontWeight: 800,
-                      fontSize: '12px',
-                      border: '1px solid #E2E8F0',
-                      boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
-                      flexShrink: 0,
+                      cursor: 'pointer'
                     }}
                   >
-                    {index + 1}
-                  </div>
-                );
-              }
-
-              return (
-                <div
-                  key={player.name}
-                  className={`leaderboard-item ${player.name === safeUserNick ? 'is-current-user' : ''}`}
-                >
-                  <div className="lb-player-left" style={{ display: 'flex', alignItems: 'center', flexGrow: 1 }}>
-                    <div className="rank">{medalHtml}</div>
-                    <div
-                      className="post-avatar"
-                      onClick={() => onOpenPublicProfile ? onOpenPublicProfile(player.name) : null}
-                      style={{ width: '40px', height: '40px', margin: '0 10px 0 5px', cursor: 'pointer' }}
-                    >
-                      {avatar ? (
-                        <img src={avatar} alt={player.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                      ) : (
-                        <span className="material-symbols-outlined" style={{ fontSize: '24px' }}>
-                          person
-                        </span>
-                      )}
-                    </div>
-                    <div 
-                      className="lb-user" 
-                      onClick={() => onOpenPublicProfile ? onOpenPublicProfile(player.name) : null}
-                      style={{ cursor: 'pointer' }}
-                    >
-                      <span className="clickable-user" style={{ fontWeight: 'bold', display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
-                        <span>{safeDisplayNames?.[player.name] ? safeDisplayNames[player.name] : player.name}</span>
-                        {['gargo', 'forne02', 'aviatore'].includes((player.name || '').toLowerCase()) && (
-                          <span
-                            style={{
-                              background: 'linear-gradient(135deg, #EF4444 0%, #B91C1C 100%)',
-                              color: 'white',
-                              fontSize: '8px',
-                              fontWeight: 900,
-                              padding: '2px 5px',
-                              borderRadius: '6px',
-                              letterSpacing: '0.5px',
-                              boxShadow: '0 2px 4px rgba(239, 68, 68, 0.3)',
-                              display: 'inline-flex',
-                              alignItems: 'center',
-                              gap: '2px'
-                            }}
-                          >
-                            ADMIN
-                          </span>
+                    <div style={{ position: 'relative', marginBottom: '6px' }}>
+                      <div style={{
+                        width: '54px',
+                        height: '54px',
+                        borderRadius: '50%',
+                        border: '3px solid #94A3B8',
+                        overflow: 'hidden',
+                        background: '#334155',
+                        boxShadow: '0 4px 15px rgba(148, 163, 184, 0.4)'
+                      }}>
+                        {safeAvatars[top2.name] ? (
+                          <img src={safeAvatars[top2.name]} alt={top2.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                        ) : (
+                          <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', fontSize: '18px', color: 'white' }}>
+                            {top2.name.charAt(0).toUpperCase()}
+                          </div>
                         )}
+                      </div>
+                      <span style={{
+                        position: 'absolute',
+                        bottom: '-6px',
+                        left: '50%',
+                        transform: 'translateX(-50%)',
+                        background: 'linear-gradient(135deg, #E2E8F0, #94A3B8)',
+                        color: '#0F172A',
+                        fontWeight: 900,
+                        fontSize: '10px',
+                        padding: '2px 8px',
+                        borderRadius: '12px',
+                        boxShadow: '0 2px 6px rgba(0,0,0,0.3)'
+                      }}>
+                        2°
                       </span>
-                      <br />
-                      <small style={{ fontSize: '11px', color: 'var(--text-muted)', fontWeight: 'normal' }}>
-                        {safeDisplayNames?.[player.name] ? `@${player.name} • ${rankLabel}` : rankLabel}
-                      </small>
+                    </div>
+
+                    <div style={{ fontWeight: 800, fontSize: '12px', color: '#F8FAFC', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '85px', textAlign: 'center' }}>
+                      {safeDisplayNames[top2.name] || top2.name}
+                    </div>
+                    <div style={{ fontWeight: 900, fontSize: '12px', color: '#94A3B8', marginBottom: '6px' }}>
+                      {top2.score} pt
+                    </div>
+
+                    {/* Podium base 2nd */}
+                    <div style={{
+                      width: '100%',
+                      height: '65px',
+                      background: 'linear-gradient(180deg, rgba(148, 163, 184, 0.3) 0%, rgba(148, 163, 184, 0.05) 100%)',
+                      border: '1px solid rgba(148, 163, 184, 0.4)',
+                      borderRadius: '16px 16px 0 0',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      fontSize: '22px'
+                    }}>
+                      🥈
                     </div>
                   </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-                    <div className="lb-score">
-                      {player.score}{' '}
-                      <span className="material-symbols-outlined" style={{ fontSize: '24px' }}>
-                        emoji_events
+                ) : <div style={{ flex: 1 }} />}
+
+                {/* 1st PLACE (CENTER - ELEVATED) */}
+                {top1 ? (
+                  <div
+                    onClick={() => onOpenPublicProfile ? onOpenPublicProfile(top1.name) : null}
+                    style={{
+                      flex: 1.15,
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      cursor: 'pointer',
+                      transform: 'translateY(-8px)'
+                    }}
+                  >
+                    <div style={{ position: 'relative', marginBottom: '6px' }}>
+                      <span style={{ position: 'absolute', top: '-18px', left: '50%', transform: 'translateX(-50%)', fontSize: '20px' }}>👑</span>
+                      <div style={{
+                        width: '68px',
+                        height: '68px',
+                        borderRadius: '50%',
+                        border: '3.5px solid #FFB300',
+                        overflow: 'hidden',
+                        background: '#334155',
+                        boxShadow: '0 0 25px rgba(255, 179, 0, 0.6)'
+                      }}>
+                        {safeAvatars[top1.name] ? (
+                          <img src={safeAvatars[top1.name]} alt={top1.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                        ) : (
+                          <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', fontSize: '22px', color: '#FFB300' }}>
+                            {top1.name.charAt(0).toUpperCase()}
+                          </div>
+                        )}
+                      </div>
+                      <span style={{
+                        position: 'absolute',
+                        bottom: '-6px',
+                        left: '50%',
+                        transform: 'translateX(-50%)',
+                        background: 'linear-gradient(135deg, #FFB300, #FF6F00)',
+                        color: '#0F172A',
+                        fontWeight: 900,
+                        fontSize: '11px',
+                        padding: '2px 10px',
+                        borderRadius: '12px',
+                        boxShadow: '0 2px 8px rgba(255, 111, 0, 0.5)'
+                      }}>
+                        1°
                       </span>
                     </div>
-                    {activeTab === 'global' && getFriendActionHtml(player.name)}
+
+                    <div style={{ fontWeight: 900, fontSize: '13px', color: '#FFFFFF', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '95px', textAlign: 'center' }}>
+                      {safeDisplayNames[top1.name] || top1.name}
+                    </div>
+                    <div style={{ fontWeight: 900, fontSize: '13px', color: '#FFB300', marginBottom: '6px' }}>
+                      {top1.score} pt
+                    </div>
+
+                    {/* Podium base 1st */}
+                    <div style={{
+                      width: '100%',
+                      height: '90px',
+                      background: 'linear-gradient(180deg, rgba(255, 179, 0, 0.35) 0%, rgba(255, 111, 0, 0.08) 100%)',
+                      border: '1px solid rgba(255, 179, 0, 0.5)',
+                      borderRadius: '18px 18px 0 0',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      fontSize: '28px'
+                    }}>
+                      🥇
+                    </div>
                   </div>
+                ) : null}
+
+                {/* 3rd PLACE (RIGHT) */}
+                {top3 ? (
+                  <div
+                    onClick={() => onOpenPublicProfile ? onOpenPublicProfile(top3.name) : null}
+                    style={{
+                      flex: 1,
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    <div style={{ position: 'relative', marginBottom: '6px' }}>
+                      <div style={{
+                        width: '54px',
+                        height: '54px',
+                        borderRadius: '50%',
+                        border: '3px solid #D97706',
+                        overflow: 'hidden',
+                        background: '#334155',
+                        boxShadow: '0 4px 15px rgba(217, 119, 6, 0.3)'
+                      }}>
+                        {safeAvatars[top3.name] ? (
+                          <img src={safeAvatars[top3.name]} alt={top3.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                        ) : (
+                          <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', fontSize: '18px', color: 'white' }}>
+                            {top3.name.charAt(0).toUpperCase()}
+                          </div>
+                        )}
+                      </div>
+                      <span style={{
+                        position: 'absolute',
+                        bottom: '-6px',
+                        left: '50%',
+                        transform: 'translateX(-50%)',
+                        background: 'linear-gradient(135deg, #FDBA74, #C2410C)',
+                        color: '#FFFFFF',
+                        fontWeight: 900,
+                        fontSize: '10px',
+                        padding: '2px 8px',
+                        borderRadius: '12px',
+                        boxShadow: '0 2px 6px rgba(0,0,0,0.3)'
+                      }}>
+                        3°
+                      </span>
+                    </div>
+
+                    <div style={{ fontWeight: 800, fontSize: '12px', color: '#F8FAFC', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '85px', textAlign: 'center' }}>
+                      {safeDisplayNames[top3.name] || top3.name}
+                    </div>
+                    <div style={{ fontWeight: 900, fontSize: '12px', color: '#FDBA74', marginBottom: '6px' }}>
+                      {top3.score} pt
+                    </div>
+
+                    {/* Podium base 3rd */}
+                    <div style={{
+                      width: '100%',
+                      height: '50px',
+                      background: 'linear-gradient(180deg, rgba(217, 119, 6, 0.3) 0%, rgba(217, 119, 6, 0.05) 100%)',
+                      border: '1px solid rgba(217, 119, 6, 0.4)',
+                      borderRadius: '16px 16px 0 0',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      fontSize: '22px'
+                    }}>
+                      🥉
+                    </div>
+                  </div>
+                ) : <div style={{ flex: 1 }} />}
+              </div>
+            </div>
+
+            {/* REMAINING PLAYERS LIST (#4 AND BEYOND) */}
+            {remainingPlayers.length > 0 && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '25px' }}>
+                {remainingPlayers.map((player, idx) => {
+                  const actualRank = idx + 4;
+                  const rankLabel = typeof getUserRankTitle === 'function' ? getUserRankTitle(player.score) : 'Bevitore';
+                  const avatar = safeAvatars[player.name];
+                  const isMe = player.name === safeUserNick;
+
+                  return (
+                    <div
+                      key={player.name}
+                      style={{
+                        background: isMe ? 'linear-gradient(135deg, #FFFDF0 0%, #FFF8D4 100%)' : '#FFFFFF',
+                        border: isMe ? '2px solid #F59E0B' : '1px solid rgba(226, 232, 240, 0.8)',
+                        borderRadius: '20px',
+                        padding: '12px 16px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        boxShadow: isMe ? '0 6px 20px rgba(245, 158, 11, 0.15)' : '0 2px 8px rgba(15, 23, 42, 0.02)',
+                        transition: 'all 0.15s ease'
+                      }}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flex: 1, minWidth: 0 }}>
+                        {/* Rank Badge */}
+                        <div style={{
+                          width: '28px',
+                          height: '28px',
+                          borderRadius: '50%',
+                          background: '#F1F5F9',
+                          color: '#475569',
+                          fontWeight: 850,
+                          fontSize: '12px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          flexShrink: 0
+                        }}>
+                          #{actualRank}
+                        </div>
+
+                        {/* Avatar */}
+                        <div
+                          onClick={() => onOpenPublicProfile ? onOpenPublicProfile(player.name) : null}
+                          style={{
+                            width: '42px',
+                            height: '42px',
+                            borderRadius: '50%',
+                            border: isMe ? '2px solid #F59E0B' : '2px solid #E2E8F0',
+                            overflow: 'hidden',
+                            cursor: 'pointer',
+                            flexShrink: 0,
+                            background: 'linear-gradient(135deg, var(--primary), var(--primary-dark))',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            color: 'white',
+                            fontWeight: 800
+                          }}
+                        >
+                          {avatar ? (
+                            <img src={avatar} alt={player.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                          ) : (
+                            player.name.substring(0, 2).toUpperCase()
+                          )}
+                        </div>
+
+                        {/* User Info */}
+                        <div style={{ minWidth: 0, flex: 1, textAlign: 'left' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                            <span
+                              onClick={() => onOpenPublicProfile ? onOpenPublicProfile(player.name) : null}
+                              style={{
+                                fontWeight: 800,
+                                fontSize: '14px',
+                                color: 'var(--dark)',
+                                cursor: 'pointer',
+                                whiteSpace: 'nowrap',
+                                overflow: 'hidden',
+                                textOverflow: 'ellipsis'
+                              }}
+                            >
+                              {safeDisplayNames[player.name] || player.name}
+                            </span>
+
+                            {isMe && (
+                              <span style={{
+                                background: '#FFB300',
+                                color: '#0F172A',
+                                fontSize: '9px',
+                                fontWeight: 900,
+                                padding: '1px 6px',
+                                borderRadius: '10px',
+                                flexShrink: 0
+                              }}>
+                                TU
+                              </span>
+                            )}
+
+                            {['gargo', 'forne02', 'aviatore'].includes((player.name || '').toLowerCase()) && (
+                              <span style={{
+                                background: 'linear-gradient(135deg, #EF4444 0%, #B91C1C 100%)',
+                                color: 'white',
+                                fontSize: '8px',
+                                fontWeight: 900,
+                                padding: '2px 5px',
+                                borderRadius: '6px',
+                                flexShrink: 0
+                              }}>
+                                ADMIN
+                              </span>
+                            )}
+                          </div>
+
+                          <div style={{ fontSize: '11px', color: 'var(--text-muted)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                            {rankLabel}
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Score & Action */}
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexShrink: 0 }}>
+                        <div style={{
+                          background: 'rgba(255, 179, 0, 0.12)',
+                          color: 'var(--primary-dark)',
+                          fontWeight: 900,
+                          fontSize: '13px',
+                          padding: '4px 10px',
+                          borderRadius: '12px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '4px'
+                        }}>
+                          {player.score} <span style={{ fontSize: '10px' }}>pt</span>
+                        </div>
+
+                        {activeTab === 'global' && getFriendActionHtml(player.name)}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </>
+        )}
+
+        {/* MY RANK STICKY/PINNED FOOTER BADGE */}
+        {myRank && (
+          <div style={{
+            position: 'sticky',
+            bottom: '20px',
+            background: 'linear-gradient(135deg, #1E293B, #0F172A)',
+            borderRadius: '22px',
+            padding: '14px 20px',
+            color: '#FFFFFF',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            boxShadow: '0 10px 30px rgba(15, 23, 42, 0.3)',
+            border: '1px solid rgba(255, 179, 0, 0.4)',
+            zIndex: 10
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <div style={{
+                width: '36px',
+                height: '36px',
+                borderRadius: '50%',
+                background: 'linear-gradient(135deg, #FFB300, #FF6F00)',
+                color: '#0F172A',
+                fontWeight: 900,
+                fontSize: '13px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
+              }}>
+                #{myRank}
+              </div>
+              <div style={{ textAlign: 'left' }}>
+                <div style={{ fontSize: '11px', color: '#94A3B8', fontWeight: 600 }}>La tua posizione attuale</div>
+                <div style={{ fontSize: '14px', fontWeight: 800, color: '#FFFFFF' }}>
+                  {safeDisplayNames[safeUserNick] || safeUserNick}
                 </div>
-              );
-            })
-          )}
-        </div>
+              </div>
+            </div>
+
+            <div style={{ fontSize: '16px', fontWeight: 900, color: '#FFB300', display: 'flex', alignItems: 'center', gap: '4px' }}>
+              {myScore} <span style={{ fontSize: '11px', color: '#94A3B8' }}>pt</span>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
