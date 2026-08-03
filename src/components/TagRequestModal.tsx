@@ -310,7 +310,7 @@ export const TagRequestModal: React.FC<TagRequestModalProps> = ({
             </div>
 
             <div style={{ fontSize: '13px', fontWeight: 800, color: '#10B981' }}>
-              +{newPoints} Punti Pokédex disponibili!
+              +{newPoints} Punti Collezione disponibili!
             </div>
             <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '2px' }}>
               Accettando, sbloccherai la birra e verrà pubblicata sul tuo feed.

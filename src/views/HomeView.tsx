@@ -760,7 +760,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
             </div>
             
             <p style={{ margin: '12px 0 0 0', fontSize: '13px', color: 'var(--text-muted)', lineHeight: '1.4' }}>
-              <strong>Varianti:</strong> {Array.isArray(featuredBeer?.variants) ? featuredBeer.variants.join(', ') : 'Classica'}. Una birra fantastica da aggiungere al tuo Pokedex del Pub!
+              <strong>Varianti:</strong> {Array.isArray(featuredBeer?.variants) ? featuredBeer.variants.join(', ') : 'Classica'}. Una birra fantastica da aggiungere alla tua Collezione del Pub!
             </p>
 
             <button
