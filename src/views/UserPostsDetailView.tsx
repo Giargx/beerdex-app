@@ -276,7 +276,7 @@ export const UserPostsDetailView: React.FC<UserPostsDetailViewProps> = ({
                         style={{
                           position: 'absolute',
                           top: '12px',
-                          left: '12px',
+                          right: '12px',
                           background: 'rgba(15, 23, 42, 0.85)',
                           backdropFilter: 'blur(8px)',
                           padding: '4px 10px',
@@ -415,18 +415,6 @@ export const UserPostsDetailView: React.FC<UserPostsDetailViewProps> = ({
                         {post.description}
                       </div>
                     )}
-
-                    {post.rating && post.rating > 0 ? (
-                      <div style={{ marginTop: '6px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                        <span style={{ fontSize: '12px', fontWeight: '700', color: 'var(--text-muted)' }}>Valutazione:</span>
-                        <div style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', background: '#FFFBEB', border: '1px solid #FDE68A', padding: '2px 8px', borderRadius: '10px' }}>
-                          <StarRating rating={post.rating} readOnly size={12} />
-                          <span style={{ fontSize: '11px', fontWeight: 800, color: '#D97706' }}>
-                            {post.rating.toFixed(1)}/5
-                          </span>
-                        </div>
-                      </div>
-                    ) : null}
 
                     <div className="post-time" style={{ marginTop: '6px', fontSize: '11px', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '4px' }}>
                       {dateStr}
