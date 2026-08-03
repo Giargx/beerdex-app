@@ -207,6 +207,7 @@ export const PubView: React.FC<PubViewProps> = ({
 
               const likesCount = post.likes ? Object.keys(post.likes).length : 0;
               const isLiked = post.likes && post.likes[currentUserNick];
+              const effectiveRating = post.rating || (post.user === currentUserNick ? myPokedex?.[`${post.brand}-${post.variant}`]?.rating : 0) || 0;
 
               return (
                 <div key={post.postId} className="post-card" data-post-id={post.postId}>
@@ -253,7 +254,7 @@ export const PubView: React.FC<PubViewProps> = ({
                   </div>
 
                   <div className="post-image-container" style={{ position: 'relative', overflow: 'hidden', width: '100%', display: 'block' }}>
-                    {((post.rating && post.rating > 0) || (myPokedex && myPokedex[`${post.brand}-${post.variant}`]?.rating)) && (
+                    {effectiveRating > 0 && (
                       <div
                         style={{
                           position: 'absolute',
@@ -272,10 +273,13 @@ export const PubView: React.FC<PubViewProps> = ({
                         }}
                       >
                         <StarRating
-                          rating={post.rating || myPokedex?.[`${post.brand}-${post.variant}`]?.rating || 0}
+                          rating={effectiveRating}
                           readOnly
                           size={13}
                         />
+                        <span style={{ fontSize: '11px', fontWeight: 800, color: '#FFB300', marginLeft: '2px' }}>
+                          {effectiveRating.toFixed(1)}
+                        </span>
                       </div>
                     )}
                     <img
@@ -321,6 +325,19 @@ export const PubView: React.FC<PubViewProps> = ({
                       {globalDisplayNames?.[post.user] ? globalDisplayNames[post.user] : post.user}
                     </strong>{' '}
                     {actionText}
+
+                    {effectiveRating > 0 && (
+                      <div style={{ marginTop: '6px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <span style={{ fontSize: '12px', fontWeight: '700', color: 'var(--text-muted)' }}>Valutazione:</span>
+                        <div style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', background: '#FFFBEB', border: '1px solid #FDE68A', padding: '2px 8px', borderRadius: '10px' }}>
+                          <StarRating rating={effectiveRating} readOnly size={12} />
+                          <span style={{ fontSize: '11px', fontWeight: 800, color: '#D97706' }}>
+                            {effectiveRating.toFixed(1)}/5
+                          </span>
+                        </div>
+                      </div>
+                    )}
+
                     <div className="post-time" style={{ marginTop: '6px', fontSize: '11px', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '4px' }}>
                       {timeStr}
                       {post.isShiny && (

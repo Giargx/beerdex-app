@@ -1419,6 +1419,20 @@ export default function App() {
     try {
       const uniqueId = `${brand}-${variant}`;
       await update(ref(db, `pokedex_profiles/${currentUserNick}/${uniqueId}`), { rating });
+
+      const postsSnap = await get(ref(db, 'social_timeline'));
+      if (postsSnap.exists()) {
+        const postsData = postsSnap.val();
+        const updatesObj: Record<string, any> = {};
+        Object.entries(postsData).forEach(([postId, p]: [string, any]) => {
+          if (p && p.user === currentUserNick && p.brand === brand && p.variant === variant) {
+            updatesObj[`social_timeline/${postId}/rating`] = rating;
+          }
+        });
+        if (Object.keys(updatesObj).length > 0) {
+          await update(ref(db), updatesObj);
+        }
+      }
     } catch (err) {
       console.error("Error rating beer:", err);
     }
