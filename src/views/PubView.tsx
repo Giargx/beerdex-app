@@ -238,28 +238,20 @@ export const PubView: React.FC<PubViewProps> = ({
                         <div className="post-user clickable-user" onClick={() => onOpenPublicProfile(post.user)}>
                           {globalDisplayNames?.[post.user] || post.user}
                         </div>
-                        <div className="post-time" style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                          {timeStr}
-                          {post.isShiny && (
-                            <span style={{ color: 'var(--primary-dark)', fontSize: '11px', display: 'inline-flex', alignItems: 'center', gap: '2px', marginLeft: '4px' }}>
-                              <span className="material-symbols-outlined" style={{ fontSize: '13px' }}>
-                                auto_awesome
-                              </span>{' '}
-                              Shiny!
-                            </span>
-                          )}
-                        </div>
                       </div>
                     </div>
-                    {canDelete && (
-                      <button
-                        className="btn-delete"
-                        onClick={() => onDeletePost(post.postId, post.user, post.brand, post.variant)}
-                        title="Elimina post e punti"
-                      >
-                        <span className="material-symbols-outlined">delete</span>
-                      </button>
-                    )}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      {pointsBadge}
+                      {canDelete && (
+                        <button
+                          className="btn-delete"
+                          onClick={() => onDeletePost(post.postId, post.user, post.brand, post.variant)}
+                          title="Elimina post e punti"
+                        >
+                          <span className="material-symbols-outlined">delete</span>
+                        </button>
+                      )}
+                    </div>
                   </div>
 
                   <div className="post-image-container" style={{ position: 'relative', overflow: 'hidden', width: '100%', display: 'block' }}>
@@ -331,6 +323,17 @@ export const PubView: React.FC<PubViewProps> = ({
                       {globalDisplayNames?.[post.user] ? globalDisplayNames[post.user] : post.user}
                     </strong>{' '}
                     {actionText}
+                    <div className="post-time" style={{ marginTop: '6px', fontSize: '11px', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                      {timeStr}
+                      {post.isShiny && (
+                        <span style={{ color: 'var(--primary-dark)', fontSize: '11px', display: 'inline-flex', alignItems: 'center', gap: '2px', marginLeft: '4px', fontWeight: 'bold' }}>
+                          <span className="material-symbols-outlined" style={{ fontSize: '13px' }}>
+                            auto_awesome
+                          </span>{' '}
+                          Shiny!
+                        </span>
+                      )}
+                    </div>
                   </div>
                 </div>
               );

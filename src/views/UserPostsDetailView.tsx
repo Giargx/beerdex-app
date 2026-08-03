@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { StarRating } from '../components/StarRating';
-import { formatBeerTitle } from '../beers';
+import { formatBeerTitle, getBasePoints } from '../beers';
 
 interface UserPostsDetailViewProps {
   username: string;
@@ -181,6 +181,10 @@ export const UserPostsDetailView: React.FC<UserPostsDetailViewProps> = ({
               const canDelete = post.user === currentUserNick || isAdminUser;
               const canReport = post.user !== currentUserNick;
 
+              const basePts = getBasePoints(post.brand, post.variant);
+              let earnedPts = basePts;
+              if (post.isShiny) earnedPts *= 2;
+
               return (
                 <div
                   key={post.postId}
@@ -233,29 +237,36 @@ export const UserPostsDetailView: React.FC<UserPostsDetailViewProps> = ({
                         >
                           {postUserDisplayName}
                         </div>
-                        <div className="post-time" style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '11px', color: 'var(--text-muted)' }}>
-                          {dateStr}
-                          {post.isShiny && (
-                            <span style={{ color: 'var(--primary-dark)', fontSize: '10px', display: 'inline-flex', alignItems: 'center', gap: '2px', marginLeft: '4px', fontWeight: 'bold' }}>
-                              <span className="material-symbols-outlined" style={{ fontSize: '12px' }}>
-                                auto_awesome
-                              </span>{' '}
-                              Shiny!
-                            </span>
-                          )}
-                        </div>
                       </div>
                     </div>
-                    {canDelete && onDeletePost && (
-                      <button
-                        className="btn-delete"
-                        onClick={() => onDeletePost(post.postId, post.user, post.brand, post.variant)}
-                        title="Elimina post e punti"
-                        style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: 'var(--text-muted)' }}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <span
+                        className="pts-tag"
+                        style={{
+                          color: 'white',
+                          fontWeight: 'bold',
+                          fontSize: '11px',
+                          background: '#e67e22',
+                          padding: '2px 6px',
+                          borderRadius: '6px',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          boxShadow: '0 1px 3px rgba(0,0,0,0.15)',
+                        }}
                       >
-                        <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>delete</span>
-                      </button>
-                    )}
+                        +{earnedPts} pt
+                      </span>
+                      {canDelete && onDeletePost && (
+                        <button
+                          className="btn-delete"
+                          onClick={() => onDeletePost(post.postId, post.user, post.brand, post.variant)}
+                          title="Elimina post e punti"
+                          style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: 'var(--text-muted)' }}
+                        >
+                          <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>delete</span>
+                        </button>
+                      )}
+                    </div>
                   </div>
 
                   {/* Card Photo */}
@@ -401,6 +412,18 @@ export const UserPostsDetailView: React.FC<UserPostsDetailViewProps> = ({
                         {post.description}
                       </div>
                     )}
+
+                    <div className="post-time" style={{ marginTop: '6px', fontSize: '11px', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                      {dateStr}
+                      {post.isShiny && (
+                        <span style={{ color: 'var(--primary-dark)', fontSize: '10px', display: 'inline-flex', alignItems: 'center', gap: '2px', marginLeft: '4px', fontWeight: 'bold' }}>
+                          <span className="material-symbols-outlined" style={{ fontSize: '12px' }}>
+                            auto_awesome
+                          </span>{' '}
+                          Shiny!
+                        </span>
+                      )}
+                    </div>
                   </div>
                 </div>
               );
