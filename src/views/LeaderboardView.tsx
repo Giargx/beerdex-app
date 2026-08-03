@@ -410,7 +410,7 @@ export const LeaderboardView: React.FC<LeaderboardViewProps> = ({
             <div style={{
               background: 'linear-gradient(180deg, #1E293B 0%, #0F172A 100%)',
               borderRadius: '28px',
-              padding: '24px 14px 18px 14px',
+              padding: '24px 14px 0 14px',
               marginBottom: '25px',
               color: '#FFFFFF',
               boxShadow: '0 15px 35px rgba(15, 23, 42, 0.15)',
@@ -420,13 +420,13 @@ export const LeaderboardView: React.FC<LeaderboardViewProps> = ({
             }}>
               <FoamBubbles />
               
-              <div style={{ position: 'relative', zIndex: 2, textAlign: 'center', marginBottom: '34px', paddingTop: '4px' }}>
+              <div style={{ position: 'relative', zIndex: 2, textAlign: 'center', marginBottom: '24px', paddingTop: '4px' }}>
                 <span style={{ fontSize: '11px', fontWeight: 900, letterSpacing: '1px', color: '#FFB300', textTransform: 'uppercase' }}>
                   🏆 Podio del Bancone
                 </span>
               </div>
 
-              {/* PODIUM 3 COLUMNS */}
+              {/* PODIUM 3 COLUMNS ALIGNED AT BASELINE */}
               <div style={{
                 display: 'flex',
                 alignItems: 'flex-end',
@@ -495,6 +495,7 @@ export const LeaderboardView: React.FC<LeaderboardViewProps> = ({
                       height: '65px',
                       background: 'linear-gradient(180deg, rgba(148, 163, 184, 0.3) 0%, rgba(148, 163, 184, 0.05) 100%)',
                       border: '1px solid rgba(148, 163, 184, 0.4)',
+                      borderBottom: 'none',
                       borderRadius: '16px 16px 0 0',
                       display: 'flex',
                       alignItems: 'center',
@@ -506,7 +507,7 @@ export const LeaderboardView: React.FC<LeaderboardViewProps> = ({
                   </div>
                 ) : <div style={{ flex: 1 }} />}
 
-                {/* 1st PLACE (CENTER - ELEVATED) */}
+                {/* 1st PLACE (CENTER - ALIGNED AT BASELINE) */}
                 {top1 ? (
                   <div
                     onClick={() => onOpenPublicProfile ? onOpenPublicProfile(top1.name) : null}
@@ -515,8 +516,7 @@ export const LeaderboardView: React.FC<LeaderboardViewProps> = ({
                       display: 'flex',
                       flexDirection: 'column',
                       alignItems: 'center',
-                      cursor: 'pointer',
-                      transform: 'translateY(-8px)'
+                      cursor: 'pointer'
                     }}
                   >
                     <div style={{ position: 'relative', marginBottom: '6px' }}>
@@ -565,9 +565,10 @@ export const LeaderboardView: React.FC<LeaderboardViewProps> = ({
                     {/* Podium base 1st */}
                     <div style={{
                       width: '100%',
-                      height: '90px',
+                      height: '95px',
                       background: 'linear-gradient(180deg, rgba(255, 179, 0, 0.35) 0%, rgba(255, 111, 0, 0.08) 100%)',
                       border: '1px solid rgba(255, 179, 0, 0.5)',
+                      borderBottom: 'none',
                       borderRadius: '18px 18px 0 0',
                       display: 'flex',
                       alignItems: 'center',
@@ -636,9 +637,10 @@ export const LeaderboardView: React.FC<LeaderboardViewProps> = ({
                     {/* Podium base 3rd */}
                     <div style={{
                       width: '100%',
-                      height: '50px',
+                      height: '45px',
                       background: 'linear-gradient(180deg, rgba(217, 119, 6, 0.3) 0%, rgba(217, 119, 6, 0.05) 100%)',
                       border: '1px solid rgba(217, 119, 6, 0.4)',
+                      borderBottom: 'none',
                       borderRadius: '16px 16px 0 0',
                       display: 'flex',
                       alignItems: 'center',
