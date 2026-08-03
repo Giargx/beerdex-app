@@ -236,7 +236,7 @@ export const PubView: React.FC<PubViewProps> = ({
                       </div>
                       <div>
                         <div className="post-user clickable-user" onClick={() => onOpenPublicProfile(post.user)}>
-                          {globalDisplayNames?.[post.user] ? `${globalDisplayNames[post.user]} (@${post.user})` : post.user}
+                          {globalDisplayNames?.[post.user] || post.user}
                         </div>
                         <div className="post-time" style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                           {timeStr}

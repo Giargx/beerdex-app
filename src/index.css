@@ -855,7 +855,7 @@ header.hero p {
     background: var(--white); 
     border-radius: 0; 
     border: none; 
-    border-bottom: 8px solid var(--light); 
+    border-bottom: 1px solid rgba(226, 232, 240, 0.6); 
     overflow: hidden; 
     margin-bottom: 0; 
     box-shadow: none; 
@@ -968,7 +968,7 @@ header.hero p {
     .post-card { 
         border-radius: 0; 
         border: none; 
-        border-bottom: 8px solid var(--light); 
+        border-bottom: 1px solid rgba(226, 232, 240, 0.6); 
         margin-bottom: 0; 
         box-shadow: none; 
     }
