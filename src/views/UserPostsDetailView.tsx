@@ -160,8 +160,8 @@ export const UserPostsDetailView: React.FC<UserPostsDetailViewProps> = ({
       </div>
 
       {/* Main Content Area */}
-      <div style={{ flexGrow: 1, padding: '15px 12px 30px 12px' }}>
-        <div style={{ maxWidth: '600px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '20px' }}>
+      <div className="social-page-container" style={{ flexGrow: 1 }}>
+        <div className="social-feed">
           {myPosts.length === 0 ? (
             <div style={{ textAlign: 'center', padding: '40px 20px', color: 'var(--text-muted)' }}>
               <span className="material-symbols-outlined" style={{ fontSize: '48px', marginBottom: '10px' }}>photo_camera</span>
@@ -285,7 +285,6 @@ export const UserPostsDetailView: React.FC<UserPostsDetailViewProps> = ({
                       src={post.photo}
                       className="post-image"
                       alt={`${post.brand} - ${post.variant}`}
-                      style={{ width: '100%', height: '360px', objectFit: 'cover' }}
                       onDoubleClick={(e) => handlePostDoubleTap(post.postId, e)}
                       onContextMenu={(e) => e.preventDefault()}
                       draggable={false}
