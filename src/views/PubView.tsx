@@ -183,7 +183,6 @@ export const PubView: React.FC<PubViewProps> = ({
               let actionText: React.ReactNode = (
                 <>
                   ha sbloccato la 🍺 <strong className="beer-highlight">{formatBeerTitle(post.brand)}</strong> ({formatBeerTitle(post.variant)})
-                  {pointsBadge}
                 </>
               );
 
@@ -194,7 +193,6 @@ export const PubView: React.FC<PubViewProps> = ({
                     <strong className="clickable-user" onClick={() => onOpenPublicProfile(post.taggedFriend!)}>
                       {post.taggedFriend}
                     </strong>
-                    {pointsBadge}
                   </>
                 );
               }
