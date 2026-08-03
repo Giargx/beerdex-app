@@ -17,6 +17,7 @@ interface Post {
 interface HomeViewProps {
   currentUserNick: string;
   currentUserDisplayName?: string;
+  currentUserAvatar?: string;
   posts: Post[];
   leaderboardScores: Record<string, number>;
   myFriendsList?: string[];
@@ -32,6 +33,7 @@ interface HomeViewProps {
 export const HomeView: React.FC<HomeViewProps> = ({
   currentUserNick,
   currentUserDisplayName,
+  currentUserAvatar,
   posts,
   leaderboardScores,
   myFriendsList = [],
@@ -393,21 +395,35 @@ export const HomeView: React.FC<HomeViewProps> = ({
           {/* Header Row */}
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-              <div style={{
-                width: '46px',
-                height: '46px',
-                borderRadius: '50%',
-                background: 'linear-gradient(135deg, var(--primary), var(--primary-dark))',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                color: '#0F172A',
-                fontWeight: 900,
-                fontSize: '20px',
-                boxShadow: '0 4px 15px rgba(255, 179, 0, 0.3)',
-                border: '2px solid rgba(255, 255, 255, 0.8)'
-              }}>
-                {greetingName.charAt(0).toUpperCase()}
+              <div
+                onClick={() => onNavigate('page-profile')}
+                title="Vai al tuo Profilo"
+                style={{
+                  width: '46px',
+                  height: '46px',
+                  borderRadius: '50%',
+                  background: 'linear-gradient(135deg, var(--primary), var(--primary-dark))',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: '#0F172A',
+                  fontWeight: 900,
+                  fontSize: '20px',
+                  boxShadow: '0 4px 15px rgba(255, 179, 0, 0.3)',
+                  border: '2px solid rgba(255, 255, 255, 0.8)',
+                  overflow: 'hidden',
+                  cursor: 'pointer'
+                }}
+              >
+                {currentUserAvatar ? (
+                  <img
+                    src={currentUserAvatar}
+                    alt={greetingName}
+                    style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                  />
+                ) : (
+                  greetingName.charAt(0).toUpperCase()
+                )}
               </div>
               <div style={{ textAlign: 'left' }}>
                 <div style={{ fontSize: '12px', color: '#94A3B8', fontWeight: 600 }}>

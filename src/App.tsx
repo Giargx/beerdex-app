@@ -2341,6 +2341,7 @@ export default function App() {
                   <HomeView
                     currentUserNick={currentUserNick}
                     currentUserDisplayName={globalDisplayNames[currentUserNick]}
+                    currentUserAvatar={globalAvatars[currentUserNick]}
                     posts={globalPosts}
                     leaderboardScores={globalLeaderboardScores}
                     myFriendsList={myFriendsList}
