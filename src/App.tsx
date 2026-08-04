@@ -88,6 +88,7 @@ export default function App() {
   const [myRejectedRequests, setMyRejectedRequests] = useState<string[]>([]);
   const [globalAvatars, setGlobalAvatars] = useState<Record<string, string>>({});
   const [globalDisplayNames, setGlobalDisplayNames] = useState<Record<string, string>>({});
+  const [allPokedexProfiles, setAllPokedexProfiles] = useState<Record<string, Record<string, any>>>({});
 
   // Proposal & Custom Beers State
   const [customBeers, setCustomBeers] = useState<Beer[]>([]);
@@ -699,6 +700,11 @@ export default function App() {
     // Leaderboard Scores
     onValue(ref(db, 'leaderboard_scores'), (snap) => {
       setGlobalLeaderboardScores(snap.val() || {});
+    });
+
+    // All Pokedex Profiles (for Ratings & Stats)
+    onValue(ref(db, 'pokedex_profiles'), (snap) => {
+      setAllPokedexProfiles(snap.val() || {});
     });
   };
 
@@ -2491,6 +2497,7 @@ export default function App() {
                     myFriendsList={myFriendsList}
                     isAdminUser={isAdminUser}
                     myPokedex={myPokedex}
+                    allPokedexProfiles={allPokedexProfiles}
                     onToggleLike={handleToggleLike}
                     onDeletePost={handleDeletePost}
                     onReportFakePost={handleReportFakePost}
@@ -2636,6 +2643,7 @@ export default function App() {
               initialPostId={detailViewPostId}
               globalDisplayNames={globalDisplayNames}
               globalAvatars={globalAvatars}
+              allPokedexProfiles={allPokedexProfiles}
               onDeletePost={handleDeletePost}
               onReportFakePost={handleReportFakePost}
               onOpenPublicProfile={handleOpenPublicProfile}

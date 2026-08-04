@@ -31,6 +31,7 @@ interface PubViewProps {
   myFriendsList: string[];
   isAdminUser: boolean;
   myPokedex?: Record<string, PokedexEntry>;
+  allPokedexProfiles?: Record<string, Record<string, PokedexEntry>>;
   onToggleLike: (postId: string, cardElement: HTMLElement | null) => void;
   onDeletePost: (postId: string, postUser: string, brand: string, variant: string) => void;
   onReportFakePost: (postId: string, postUser: string, brand: string, variant: string) => void;
@@ -46,6 +47,7 @@ export const PubView: React.FC<PubViewProps> = ({
   myFriendsList,
   isAdminUser,
   myPokedex,
+  allPokedexProfiles,
   onToggleLike,
   onDeletePost,
   onReportFakePost,
@@ -631,7 +633,10 @@ export const PubView: React.FC<PubViewProps> = ({
 
               const likesCount = post.likes ? Object.keys(post.likes).length : 0;
               const isLiked = post.likes && post.likes[currentUserNick];
-              const effectiveRating = post.rating || (post.user === currentUserNick ? myPokedex?.[`${post.brand}-${post.variant}`]?.rating : 0) || 0;
+              const authorPokedex = allPokedexProfiles?.[post.user] || (post.user === currentUserNick ? myPokedex : undefined);
+              const effectiveRating =
+                (typeof post.rating === 'number' && post.rating > 0 ? post.rating : 0) ||
+                (authorPokedex?.[`${post.brand}-${post.variant}`]?.rating || 0);
 
               return (
                 <div
@@ -1065,6 +1070,7 @@ export const PubView: React.FC<PubViewProps> = ({
           currentUserNick={currentUserNick}
           globalAvatars={globalAvatars}
           globalDisplayNames={globalDisplayNames}
+          allPokedexProfiles={allPokedexProfiles}
           onClose={() => setActiveStoryViewerIndex(null)}
           onToggleLike={onToggleLike}
           onOpenPublicProfile={onOpenPublicProfile}

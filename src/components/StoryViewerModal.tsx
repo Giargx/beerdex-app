@@ -21,6 +21,7 @@ interface StoryViewerModalProps {
   currentUserNick: string;
   globalAvatars?: Record<string, string>;
   globalDisplayNames?: Record<string, string>;
+  allPokedexProfiles?: Record<string, Record<string, any>>;
   onClose: () => void;
   onToggleLike: (postId: string, element: HTMLElement | null) => void;
   onOpenPublicProfile: (username: string) => void;
@@ -33,6 +34,7 @@ export const StoryViewerModal: React.FC<StoryViewerModalProps> = ({
   currentUserNick,
   globalAvatars = {},
   globalDisplayNames = {},
+  allPokedexProfiles = {},
   onClose,
   onToggleLike,
   onOpenPublicProfile,
@@ -278,11 +280,20 @@ export const StoryViewerModal: React.FC<StoryViewerModalProps> = ({
             <div style={{ color: 'rgba(255, 255, 255, 0.8)', fontSize: '12px', fontWeight: 600 }}>
               {formatBeerTitle(currentStory.variant)} • <span style={{ color: '#FDE047' }}>+{earnedPts} pt</span>
             </div>
-            {currentStory.rating && currentStory.rating > 0 ? (
-              <div style={{ marginTop: '4px' }}>
-                <StarRating rating={currentStory.rating} readOnly size={12} />
-              </div>
-            ) : null}
+            {(() => {
+              const authorPokedex = allPokedexProfiles?.[currentStory.user];
+              const effectiveRating =
+                (typeof currentStory.rating === 'number' && currentStory.rating > 0 ? currentStory.rating : 0) ||
+                (authorPokedex?.[`${currentStory.brand}-${currentStory.variant}`]?.rating || 0);
+
+              if (effectiveRating <= 0) return null;
+
+              return (
+                <div style={{ marginTop: '4px' }}>
+                  <StarRating rating={effectiveRating} readOnly size={12} />
+                </div>
+              );
+            })()}
           </div>
 
           <button

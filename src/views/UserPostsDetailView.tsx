@@ -15,6 +15,7 @@ interface UserPostsDetailViewProps {
   initialPostId: string;
   globalDisplayNames?: Record<string, string>;
   globalAvatars?: Record<string, string>;
+  allPokedexProfiles?: Record<string, Record<string, any>>;
   onDeletePost?: (postId: string, user: string, brand: string, variant: string) => void;
   onReportFakePost?: (postId: string, user: string, brand: string, variant: string) => void;
   onOpenPublicProfile: (username: string) => void;
@@ -32,6 +33,7 @@ export const UserPostsDetailView: React.FC<UserPostsDetailViewProps> = ({
   initialPostId,
   globalDisplayNames = {},
   globalAvatars = {},
+  allPokedexProfiles = {},
   onDeletePost,
   onReportFakePost,
   onOpenPublicProfile,
@@ -275,30 +277,39 @@ export const UserPostsDetailView: React.FC<UserPostsDetailViewProps> = ({
 
                   {/* Card Photo */}
                   <div className="post-image-container" style={{ position: 'relative', overflow: 'hidden', width: '100%', display: 'block', background: '#F8FAFC' }}>
-                    {post.rating && post.rating > 0 ? (
-                      <div
-                        style={{
-                          position: 'absolute',
-                          top: '12px',
-                          right: '12px',
-                          background: 'rgba(15, 23, 42, 0.85)',
-                          backdropFilter: 'blur(8px)',
-                          padding: '4px 10px',
-                          borderRadius: '20px',
-                          zIndex: 5,
-                          boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
-                          border: '1px solid rgba(255,255,255,0.15)',
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '4px',
-                        }}
-                      >
-                        <StarRating rating={post.rating} readOnly size={13} />
-                        <span style={{ fontSize: '11px', fontWeight: 800, color: '#FFB300', marginLeft: '2px' }}>
-                          {post.rating.toFixed(1)}
-                        </span>
-                      </div>
-                    ) : null}
+                    {(() => {
+                      const authorPokedex = allPokedexProfiles?.[post.user];
+                      const effectiveRating =
+                        (typeof post.rating === 'number' && post.rating > 0 ? post.rating : 0) ||
+                        (authorPokedex?.[`${post.brand}-${post.variant}`]?.rating || 0);
+
+                      if (effectiveRating <= 0) return null;
+
+                      return (
+                        <div
+                          style={{
+                            position: 'absolute',
+                            top: '12px',
+                            right: '12px',
+                            background: 'rgba(15, 23, 42, 0.85)',
+                            backdropFilter: 'blur(8px)',
+                            padding: '4px 10px',
+                            borderRadius: '20px',
+                            zIndex: 5,
+                            boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
+                            border: '1px solid rgba(255,255,255,0.15)',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '4px',
+                          }}
+                        >
+                          <StarRating rating={effectiveRating} readOnly size={13} />
+                          <span style={{ fontSize: '11px', fontWeight: 800, color: '#FFB300', marginLeft: '2px' }}>
+                            {effectiveRating.toFixed(1)}
+                          </span>
+                        </div>
+                      );
+                    })()}
                     <img
                       src={post.photo}
                       className="post-image"
