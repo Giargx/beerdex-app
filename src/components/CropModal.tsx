@@ -50,8 +50,6 @@ export const CropModal: React.FC<CropModalProps> = ({
     }
   }, [isOpen, imageSrc]);
 
-  if (!isOpen) return null;
-
   const clampPosition = (x: number, y: number, currentZoom: number) => {
     const w = baseSize.width * currentZoom;
     const h = baseSize.height * currentZoom;
@@ -140,6 +138,8 @@ export const CropModal: React.FC<CropModalProps> = ({
     }
   }, [isOpen, position, zoom, baseSize]);
 
+  if (!isOpen) return null;
+
   const handleConfirmCrop = () => {
     const imgEl = imageRef.current;
     if (!imgEl) return;
@@ -158,7 +158,6 @@ export const CropModal: React.FC<CropModalProps> = ({
     const ctx = canvas.getContext('2d');
     
     if (ctx) {
-      // Draw image to canvas
       ctx.drawImage(
         imgEl,
         cropX,
