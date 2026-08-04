@@ -2505,6 +2505,7 @@ export default function App() {
                     onDeletePost={handleDeletePost}
                     onReportFakePost={handleReportFakePost}
                     onOpenPublicProfile={handleOpenPublicProfile}
+                    onOpenScanner={() => setScannerConfig({ open: true, brand: '', variant: '' })}
                     getAvatarZoomProps={getAvatarZoomProps}
                   />
                 )}
@@ -2553,6 +2554,7 @@ export default function App() {
                     myTagRequests={myTagRequests}
                     onOpenTagRequest={(req) => setActiveTagRequestModal(req)}
                     onChangeAvatar={() => setAvatarSelectorOpen(true)}
+                    onOpenScanner={() => setScannerConfig({ open: true, brand: '', variant: '' })}
                   />
                 )}
               </div>

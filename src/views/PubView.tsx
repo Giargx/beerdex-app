@@ -36,6 +36,7 @@ interface PubViewProps {
   onDeletePost: (postId: string, postUser: string, brand: string, variant: string) => void;
   onReportFakePost: (postId: string, postUser: string, brand: string, variant: string) => void;
   onOpenPublicProfile: (username: string) => void;
+  onOpenScanner?: () => void;
   getAvatarZoomProps?: (url: string | undefined) => any;
 }
 
@@ -52,6 +53,7 @@ export const PubView: React.FC<PubViewProps> = ({
   onDeletePost,
   onReportFakePost,
   onOpenPublicProfile,
+  onOpenScanner,
   getAvatarZoomProps,
 }) => {
   const [activeFilter, setActiveFilter] = useState<'all' | 'friends' | 'me'>('all');
@@ -315,23 +317,128 @@ export const PubView: React.FC<PubViewProps> = ({
       </header>
 
       {/* 24h Instagram-style Stories Carousel Bar */}
-      {storyPosts.length > 0 && (
-        <div style={{ maxWidth: '640px', margin: '16px auto 0 auto', padding: '0 16px' }}>
-          <div style={{ fontSize: '12px', fontWeight: 800, color: '#64748B', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '4px' }}>
-            <span className="material-symbols-outlined" style={{ fontSize: '16px', color: '#F59E0B' }}>auto_awesome</span>
-            STORIE DEL PUB (24H)
-          </div>
-          <div
-            style={{
-              display: 'flex',
-              gap: '14px',
-              overflowX: 'auto',
-              padding: '4px 2px 10px 2px',
-              touchAction: 'pan-x',
-              overscrollBehaviorX: 'contain',
-            }}
-          >
-            {storyPosts.map((story, idx) => {
+      <div style={{ maxWidth: '640px', margin: '16px auto 0 auto', padding: '0 16px' }}>
+        <div style={{ fontSize: '12px', fontWeight: 800, color: '#64748B', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+          <span className="material-symbols-outlined" style={{ fontSize: '16px', color: '#F59E0B' }}>auto_awesome</span>
+          STORIE DEL PUB (24H)
+        </div>
+        <div
+          style={{
+            display: 'flex',
+            gap: '14px',
+            overflowX: 'auto',
+            padding: '4px 2px 10px 2px',
+            touchAction: 'pan-x',
+            overscrollBehaviorX: 'contain',
+          }}
+        >
+          {/* 1st Story Item: My Story / Create Story with Camera Badge */}
+          {(() => {
+            const myAvatar = globalAvatars[currentUserNick];
+            const myStoryIdx = storyPosts.findIndex((s) => s.user === currentUserNick);
+            const hasMyStory = myStoryIdx !== -1;
+
+            return (
+              <div
+                onClick={() => {
+                  if (hasMyStory) {
+                    setActiveStoryViewerIndex(myStoryIdx);
+                  } else if (onOpenScanner) {
+                    onOpenScanner();
+                  }
+                }}
+                style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  cursor: 'pointer',
+                  flexShrink: 0,
+                }}
+              >
+                <div
+                  style={{
+                    position: 'relative',
+                    width: '60px',
+                    height: '60px',
+                    borderRadius: '50%',
+                    padding: '3px',
+                    background: hasMyStory
+                      ? 'linear-gradient(45deg, #F59E0B, #E67E22, #EC4899)'
+                      : '#CBD5E1',
+                    boxShadow: '0 4px 10px rgba(0,0,0,0.1)',
+                  }}
+                >
+                  <div
+                    style={{
+                      width: '100%',
+                      height: '100%',
+                      borderRadius: '50%',
+                      overflow: 'hidden',
+                      background: '#FFFFFF',
+                      border: '2px solid #FFFFFF',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                    }}
+                  >
+                    {myAvatar ? (
+                      <img src={myAvatar} alt="La tua storia" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    ) : (
+                      <span className="material-symbols-outlined" style={{ fontSize: '32px', color: '#64748B' }}>person</span>
+                    )}
+                  </div>
+
+                  {/* Camera Badge to Add Story */}
+                  <div
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      if (onOpenScanner) onOpenScanner();
+                    }}
+                    title="Aggiungi una Storia (Scatta foto)"
+                    style={{
+                      position: 'absolute',
+                      bottom: '-2px',
+                      right: '-2px',
+                      width: '22px',
+                      height: '22px',
+                      borderRadius: '50%',
+                      background: 'linear-gradient(135deg, #F59E0B 0%, #D97706 100%)',
+                      color: '#FFFFFF',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      border: '2px solid #FFFFFF',
+                      boxShadow: '0 2px 6px rgba(0,0,0,0.2)',
+                    }}
+                  >
+                    <span className="material-symbols-outlined" style={{ fontSize: '13px', fontWeight: 900 }}>
+                      photo_camera
+                    </span>
+                  </div>
+                </div>
+                <span
+                  style={{
+                    fontSize: '11px',
+                    fontWeight: 800,
+                    color: '#0F172A',
+                    marginTop: '4px',
+                    maxWidth: '64px',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    whiteSpace: 'nowrap',
+                  }}
+                >
+                  La tua storia
+                </span>
+              </div>
+            );
+          })()}
+
+          {/* Other Friends' Stories */}
+          {storyPosts
+            .filter((s) => s.user !== currentUserNick)
+            .map((story) => {
+              const idx = storyPosts.findIndex((p) => p.postId === story.postId);
               const av = globalAvatars[story.user];
               const disp = globalDisplayNames?.[story.user] || story.user;
               return (
@@ -364,6 +471,9 @@ export const PubView: React.FC<PubViewProps> = ({
                         overflow: 'hidden',
                         background: '#FFFFFF',
                         border: '2px solid #FFFFFF',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
                       }}
                     >
                       {av ? (
@@ -390,9 +500,8 @@ export const PubView: React.FC<PubViewProps> = ({
                 </div>
               );
             })}
-          </div>
         </div>
-      )}
+      </div>
 
       {/* Filter Tabs & Search Control Bar */}
       <div style={{ maxWidth: '640px', margin: '12px auto 0 auto', padding: '0 16px' }}>

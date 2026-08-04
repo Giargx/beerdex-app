@@ -27,6 +27,7 @@ interface ProfileViewProps {
   myTagRequests?: any[];
   onOpenTagRequest?: (req: any) => void;
   onChangeAvatar?: () => void;
+  onOpenScanner?: () => void;
 }
 
 export const ProfileView: React.FC<ProfileViewProps> = ({
@@ -52,8 +53,10 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
   myTagRequests = [],
   onOpenTagRequest,
   onChangeAvatar,
+  onOpenScanner,
 }) => {
   const [activeTab, setActiveTab] = useState<'collection' | 'posts' | 'stats' | 'ratings'>('posts');
+  const [profileCameraMenuOpen, setProfileCameraMenuOpen] = useState<boolean>(false);
   const [variantSort, setVariantSort] = useState<'alpha' | 'unlocked' | 'rarity' | 'nation'>('unlocked');
   const [variantSortDir, setVariantSortDir] = useState<number>(1);
   const [medalSort, setMedalSort] = useState<'alpha' | 'unlocked' | 'rarity' | 'nation'>('unlocked');
@@ -279,28 +282,28 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
               <button
                 onClick={(e) => {
                   e.stopPropagation();
-                  onChangeAvatar();
+                  setProfileCameraMenuOpen(true);
                 }}
-                title="Cambia foto profilo"
+                title="Fotocamera e Storie"
                 style={{
                   position: 'absolute',
                   bottom: '12px',
                   right: '-4px',
-                  width: '32px',
-                  height: '32px',
+                  width: '34px',
+                  height: '34px',
                   borderRadius: '50%',
-                  background: 'var(--primary-dark)',
+                  background: 'linear-gradient(135deg, #F59E0B 0%, #D97706 100%)',
                   color: 'white',
                   border: '2px solid white',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
                   cursor: 'pointer',
-                  boxShadow: '0 2px 6px rgba(0,0,0,0.25)',
+                  boxShadow: '0 2px 8px rgba(0,0,0,0.3)',
                   zIndex: 10
                 }}
               >
-                <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>
+                <span className="material-symbols-outlined" style={{ fontSize: '19px' }}>
                   photo_camera
                 </span>
               </button>
@@ -1149,6 +1152,151 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
                 })}
               </div>
             )}
+          </div>
+        </div>
+      )}
+      {/* Profile Camera Options Modal Sheet */}
+      {profileCameraMenuOpen && (
+        <div
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            width: '100vw',
+            height: '100vh',
+            backgroundColor: 'rgba(15, 23, 42, 0.65)',
+            backdropFilter: 'blur(10px)',
+            WebkitBackdropFilter: 'blur(10px)',
+            zIndex: 99999,
+            display: 'flex',
+            alignItems: 'flex-end',
+            justifyContent: 'center',
+            padding: '0 0 16px 0',
+          }}
+          onClick={() => setProfileCameraMenuOpen(false)}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              width: '100%',
+              maxWidth: '480px',
+              background: '#FFFFFF',
+              borderRadius: '24px 24px 20px 20px',
+              padding: '24px 20px 20px 20px',
+              boxShadow: '0 -10px 40px rgba(0, 0, 0, 0.25)',
+              textAlign: 'left',
+            }}
+          >
+            <div
+              style={{
+                width: '40px',
+                height: '4px',
+                background: '#CBD5E1',
+                borderRadius: '2px',
+                margin: '0 auto 18px auto',
+              }}
+            />
+
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
+              <h3 style={{ margin: 0, color: '#0F172A', fontSize: '18px', fontWeight: 900 }}>
+                Fotocamera & Storie
+              </h3>
+              <button
+                onClick={() => setProfileCameraMenuOpen(false)}
+                style={{
+                  background: '#F1F5F9',
+                  border: 'none',
+                  borderRadius: '50%',
+                  width: '32px',
+                  height: '32px',
+                  cursor: 'pointer',
+                  color: '#64748B',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
+                <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>close</span>
+              </button>
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+              {/* Add Story */}
+              {onOpenScanner && (
+                <button
+                  onClick={() => {
+                    setProfileCameraMenuOpen(false);
+                    onOpenScanner();
+                  }}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '14px',
+                    padding: '14px 16px',
+                    borderRadius: '16px',
+                    border: '1px solid #FDE68A',
+                    background: '#FFFDF5',
+                    color: '#D97706',
+                    fontSize: '14px',
+                    fontWeight: 800,
+                    cursor: 'pointer',
+                  }}
+                >
+                  <span className="material-symbols-outlined" style={{ color: '#F59E0B', fontSize: '22px' }}>
+                    auto_awesome
+                  </span>
+                  <span>Crea Nuova Storia (24h)</span>
+                </button>
+              )}
+
+              {/* Change Avatar */}
+              {onChangeAvatar && (
+                <button
+                  onClick={() => {
+                    setProfileCameraMenuOpen(false);
+                    onChangeAvatar();
+                  }}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '14px',
+                    padding: '14px 16px',
+                    borderRadius: '16px',
+                    border: '1px solid #E2E8F0',
+                    background: '#F8FAFC',
+                    color: '#0F172A',
+                    fontSize: '14px',
+                    fontWeight: 800,
+                    cursor: 'pointer',
+                  }}
+                >
+                  <span className="material-symbols-outlined" style={{ color: '#64748B', fontSize: '22px' }}>
+                    account_circle
+                  </span>
+                  <span>Aggiorna Foto Profilo</span>
+                </button>
+              )}
+
+              <button
+                onClick={() => setProfileCameraMenuOpen(false)}
+                style={{
+                  marginTop: '4px',
+                  padding: '12px',
+                  borderRadius: '16px',
+                  border: 'none',
+                  background: '#F1F5F9',
+                  color: '#64748B',
+                  fontSize: '14px',
+                  fontWeight: 800,
+                  cursor: 'pointer',
+                  textAlign: 'center',
+                }}
+              >
+                Annulla
+              </button>
+            </div>
           </div>
         </div>
       )}

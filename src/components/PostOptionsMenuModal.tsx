@@ -36,31 +36,80 @@ export const PostOptionsMenuModal: React.FC<PostOptionsMenuModalProps> = ({
   const canReport = post.user !== currentUserNick && !isAdminUser;
 
   return (
-    <div className="auth-modal" style={{ zIndex: 21500, padding: '20px 12px' }} onClick={onClose}>
+    <div
+      style={{
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        width: '100vw',
+        height: '100vh',
+        backgroundColor: 'rgba(15, 23, 42, 0.65)',
+        backdropFilter: 'blur(10px)',
+        WebkitBackdropFilter: 'blur(10px)',
+        zIndex: 99999,
+        display: 'flex',
+        alignItems: 'flex-end',
+        justifyContent: 'center',
+        padding: '0 0 16px 0',
+        animation: 'fadeIn 0.2s ease-out',
+      }}
+      onClick={onClose}
+    >
       <div
-        className="auth-container"
         onClick={(e) => e.stopPropagation()}
         style={{
-          maxWidth: '380px',
           width: '100%',
-          padding: '20px',
-          borderRadius: '24px',
+          maxWidth: '480px',
+          background: '#FFFFFF',
+          borderRadius: '24px 24px 20px 20px',
+          padding: '24px 20px 20px 20px',
+          boxShadow: '0 -10px 40px rgba(0, 0, 0, 0.25)',
           textAlign: 'left',
+          animation: 'slideUp 0.25s cubic-bezier(0.16, 1, 0.3, 1)',
         }}
       >
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px' }}>
-          <h3 style={{ margin: 0, color: '#0F172A', fontSize: '17px', fontWeight: 800 }}>
-            Opzioni Post
-          </h3>
+        {/* Header Drag Pill */}
+        <div
+          style={{
+            width: '40px',
+            height: '4px',
+            background: '#CBD5E1',
+            borderRadius: '2px',
+            margin: '0 auto 18px auto',
+          }}
+        />
+
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
+          <div>
+            <h3 style={{ margin: 0, color: '#0F172A', fontSize: '18px', fontWeight: 900 }}>
+              Opzioni Post
+            </h3>
+            <span style={{ fontSize: '12px', color: '#64748B', fontWeight: 600 }}>
+              {post.brand} ({post.variant})
+            </span>
+          </div>
           <button
             onClick={onClose}
-            style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: '#94A3B8' }}
+            style={{
+              background: '#F1F5F9',
+              border: 'none',
+              borderRadius: '50%',
+              width: '32px',
+              height: '32px',
+              cursor: 'pointer',
+              color: '#64748B',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
           >
-            <span className="material-symbols-outlined">close</span>
+            <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>close</span>
           </button>
         </div>
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
           {/* Salva Post */}
           <button
             onClick={() => {
@@ -70,21 +119,22 @@ export const PostOptionsMenuModal: React.FC<PostOptionsMenuModalProps> = ({
             style={{
               display: 'flex',
               alignItems: 'center',
-              gap: '12px',
-              padding: '12px 14px',
-              borderRadius: '14px',
-              border: 'none',
+              gap: '14px',
+              padding: '14px 16px',
+              borderRadius: '16px',
+              border: '1px solid #E2E8F0',
               background: '#F8FAFC',
-              color: '#334155',
+              color: '#0F172A',
               fontSize: '14px',
-              fontWeight: 700,
+              fontWeight: 800,
               cursor: 'pointer',
+              transition: 'background 0.15s ease',
             }}
           >
-            <span className="material-symbols-outlined" style={{ color: isSaved ? '#F59E0B' : '#64748B' }}>
+            <span className="material-symbols-outlined" style={{ color: isSaved ? '#F59E0B' : '#64748B', fontSize: '22px' }}>
               {isSaved ? 'bookmark_added' : 'bookmark'}
             </span>
-            {isSaved ? 'Rimuovi dai Segnalibri' : 'Salva Post nei Segnalibri'}
+            <span>{isSaved ? 'Rimuovi dai Segnalibri' : 'Salva Post nei Segnalibri'}</span>
           </button>
 
           {/* Condividi nelle Storie */}
@@ -96,21 +146,22 @@ export const PostOptionsMenuModal: React.FC<PostOptionsMenuModalProps> = ({
             style={{
               display: 'flex',
               alignItems: 'center',
-              gap: '12px',
-              padding: '12px 14px',
-              borderRadius: '14px',
-              border: 'none',
-              background: '#F8FAFC',
-              color: '#334155',
+              gap: '14px',
+              padding: '14px 16px',
+              borderRadius: '16px',
+              border: '1px solid #FDE68A',
+              background: '#FFFDF5',
+              color: '#D97706',
               fontSize: '14px',
-              fontWeight: 700,
+              fontWeight: 800,
               cursor: 'pointer',
+              transition: 'background 0.15s ease',
             }}
           >
-            <span className="material-symbols-outlined" style={{ color: '#D97706' }}>
+            <span className="material-symbols-outlined" style={{ color: '#F59E0B', fontSize: '22px' }}>
               auto_awesome
             </span>
-            Ricondividi nelle Storie (24h)
+            <span>Ricondividi nelle Storie (24h)</span>
           </button>
 
           {/* Segnala Post */}
@@ -123,21 +174,22 @@ export const PostOptionsMenuModal: React.FC<PostOptionsMenuModalProps> = ({
               style={{
                 display: 'flex',
                 alignItems: 'center',
-                gap: '12px',
-                padding: '12px 14px',
-                borderRadius: '14px',
-                border: 'none',
-                background: 'rgba(239, 68, 68, 0.06)',
+                gap: '14px',
+                padding: '14px 16px',
+                borderRadius: '16px',
+                border: '1px solid #FCA5A5',
+                background: '#FEF2F2',
                 color: '#EF4444',
                 fontSize: '14px',
-                fontWeight: 700,
+                fontWeight: 800,
                 cursor: 'pointer',
+                transition: 'background 0.15s ease',
               }}
             >
-              <span className="material-symbols-outlined" style={{ color: '#EF4444' }}>
+              <span className="material-symbols-outlined" style={{ color: '#EF4444', fontSize: '22px' }}>
                 flag
               </span>
-              Segnala Post...
+              <span>Segnala Post...</span>
             </button>
           )}
 
@@ -151,23 +203,43 @@ export const PostOptionsMenuModal: React.FC<PostOptionsMenuModalProps> = ({
               style={{
                 display: 'flex',
                 alignItems: 'center',
-                gap: '12px',
-                padding: '12px 14px',
-                borderRadius: '14px',
-                border: 'none',
-                background: 'rgba(239, 68, 68, 0.1)',
+                gap: '14px',
+                padding: '14px 16px',
+                borderRadius: '16px',
+                border: '1px solid #FECACA',
+                background: '#FEF2F2',
                 color: '#DC2626',
                 fontSize: '14px',
-                fontWeight: 800,
+                fontWeight: 900,
                 cursor: 'pointer',
+                transition: 'background 0.15s ease',
               }}
             >
-              <span className="material-symbols-outlined" style={{ color: '#DC2626' }}>
+              <span className="material-symbols-outlined" style={{ color: '#DC2626', fontSize: '22px' }}>
                 delete
               </span>
-              Elimina Post
+              <span>Elimina Post</span>
             </button>
           )}
+
+          {/* Cancel button */}
+          <button
+            onClick={onClose}
+            style={{
+              marginTop: '4px',
+              padding: '12px',
+              borderRadius: '16px',
+              border: 'none',
+              background: '#F1F5F9',
+              color: '#64748B',
+              fontSize: '14px',
+              fontWeight: 800,
+              cursor: 'pointer',
+              textAlign: 'center',
+            }}
+          >
+            Annulla
+          </button>
         </div>
       </div>
     </div>
