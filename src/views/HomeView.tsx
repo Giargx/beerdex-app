@@ -392,60 +392,48 @@ export const HomeView: React.FC<HomeViewProps> = ({
       }}>
         <FoamBubbles />
         <div style={{ position: 'relative', zIndex: 2 }}>
-          {/* App Brand HUGE Centered Hero Header */}
+          {/* App Brand HUGE Centered Hero Header - Pure Golden Logo without Window Frame */}
           <div
             style={{
               display: 'flex',
               flexDirection: 'column',
               alignItems: 'center',
               justifyContent: 'center',
-              marginBottom: '20px',
+              marginBottom: '16px',
               position: 'relative',
             }}
           >
-            {/* Ambient Radial Golden Glow behind Logo */}
+            {/* Soft Ambient Golden Aura */}
             <div
               style={{
                 position: 'absolute',
                 top: '50%',
                 left: '50%',
                 transform: 'translate(-50%, -50%)',
-                width: '260px',
-                height: '130px',
-                background: 'radial-gradient(ellipse at center, rgba(245, 158, 11, 0.45) 0%, rgba(217, 119, 6, 0.15) 50%, rgba(15, 23, 42, 0) 80%)',
+                width: '300px',
+                height: '140px',
+                background: 'radial-gradient(ellipse at center, rgba(245, 158, 11, 0.35) 0%, rgba(217, 119, 6, 0.1) 60%, rgba(15, 23, 42, 0) 80%)',
                 borderRadius: '50%',
                 pointerEvents: 'none',
-                filter: 'blur(10px)',
+                filter: 'blur(16px)',
               }}
             />
 
-            <div
+            <img
+              src="/pop-it-logo.png"
+              alt="POP IT"
               style={{
+                height: '115px',
+                width: 'auto',
+                maxHeight: '125px',
+                maxWidth: '90%',
+                objectFit: 'contain',
+                display: 'block',
                 position: 'relative',
                 zIndex: 2,
-                padding: '12px 28px',
-                background: 'rgba(15, 23, 42, 0.55)',
-                backdropFilter: 'blur(20px)',
-                WebkitBackdropFilter: 'blur(20px)',
-                borderRadius: '36px',
-                border: '2px solid rgba(245, 158, 11, 0.55)',
-                boxShadow: '0 12px 40px rgba(245, 158, 11, 0.3), inset 0 1.5px 0 rgba(255, 224, 130, 0.4)',
+                filter: 'drop-shadow(0 4px 20px rgba(255, 179, 0, 0.75))',
               }}
-            >
-              <img
-                src="/pop-it-logo.png"
-                alt="POP IT"
-                style={{
-                  height: '110px',
-                  width: 'auto',
-                  maxHeight: '120px',
-                  maxWidth: '100%',
-                  objectFit: 'contain',
-                  display: 'block',
-                  filter: 'drop-shadow(0 4px 18px rgba(255, 179, 0, 0.8))',
-                }}
-              />
-            </div>
+            />
           </div>
 
           {/* Header Row */}
