@@ -161,7 +161,7 @@ export const PostOptionsMenuModal: React.FC<PostOptionsMenuModalProps> = ({
             <span className="material-symbols-outlined" style={{ color: '#F59E0B', fontSize: '22px' }}>
               auto_awesome
             </span>
-            <span>Ricondividi nelle Storie (24h)</span>
+            <span>Ricondividi nelle Storie</span>
           </button>
 
           {/* Segnala Post */}

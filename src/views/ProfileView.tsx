@@ -1247,7 +1247,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
                   <span className="material-symbols-outlined" style={{ color: '#F59E0B', fontSize: '22px' }}>
                     auto_awesome
                   </span>
-                  <span>Crea Nuova Storia (24h)</span>
+                  <span>Crea Nuova Storia</span>
                 </button>
               )}
 

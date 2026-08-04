@@ -320,7 +320,7 @@ export const PubView: React.FC<PubViewProps> = ({
       <div style={{ maxWidth: '640px', margin: '16px auto 0 auto', padding: '0 16px' }}>
         <div style={{ fontSize: '12px', fontWeight: 800, color: '#64748B', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '4px' }}>
           <span className="material-symbols-outlined" style={{ fontSize: '16px', color: '#F59E0B' }}>auto_awesome</span>
-          STORIE DEL PUB (24H)
+          STORIE DEL PUB
         </div>
         <div
           style={{
