@@ -392,6 +392,21 @@ export const HomeView: React.FC<HomeViewProps> = ({
       }}>
         <FoamBubbles />
         <div style={{ position: 'relative', zIndex: 2 }}>
+          {/* App Brand Header Bar */}
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '14px' }}>
+            <img
+              src="/pop-it-logo.png"
+              alt="POP IT"
+              style={{
+                height: '48px',
+                width: 'auto',
+                maxHeight: '48px',
+                objectFit: 'contain',
+                filter: 'drop-shadow(0 4px 10px rgba(0,0,0,0.4))',
+              }}
+            />
+          </div>
+
           {/* Header Row */}
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>

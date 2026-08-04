@@ -1,6 +1,6 @@
-# 🍺 BeerDex
+# 🍺 POP IT
 
-**BeerDex** è una PWA (Progressive Web App) gamificata, scritta in **React 19 + TypeScript + Vite**, progettata per tracciare e collezionare le birre che consumi in giro per il mondo o in compagnia degli amici.
+**POP IT** è una PWA (Progressive Web App) gamificata, scritta in **React 19 + TypeScript + Vite**, progettata per tracciare e collezionare le birre che consumi in giro per il mondo o in compagnia degli amici.
 
 L'applicazione si interfaccia in tempo reale con **Firebase Realtime Database** per la gestione degli utenti, della classifica globale, delle amicizie e di una bacheca social ("Al Pub").
 

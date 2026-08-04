@@ -433,7 +433,7 @@ export const ScannerModal: React.FC<ScannerModalProps> = ({
                   // The scanned beer is NOT in our catalog! Re-direct to Proponi with prefilled info!
                   const extracted = extractBeerDetailsFromOFF(prod);
                   showConfirm(
-                    `Rilevata birra: "${extracted.brand} - ${extracted.variant}".\n\nQuesta birra non è ancora presente nel catalogo di BeerDex! Vuoi andare alla pagina Proponi per aggiungerla con il nome e la rarità (${extracted.rarity}) già compilati?`,
+                    `Rilevata birra: "${extracted.brand} - ${extracted.variant}".\n\nQuesta birra non è ancora presente nel catalogo di POP IT! Vuoi andare alla pagina Proponi per aggiungerla con il nome e la rarità (${extracted.rarity}) già compilati?`,
                     "Birra non in catalogo",
                     () => {
                       onClose();

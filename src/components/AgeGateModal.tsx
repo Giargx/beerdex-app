@@ -12,13 +12,20 @@ export const AgeGateModal: React.FC<AgeGateModalProps> = ({ isOpen, onConfirm, o
   return (
     <div className="auth-modal" style={{ zIndex: 15000 }}>
       <div className="auth-container" style={{ borderRadius: '24px', padding: '28px 20px' }}>
-        <h1 style={{ fontSize: '40px', margin: '0 0 10px 0', color: 'var(--primary-dark)' }}>
-          <span className="material-symbols-outlined" style={{ fontSize: '56px' }}>
-            sports_bar
-          </span>
-        </h1>
+        <div style={{ textAlign: 'center', marginBottom: '12px' }}>
+          <img
+            src="/pop-it-logo.png"
+            alt="POP IT Logo"
+            style={{
+              width: '120px',
+              height: 'auto',
+              maxHeight: '100px',
+              objectFit: 'contain',
+            }}
+          />
+        </div>
         <h2 style={{ color: 'var(--dark)', fontSize: '20px', margin: '0 0 8px 0', fontWeight: 800 }}>
-          Benvenuto su BeerDex!
+          Benvenuto su POP IT!
         </h2>
         <p style={{ color: 'var(--text-muted)', fontSize: '13px', marginBottom: '22px', lineHeight: 1.5 }}>
           Per accedere alla collezione e condividere le tue birre devi essere maggiorenne. Hai già compiuto 18 anni?

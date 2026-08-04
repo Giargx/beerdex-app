@@ -495,8 +495,8 @@ export default function App() {
     } else if (stored === 'denied') {
       showAlert(
         type === 'location'
-          ? 'Hai disattivato i permessi di Posizione per BeerDex nelle impostazioni del dispositivo.'
-          : 'Hai disattivato i permessi per le Foto per BeerDex nelle impostazioni del dispositivo.',
+          ? 'Hai disattivato i permessi di Posizione per POP IT nelle impostazioni del dispositivo.'
+          : 'Hai disattivato i permessi per le Foto per POP IT nelle impostazioni del dispositivo.',
         'Permesso non concesso'
       );
     } else {
@@ -2386,9 +2386,12 @@ export default function App() {
             <div className="section-title">Altre Opzioni</div>
             
             {/* Info row */}
-            <div className="settings-row-expanded" style={{ textAlign: 'center', background: '#FAFAFC', borderBottom: '1px solid rgba(226,232,240,0.4)' }}>
-              <div style={{ fontSize: '12px', fontWeight: 'bold', color: 'var(--text-muted)' }}>
-                BeerDex App v3.3.0
+            <div className="settings-row-expanded" style={{ textAlign: 'center', background: '#FAFAFC', borderBottom: '1px solid rgba(226,232,240,0.4)', padding: '16px 12px' }}>
+              <div style={{ marginBottom: '6px' }}>
+                <img src="/pop-it-logo.png" alt="POP IT Logo" style={{ width: '80px', height: 'auto', maxHeight: '60px', objectFit: 'contain' }} />
+              </div>
+              <div style={{ fontSize: '13px', fontWeight: '900', color: 'var(--dark)' }}>
+                POP IT App v3.3.0
               </div>
               <div style={{ fontSize: '10px', color: 'var(--text-muted)', marginTop: '2px' }}>
                 Progetto Pair Programming • Powered by Vision AI

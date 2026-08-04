@@ -135,11 +135,24 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ isOpen, onAuthSuccess, s
   return (
     <div className="auth-modal" style={{ zIndex: 15000 }}>
       <div className="auth-container">
+        <div style={{ textAlign: 'center', marginBottom: '16px' }}>
+          <img
+            src="/pop-it-logo.png"
+            alt="POP IT Logo"
+            style={{
+              width: '130px',
+              height: 'auto',
+              maxHeight: '120px',
+              objectFit: 'contain',
+              filter: 'drop-shadow(0 4px 12px rgba(0, 0, 0, 0.15))',
+            }}
+          />
+        </div>
         <h2 style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
           <span className="material-symbols-outlined">
             {isRegisterMode ? 'person_add' : 'login'}
           </span>
-          {isRegisterMode ? 'Crea Account' : 'Accedi a BeerDex'}
+          {isRegisterMode ? 'Crea Account' : 'Accedi a POP IT'}
         </h2>
         <p style={{ color: 'var(--text-muted)', fontSize: '13px', marginBottom: '20px' }}>
           {isRegisterMode
