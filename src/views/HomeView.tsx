@@ -399,24 +399,24 @@ export const HomeView: React.FC<HomeViewProps> = ({
                 display: 'inline-flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                padding: '6px 20px',
-                background: 'rgba(255, 255, 255, 0.07)',
+                padding: '8px 24px',
+                background: 'rgba(15, 23, 42, 0.4)',
                 backdropFilter: 'blur(16px)',
                 WebkitBackdropFilter: 'blur(16px)',
-                borderRadius: '30px',
-                border: '1px solid rgba(245, 158, 11, 0.3)',
-                boxShadow: '0 8px 24px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.2)',
+                borderRadius: '32px',
+                border: '1.5px solid rgba(245, 158, 11, 0.45)',
+                boxShadow: '0 8px 30px rgba(245, 158, 11, 0.25), inset 0 1px 0 rgba(255, 224, 130, 0.3)',
               }}
             >
               <img
                 src="/pop-it-logo.png"
                 alt="POP IT"
                 style={{
-                  height: '42px',
+                  height: '46px',
                   width: 'auto',
-                  maxHeight: '42px',
+                  maxHeight: '46px',
                   objectFit: 'contain',
-                  filter: 'drop-shadow(0 2px 8px rgba(245, 158, 11, 0.4))',
+                  filter: 'drop-shadow(0 2px 12px rgba(255, 179, 0, 0.6))',
                 }}
               />
             </div>
