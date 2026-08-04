@@ -2,6 +2,7 @@ import React, { useEffect } from 'react';
 import { StarRating } from '../components/StarRating';
 import { formatBeerTitle, getBasePoints } from '../beers';
 import { BrindisiSummary } from '../components/BrindisiSummary';
+import { playClinkSound } from '../utils/audio';
 
 interface UserPostsDetailViewProps {
   username: string;
@@ -54,6 +55,8 @@ export const UserPostsDetailView: React.FC<UserPostsDetailViewProps> = ({
   const triggerCinAnimation = (container: HTMLElement) => {
     const exists = container.querySelector('.cin-toast-container');
     if (exists) return;
+
+    playClinkSound();
 
     const animDiv = document.createElement('div');
     animDiv.className = 'cin-toast-container';
@@ -335,7 +338,12 @@ export const UserPostsDetailView: React.FC<UserPostsDetailViewProps> = ({
                       <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>
                         sports_bar
                       </span>{' '}
-                      {likesCount}
+                      <span style={{ fontSize: '13px', fontWeight: 700 }}>Brindisi</span>
+                      {likesCount > 0 && (
+                        <span style={{ fontSize: '12px', opacity: 0.85, fontWeight: 800, marginLeft: '2px' }}>
+                          ({likesCount})
+                        </span>
+                      )}
                     </button>
                     
                     {canReport && onReportFakePost && (

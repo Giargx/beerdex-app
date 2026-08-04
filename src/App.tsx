@@ -1045,29 +1045,78 @@ export default function App() {
     setPendingUploadData({ isSpinaBypass });
   };
 
-  const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const getPositionWithTimeout = (timeoutMs = 3500): Promise<GeolocationPosition | null> => {
+    return new Promise((resolve) => {
+      if (!navigator.geolocation) {
+        resolve(null);
+        return;
+      }
+      let resolved = false;
+      const timer = setTimeout(() => {
+        if (!resolved) {
+          resolved = true;
+          resolve(null);
+        }
+      }, timeoutMs);
+
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          if (!resolved) {
+            resolved = true;
+            clearTimeout(timer);
+            resolve(pos);
+          }
+        },
+        () => {
+          if (!resolved) {
+            resolved = true;
+            clearTimeout(timer);
+            resolve(null);
+          }
+        },
+        { timeout: timeoutMs, maximumAge: 60000, enableHighAccuracy: false }
+      );
+    });
+  };
+
+  const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
     setCaptureOpen(false);
-    showAlert("Analisi del contesto in corso...", "Sblocco", false);
+    showAlert("Analisi del contesto e foto in corso...", "Sblocco", false);
 
     const targetBeer = beers.find((b) => b.brand === scannerConfig.brand);
 
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        async (position) => {
-          const lat = position.coords.latitude;
-          const lng = position.coords.longitude;
-          const isShiny = await checkShinyStatus(lat, lng, targetBeer);
-          processPhoto(file, isShiny, lat, lng);
-        },
-        () => {
-          processPhoto(file, false, null, null);
-        }
-      );
-    } else {
+    try {
+      const pos = await getPositionWithTimeout(3500);
+      let isShiny = false;
+      let lat: number | null = null;
+      let lng: number | null = null;
+
+      if (pos) {
+        lat = pos.coords.latitude;
+        lng = pos.coords.longitude;
+        isShiny = await checkShinyStatusWithTimeout(lat, lng, targetBeer);
+      }
+
+      processPhoto(file, isShiny, lat, lng);
+    } catch (err) {
+      console.error("Error in handlePhotoUpload:", err);
       processPhoto(file, false, null, null);
+    } finally {
+      e.target.value = '';
+    }
+  };
+
+  const checkShinyStatusWithTimeout = async (lat: number, lng: number, targetBeer: any) => {
+    try {
+      const shinyPromise = checkShinyStatus(lat, lng, targetBeer);
+      const timeoutPromise = new Promise<boolean>((resolve) => setTimeout(() => resolve(false), 2500));
+      return await Promise.race([shinyPromise, timeoutPromise]);
+    } catch (e) {
+      console.error("Shiny check timeout/error:", e);
+      return false;
     }
   };
 
@@ -1097,40 +1146,53 @@ export default function App() {
 
   const processPhoto = (file: File, isShiny: boolean, lat: number | null, lng: number | null) => {
     const reader = new FileReader();
+    reader.onerror = () => {
+      hideAlert();
+      showAlert("Errore durante la lettura della foto. Riprova.", "Errore");
+    };
     reader.onload = (e) => {
       const img = new Image();
+      img.onerror = () => {
+        hideAlert();
+        showAlert("Impossibile elaborare la foto selezionata.", "Errore");
+      };
       img.onload = () => {
-        const canvas = document.createElement('canvas');
-        const MAX_SIZE = 750; // Risoluzione ultra-ottimizzata per leggibilità e memoria minima
-        let width = img.width;
-        let height = img.height;
+        try {
+          const canvas = document.createElement('canvas');
+          const MAX_SIZE = 750; // Risoluzione ultra-ottimizzata per leggibilità e memoria minima
+          let width = img.width;
+          let height = img.height;
 
-        // Ridimensionamento proporzionale senza ritaglio (mantiene l'aspect ratio originale)
-        if (width > height) {
-          if (width > MAX_SIZE) {
-            height = Math.round((height * MAX_SIZE) / width);
-            width = MAX_SIZE;
+          // Ridimensionamento proporzionale senza ritaglio (mantiene l'aspect ratio originale)
+          if (width > height) {
+            if (width > MAX_SIZE) {
+              height = Math.round((height * MAX_SIZE) / width);
+              width = MAX_SIZE;
+            }
+          } else {
+            if (height > MAX_SIZE) {
+              width = Math.round((width * MAX_SIZE) / height);
+              height = MAX_SIZE;
+            }
           }
-        } else {
-          if (height > MAX_SIZE) {
-            width = Math.round((width * MAX_SIZE) / height);
-            height = MAX_SIZE;
-          }
-        }
 
-        canvas.width = width;
-        canvas.height = height;
-        const ctx = canvas.getContext('2d');
-        if (ctx) {
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          if (!ctx) {
+            hideAlert();
+            showAlert("Errore canvas durante la compressione.", "Errore");
+            return;
+          }
+
           ctx.drawImage(img, 0, 0, width, height);
           const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.65);
 
-          // Controlla la sicurezza dell'immagine
-          checkImageSafety(compressedDataUrl).then((safety) => {
-            if (!safety.isSafe) {
+          const proceedWithUpload = (safetyOk: boolean, reason?: string) => {
+            if (!safetyOk) {
               hideAlert();
               showAlert(
-                safety.reason || 'L\'immagine selezionata contiene contenuto non appropriato o esplicito e non può essere caricata.',
+                reason || 'L\'immagine selezionata contiene contenuto non appropriato o esplicito e non può essere caricata.',
                 'Foto Rifiutata'
               );
               return;
@@ -1152,7 +1214,19 @@ export default function App() {
             } else {
               finalizeUpload(uploadData, null);
             }
-          });
+          };
+
+          checkImageSafety(compressedDataUrl)
+            .then((safety) => {
+              proceedWithUpload(safety.isSafe, safety.reason);
+            })
+            .catch((err) => {
+              console.error("Image safety check exception:", err);
+              proceedWithUpload(true);
+            });
+        } catch (err: any) {
+          hideAlert();
+          showAlert("Errore durante l'elaborazione dell'immagine: " + err.message, "Errore");
         }
       };
       img.src = e.target?.result as string;
@@ -1757,6 +1831,23 @@ export default function App() {
         }}
       />
 
+      {/* Hidden Beer Capture Inputs (Always mounted so onChange works reliably across all mobile devices) */}
+      <input
+        type="file"
+        id="beerCaptureCamera"
+        accept="image/*"
+        capture="environment"
+        style={{ display: 'none' }}
+        onChange={handlePhotoUpload}
+      />
+      <input
+        type="file"
+        id="beerCaptureGallery"
+        accept="image/*"
+        style={{ display: 'none' }}
+        onChange={handlePhotoUpload}
+      />
+
       {/* Pokedex Photo upload trigger modal */}
       {captureOpen && (
         <div className="auth-modal" style={{ zIndex: 18000 }}>
@@ -1768,8 +1859,11 @@ export default function App() {
               Ora scatta la foto per il tuo feed social. Assicurati che si veda bene la birra!
             </p>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '10px' }}>
-              <label 
+              <button 
                 className="btn-main" 
+                onClick={() => {
+                  document.getElementById('beerCaptureCamera')?.click();
+                }}
                 style={{ 
                   display: 'flex', 
                   alignItems: 'center', 
@@ -1785,16 +1879,12 @@ export default function App() {
               >
                 <span className="material-symbols-outlined" style={{ fontSize: '22px' }}>photo_camera</span>
                 <span>Scatta Foto (Fotocamera)</span>
-                <input
-                  type="file"
-                  accept="image/*"
-                  capture="environment"
-                  style={{ display: 'none' }}
-                  onChange={handlePhotoUpload}
-                />
-              </label>
-              <label 
+              </button>
+              <button 
                 className="btn-secondary" 
+                onClick={() => {
+                  document.getElementById('beerCaptureGallery')?.click();
+                }}
                 style={{ 
                   display: 'flex', 
                   alignItems: 'center', 
@@ -1810,13 +1900,7 @@ export default function App() {
               >
                 <span className="material-symbols-outlined" style={{ fontSize: '22px' }}>photo_library</span>
                 <span>Scegli da Galleria</span>
-                <input
-                  type="file"
-                  accept="image/*"
-                  style={{ display: 'none' }}
-                  onChange={handlePhotoUpload}
-                />
-              </label>
+              </button>
             </div>
             <button className="btn-secondary" onClick={() => setCaptureOpen(false)} style={{ justifyContent: 'center', width: '100%', boxSizing: 'border-box' }}>
               Annulla

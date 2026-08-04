@@ -5,39 +5,105 @@ export const playClinkSound = () => {
     const AudioContext = window.AudioContext || (window as any).webkitAudioContext;
     if (!AudioContext) return;
     const ctx = new AudioContext();
+    const now = ctx.currentTime;
 
-    // Tone 1: High pitch glass clink (2200 Hz)
-    const osc1 = ctx.createOscillator();
-    const gain1 = ctx.createGain();
-    osc1.type = 'sine';
-    osc1.frequency.setValueAtTime(2200, ctx.currentTime);
-    osc1.frequency.exponentialRampToValueAtTime(2150, ctx.currentTime + 0.15);
+    // 1. Transient Impact Click (High frequency noise burst for crisp glass contact)
+    const bufferSize = Math.floor(ctx.sampleRate * 0.015);
+    const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+    const data = buffer.getChannelData(0);
+    for (let i = 0; i < bufferSize; i++) {
+      data[i] = (Math.random() * 2 - 1) * Math.exp(-i / (bufferSize * 0.3));
+    }
+    const noise = ctx.createBufferSource();
+    noise.buffer = buffer;
 
-    // Tone 2: Harmonious resonance (2750 Hz)
-    const osc2 = ctx.createOscillator();
-    const gain2 = ctx.createGain();
-    osc2.type = 'sine';
-    osc2.frequency.setValueAtTime(2750, ctx.currentTime);
-    osc2.frequency.exponentialRampToValueAtTime(2700, ctx.currentTime + 0.12);
+    const noiseFilter = ctx.createBiquadFilter();
+    noiseFilter.type = 'bandpass';
+    noiseFilter.frequency.setValueAtTime(3200, now);
+    noiseFilter.Q.setValueAtTime(4, now);
 
-    // Decay envelopes
-    gain1.gain.setValueAtTime(0.12, ctx.currentTime);
-    gain1.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.35);
+    const noiseGain = ctx.createGain();
+    noiseGain.gain.setValueAtTime(0.35, now);
+    noiseGain.gain.exponentialRampToValueAtTime(0.001, now + 0.015);
 
-    gain2.gain.setValueAtTime(0.08, ctx.currentTime);
-    gain2.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.22);
+    noise.connect(noiseFilter);
+    noiseFilter.connect(noiseGain);
+    noiseGain.connect(ctx.destination);
+    noise.start(now);
 
-    osc1.connect(gain1);
-    gain1.connect(ctx.destination);
+    // 2. Heavy Glass Mug Body Thunk (~840 Hz low frequency mass resonance)
+    const bodyOsc = ctx.createOscillator();
+    const bodyGain = ctx.createGain();
+    bodyOsc.type = 'sine';
+    bodyOsc.frequency.setValueAtTime(840, now);
+    bodyOsc.frequency.exponentialRampToValueAtTime(780, now + 0.12);
 
-    osc2.connect(gain2);
-    gain2.connect(ctx.destination);
+    bodyGain.gain.setValueAtTime(0.22, now);
+    bodyGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.18);
 
-    osc1.start();
-    osc2.start();
+    bodyOsc.connect(bodyGain);
+    bodyGain.connect(ctx.destination);
+    bodyOsc.start(now);
+    bodyOsc.stop(now + 0.18);
 
-    osc1.stop(ctx.currentTime + 0.35);
-    osc2.stop(ctx.currentTime + 0.35);
+    // 3. Detuned Dual Glass Ring Harmonics (Creates realistic 80Hz acoustic beating)
+    // Primary Glass 1: 2150 Hz
+    const glass1 = ctx.createOscillator();
+    const glass1Gain = ctx.createGain();
+    glass1.type = 'sine';
+    glass1.frequency.setValueAtTime(2150, now);
+    glass1.frequency.exponentialRampToValueAtTime(2140, now + 0.4);
+
+    glass1Gain.gain.setValueAtTime(0.28, now);
+    glass1Gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.45);
+
+    glass1.connect(glass1Gain);
+    glass1Gain.connect(ctx.destination);
+    glass1.start(now);
+    glass1.stop(now + 0.45);
+
+    // Primary Glass 2: 2230 Hz
+    const glass2 = ctx.createOscillator();
+    const glass2Gain = ctx.createGain();
+    glass2.type = 'sine';
+    glass2.frequency.setValueAtTime(2230, now);
+    glass2.frequency.exponentialRampToValueAtTime(2218, now + 0.4);
+
+    glass2Gain.gain.setValueAtTime(0.24, now);
+    glass2Gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.42);
+
+    glass2.connect(glass2Gain);
+    glass2Gain.connect(ctx.destination);
+    glass2.start(now);
+    glass2.stop(now + 0.42);
+
+    // High Crystal Overtone 1: 4300 Hz
+    const glassHigh1 = ctx.createOscillator();
+    const glassHigh1Gain = ctx.createGain();
+    glassHigh1.type = 'sine';
+    glassHigh1.frequency.setValueAtTime(4300, now);
+
+    glassHigh1Gain.gain.setValueAtTime(0.12, now);
+    glassHigh1Gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.28);
+
+    glassHigh1.connect(glassHigh1Gain);
+    glassHigh1Gain.connect(ctx.destination);
+    glassHigh1.start(now);
+    glassHigh1.stop(now + 0.28);
+
+    // High Crystal Overtone 2: 6450 Hz
+    const glassHigh2 = ctx.createOscillator();
+    const glassHigh2Gain = ctx.createGain();
+    glassHigh2.type = 'sine';
+    glassHigh2.frequency.setValueAtTime(6450, now);
+
+    glassHigh2Gain.gain.setValueAtTime(0.06, now);
+    glassHigh2Gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.18);
+
+    glassHigh2.connect(glassHigh2Gain);
+    glassHigh2Gain.connect(ctx.destination);
+    glassHigh2.start(now);
+    glassHigh2.stop(now + 0.18);
   } catch (e) {
     console.warn("Web Audio API warning:", e);
   }

@@ -308,7 +308,12 @@ export const PubView: React.FC<PubViewProps> = ({
                       <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>
                         sports_bar
                       </span>{' '}
-                      {likesCount}
+                      <span style={{ fontSize: '13px', fontWeight: 700 }}>Brindisi</span>
+                      {likesCount > 0 && (
+                        <span style={{ fontSize: '12px', opacity: 0.85, fontWeight: 800, marginLeft: '2px' }}>
+                          ({likesCount})
+                        </span>
+                      )}
                     </button>
                     
                     {canReport && (

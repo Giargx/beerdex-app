@@ -1027,19 +1027,20 @@ header.hero p {
     top: 25%;
     left: 50%;
     transform: translate(-50%, -50%) scale(0);
-    width: 48px;
-    height: 48px;
-    background: radial-gradient(circle, #FFFFFF 0%, #FEF08A 45%, rgba(245, 158, 11, 0) 80%);
+    width: 56px;
+    height: 56px;
+    background: radial-gradient(circle, #FFFFFF 0%, #FDE047 35%, #F59E0B 65%, rgba(245, 158, 11, 0) 85%);
     border-radius: 50%;
     z-index: 15;
     pointer-events: none;
-    animation: sparkFlash 0.45s ease-out 0.35s forwards;
+    box-shadow: 0 0 20px #FDE047, 0 0 40px #F59E0B;
+    animation: sparkFlash 0.45s cubic-bezier(0.16, 1, 0.3, 1) 0.28s forwards;
 }
 
 @keyframes sparkFlash {
-    0% { transform: translate(-50%, -50%) scale(0); opacity: 1; }
-    50% { transform: translate(-50%, -50%) scale(2); opacity: 0.95; }
-    100% { transform: translate(-50%, -50%) scale(2.8); opacity: 0; }
+    0% { transform: translate(-50%, -50%) scale(0); opacity: 1; filter: brightness(1.5); }
+    40% { transform: translate(-50%, -50%) scale(2.2); opacity: 0.95; }
+    100% { transform: translate(-50%, -50%) scale(3.2); opacity: 0; filter: brightness(1); }
 }
 
 /* Beer splash droplets */
@@ -1060,16 +1061,16 @@ header.hero p {
     opacity: 0;
 }
 .drop-1 {
-    animation: splashDrop1 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) 0.32s forwards;
+    animation: splashDrop1 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) 0.28s forwards;
 }
 .drop-2 {
-    animation: splashDrop2 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) 0.32s forwards;
+    animation: splashDrop2 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) 0.28s forwards;
 }
 .drop-3 {
-    animation: splashDrop3 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) 0.32s forwards;
+    animation: splashDrop3 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) 0.28s forwards;
 }
 .drop-4 {
-    animation: splashDrop4 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) 0.32s forwards;
+    animation: splashDrop4 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) 0.28s forwards;
 }
 
 @keyframes cinPopIn {
@@ -1081,17 +1082,19 @@ header.hero p {
     100% { transform: translate(-50%, -50%) scale(0.8); opacity: 0; }
 }
 @keyframes swingLeftMug {
-    0% { transform: translateX(-80px) rotate(-35deg) scale(0.7); opacity: 0; }
-    30% { opacity: 1; }
-    65% { transform: translateX(12px) rotate(16deg) scale(1.1); }
-    80% { transform: translateX(6px) rotate(8deg) scale(1.02); }
+    0% { transform: translateX(-90px) rotate(-40deg) scale(0.65); opacity: 0; }
+    25% { opacity: 1; }
+    55% { transform: translateX(15px) rotate(20deg) scale(1.12); }
+    70% { transform: translateX(3px) rotate(5deg) scale(0.98); }
+    85% { transform: translateX(8px) rotate(9deg) scale(1.02); }
     100% { transform: translateX(2px) rotate(4deg) scale(1); }
 }
 @keyframes swingRightMug {
-    0% { transform: translateX(80px) rotate(30deg) scale(0.7); opacity: 0; }
-    30% { opacity: 1; }
-    65% { transform: translateX(-12px) rotate(-16deg) scale(1.1); }
-    80% { transform: translateX(-6px) rotate(-8deg) scale(1.02); }
+    0% { transform: translateX(90px) rotate(40deg) scale(0.65); opacity: 0; }
+    25% { opacity: 1; }
+    55% { transform: translateX(-15px) rotate(-20deg) scale(1.12); }
+    70% { transform: translateX(-3px) rotate(-5deg) scale(0.98); }
+    85% { transform: translateX(-8px) rotate(-9deg) scale(1.02); }
     100% { transform: translateX(-2px) rotate(-4deg) scale(1); }
 }
 @keyframes splashDrop1 {
