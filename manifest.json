@@ -1,6 +1,6 @@
 {
-  "name": "BeerDex",
-  "short_name": "BeerDex",
+  "name": "POP IT",
+  "short_name": "POP IT",
   "description": "Scopri, scansiona con AI e colleziona tutte le birre del mondo con i tuoi amici.",
   "start_url": "/",
   "display": "standalone",
