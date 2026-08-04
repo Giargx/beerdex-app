@@ -392,31 +392,57 @@ export const HomeView: React.FC<HomeViewProps> = ({
       }}>
         <FoamBubbles />
         <div style={{ position: 'relative', zIndex: 2 }}>
-          {/* App Brand Luxury Glass Pill Header */}
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '18px' }}>
+          {/* App Brand HUGE Centered Hero Header */}
+          <div
+            style={{
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              marginBottom: '20px',
+              position: 'relative',
+            }}
+          >
+            {/* Ambient Radial Golden Glow behind Logo */}
             <div
               style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                padding: '8px 24px',
-                background: 'rgba(15, 23, 42, 0.4)',
-                backdropFilter: 'blur(16px)',
-                WebkitBackdropFilter: 'blur(16px)',
-                borderRadius: '32px',
-                border: '1.5px solid rgba(245, 158, 11, 0.45)',
-                boxShadow: '0 8px 30px rgba(245, 158, 11, 0.25), inset 0 1px 0 rgba(255, 224, 130, 0.3)',
+                position: 'absolute',
+                top: '50%',
+                left: '50%',
+                transform: 'translate(-50%, -50%)',
+                width: '260px',
+                height: '130px',
+                background: 'radial-gradient(ellipse at center, rgba(245, 158, 11, 0.45) 0%, rgba(217, 119, 6, 0.15) 50%, rgba(15, 23, 42, 0) 80%)',
+                borderRadius: '50%',
+                pointerEvents: 'none',
+                filter: 'blur(10px)',
+              }}
+            />
+
+            <div
+              style={{
+                position: 'relative',
+                zIndex: 2,
+                padding: '12px 28px',
+                background: 'rgba(15, 23, 42, 0.55)',
+                backdropFilter: 'blur(20px)',
+                WebkitBackdropFilter: 'blur(20px)',
+                borderRadius: '36px',
+                border: '2px solid rgba(245, 158, 11, 0.55)',
+                boxShadow: '0 12px 40px rgba(245, 158, 11, 0.3), inset 0 1.5px 0 rgba(255, 224, 130, 0.4)',
               }}
             >
               <img
                 src="/pop-it-logo.png"
                 alt="POP IT"
                 style={{
-                  height: '46px',
+                  height: '110px',
                   width: 'auto',
-                  maxHeight: '46px',
+                  maxHeight: '120px',
+                  maxWidth: '100%',
                   objectFit: 'contain',
-                  filter: 'drop-shadow(0 2px 12px rgba(255, 179, 0, 0.6))',
+                  display: 'block',
+                  filter: 'drop-shadow(0 4px 18px rgba(255, 179, 0, 0.8))',
                 }}
               />
             </div>
