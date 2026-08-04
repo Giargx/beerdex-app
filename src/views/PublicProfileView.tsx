@@ -908,7 +908,7 @@ export const PublicProfileView: React.FC<PublicProfileViewProps> = ({
                           {meta.label}
                         </div>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                          <StarRating rating={Math.round(stat.average)} readOnly size={14} />
+                          <StarRating rating={stat.average} readOnly size={14} />
                           <span style={{ fontSize: '12px', fontWeight: 900, color: stat.average > 0 ? 'var(--dark)' : 'var(--text-muted)' }}>
                             {stat.average > 0 ? `${stat.average} ⭐` : 'N.D.'}
                           </span>

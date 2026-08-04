@@ -1262,13 +1262,13 @@ header.hero p {
 .stappo-overlay {
     position: fixed;
     top: 0; left: 0; width: 100%; height: 100%;
-    background: rgba(15, 23, 42, 0.7);
+    background: rgba(15, 23, 42, 0.82);
     z-index: 25000;
     display: flex;
     align-items: center;
     justify-content: center;
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
     opacity: 0;
     pointer-events: none;
     transition: opacity 0.3s ease;
@@ -1281,74 +1281,152 @@ header.hero p {
     text-align: center;
     position: relative;
 }
-.stappo-bottle {
-    font-size: 100px;
+.stappo-bottle-wrapper {
     display: inline-block;
     transform-origin: bottom center;
-    animation: shakeBottle 0.6s ease infinite alternate;
+    filter: drop-shadow(0 10px 20px rgba(0,0,0,0.5));
+    animation: shakeBottle 0.5s ease infinite alternate;
 }
-.stappo-cap {
-    font-size: 32px;
-    position: absolute;
-    top: 15px;
-    left: 50%;
-    transform: translateX(-50%);
-    opacity: 1;
-    filter: drop-shadow(0 2px 5px rgba(0,0,0,0.3));
-}
-.stappo-overlay.active.popped .stappo-cap {
-    animation: popCap 0.8s cubic-bezier(0.25, 1, 0.50, 1) forwards;
-}
-.stappo-overlay.active.popped .stappo-bottle {
-    animation: shakeRecoil 0.4s ease forwards;
-}
-.stappo-foam {
+.stappo-cap-wrapper {
     position: absolute;
     top: 0px;
     left: 50%;
     transform: translateX(-50%);
-    font-size: 44px;
-    opacity: 0;
+    z-index: 10;
+    filter: drop-shadow(0 4px 8px rgba(0,0,0,0.4));
+}
+.stappo-flash {
+    position: absolute;
+    top: 10px;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(0);
+    width: 90px;
+    height: 90px;
+    border-radius: 50%;
+    background: radial-gradient(circle, #FFFFFF 0%, #FDE047 40%, #F59E0B 70%, rgba(245,158,11,0) 90%);
+    box-shadow: 0 0 40px #FDE047, 0 0 80px #F59E0B;
+    z-index: 8;
     pointer-events: none;
 }
-.stappo-overlay.active.popped .stappo-foam {
-    animation: sprayFoam 0.8s ease forwards;
+.stappo-overlay.active.popped .stappo-flash {
+    animation: stappoFlashBurst 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
+.stappo-overlay.active.popped .stappo-cap-wrapper {
+    animation: popCapArc 0.85s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+.stappo-overlay.active.popped .stappo-bottle-wrapper {
+    animation: bottleRecoil 0.45s ease forwards;
+}
+
+.stappo-foam-wrapper {
+    position: absolute;
+    top: -10px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100px;
+    height: 100px;
+    pointer-events: none;
+    opacity: 0;
+    z-index: 9;
+}
+.stappo-overlay.active.popped .stappo-foam-wrapper {
+    opacity: 1;
+}
+.foam-cloud {
+    position: absolute;
+    top: 40px;
+    left: 50%;
+    transform: translate(-50%, 0) scale(0.2);
+    width: 60px;
+    height: 40px;
+    background: radial-gradient(circle, #FFFFFF 50%, #FEF3C7 100%);
+    border-radius: 30px;
+    filter: blur(2px);
+    opacity: 0;
+}
+.stappo-overlay.active.popped .foam-cloud {
+    animation: foamCloudErupt 0.7s ease forwards;
+}
+.bubble {
+    position: absolute;
+    background: #FDE047;
+    border-radius: 50%;
+    opacity: 0;
+}
+.b1 { width: 10px; height: 10px; left: 20%; top: 40%; }
+.b2 { width: 14px; height: 14px; left: 70%; top: 40%; }
+.b3 { width: 8px;  height: 8px;  left: 45%; top: 30%; }
+.b4 { width: 12px; height: 12px; left: 30%; top: 50%; }
+.b5 { width: 9px;  height: 9px;  left: 60%; top: 50%; }
+
+.stappo-overlay.active.popped .b1 { animation: bubbleFloat1 0.7s ease 0.05s forwards; }
+.stappo-overlay.active.popped .b2 { animation: bubbleFloat2 0.7s ease 0.05s forwards; }
+.stappo-overlay.active.popped .b3 { animation: bubbleFloat3 0.7s ease 0.05s forwards; }
+.stappo-overlay.active.popped .b4 { animation: bubbleFloat1 0.8s ease 0.1s forwards; }
+.stappo-overlay.active.popped .b5 { animation: bubbleFloat2 0.8s ease 0.1s forwards; }
+
 .stappo-text {
     font-family: 'Outfit', sans-serif;
     color: white;
     font-size: 24px;
     font-weight: 900;
-    margin-top: 20px;
-    text-shadow: 0 4px 10px rgba(0,0,0,0.5);
+    margin-top: 25px;
+    text-shadow: 0 4px 12px rgba(0,0,0,0.6);
     opacity: 0;
     letter-spacing: 1px;
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(6px);
+    padding: 8px 20px;
+    border-radius: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    display: inline-block;
 }
 .stappo-overlay.active.popped .stappo-text {
-    animation: fadeInText 0.4s ease 0.3s forwards;
+    animation: fadeInStappoText 0.4s ease 0.25s forwards;
 }
 
 @keyframes shakeBottle {
     0% { transform: rotate(-4deg); }
     100% { transform: rotate(4deg); }
 }
-@keyframes shakeRecoil {
-    0% { transform: scaleY(0.85) translateY(12px); }
-    100% { transform: scaleY(1) translateY(0); }
+@keyframes stappoFlashBurst {
+    0% { transform: translate(-50%, -50%) scale(0); opacity: 1; }
+    50% { transform: translate(-50%, -50%) scale(2.2); opacity: 0.95; }
+    100% { transform: translate(-50%, -50%) scale(3.5); opacity: 0; }
 }
-@keyframes popCap {
-    0% { transform: translate(-50%, 0) rotate(0); opacity: 1; }
-    50% { transform: translate(60px, -160px) rotate(360deg); opacity: 1; }
-    100% { transform: translate(120px, -110px) rotate(720deg); opacity: 0; }
+@keyframes popCapArc {
+    0% { transform: translate(-50%, 0) rotate(0deg) scale(1); opacity: 1; }
+    40% { transform: translate(40px, -140px) rotate(360deg) scale(1.2); opacity: 1; }
+    100% { transform: translate(110px, -70px) rotate(850deg) scale(0.7); opacity: 0; }
 }
-@keyframes sprayFoam {
-    0% { opacity: 0; transform: translate(-50%, 0) scale(0.4); }
-    30% { opacity: 1; transform: translate(-50%, -50px) scale(1.4); }
-    100% { opacity: 0; transform: translate(-50%, -90px) scale(1.8); }
+@keyframes bottleRecoil {
+    0% { transform: translateY(0) scaleY(1); }
+    30% { transform: translateY(14px) scaleY(0.92); }
+    100% { transform: translateY(0) scaleY(1); }
 }
-@keyframes fadeInText {
-    0% { opacity: 0; transform: translateY(10px); }
-    100% { opacity: 1; transform: translateY(0); }
+@keyframes foamCloudErupt {
+    0% { opacity: 0; transform: translate(-50%, 0) scale(0.2); }
+    35% { opacity: 1; transform: translate(-50%, -40px) scale(1.3); }
+    100% { opacity: 0; transform: translate(-50%, -80px) scale(1.7); }
+}
+@keyframes bubbleFloat1 {
+    0% { opacity: 0; transform: translate(0, 0) scale(0.3); }
+    40% { opacity: 1; }
+    100% { opacity: 0; transform: translate(-25px, -70px) scale(1.1); }
+}
+@keyframes bubbleFloat2 {
+    0% { opacity: 0; transform: translate(0, 0) scale(0.3); }
+    40% { opacity: 1; }
+    100% { opacity: 0; transform: translate(25px, -70px) scale(1.1); }
+}
+@keyframes bubbleFloat3 {
+    0% { opacity: 0; transform: translate(0, 0) scale(0.3); }
+    40% { opacity: 1; }
+    100% { opacity: 0; transform: translate(0px, -85px) scale(1.2); }
+}
+@keyframes fadeInStappoText {
+    0% { opacity: 0; transform: translateY(15px) scale(0.9); }
+    100% { opacity: 1; transform: translateY(0) scale(1); }
 }
 
 @keyframes zoomIn {

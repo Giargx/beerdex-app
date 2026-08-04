@@ -1015,6 +1015,7 @@ export default function App() {
 
     setTimeout(() => {
       setStappoPopped(true);
+      playPopSound();
       setTimeout(() => {
         setStappoActive(false);
         setStappoPopped(false);

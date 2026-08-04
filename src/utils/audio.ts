@@ -114,49 +114,84 @@ export const playPopSound = () => {
     const AudioContext = window.AudioContext || (window as any).webkitAudioContext;
     if (!AudioContext) return;
     const ctx = new AudioContext();
+    const now = ctx.currentTime;
 
-    // Pop: Low pressure pop sweep
-    const osc = ctx.createOscillator();
-    const gainOsc = ctx.createGain();
-    osc.type = 'sine';
-    osc.frequency.setValueAtTime(140, ctx.currentTime);
-    osc.frequency.exponentialRampToValueAtTime(320, ctx.currentTime + 0.06);
-
-    gainOsc.gain.setValueAtTime(0.25, ctx.currentTime);
-    gainOsc.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.08);
-
-    osc.connect(gainOsc);
-    gainOsc.connect(ctx.destination);
-
-    // Fizz: High pass noise burst
-    const bufferSize = ctx.sampleRate * 0.35; // 0.35s
-    const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
-    const data = buffer.getChannelData(0);
-    for (let i = 0; i < bufferSize; i++) {
-      data[i] = Math.random() * 2 - 1;
+    // 1. Opener Metal Contact Click (0.012s transient click)
+    const clickBuffer = ctx.createBuffer(1, Math.floor(ctx.sampleRate * 0.012), ctx.sampleRate);
+    const clickData = clickBuffer.getChannelData(0);
+    for (let i = 0; i < clickBuffer.length; i++) {
+      clickData[i] = (Math.random() * 2 - 1) * Math.exp(-i / (clickBuffer.length * 0.25));
     }
+    const clickSource = ctx.createBufferSource();
+    clickSource.buffer = clickBuffer;
 
-    const noiseSource = ctx.createBufferSource();
-    noiseSource.buffer = buffer;
+    const clickFilter = ctx.createBiquadFilter();
+    clickFilter.type = 'bandpass';
+    clickFilter.frequency.setValueAtTime(2800, now);
 
-    const filter = ctx.createBiquadFilter();
-    filter.type = 'highpass';
-    filter.frequency.setValueAtTime(4500, ctx.currentTime);
-    filter.frequency.exponentialRampToValueAtTime(8500, ctx.currentTime + 0.25);
+    const clickGain = ctx.createGain();
+    clickGain.gain.setValueAtTime(0.4, now);
+    clickGain.gain.exponentialRampToValueAtTime(0.001, now + 0.012);
 
-    const gainNoise = ctx.createGain();
-    gainNoise.gain.setValueAtTime(0.1, ctx.currentTime);
-    gainNoise.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.35);
+    clickSource.connect(clickFilter);
+    clickFilter.connect(clickGain);
+    clickGain.connect(ctx.destination);
+    clickSource.start(now);
 
-    noiseSource.connect(filter);
-    filter.connect(gainNoise);
-    gainNoise.connect(ctx.destination);
+    // 2. Pressurized Air Pop Vacuum Drop (580 Hz -> 110 Hz pitch drop with deep resonance)
+    const popOsc = ctx.createOscillator();
+    const popGain = ctx.createGain();
+    popOsc.type = 'sine';
+    popOsc.frequency.setValueAtTime(580, now + 0.008);
+    popOsc.frequency.exponentialRampToValueAtTime(110, now + 0.075);
 
-    osc.start();
-    noiseSource.start();
+    popGain.gain.setValueAtTime(0.55, now + 0.008);
+    popGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.085);
 
-    osc.stop(ctx.currentTime + 0.08);
-    noiseSource.stop(ctx.currentTime + 0.35);
+    popOsc.connect(popGain);
+    popGain.connect(ctx.destination);
+    popOsc.start(now + 0.008);
+    popOsc.stop(now + 0.085);
+
+    // 3. Crown Cap Metallic Ping in Air (3400 Hz -> 3200 Hz ringing cap)
+    const capPing = ctx.createOscillator();
+    const capGain = ctx.createGain();
+    capPing.type = 'sine';
+    capPing.frequency.setValueAtTime(3400, now + 0.02);
+    capPing.frequency.exponentialRampToValueAtTime(3200, now + 0.25);
+
+    capGain.gain.setValueAtTime(0.18, now + 0.02);
+    capGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.25);
+
+    capPing.connect(capGain);
+    capGain.connect(ctx.destination);
+    capPing.start(now + 0.02);
+    capPing.stop(now + 0.25);
+
+    // 4. Carbonated Effervescent Fizz Spray (High frequency noise sweep)
+    const fizzLen = Math.floor(ctx.sampleRate * 0.45);
+    const fizzBuffer = ctx.createBuffer(1, fizzLen, ctx.sampleRate);
+    const fizzData = fizzBuffer.getChannelData(0);
+    for (let i = 0; i < fizzLen; i++) {
+      fizzData[i] = (Math.random() * 2 - 1);
+    }
+    const fizzSource = ctx.createBufferSource();
+    fizzSource.buffer = fizzBuffer;
+
+    const fizzFilter = ctx.createBiquadFilter();
+    fizzFilter.type = 'highpass';
+    fizzFilter.frequency.setValueAtTime(5500, now + 0.025);
+    fizzFilter.frequency.exponentialRampToValueAtTime(9000, now + 0.45);
+
+    const fizzGain = ctx.createGain();
+    fizzGain.gain.setValueAtTime(0.18, now + 0.025);
+    fizzGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.45);
+
+    fizzSource.connect(fizzFilter);
+    fizzFilter.connect(fizzGain);
+    fizzGain.connect(ctx.destination);
+    fizzSource.start(now + 0.025);
+    fizzSource.stop(now + 0.45);
   } catch (e) {
     console.warn("Web Audio API warning:", e);
   }
