@@ -80,12 +80,11 @@ export const PubView: React.FC<PubViewProps> = ({
     });
   };
 
-  // Base visible posts filter
+  // Base visible posts filter with DEDUPLICATION for shared drinking sessions
   const visiblePosts = useMemo(() => {
-    return posts.filter((post) => {
+    const accessible = posts.filter((post) => {
       const isMine = post.user === currentUserNick;
       const isFriend = myFriendsList.includes(post.user);
-      
       const canAccess = isMine || isFriend || isAdminUser;
       if (!canAccess) return false;
 
@@ -97,21 +96,47 @@ export const PubView: React.FC<PubViewProps> = ({
         const brand = (post.brand || '').toLowerCase();
         const variant = (post.variant || '').toLowerCase();
         const user = (post.user || '').toLowerCase();
+        const friend = (post.taggedFriend || '').toLowerCase();
         const dispName = (globalDisplayNames?.[post.user] || '').toLowerCase();
-        return brand.includes(q) || variant.includes(q) || user.includes(q) || dispName.includes(q);
+        const dispFriend = (post.taggedFriend ? globalDisplayNames?.[post.taggedFriend] || '' : '').toLowerCase();
+
+        return (
+          brand.includes(q) ||
+          variant.includes(q) ||
+          user.includes(q) ||
+          friend.includes(q) ||
+          dispName.includes(q) ||
+          dispFriend.includes(q)
+        );
       }
 
       return true;
     });
+
+    // Deduplicate shared posts from the same drinking session (single joint post)
+    const uniquePosts: typeof posts = [];
+    const seenSessions = new Set<string>();
+
+    accessible.forEach((post) => {
+      if (post.isShared && post.taggedFriend) {
+        const pairKey = [post.user, post.taggedFriend].sort().join('::');
+        const sessionKey = `${pairKey}::${post.brand}::${post.variant}`;
+        if (seenSessions.has(sessionKey)) {
+          return; // Skip duplicate post for the same shared session
+        }
+        seenSessions.add(sessionKey);
+      }
+      uniquePosts.push(post);
+    });
+
+    return uniquePosts;
   }, [posts, currentUserNick, myFriendsList, isAdminUser, activeFilter, searchQuery, globalDisplayNames]);
 
   // Active 24h Stories
   const storyPosts = useMemo(() => {
     const twentyFourHoursAgo = Date.now() - 24 * 60 * 60 * 1000;
-    // Get unique users' latest post within 24h
     const recent = visiblePosts.filter((p) => p.time >= twentyFourHoursAgo);
 
-    // Group by user, pick latest
     const userStoryMap = new Map<string, Post>();
     recent.forEach((p) => {
       if (!userStoryMap.has(p.user) || p.time > userStoryMap.get(p.user)!.time) {
@@ -557,8 +582,16 @@ export const PubView: React.FC<PubViewProps> = ({
             </div>
           ) : (
             [...visiblePosts].reverse().map((post) => {
-              const avatar = globalAvatars[post.user];
               const isSaved = savedPostIds.includes(post.postId);
+              const isShared = post.isShared && Boolean(post.taggedFriend);
+
+              // Co-authors list for shared post header
+              const user1 = post.user;
+              const user2 = post.taggedFriend;
+              const av1 = globalAvatars[user1];
+              const av2 = user2 ? globalAvatars[user2] : undefined;
+              const disp1 = globalDisplayNames?.[user1] || user1;
+              const disp2 = user2 ? (globalDisplayNames?.[user2] || user2) : undefined;
 
               // Calculate points received upon unlocking
               const basePts = getBasePoints(post.brand, post.variant);
@@ -615,7 +648,7 @@ export const PubView: React.FC<PubViewProps> = ({
                     transition: 'transform 0.2s ease, box-shadow 0.2s ease',
                   }}
                 >
-                  {/* Card Header */}
+                  {/* Card Header: Dual Avatars for Shared Drinks or Single Avatar */}
                   <div
                     className="post-header"
                     style={{
@@ -627,63 +660,157 @@ export const PubView: React.FC<PubViewProps> = ({
                     }}
                   >
                     <div style={{ display: 'flex', alignItems: 'center' }}>
-                      <div
-                        className="post-avatar clickable-user"
-                        onClick={() => onOpenPublicProfile(post.user)}
-                        style={{
-                          cursor: 'pointer',
-                          width: '42px',
-                          height: '42px',
-                          borderRadius: '50%',
-                          padding: '2px',
-                          background: 'linear-gradient(135deg, #F59E0B 0%, #D97706 100%)',
-                          boxShadow: '0 2px 8px rgba(245, 158, 11, 0.25)',
-                        }}
-                        {...(getAvatarZoomProps ? getAvatarZoomProps(avatar) : {})}
-                      >
+                      {isShared && user2 ? (
+                        /* Joint Dual Avatar Container */
                         <div
                           style={{
-                            width: '100%',
-                            height: '100%',
-                            borderRadius: '50%',
-                            overflow: 'hidden',
-                            background: '#FFFFFF',
-                            display: 'flex',
+                            position: 'relative',
+                            display: 'inline-flex',
                             alignItems: 'center',
-                            justifyContent: 'center',
+                            marginRight: '8px',
                           }}
                         >
-                          {avatar ? (
-                            <img
-                              src={avatar}
-                              alt={post.user}
-                              style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                              onContextMenu={(e) => e.preventDefault()}
-                              draggable={false}
-                            />
-                          ) : (
-                            <span className="material-symbols-outlined" style={{ fontSize: '24px', color: '#64748B' }}>
-                              person
-                            </span>
-                          )}
-                        </div>
-                      </div>
+                          {/* First Avatar */}
+                          <div
+                            onClick={() => onOpenPublicProfile(user1)}
+                            style={{
+                              width: '38px',
+                              height: '38px',
+                              borderRadius: '50%',
+                              padding: '2px',
+                              background: 'linear-gradient(135deg, #F59E0B 0%, #D97706 100%)',
+                              boxShadow: '0 2px 6px rgba(245, 158, 11, 0.3)',
+                              zIndex: 2,
+                              cursor: 'pointer',
+                            }}
+                          >
+                            <div style={{ width: '100%', height: '100%', borderRadius: '50%', overflow: 'hidden', background: '#FFF' }}>
+                              {av1 ? (
+                                <img src={av1} alt={user1} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                              ) : (
+                                <span className="material-symbols-outlined" style={{ fontSize: '22px', color: '#64748B' }}>person</span>
+                              )}
+                            </div>
+                          </div>
 
-                      <div style={{ marginLeft: '12px' }}>
-                        <div
-                          className="post-user clickable-user"
-                          onClick={() => onOpenPublicProfile(post.user)}
-                          style={{ fontSize: '14px', fontWeight: 800, color: '#0F172A', cursor: 'pointer' }}
-                        >
-                          {globalDisplayNames?.[post.user] || post.user}
+                          {/* Second Avatar */}
+                          <div
+                            onClick={() => onOpenPublicProfile(user2)}
+                            style={{
+                              width: '38px',
+                              height: '38px',
+                              borderRadius: '50%',
+                              padding: '2px',
+                              background: 'linear-gradient(135deg, #E67E22 0%, #D35400 100%)',
+                              boxShadow: '0 2px 6px rgba(230, 126, 34, 0.3)',
+                              marginLeft: '-14px',
+                              zIndex: 1,
+                              cursor: 'pointer',
+                            }}
+                          >
+                            <div style={{ width: '100%', height: '100%', borderRadius: '50%', overflow: 'hidden', background: '#FFF' }}>
+                              {av2 ? (
+                                <img src={av2} alt={user2} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                              ) : (
+                                <span className="material-symbols-outlined" style={{ fontSize: '22px', color: '#64748B' }}>person</span>
+                              )}
+                            </div>
+                          </div>
+
+                          {/* Joint Drink 🍻 Badge */}
+                          <div
+                            style={{
+                              position: 'absolute',
+                              bottom: '-2px',
+                              right: '-6px',
+                              background: '#F59E0B',
+                              borderRadius: '50%',
+                              width: '16px',
+                              height: '16px',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              fontSize: '10px',
+                              boxShadow: '0 1px 3px rgba(0,0,0,0.3)',
+                              zIndex: 3,
+                            }}
+                          >
+                            🍻
+                          </div>
                         </div>
+                      ) : (
+                        /* Single User Avatar */
+                        <div
+                          className="post-avatar clickable-user"
+                          onClick={() => onOpenPublicProfile(user1)}
+                          style={{
+                            cursor: 'pointer',
+                            width: '42px',
+                            height: '42px',
+                            borderRadius: '50%',
+                            padding: '2px',
+                            background: 'linear-gradient(135deg, #F59E0B 0%, #D97706 100%)',
+                            boxShadow: '0 2px 8px rgba(245, 158, 11, 0.25)',
+                          }}
+                          {...(getAvatarZoomProps ? getAvatarZoomProps(av1) : {})}
+                        >
+                          <div
+                            style={{
+                              width: '100%',
+                              height: '100%',
+                              borderRadius: '50%',
+                              overflow: 'hidden',
+                              background: '#FFFFFF',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                            }}
+                          >
+                            {av1 ? (
+                              <img
+                                src={av1}
+                                alt={user1}
+                                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                                onContextMenu={(e) => e.preventDefault()}
+                                draggable={false}
+                              />
+                            ) : (
+                              <span className="material-symbols-outlined" style={{ fontSize: '24px', color: '#64748B' }}>
+                                person
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      )}
+
+                      <div style={{ marginLeft: '10px' }}>
+                        {isShared && user2 ? (
+                          <div style={{ fontSize: '14px', fontWeight: 800, color: '#0F172A' }}>
+                            <strong className="clickable-user" onClick={() => onOpenPublicProfile(user1)} style={{ cursor: 'pointer' }}>
+                              {disp1}
+                            </strong>{' '}
+                            <span style={{ color: '#D97706', fontWeight: 700 }}>&</span>{' '}
+                            <strong className="clickable-user" onClick={() => onOpenPublicProfile(user2)} style={{ cursor: 'pointer' }}>
+                              {disp2}
+                            </strong>
+                          </div>
+                        ) : (
+                          <div
+                            className="post-user clickable-user"
+                            onClick={() => onOpenPublicProfile(user1)}
+                            style={{ fontSize: '14px', fontWeight: 800, color: '#0F172A', cursor: 'pointer' }}
+                          >
+                            {disp1}
+                          </div>
+                        )}
+
                         <div style={{ fontSize: '11px', color: '#94A3B8', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '4px' }}>
-                          {timeStr}
+                          {isShared ? 'Bevuta condivisa 🍻 • ' : ''}{timeStr}
                         </div>
                       </div>
                     </div>
 
-                    {/* 3-Dots Options Menu Button (more_vert) for all users */}
+                    {/* 3-Dots Options Menu Button (more_vert) */}
                     <button
                       onClick={() => setSelectedOptionsMenuPost(post)}
                       title="Opzioni Post"
@@ -869,15 +996,23 @@ export const PubView: React.FC<PubViewProps> = ({
                         {pointsBadge}
                       </div>
 
-                      {post.isShared && post.taggedFriend && (
+                      {isShared && user2 && (
                         <div style={{ fontSize: '12px', color: '#D97706', fontWeight: 700, marginTop: '4px', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                          <span>🍻 In compagnia di</span>
+                          <span>🍻 Bevuta condivisa da</span>
                           <strong
                             className="clickable-user"
-                            onClick={() => onOpenPublicProfile(post.taggedFriend!)}
+                            onClick={() => onOpenPublicProfile(user1)}
                             style={{ textDecoration: 'underline', cursor: 'pointer' }}
                           >
-                            @{globalDisplayNames?.[post.taggedFriend] || post.taggedFriend}
+                            @{disp1}
+                          </strong>
+                          <span>e</span>
+                          <strong
+                            className="clickable-user"
+                            onClick={() => onOpenPublicProfile(user2)}
+                            style={{ textDecoration: 'underline', cursor: 'pointer' }}
+                          >
+                            @{disp2}
                           </strong>
                         </div>
                       )}
