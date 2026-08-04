@@ -4,6 +4,7 @@ interface BrindisiSummaryProps {
   likes?: Record<string, boolean>;
   currentUserNick: string;
   globalDisplayNames?: Record<string, string>;
+  globalAvatars?: Record<string, string>;
   onOpenPublicProfile: (username: string) => void;
 }
 
@@ -11,6 +12,7 @@ export const BrindisiSummary: React.FC<BrindisiSummaryProps> = ({
   likes,
   currentUserNick,
   globalDisplayNames,
+  globalAvatars = {},
   onOpenPublicProfile,
 }) => {
   if (!likes) return null;
@@ -58,16 +60,55 @@ export const BrindisiSummary: React.FC<BrindisiSummaryProps> = ({
     <div
       className="post-brindisi-summary"
       style={{
-        padding: '2px 16px 8px 16px',
+        padding: '4px 16px 10px 16px',
         fontSize: '13px',
         color: 'var(--text-dark, #334155)',
         display: 'flex',
         alignItems: 'center',
-        gap: '4px',
+        gap: '6px',
         flexWrap: 'wrap',
         lineHeight: '1.4'
       }}
     >
+      {/* Avatar Stack */}
+      <div style={{ display: 'inline-flex', alignItems: 'center', marginRight: '2px' }}>
+        {displayedNicks.map((nick, idx) => {
+          const av = globalAvatars[nick];
+          return (
+            <div
+              key={nick}
+              onClick={(e) => {
+                e.stopPropagation();
+                onOpenPublicProfile(nick);
+              }}
+              style={{
+                width: '20px',
+                height: '20px',
+                borderRadius: '50%',
+                overflow: 'hidden',
+                border: '2px solid #FFFFFF',
+                boxShadow: '0 1px 3px rgba(0,0,0,0.15)',
+                marginLeft: idx > 0 ? '-7px' : '0',
+                zIndex: 3 - idx,
+                background: '#F1F5F9',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              {av ? (
+                <img src={av} alt={nick} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+              ) : (
+                <span className="material-symbols-outlined" style={{ fontSize: '12px', color: '#64748B' }}>
+                  person
+                </span>
+              )}
+            </div>
+          );
+        })}
+      </div>
+
       <span
         className="material-symbols-outlined"
         style={{

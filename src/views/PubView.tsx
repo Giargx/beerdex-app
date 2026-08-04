@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useMemo } from 'react';
 import { playClinkSound } from '../utils/audio';
 import { FoamBubbles } from '../components/FoamBubbles';
 import { getBasePoints, formatBeerTitle } from '../beers';
@@ -49,18 +49,44 @@ export const PubView: React.FC<PubViewProps> = ({
   onOpenPublicProfile,
   getAvatarZoomProps,
 }) => {
-  // Filter visible posts (only user's posts, their friends' posts, or all posts if admin)
-  const visiblePosts = posts.filter(
-    (post) =>
-      post.user === currentUserNick ||
-      myFriendsList.includes(post.user) ||
-      isAdminUser
-  );
+  const [activeFilter, setActiveFilter] = useState<'all' | 'friends' | 'me'>('all');
+  const [searchQuery, setSearchQuery] = useState<string>('');
+
+  // Base visible posts filter
+  const visiblePosts = useMemo(() => {
+    return posts.filter((post) => {
+      const isMine = post.user === currentUserNick;
+      const isFriend = myFriendsList.includes(post.user);
+      
+      // Admin sees everything, regular users see their own posts or friends' posts
+      const canAccess = isMine || isFriend || isAdminUser;
+      if (!canAccess) return false;
+
+      // Filter by tab
+      if (activeFilter === 'friends' && !isFriend && !isMine) return false;
+      if (activeFilter === 'me' && !isMine) return false;
+
+      // Search query filter (matches brand, variant, or username)
+      if (searchQuery.trim()) {
+        const q = searchQuery.toLowerCase().trim();
+        const brand = (post.brand || '').toLowerCase();
+        const variant = (post.variant || '').toLowerCase();
+        const user = (post.user || '').toLowerCase();
+        const dispName = (globalDisplayNames?.[post.user] || '').toLowerCase();
+        return brand.includes(q) || variant.includes(q) || user.includes(q) || dispName.includes(q);
+      }
+
+      return true;
+    });
+  }, [posts, currentUserNick, myFriendsList, isAdminUser, activeFilter, searchQuery, globalDisplayNames]);
+
+  // Statistics for Pub Header
+  const totalToastCount = useMemo(() => {
+    return posts.reduce((sum, p) => sum + (p.likes ? Object.keys(p.likes).length : 0), 0);
+  }, [posts]);
 
   const triggerCinAnimation = (targetContainer: HTMLElement) => {
     if (!targetContainer) return;
-    
-    // Check if there is already a toast container to avoid multiple overlaps
     if (targetContainer.querySelector('.cin-toast-container')) return;
 
     playClinkSound();
@@ -101,7 +127,6 @@ export const PubView: React.FC<PubViewProps> = ({
                   </svg>
               </div>
           </div>
-          <!-- Splash drops container -->
           <div class="beer-splash-container">
               <div class="beer-drop drop-1"></div>
               <div class="beer-drop drop-2"></div>
@@ -126,7 +151,6 @@ export const PubView: React.FC<PubViewProps> = ({
       triggerCinAnimation(imgContainer);
     }
     
-    // Check if already liked by current user. If not, trigger like
     const post = posts.find((p) => p.postId === postId);
     const isLiked = post?.likes && post.likes[currentUserNick];
     if (!isLiked) {
@@ -135,20 +159,276 @@ export const PubView: React.FC<PubViewProps> = ({
   };
 
   return (
-    <div className="page-container-view">
-      <header className="hero">
+    <div className="page-container-view" style={{ paddingBottom: '40px' }}>
+      {/* Luxury Pub Hero Banner */}
+      <header
+        className="hero"
+        style={{
+          position: 'relative',
+          padding: '28px 20px 24px 20px',
+          background: 'linear-gradient(135deg, #0F172A 0%, #1E293B 50%, #334155 100%)',
+          color: '#FFFFFF',
+          borderRadius: '0 0 24px 24px',
+          boxShadow: '0 12px 30px rgba(15, 23, 42, 0.25)',
+          overflow: 'hidden',
+        }}
+      >
         <FoamBubbles />
-        <div style={{ position: 'relative', zIndex: 2, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', marginBottom: '8px' }}>
-          <span className="material-symbols-outlined" style={{ fontSize: '36px', color: 'var(--primary-dark)' }}>sports_bar</span>
-          <h1 style={{ fontSize: '36px', margin: 0, fontWeight: 800 }}>Pub</h1>
+
+        {/* Ambient Amber Glow */}
+        <div
+          style={{
+            position: 'absolute',
+            top: '-50px',
+            right: '-50px',
+            width: '200px',
+            height: '200px',
+            background: 'radial-gradient(circle, rgba(245, 158, 11, 0.35) 0%, rgba(217, 119, 6, 0) 70%)',
+            borderRadius: '50%',
+            pointerEvents: 'none',
+          }}
+        />
+
+        <div style={{ position: 'relative', zIndex: 2, textAlign: 'center' }}>
+          <div
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '10px',
+              marginBottom: '6px',
+            }}
+          >
+            <div
+              style={{
+                width: '46px',
+                height: '46px',
+                borderRadius: '14px',
+                background: 'linear-gradient(135deg, #F59E0B 0%, #D97706 100%)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                boxShadow: '0 4px 14px rgba(245, 158, 11, 0.4)',
+              }}
+            >
+              <span className="material-symbols-outlined" style={{ fontSize: '28px', color: '#FFFFFF' }}>
+                sports_bar
+              </span>
+            </div>
+            <h1 style={{ fontSize: '32px', margin: 0, fontWeight: 900, letterSpacing: '-0.5px', color: '#FFFFFF' }}>
+              Il Pub
+            </h1>
+          </div>
+
+          <p style={{ margin: '0 0 16px 0', fontSize: '13px', color: '#94A3B8', fontWeight: 500 }}>
+            Il bancone virtuale dove festeggiare e brindare con i tuoi amici.
+          </p>
+
+          {/* Stat Counter Pills */}
+          <div
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '10px',
+              background: 'rgba(255, 255, 255, 0.08)',
+              backdropFilter: 'blur(10px)',
+              padding: '6px 16px',
+              borderRadius: '30px',
+              border: '1px solid rgba(255, 255, 255, 0.12)',
+            }}
+          >
+            <span style={{ fontSize: '12px', fontWeight: 700, color: '#FDE047', display: 'flex', alignItems: 'center', gap: '4px' }}>
+              <span className="material-symbols-outlined" style={{ fontSize: '15px' }}>local_bar</span>
+              {posts.length} Post Sbloccati
+            </span>
+            <span style={{ width: '4px', height: '4px', borderRadius: '50%', background: '#64748B' }} />
+            <span style={{ fontSize: '12px', fontWeight: 700, color: '#F59E0B', display: 'flex', alignItems: 'center', gap: '4px' }}>
+              <span className="material-symbols-outlined" style={{ fontSize: '15px' }}>sports_bar</span>
+              {totalToastCount} Brindisi Totali
+            </span>
+          </div>
         </div>
-        <p style={{ position: 'relative', zIndex: 2 }}>Scopri cosa stanno bevendo i tuoi amici al bancone.</p>
       </header>
 
-      <div className="social-page-container">
+      {/* Filter Tabs & Search Control Bar */}
+      <div style={{ maxWidth: '640px', margin: '16px auto 0 auto', padding: '0 16px' }}>
+        {/* Search Bar */}
+        <div
+          style={{
+            position: 'relative',
+            marginBottom: '12px',
+            display: 'flex',
+            alignItems: 'center',
+          }}
+        >
+          <span
+            className="material-symbols-outlined"
+            style={{
+              position: 'absolute',
+              left: '14px',
+              color: '#94A3B8',
+              fontSize: '20px',
+              pointerEvents: 'none',
+            }}
+          >
+            search
+          </span>
+          <input
+            type="text"
+            placeholder="Cerca birra, marca o amico..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            style={{
+              width: '100%',
+              padding: '10px 38px 10px 42px',
+              fontSize: '13px',
+              borderRadius: '16px',
+              border: '1px solid #E2E8F0',
+              background: '#FFFFFF',
+              boxShadow: '0 2px 8px rgba(15, 23, 42, 0.04)',
+              outline: 'none',
+              transition: 'all 0.2s ease',
+              fontFamily: 'inherit',
+            }}
+          />
+          {searchQuery && (
+            <button
+              onClick={() => setSearchQuery('')}
+              style={{
+                position: 'absolute',
+                right: '12px',
+                background: 'transparent',
+                border: 'none',
+                cursor: 'pointer',
+                color: '#94A3B8',
+                display: 'flex',
+                alignItems: 'center',
+              }}
+            >
+              <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>close</span>
+            </button>
+          )}
+        </div>
+
+        {/* Filter Pills */}
+        <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', paddingBottom: '4px' }}>
+          <button
+            className={`pub-filter-pill ${activeFilter === 'all' ? 'active' : ''}`}
+            onClick={() => setActiveFilter('all')}
+            style={{
+              padding: '7px 14px',
+              borderRadius: '20px',
+              border: activeFilter === 'all' ? 'none' : '1px solid #E2E8F0',
+              background: activeFilter === 'all' ? 'linear-gradient(135deg, #F59E0B, #D97706)' : '#FFFFFF',
+              color: activeFilter === 'all' ? '#FFFFFF' : '#475569',
+              fontSize: '12px',
+              fontWeight: 800,
+              cursor: 'pointer',
+              boxShadow: activeFilter === 'all' ? '0 3px 10px rgba(245, 158, 11, 0.3)' : '0 1px 3px rgba(0,0,0,0.04)',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '4px',
+              transition: 'all 0.2s ease',
+              whiteSpace: 'nowrap',
+            }}
+          >
+            <span className="material-symbols-outlined" style={{ fontSize: '15px' }}>dynamic_feed</span>
+            Tutti i Brindisi ({posts.length})
+          </button>
+
+          <button
+            className={`pub-filter-pill ${activeFilter === 'friends' ? 'active' : ''}`}
+            onClick={() => setActiveFilter('friends')}
+            style={{
+              padding: '7px 14px',
+              borderRadius: '20px',
+              border: activeFilter === 'friends' ? 'none' : '1px solid #E2E8F0',
+              background: activeFilter === 'friends' ? 'linear-gradient(135deg, #F59E0B, #D97706)' : '#FFFFFF',
+              color: activeFilter === 'friends' ? '#FFFFFF' : '#475569',
+              fontSize: '12px',
+              fontWeight: 800,
+              cursor: 'pointer',
+              boxShadow: activeFilter === 'friends' ? '0 3px 10px rgba(245, 158, 11, 0.3)' : '0 1px 3px rgba(0,0,0,0.04)',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '4px',
+              transition: 'all 0.2s ease',
+              whiteSpace: 'nowrap',
+            }}
+          >
+            <span className="material-symbols-outlined" style={{ fontSize: '15px' }}>group</span>
+            Amici
+          </button>
+
+          <button
+            className={`pub-filter-pill ${activeFilter === 'me' ? 'active' : ''}`}
+            onClick={() => setActiveFilter('me')}
+            style={{
+              padding: '7px 14px',
+              borderRadius: '20px',
+              border: activeFilter === 'me' ? 'none' : '1px solid #E2E8F0',
+              background: activeFilter === 'me' ? 'linear-gradient(135deg, #F59E0B, #D97706)' : '#FFFFFF',
+              color: activeFilter === 'me' ? '#FFFFFF' : '#475569',
+              fontSize: '12px',
+              fontWeight: 800,
+              cursor: 'pointer',
+              boxShadow: activeFilter === 'me' ? '0 3px 10px rgba(245, 158, 11, 0.3)' : '0 1px 3px rgba(0,0,0,0.04)',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '4px',
+              transition: 'all 0.2s ease',
+              whiteSpace: 'nowrap',
+            }}
+          >
+            <span className="material-symbols-outlined" style={{ fontSize: '15px' }}>person</span>
+            I Miei Post
+          </button>
+        </div>
+      </div>
+
+      {/* Main Feed Container */}
+      <div className="social-page-container" style={{ maxWidth: '640px', margin: '16px auto 0 auto' }}>
         <div className="social-feed">
           {visiblePosts.length === 0 ? (
-            <p style={{ textAlign: 'center', padding: '20px' }}>Nessun post.</p>
+            <div
+              style={{
+                textAlign: 'center',
+                padding: '48px 24px',
+                background: '#FFFFFF',
+                borderRadius: '24px',
+                margin: '0 16px',
+                boxShadow: '0 10px 30px rgba(15, 23, 42, 0.05)',
+                border: '1px solid #F1F5F9',
+              }}
+            >
+              <div
+                style={{
+                  width: '64px',
+                  height: '64px',
+                  borderRadius: '50%',
+                  background: '#FEF3C7',
+                  color: '#D97706',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  margin: '0 auto 16px auto',
+                }}
+              >
+                <span className="material-symbols-outlined" style={{ fontSize: '32px' }}>sports_bar</span>
+              </div>
+              <h3 style={{ margin: '0 0 8px 0', color: '#0F172A', fontSize: '18px', fontWeight: 800 }}>
+                {searchQuery ? 'Nessun risultato trovato' : 'Nessun brindisi al bancone'}
+              </h3>
+              <p style={{ margin: 0, fontSize: '13px', color: '#64748B', lineHeight: '1.5' }}>
+                {searchQuery
+                  ? `Nessuna birra o amico corrisponde alla ricerca "${searchQuery}".`
+                  : activeFilter === 'friends'
+                  ? 'I tuoi amici non hanno ancora pubblicato brindisi. Aggiungi altri amici o sblocca tu una birra!'
+                  : activeFilter === 'me'
+                  ? 'Non hai ancora sbloccato nessuna birra. Vai a sbloccarne una con il codice a barre!'
+                  : 'Il bancone del pub è momentaneamente vuoto. Sblocca la tua prima birra per inaugurare la bacheca!'}
+              </p>
+            </div>
           ) : (
             [...visiblePosts].reverse().map((post) => {
               const avatar = globalAvatars[post.user];
@@ -165,16 +445,18 @@ export const PubView: React.FC<PubViewProps> = ({
                   className="pts-tag"
                   style={{
                     color: 'white',
-                    fontWeight: 'bold',
+                    fontWeight: 800,
                     fontSize: '11px',
-                    background: '#e67e22',
-                    padding: '2px 6px',
-                    borderRadius: '6px',
-                    marginLeft: '6px',
+                    background: post.isShiny
+                      ? 'linear-gradient(135deg, #F59E0B, #D97706)'
+                      : 'linear-gradient(135deg, #E67E22, #D35400)',
+                    padding: '3px 8px',
+                    borderRadius: '12px',
                     display: 'inline-flex',
                     alignItems: 'center',
-                    boxShadow: '0 1px 3px rgba(0,0,0,0.15)',
-                    verticalAlign: 'middle'
+                    gap: '3px',
+                    boxShadow: '0 2px 6px rgba(230, 126, 34, 0.3)',
+                    verticalAlign: 'middle',
                   }}
                 >
                   +{earnedPts} pt
@@ -192,7 +474,7 @@ export const PubView: React.FC<PubViewProps> = ({
                   <>
                     sta bevendo una 🍻 <strong className="beer-highlight">{formatBeerTitle(post.brand)}</strong> ({formatBeerTitle(post.variant)}) con{' '}
                     <strong className="clickable-user" onClick={() => onOpenPublicProfile(post.taggedFriend!)}>
-                      {post.taggedFriend}
+                      {globalDisplayNames?.[post.taggedFriend] || post.taggedFriend}
                     </strong>
                   </>
                 );
@@ -211,35 +493,79 @@ export const PubView: React.FC<PubViewProps> = ({
               const effectiveRating = post.rating || (post.user === currentUserNick ? myPokedex?.[`${post.brand}-${post.variant}`]?.rating : 0) || 0;
 
               return (
-                <div key={post.postId} className="post-card" data-post-id={post.postId}>
-                  <div className="post-header">
+                <div
+                  key={post.postId}
+                  className="post-card"
+                  data-post-id={post.postId}
+                  style={{
+                    borderRadius: '20px',
+                    border: '1px solid rgba(226, 232, 240, 0.8)',
+                    boxShadow: '0 8px 24px rgba(15, 23, 42, 0.05)',
+                    marginBottom: '20px',
+                    background: '#FFFFFF',
+                    overflow: 'hidden',
+                    transition: 'transform 0.2s ease, box-shadow 0.2s ease',
+                  }}
+                >
+                  {/* Card Header */}
+                  <div className="post-header" style={{ padding: '14px 16px', background: '#FFFFFF' }}>
                     <div style={{ display: 'flex', alignItems: 'center' }}>
                       <div
                         className="post-avatar clickable-user"
                         onClick={() => onOpenPublicProfile(post.user)}
-                        style={{ cursor: 'pointer' }}
+                        style={{
+                          cursor: 'pointer',
+                          width: '42px',
+                          height: '42px',
+                          borderRadius: '50%',
+                          padding: '2px',
+                          background: 'linear-gradient(135deg, #F59E0B 0%, #D97706 100%)',
+                          boxShadow: '0 2px 8px rgba(245, 158, 11, 0.25)',
+                        }}
                         {...(getAvatarZoomProps ? getAvatarZoomProps(avatar) : {})}
                       >
-                        {avatar ? (
-                          <img
-                            src={avatar}
-                            alt={post.user}
-                            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                            onContextMenu={(e) => e.preventDefault()}
-                            draggable={false}
-                          />
-                        ) : (
-                          <span className="material-symbols-outlined" style={{ fontSize: '24px' }}>
-                            person
-                          </span>
-                        )}
+                        <div
+                          style={{
+                            width: '100%',
+                            height: '100%',
+                            borderRadius: '50%',
+                            overflow: 'hidden',
+                            background: '#FFFFFF',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                          }}
+                        >
+                          {avatar ? (
+                            <img
+                              src={avatar}
+                              alt={post.user}
+                              style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                              onContextMenu={(e) => e.preventDefault()}
+                              draggable={false}
+                            />
+                          ) : (
+                            <span className="material-symbols-outlined" style={{ fontSize: '24px', color: '#64748B' }}>
+                              person
+                            </span>
+                          )}
+                        </div>
                       </div>
-                      <div>
-                        <div className="post-user clickable-user" onClick={() => onOpenPublicProfile(post.user)}>
+
+                      <div style={{ marginLeft: '12px' }}>
+                        <div
+                          className="post-user clickable-user"
+                          onClick={() => onOpenPublicProfile(post.user)}
+                          style={{ fontSize: '14px', fontWeight: 800, color: '#0F172A', cursor: 'pointer' }}
+                        >
                           {globalDisplayNames?.[post.user] || post.user}
+                        </div>
+                        <div style={{ fontSize: '11px', color: '#94A3B8', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '4px' }}>
+                          {timeStr}
                         </div>
                       </div>
                     </div>
+
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                       {pointsBadge}
                       {canDelete && (
@@ -247,21 +573,63 @@ export const PubView: React.FC<PubViewProps> = ({
                           className="btn-delete"
                           onClick={() => onDeletePost(post.postId, post.user, post.brand, post.variant)}
                           title="Elimina post e punti"
+                          style={{
+                            background: 'rgba(239, 68, 68, 0.08)',
+                            color: '#EF4444',
+                            border: 'none',
+                            borderRadius: '10px',
+                            width: '32px',
+                            height: '32px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            cursor: 'pointer',
+                          }}
                         >
-                          <span className="material-symbols-outlined">delete</span>
+                          <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>delete</span>
                         </button>
                       )}
                     </div>
                   </div>
 
-                  <div className="post-image-container" style={{ position: 'relative', overflow: 'hidden', width: '100%', display: 'block' }}>
+                  {/* Post Image Container */}
+                  <div
+                    className="post-image-container"
+                    style={{ position: 'relative', overflow: 'hidden', width: '100%', display: 'block', background: '#0F172A' }}
+                  >
+                    {/* Shiny Ribbon Badge */}
+                    {post.isShiny && (
+                      <div
+                        style={{
+                          position: 'absolute',
+                          top: '12px',
+                          left: '12px',
+                          background: 'linear-gradient(135deg, #F59E0B 0%, #D97706 100%)',
+                          color: '#FFFFFF',
+                          padding: '4px 10px',
+                          borderRadius: '20px',
+                          zIndex: 5,
+                          fontSize: '11px',
+                          fontWeight: 900,
+                          boxShadow: '0 4px 12px rgba(245, 158, 11, 0.4)',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '4px',
+                        }}
+                      >
+                        <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>auto_awesome</span>
+                        SHINY!
+                      </div>
+                    )}
+
+                    {/* Star Rating Badge */}
                     {effectiveRating > 0 && (
                       <div
                         style={{
                           position: 'absolute',
                           top: '12px',
                           right: '12px',
-                          background: 'rgba(15, 23, 42, 0.85)',
+                          background: 'rgba(15, 23, 42, 0.82)',
                           backdropFilter: 'blur(8px)',
                           padding: '4px 10px',
                           borderRadius: '20px',
@@ -273,16 +641,13 @@ export const PubView: React.FC<PubViewProps> = ({
                           gap: '4px',
                         }}
                       >
-                        <StarRating
-                          rating={effectiveRating}
-                          readOnly
-                          size={13}
-                        />
+                        <StarRating rating={effectiveRating} readOnly size={13} />
                         <span style={{ fontSize: '11px', fontWeight: 800, color: '#FFB300', marginLeft: '2px' }}>
                           {effectiveRating.toFixed(1)}
                         </span>
                       </div>
                     )}
+
                     <img
                       src={post.photo}
                       className="post-image"
@@ -290,10 +655,12 @@ export const PubView: React.FC<PubViewProps> = ({
                       onDoubleClick={(e) => handlePostDoubleTap(post.postId, e)}
                       onContextMenu={(e) => e.preventDefault()}
                       draggable={false}
+                      style={{ display: 'block', width: '100%', objectFit: 'cover' }}
                     />
                   </div>
 
-                  <div className="post-actions">
+                  {/* Actions Bar */}
+                  <div className="post-actions" style={{ padding: '12px 16px 6px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                     <button
                       className={`btn-like ${isLiked ? 'liked' : ''}`}
                       title={isLiked ? 'Rimuovi brindisi' : 'Brinda'}
@@ -304,13 +671,28 @@ export const PubView: React.FC<PubViewProps> = ({
                         }
                         onToggleLike(post.postId, imgContainer);
                       }}
+                      style={{
+                        borderRadius: '20px',
+                        padding: '8px 16px',
+                        fontSize: '13px',
+                        fontWeight: 800,
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '6px',
+                        border: isLiked ? 'none' : '1px solid #E2E8F0',
+                        background: isLiked ? 'linear-gradient(135deg, #F59E0B, #D97706)' : '#F8FAFC',
+                        color: isLiked ? '#FFFFFF' : '#475569',
+                        boxShadow: isLiked ? '0 4px 12px rgba(245, 158, 11, 0.35)' : 'none',
+                        cursor: 'pointer',
+                        transition: 'all 0.2s ease',
+                      }}
                     >
-                      <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>
+                      <span className="material-symbols-outlined" style={{ fontSize: '20px', color: isLiked ? '#FFFFFF' : '#F59E0B' }}>
                         sports_bar
-                      </span>{' '}
-                      <span style={{ fontSize: '13px', fontWeight: 700 }}>Brindisi</span>
+                      </span>
+                      <span>Brindisi</span>
                       {likesCount > 0 && (
-                        <span style={{ fontSize: '12px', opacity: 0.85, fontWeight: 800, marginLeft: '2px' }}>
+                        <span style={{ fontSize: '12px', opacity: 0.9, fontWeight: 900, marginLeft: '2px' }}>
                           ({likesCount})
                         </span>
                       )}
@@ -321,36 +703,37 @@ export const PubView: React.FC<PubViewProps> = ({
                         className="btn-report"
                         onClick={() => onReportFakePost(post.postId, post.user, post.brand, post.variant)}
                         title="Segnala Post"
+                        style={{
+                          background: 'transparent',
+                          border: 'none',
+                          cursor: 'pointer',
+                          color: '#94A3B8',
+                          padding: '6px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          borderRadius: '50%',
+                        }}
                       >
-                        <span className="material-symbols-outlined">flag</span>
+                        <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>flag</span>
                       </button>
                     )}
                   </div>
 
+                  {/* Likers Summary with Avatars */}
                   <BrindisiSummary
                     likes={post.likes}
                     currentUserNick={currentUserNick}
                     globalDisplayNames={globalDisplayNames}
+                    globalAvatars={globalAvatars}
                     onOpenPublicProfile={onOpenPublicProfile}
                   />
 
-                  <div className="post-caption">
-                    <strong className="clickable-user" onClick={() => onOpenPublicProfile(post.user)}>
+                  {/* Caption & Info */}
+                  <div className="post-caption" style={{ padding: '0 16px 14px 16px', fontSize: '13px', color: '#334155', lineHeight: '1.5' }}>
+                    <strong className="clickable-user" onClick={() => onOpenPublicProfile(post.user)} style={{ color: '#0F172A', fontWeight: 800 }}>
                       {globalDisplayNames?.[post.user] ? globalDisplayNames[post.user] : post.user}
                     </strong>{' '}
                     {actionText}
-
-                    <div className="post-time" style={{ marginTop: '6px', fontSize: '11px', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                      {timeStr}
-                      {post.isShiny && (
-                        <span style={{ color: 'var(--primary-dark)', fontSize: '11px', display: 'inline-flex', alignItems: 'center', gap: '2px', marginLeft: '4px', fontWeight: 'bold' }}>
-                          <span className="material-symbols-outlined" style={{ fontSize: '13px' }}>
-                            auto_awesome
-                          </span>{' '}
-                          Shiny!
-                        </span>
-                      )}
-                    </div>
                   </div>
                 </div>
               );
