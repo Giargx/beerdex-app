@@ -26,6 +26,7 @@ interface ProfileViewProps {
   onNavigateToFriends?: () => void;
   myTagRequests?: any[];
   onOpenTagRequest?: (req: any) => void;
+  onChangeAvatar?: () => void;
 }
 
 export const ProfileView: React.FC<ProfileViewProps> = ({
@@ -50,6 +51,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
   onNavigateToFriends,
   myTagRequests = [],
   onOpenTagRequest,
+  onChangeAvatar,
 }) => {
   const [activeTab, setActiveTab] = useState<'collection' | 'posts' | 'stats' | 'ratings'>('posts');
   const [variantSort, setVariantSort] = useState<'alpha' | 'unlocked' | 'rarity' | 'nation'>('unlocked');
@@ -273,6 +275,36 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
                 </span>
               )}
             </div>
+            {onChangeAvatar && (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onChangeAvatar();
+                }}
+                title="Cambia foto profilo"
+                style={{
+                  position: 'absolute',
+                  bottom: '12px',
+                  right: '-4px',
+                  width: '32px',
+                  height: '32px',
+                  borderRadius: '50%',
+                  background: 'var(--primary-dark)',
+                  color: 'white',
+                  border: '2px solid white',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  cursor: 'pointer',
+                  boxShadow: '0 2px 6px rgba(0,0,0,0.25)',
+                  zIndex: 10
+                }}
+              >
+                <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>
+                  photo_camera
+                </span>
+              </button>
+            )}
           </div>
 
           <div id="settingsUserBoxContent">

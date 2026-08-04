@@ -3,6 +3,7 @@ import { playClinkSound } from '../utils/audio';
 import { FoamBubbles } from '../components/FoamBubbles';
 import { getBasePoints, formatBeerTitle } from '../beers';
 import { StarRating } from '../components/StarRating';
+import { BrindisiSummary } from '../components/BrindisiSummary';
 import type { PokedexEntry } from '../components/TrophyGrid';
 
 interface Post {
@@ -295,6 +296,7 @@ export const PubView: React.FC<PubViewProps> = ({
                   <div className="post-actions">
                     <button
                       className={`btn-like ${isLiked ? 'liked' : ''}`}
+                      title={isLiked ? 'Rimuovi brindisi' : 'Brinda'}
                       onClick={(e) => {
                         const imgContainer = e.currentTarget.closest('.post-card')?.querySelector('.post-image-container') as HTMLElement;
                         if (!isLiked && imgContainer) {
@@ -319,6 +321,13 @@ export const PubView: React.FC<PubViewProps> = ({
                       </button>
                     )}
                   </div>
+
+                  <BrindisiSummary
+                    likes={post.likes}
+                    currentUserNick={currentUserNick}
+                    globalDisplayNames={globalDisplayNames}
+                    onOpenPublicProfile={onOpenPublicProfile}
+                  />
 
                   <div className="post-caption">
                     <strong className="clickable-user" onClick={() => onOpenPublicProfile(post.user)}>

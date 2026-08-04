@@ -141,13 +141,13 @@ export const CropModal: React.FC<CropModalProps> = ({
   }, [isOpen, position, zoom, baseSize]);
 
   const handleConfirmCrop = () => {
-    if (!imageRef.current) return;
+    const imgEl = imageRef.current;
+    if (!imgEl) return;
     
-    const w = baseSize.width * zoom;
+    const naturalWidth = imgEl.naturalWidth || baseSize.width || 250;
+    const w = (baseSize.width || 250) * zoom;
+    const scaleR = naturalWidth / (w || 1);
     
-    const naturalWidth = imageRef.current.naturalWidth;
-    
-    const scaleR = naturalWidth / w;
     const cropX = -position.x * scaleR;
     const cropY = -position.y * scaleR;
     const cropSize = 250 * scaleR;
@@ -160,7 +160,7 @@ export const CropModal: React.FC<CropModalProps> = ({
     if (ctx) {
       // Draw image to canvas
       ctx.drawImage(
-        imageRef.current,
+        imgEl,
         cropX,
         cropY,
         cropSize,
@@ -170,8 +170,12 @@ export const CropModal: React.FC<CropModalProps> = ({
         250,
         250
       );
-      const croppedBase64 = canvas.toDataURL('image/jpeg', 0.70);
-      onConfirm(croppedBase64);
+      try {
+        const croppedBase64 = canvas.toDataURL('image/jpeg', 0.70);
+        onConfirm(croppedBase64);
+      } catch (err) {
+        console.error("Error cropping image:", err);
+      }
     }
   };
 

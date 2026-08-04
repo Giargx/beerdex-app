@@ -1389,10 +1389,14 @@ export default function App() {
     const file = e.target.files?.[0];
     if (!file) return;
 
+    setAvatarSelectorOpen(false);
+
     const reader = new FileReader();
     reader.onload = (uploadEvent) => {
-      setCropImageSrc(uploadEvent.target?.result as string);
-      setCropOpen(true);
+      if (uploadEvent.target?.result) {
+        setCropImageSrc(uploadEvent.target.result as string);
+        setCropOpen(true);
+      }
     };
     reader.readAsDataURL(file);
     
@@ -1924,33 +1928,32 @@ export default function App() {
         </div>
       )}
 
+      {/* Hidden Avatar Inputs (Always mounted so onChange works reliably) */}
+      <input
+        type="file"
+        id="avatarInputGallery"
+        accept="image/*"
+        style={{ display: 'none' }}
+        onChange={handleAvatarFileSelected}
+      />
+      <input
+        type="file"
+        id="avatarInputCamera"
+        accept="image/*"
+        capture="user"
+        style={{ display: 'none' }}
+        onChange={handleAvatarFileSelected}
+      />
+
       {/* Avatar selectors camera / gallery */}
       {avatarSelectorOpen && (
         <div className="auth-modal" style={{ zIndex: 20500 }}>
           <div className="auth-container" style={{ maxWidth: '320px', padding: '20px', textAlign: 'center' }}>
             <h3 style={{ marginTop: 0, color: 'var(--dark)', marginBottom: '20px' }}>Cambia Foto Profilo</h3>
-            
-            {/* hidden inputs */}
-            <input
-              type="file"
-              id="avatarInputGallery"
-              accept="image/*"
-              style={{ display: 'none' }}
-              onChange={handleAvatarFileSelected}
-            />
-            <input
-              type="file"
-              id="avatarInputCamera"
-              accept="image/*"
-              capture="user"
-              style={{ display: 'none' }}
-              onChange={handleAvatarFileSelected}
-            />
 
             <button
               className="btn-main"
               onClick={() => {
-                setAvatarSelectorOpen(false);
                 document.getElementById('avatarInputCamera')?.click();
               }}
               style={{ width: '100%', justifyContent: 'center', marginBottom: '10px', gap: '8px' }}
@@ -1960,7 +1963,6 @@ export default function App() {
             <button
               className="btn-secondary"
               onClick={() => {
-                setAvatarSelectorOpen(false);
                 document.getElementById('avatarInputGallery')?.click();
               }}
               style={{ width: '100%', justifyContent: 'center', marginBottom: '15px', gap: '8px' }}
@@ -2455,6 +2457,7 @@ export default function App() {
                     onNavigateToFriends={() => navigateTo('page-friends')}
                     myTagRequests={myTagRequests}
                     onOpenTagRequest={(req) => setActiveTagRequestModal(req)}
+                    onChangeAvatar={() => setAvatarSelectorOpen(true)}
                   />
                 )}
               </div>

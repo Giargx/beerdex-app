@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 import { StarRating } from '../components/StarRating';
 import { formatBeerTitle, getBasePoints } from '../beers';
+import { BrindisiSummary } from '../components/BrindisiSummary';
 
 interface UserPostsDetailViewProps {
   username: string;
@@ -309,6 +310,7 @@ export const UserPostsDetailView: React.FC<UserPostsDetailViewProps> = ({
                   <div className="post-actions" style={{ padding: '12px 16px 8px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <button
                       className={`btn-like ${isLiked ? 'liked' : ''}`}
+                      title={isLiked ? 'Rimuovi brindisi' : 'Brinda'}
                       onClick={(e) => {
                         const imgContainer = e.currentTarget.closest('.post-card')?.querySelector('.post-image-container') as HTMLElement;
                         if (!isLiked && imgContainer) {
@@ -347,6 +349,13 @@ export const UserPostsDetailView: React.FC<UserPostsDetailViewProps> = ({
                       </button>
                     )}
                   </div>
+
+                  <BrindisiSummary
+                    likes={post.likes}
+                    currentUserNick={currentUserNick}
+                    globalDisplayNames={globalDisplayNames}
+                    onOpenPublicProfile={onOpenPublicProfile}
+                  />
 
                   {/* Beer info detail banner */}
                   <div style={{ padding: '0 16px 16px 16px' }}>
