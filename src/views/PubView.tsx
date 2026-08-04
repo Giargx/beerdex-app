@@ -4,6 +4,9 @@ import { FoamBubbles } from '../components/FoamBubbles';
 import { getBasePoints, formatBeerTitle } from '../beers';
 import { StarRating } from '../components/StarRating';
 import { BrindisiSummary } from '../components/BrindisiSummary';
+import { PostOptionsMenuModal } from '../components/PostOptionsMenuModal';
+import { ReportPostModal } from '../components/ReportPostModal';
+import { StoryViewerModal } from '../components/StoryViewerModal';
 import type { PokedexEntry } from '../components/TrophyGrid';
 
 interface Post {
@@ -51,6 +54,31 @@ export const PubView: React.FC<PubViewProps> = ({
 }) => {
   const [activeFilter, setActiveFilter] = useState<'all' | 'friends' | 'me'>('all');
   const [searchQuery, setSearchQuery] = useState<string>('');
+  
+  // Modals & Interactive States
+  const [selectedOptionsMenuPost, setSelectedOptionsMenuPost] = useState<Post | null>(null);
+  const [selectedReportPost, setSelectedReportPost] = useState<Post | null>(null);
+  const [activeStoryViewerIndex, setActiveStoryViewerIndex] = useState<number | null>(null);
+  const [savedPostIds, setSavedPostIds] = useState<string[]>(() => {
+    try {
+      const saved = localStorage.getItem('beerdex_saved_posts');
+      return saved ? JSON.parse(saved) : [];
+    } catch (e) {
+      return [];
+    }
+  });
+
+  // Toggle Save Post
+  const handleToggleSavePost = (postId: string) => {
+    setSavedPostIds((prev) => {
+      const isAlreadySaved = prev.includes(postId);
+      const updated = isAlreadySaved ? prev.filter((id) => id !== postId) : [...prev, postId];
+      try {
+        localStorage.setItem('beerdex_saved_posts', JSON.stringify(updated));
+      } catch (e) {}
+      return updated;
+    });
+  };
 
   // Base visible posts filter
   const visiblePosts = useMemo(() => {
@@ -58,15 +86,12 @@ export const PubView: React.FC<PubViewProps> = ({
       const isMine = post.user === currentUserNick;
       const isFriend = myFriendsList.includes(post.user);
       
-      // Admin sees everything, regular users see their own posts or friends' posts
       const canAccess = isMine || isFriend || isAdminUser;
       if (!canAccess) return false;
 
-      // Filter by tab
       if (activeFilter === 'friends' && !isFriend && !isMine) return false;
       if (activeFilter === 'me' && !isMine) return false;
 
-      // Search query filter (matches brand, variant, or username)
       if (searchQuery.trim()) {
         const q = searchQuery.toLowerCase().trim();
         const brand = (post.brand || '').toLowerCase();
@@ -79,6 +104,23 @@ export const PubView: React.FC<PubViewProps> = ({
       return true;
     });
   }, [posts, currentUserNick, myFriendsList, isAdminUser, activeFilter, searchQuery, globalDisplayNames]);
+
+  // Active 24h Stories
+  const storyPosts = useMemo(() => {
+    const twentyFourHoursAgo = Date.now() - 24 * 60 * 60 * 1000;
+    // Get unique users' latest post within 24h
+    const recent = visiblePosts.filter((p) => p.time >= twentyFourHoursAgo);
+
+    // Group by user, pick latest
+    const userStoryMap = new Map<string, Post>();
+    recent.forEach((p) => {
+      if (!userStoryMap.has(p.user) || p.time > userStoryMap.get(p.user)!.time) {
+        userStoryMap.set(p.user, p);
+      }
+    });
+
+    return Array.from(userStoryMap.values());
+  }, [visiblePosts]);
 
   // Statistics for Pub Header
   const totalToastCount = useMemo(() => {
@@ -220,38 +262,113 @@ export const PubView: React.FC<PubViewProps> = ({
             </h1>
           </div>
 
-          <p style={{ margin: '0 0 16px 0', fontSize: '13px', color: '#94A3B8', fontWeight: 500 }}>
+          <p style={{ margin: '0 0 14px 0', fontSize: '13px', color: '#94A3B8', fontWeight: 500 }}>
             Il bancone virtuale dove festeggiare e brindare con i tuoi amici.
           </p>
 
-          {/* Stat Counter Pills */}
+          {/* Stat Counter Pill */}
           <div
             style={{
               display: 'inline-flex',
               alignItems: 'center',
-              gap: '10px',
+              gap: '6px',
               background: 'rgba(255, 255, 255, 0.08)',
               backdropFilter: 'blur(10px)',
-              padding: '6px 16px',
+              padding: '6px 18px',
               borderRadius: '30px',
               border: '1px solid rgba(255, 255, 255, 0.12)',
             }}
           >
-            <span style={{ fontSize: '12px', fontWeight: 700, color: '#FDE047', display: 'flex', alignItems: 'center', gap: '4px' }}>
-              <span className="material-symbols-outlined" style={{ fontSize: '15px' }}>local_bar</span>
-              {posts.length} Post Sbloccati
-            </span>
-            <span style={{ width: '4px', height: '4px', borderRadius: '50%', background: '#64748B' }} />
-            <span style={{ fontSize: '12px', fontWeight: 700, color: '#F59E0B', display: 'flex', alignItems: 'center', gap: '4px' }}>
-              <span className="material-symbols-outlined" style={{ fontSize: '15px' }}>sports_bar</span>
-              {totalToastCount} Brindisi Totali
+            <span style={{ fontSize: '12px', fontWeight: 800, color: '#F59E0B', display: 'flex', alignItems: 'center', gap: '5px' }}>
+              <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>sports_bar</span>
+              {totalToastCount} Brindisi al Bancone
             </span>
           </div>
         </div>
       </header>
 
+      {/* 24h Instagram-style Stories Carousel Bar */}
+      {storyPosts.length > 0 && (
+        <div style={{ maxWidth: '640px', margin: '16px auto 0 auto', padding: '0 16px' }}>
+          <div style={{ fontSize: '12px', fontWeight: 800, color: '#64748B', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+            <span className="material-symbols-outlined" style={{ fontSize: '16px', color: '#F59E0B' }}>auto_awesome</span>
+            STORIE DEL PUB (24H)
+          </div>
+          <div
+            style={{
+              display: 'flex',
+              gap: '14px',
+              overflowX: 'auto',
+              padding: '4px 2px 10px 2px',
+              touchAction: 'pan-x',
+              overscrollBehaviorX: 'contain',
+            }}
+          >
+            {storyPosts.map((story, idx) => {
+              const av = globalAvatars[story.user];
+              const disp = globalDisplayNames?.[story.user] || story.user;
+              return (
+                <div
+                  key={story.postId}
+                  onClick={() => setActiveStoryViewerIndex(idx)}
+                  style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    cursor: 'pointer',
+                    flexShrink: 0,
+                  }}
+                >
+                  <div
+                    style={{
+                      width: '60px',
+                      height: '60px',
+                      borderRadius: '50%',
+                      padding: '3px',
+                      background: 'linear-gradient(45deg, #F59E0B, #E67E22, #EC4899)',
+                      boxShadow: '0 4px 10px rgba(245, 158, 11, 0.3)',
+                    }}
+                  >
+                    <div
+                      style={{
+                        width: '100%',
+                        height: '100%',
+                        borderRadius: '50%',
+                        overflow: 'hidden',
+                        background: '#FFFFFF',
+                        border: '2px solid #FFFFFF',
+                      }}
+                    >
+                      {av ? (
+                        <img src={av} alt={disp} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                      ) : (
+                        <span className="material-symbols-outlined" style={{ fontSize: '32px', color: '#64748B' }}>person</span>
+                      )}
+                    </div>
+                  </div>
+                  <span
+                    style={{
+                      fontSize: '11px',
+                      fontWeight: 700,
+                      color: '#334155',
+                      marginTop: '4px',
+                      maxWidth: '64px',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      whiteSpace: 'nowrap',
+                    }}
+                  >
+                    {disp}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
       {/* Filter Tabs & Search Control Bar */}
-      <div style={{ maxWidth: '640px', margin: '16px auto 0 auto', padding: '0 16px' }}>
+      <div style={{ maxWidth: '640px', margin: '12px auto 0 auto', padding: '0 16px' }}>
         {/* Search Bar */}
         <div
           style={{
@@ -310,8 +427,17 @@ export const PubView: React.FC<PubViewProps> = ({
           )}
         </div>
 
-        {/* Filter Pills */}
-        <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', paddingBottom: '4px' }}>
+        {/* Filter Pills with touch-action: pan-x to lock vertical page scrolling */}
+        <div
+          style={{
+            display: 'flex',
+            gap: '8px',
+            overflowX: 'auto',
+            paddingBottom: '4px',
+            touchAction: 'pan-x',
+            overscrollBehaviorX: 'contain',
+          }}
+        >
           <button
             className={`pub-filter-pill ${activeFilter === 'all' ? 'active' : ''}`}
             onClick={() => setActiveFilter('all')}
@@ -432,8 +558,7 @@ export const PubView: React.FC<PubViewProps> = ({
           ) : (
             [...visiblePosts].reverse().map((post) => {
               const avatar = globalAvatars[post.user];
-              const canDelete = post.user === currentUserNick || isAdminUser;
-              const canReport = post.user !== currentUserNick && !isAdminUser;
+              const isSaved = savedPostIds.includes(post.postId);
 
               // Calculate points received upon unlocking
               const basePts = getBasePoints(post.brand, post.variant);
@@ -463,23 +588,6 @@ export const PubView: React.FC<PubViewProps> = ({
                 </span>
               );
 
-              let actionText: React.ReactNode = (
-                <>
-                  ha sbloccato la 🍺 <strong className="beer-highlight">{formatBeerTitle(post.brand)}</strong> ({formatBeerTitle(post.variant)})
-                </>
-              );
-
-              if (post.isShared && post.taggedFriend) {
-                actionText = (
-                  <>
-                    sta bevendo una 🍻 <strong className="beer-highlight">{formatBeerTitle(post.brand)}</strong> ({formatBeerTitle(post.variant)}) con{' '}
-                    <strong className="clickable-user" onClick={() => onOpenPublicProfile(post.taggedFriend!)}>
-                      {globalDisplayNames?.[post.taggedFriend] || post.taggedFriend}
-                    </strong>
-                  </>
-                );
-              }
-
               const date = new Date(post.time);
               const timeStr = date.toLocaleDateString('it-IT', {
                 day: 'numeric',
@@ -508,7 +616,16 @@ export const PubView: React.FC<PubViewProps> = ({
                   }}
                 >
                   {/* Card Header */}
-                  <div className="post-header" style={{ padding: '14px 16px', background: '#FFFFFF' }}>
+                  <div
+                    className="post-header"
+                    style={{
+                      padding: '14px 16px',
+                      background: '#FFFFFF',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                    }}
+                  >
                     <div style={{ display: 'flex', alignItems: 'center' }}>
                       <div
                         className="post-avatar clickable-user"
@@ -566,30 +683,26 @@ export const PubView: React.FC<PubViewProps> = ({
                       </div>
                     </div>
 
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      {pointsBadge}
-                      {canDelete && (
-                        <button
-                          className="btn-delete"
-                          onClick={() => onDeletePost(post.postId, post.user, post.brand, post.variant)}
-                          title="Elimina post e punti"
-                          style={{
-                            background: 'rgba(239, 68, 68, 0.08)',
-                            color: '#EF4444',
-                            border: 'none',
-                            borderRadius: '10px',
-                            width: '32px',
-                            height: '32px',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            cursor: 'pointer',
-                          }}
-                        >
-                          <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>delete</span>
-                        </button>
-                      )}
-                    </div>
+                    {/* 3-Dots Options Menu Button (more_vert) for all users */}
+                    <button
+                      onClick={() => setSelectedOptionsMenuPost(post)}
+                      title="Opzioni Post"
+                      style={{
+                        background: 'transparent',
+                        border: 'none',
+                        cursor: 'pointer',
+                        color: '#64748B',
+                        width: '36px',
+                        height: '36px',
+                        borderRadius: '50%',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        transition: 'background 0.15s ease',
+                      }}
+                    >
+                      <span className="material-symbols-outlined" style={{ fontSize: '22px' }}>more_vert</span>
+                    </button>
                   </div>
 
                   {/* Post Image Container */}
@@ -660,7 +773,15 @@ export const PubView: React.FC<PubViewProps> = ({
                   </div>
 
                   {/* Actions Bar */}
-                  <div className="post-actions" style={{ padding: '12px 16px 6px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <div
+                    className="post-actions"
+                    style={{
+                      padding: '12px 16px 6px 16px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                    }}
+                  >
                     <button
                       className={`btn-like ${isLiked ? 'liked' : ''}`}
                       title={isLiked ? 'Rimuovi brindisi' : 'Brinda'}
@@ -673,7 +794,7 @@ export const PubView: React.FC<PubViewProps> = ({
                       }}
                       style={{
                         borderRadius: '20px',
-                        padding: '8px 16px',
+                        padding: '8px 18px',
                         fontSize: '13px',
                         fontWeight: 800,
                         display: 'inline-flex',
@@ -697,26 +818,26 @@ export const PubView: React.FC<PubViewProps> = ({
                         </span>
                       )}
                     </button>
-                    
-                    {canReport && (
+
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                       <button
-                        className="btn-report"
-                        onClick={() => onReportFakePost(post.postId, post.user, post.brand, post.variant)}
-                        title="Segnala Post"
+                        onClick={() => handleToggleSavePost(post.postId)}
+                        title={isSaved ? 'Rimuovi dai Segnalibri' : 'Salva Post'}
                         style={{
                           background: 'transparent',
                           border: 'none',
                           cursor: 'pointer',
-                          color: '#94A3B8',
+                          color: isSaved ? '#F59E0B' : '#94A3B8',
                           padding: '6px',
                           display: 'flex',
                           alignItems: 'center',
-                          borderRadius: '50%',
                         }}
                       >
-                        <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>flag</span>
+                        <span className="material-symbols-outlined" style={{ fontSize: '22px' }}>
+                          {isSaved ? 'bookmark_added' : 'bookmark'}
+                        </span>
                       </button>
-                    )}
+                    </div>
                   </div>
 
                   {/* Likers Summary with Avatars */}
@@ -728,12 +849,39 @@ export const PubView: React.FC<PubViewProps> = ({
                     onOpenPublicProfile={onOpenPublicProfile}
                   />
 
-                  {/* Caption & Info */}
-                  <div className="post-caption" style={{ padding: '0 16px 14px 16px', fontSize: '13px', color: '#334155', lineHeight: '1.5' }}>
-                    <strong className="clickable-user" onClick={() => onOpenPublicProfile(post.user)} style={{ color: '#0F172A', fontWeight: 800 }}>
-                      {globalDisplayNames?.[post.user] ? globalDisplayNames[post.user] : post.user}
-                    </strong>{' '}
-                    {actionText}
+                  {/* Clear Structural Card Division: Dedicated Beer Info Box & Caption */}
+                  <div className="post-caption" style={{ padding: '0 16px 16px 16px' }}>
+                    <div
+                      style={{
+                        background: '#FFFDF5',
+                        border: '1px solid rgba(245, 158, 11, 0.25)',
+                        borderRadius: '16px',
+                        padding: '12px 14px',
+                        marginTop: '4px',
+                      }}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '4px' }}>
+                        <div style={{ fontSize: '14px', fontWeight: 900, color: '#0F172A', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                          <span style={{ fontSize: '18px' }}>🍺</span>
+                          <span>{formatBeerTitle(post.brand)}</span>
+                          <span style={{ fontSize: '13px', fontWeight: 600, color: '#64748B' }}>({formatBeerTitle(post.variant)})</span>
+                        </div>
+                        {pointsBadge}
+                      </div>
+
+                      {post.isShared && post.taggedFriend && (
+                        <div style={{ fontSize: '12px', color: '#D97706', fontWeight: 700, marginTop: '4px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                          <span>🍻 In compagnia di</span>
+                          <strong
+                            className="clickable-user"
+                            onClick={() => onOpenPublicProfile(post.taggedFriend!)}
+                            style={{ textDecoration: 'underline', cursor: 'pointer' }}
+                          >
+                            @{globalDisplayNames?.[post.taggedFriend] || post.taggedFriend}
+                          </strong>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
               );
@@ -741,6 +889,52 @@ export const PubView: React.FC<PubViewProps> = ({
           )}
         </div>
       </div>
+
+      {/* 3-Dots Options Menu Modal */}
+      <PostOptionsMenuModal
+        isOpen={Boolean(selectedOptionsMenuPost)}
+        post={selectedOptionsMenuPost}
+        currentUserNick={currentUserNick}
+        isAdminUser={isAdminUser}
+        isSaved={selectedOptionsMenuPost ? savedPostIds.includes(selectedOptionsMenuPost.postId) : false}
+        onClose={() => setSelectedOptionsMenuPost(null)}
+        onSavePost={(postId) => handleToggleSavePost(postId)}
+        onShareToStory={(postId) => {
+          const idx = storyPosts.findIndex((s) => s.postId === postId);
+          if (idx !== -1) {
+            setActiveStoryViewerIndex(idx);
+          } else {
+            setActiveStoryViewerIndex(0);
+          }
+        }}
+        onOpenReportModal={(post) => setSelectedReportPost(post)}
+        onDeletePost={onDeletePost}
+      />
+
+      {/* Report Post Modal with Reasons */}
+      <ReportPostModal
+        isOpen={Boolean(selectedReportPost)}
+        post={selectedReportPost}
+        onClose={() => setSelectedReportPost(null)}
+        onSubmitReport={(postId, postUser, brand, variant) => {
+          onReportFakePost(postId, postUser, brand, variant);
+        }}
+      />
+
+      {/* 24h Instagram-style Fullscreen Story Viewer */}
+      {activeStoryViewerIndex !== null && (
+        <StoryViewerModal
+          isOpen={activeStoryViewerIndex !== null}
+          stories={storyPosts}
+          initialIndex={activeStoryViewerIndex}
+          currentUserNick={currentUserNick}
+          globalAvatars={globalAvatars}
+          globalDisplayNames={globalDisplayNames}
+          onClose={() => setActiveStoryViewerIndex(null)}
+          onToggleLike={onToggleLike}
+          onOpenPublicProfile={onOpenPublicProfile}
+        />
+      )}
     </div>
   );
 };
