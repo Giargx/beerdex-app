@@ -45,9 +45,9 @@ export const FriendsView: React.FC<FriendsViewProps> = ({
 
   const tabs: { id: 'received' | 'sent' | 'accepted' | 'rejected'; label: string; count: number; icon: string; badgeColor?: string }[] = [
     { id: 'received', label: 'Richieste', count: myReceivedRequests.length, icon: 'inbox', badgeColor: '#EF4444' },
-    { id: 'accepted', label: 'Miei Amici', count: myFriendsList.length, icon: 'group' },
+    { id: 'accepted', label: 'Amici', count: myFriendsList.length, icon: 'group' },
     { id: 'sent', label: 'Inviate', count: mySentRequests.length, icon: 'send' },
-    { id: 'rejected', label: 'Rifiutate', count: myRejectedRequests.length, icon: 'block' },
+    { id: 'rejected', label: 'Rifiutati', count: myRejectedRequests.length, icon: 'block' },
   ];
 
   return (
@@ -62,15 +62,17 @@ export const FriendsView: React.FC<FriendsViewProps> = ({
         {/* Segmented Pill Tabs */}
         <div
           style={{
-            display: 'flex',
+            display: 'grid',
+            gridTemplateColumns: 'repeat(4, 1fr)',
+            gap: '4px',
             background: '#FFFFFF',
             borderRadius: '20px',
-            padding: '5px',
+            padding: '4px',
             marginBottom: '16px',
             border: '1px solid rgba(226, 232, 240, 0.8)',
             boxShadow: '0 4px 15px rgba(15, 23, 42, 0.04)',
-            overflowX: 'auto',
-            touchAction: 'pan-x',
+            width: '100%',
+            boxSizing: 'border-box',
           }}
         >
           {tabs.map((tab) => {
@@ -80,28 +82,28 @@ export const FriendsView: React.FC<FriendsViewProps> = ({
                 key={tab.id}
                 onClick={() => setActiveSubTab(tab.id)}
                 style={{
-                  flex: 1,
-                  padding: '10px 12px',
+                  width: '100%',
+                  padding: '9px 4px',
                   borderRadius: '16px',
                   border: 'none',
                   background: isActive ? 'linear-gradient(135deg, #F59E0B 0%, #D97706 100%)' : 'transparent',
                   color: isActive ? '#FFFFFF' : '#64748B',
                   fontWeight: isActive ? 900 : 700,
-                  fontSize: '12px',
+                  fontSize: '11px',
                   cursor: 'pointer',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  gap: '6px',
+                  gap: '3px',
                   boxShadow: isActive ? '0 4px 12px rgba(245, 158, 11, 0.3)' : 'none',
                   transition: 'all 0.2s cubic-bezier(0.16, 1, 0.3, 1)',
-                  whiteSpace: 'nowrap',
+                  boxSizing: 'border-box',
                 }}
               >
-                <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>
+                <span className="material-symbols-outlined" style={{ fontSize: '15px', flexShrink: 0 }}>
                   {tab.icon}
                 </span>
-                <span>{tab.label}</span>
+                <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{tab.label}</span>
                 {tab.count > 0 && (
                   <span
                     style={{
@@ -109,9 +111,9 @@ export const FriendsView: React.FC<FriendsViewProps> = ({
                       color: isActive ? '#D97706' : tab.badgeColor ? '#FFFFFF' : '#475569',
                       fontSize: '10px',
                       fontWeight: 900,
-                      padding: '2px 7px',
-                      borderRadius: '10px',
-                      marginLeft: '2px',
+                      padding: '1px 5px',
+                      borderRadius: '8px',
+                      flexShrink: 0,
                     }}
                   >
                     {tab.count}
