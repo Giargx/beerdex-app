@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef } from 'react';
 import L from 'leaflet';
 
 interface Post {
@@ -31,13 +31,14 @@ export const MapContainer: React.FC<MapContainerProps> = ({
   const userMarkerRef = useRef<L.Marker | null>(null);
   const accuracyCircleRef = useRef<L.Circle | null>(null);
 
-  const [locationStatus, setLocationStatus] = useState<string>('');
-  const [isManualPin, setIsManualPin] = useState<boolean>(false);
-
   useEffect(() => {
     if (!mapRef.current) return;
 
-    // Initialize map if not already done
+    // Clean up any legacy manual overrides
+    localStorage.removeItem('beerdex_manual_lat');
+    localStorage.removeItem('beerdex_manual_lng');
+
+    // Initialize Google Maps view if not already done
     if (!mapInstance.current) {
       mapInstance.current = L.map(mapRef.current, {
         maxBounds: [
@@ -61,101 +62,71 @@ export const MapContainer: React.FC<MapContainerProps> = ({
 
       markersGroup.current = L.layerGroup().addTo(mapInstance.current);
 
-      // Check if user has a previously set manual location
-      const savedLat = localStorage.getItem('beerdex_manual_lat');
-      const savedLng = localStorage.getItem('beerdex_manual_lng');
+      // Automatic High-Precision GPS Lock with Real-Time Accuracy Refinement
+      if (navigator.geolocation) {
+        let bestAccuracy = Infinity;
 
-      const placeUserMarker = (lat: number, lng: number, manual: boolean) => {
-        if (!mapInstance.current) return;
-
-        setIsManualPin(manual);
-        mapInstance.current.setView([lat, lng], 16);
-
-        // Custom Google Maps Draggable Location Pin
-        const userIcon = L.divIcon({
-          html: `<div style="background:${manual ? '#EF4444' : '#4285F4'}; width:20px; height:20px; border-radius:50%; border:3px solid #FFFFFF; box-shadow:0 0 10px rgba(0,0,0,0.5); cursor:move;"></div>`,
-          className: 'user-loc-icon',
-          iconSize: [26, 26],
-          iconAnchor: [13, 13],
-        });
-
-        if (userMarkerRef.current) {
-          userMarkerRef.current.setLatLng([lat, lng]);
-          userMarkerRef.current.setIcon(userIcon);
-        } else {
-          userMarkerRef.current = L.marker([lat, lng], {
-            icon: userIcon,
-            draggable: true,
-          }).addTo(mapInstance.current);
-
-          // Handle pin drag end
-          userMarkerRef.current.on('dragend', (e: any) => {
-            const newPos = e.target.getLatLng();
-            localStorage.setItem('beerdex_manual_lat', newPos.lat.toString());
-            localStorage.setItem('beerdex_manual_lng', newPos.lng.toString());
-            setIsManualPin(true);
-            setLocationStatus('📍 Posizione corretta manualmente!');
-          });
-        }
-
-        userMarkerRef.current.bindPopup(
-          `<div style="text-align:center; font-family:inherit; padding:4px;">
-            <b>${manual ? '📌 Posizione Personalizzata' : '📍 La tua Posizione Google Maps'}</b><br>
-            <small style="color:#64748B;">Puoi trascinare questo pin o cliccare sulla mappa per posizionarti esattamente sul tuo pub!</small>
-          </div>`
-        );
-      };
-
-      if (savedLat && savedLng) {
-        placeUserMarker(parseFloat(savedLat), parseFloat(savedLng), true);
-        setLocationStatus('📌 Posizione personalizzata caricata');
-      } else if (navigator.geolocation) {
-        // High-Precision Geolocation via GPS / WiFi
-        navigator.geolocation.getCurrentPosition(
+        const watchId = navigator.geolocation.watchPosition(
           (pos) => {
             const lat = pos.coords.latitude;
             const lng = pos.coords.longitude;
             const accuracy = pos.coords.accuracy || 0;
 
             if (mapInstance.current) {
-              placeUserMarker(lat, lng, false);
+              // Always refine view when better accuracy is acquired
+              if (accuracy < bestAccuracy || bestAccuracy === Infinity) {
+                bestAccuracy = accuracy;
 
-              if (accuracy > 0 && !accuracyCircleRef.current) {
-                accuracyCircleRef.current = L.circle([lat, lng], {
-                  radius: Math.min(accuracy, 500),
-                  color: '#4285F4',
-                  fillColor: '#4285F4',
-                  fillOpacity: 0.12,
-                  weight: 1,
-                }).addTo(mapInstance.current);
-              }
+                mapInstance.current.setView([lat, lng], 16);
 
-              if (accuracy > 300) {
-                setLocationStatus('💡 Suggerimento: Connessione Wi-Fi/PC rilevata. Clicca sulla mappa o trascina il pallino per correggere il tuo pub!');
-              } else {
-                setLocationStatus('⚡ Rilevamento GPS completato');
+                // Update Accuracy Circle
+                if (accuracyCircleRef.current) {
+                  accuracyCircleRef.current.setLatLng([lat, lng]);
+                  accuracyCircleRef.current.setRadius(Math.min(accuracy, 250));
+                } else {
+                  accuracyCircleRef.current = L.circle([lat, lng], {
+                    radius: Math.min(accuracy, 250),
+                    color: '#4285F4',
+                    fillColor: '#4285F4',
+                    fillOpacity: 0.12,
+                    weight: 1,
+                  }).addTo(mapInstance.current);
+                }
+
+                // Google Maps Blue Location Pin
+                const userIcon = L.divIcon({
+                  html: '<div style="background:#4285F4; width:18px; height:18px; border-radius:50%; border:3px solid #FFFFFF; box-shadow:0 0 10px rgba(66,133,244,0.8);"></div>',
+                  className: 'user-loc-icon',
+                  iconSize: [24, 24],
+                  iconAnchor: [12, 12],
+                });
+
+                if (userMarkerRef.current) {
+                  userMarkerRef.current.setLatLng([lat, lng]);
+                } else {
+                  userMarkerRef.current = L.marker([lat, lng], { icon: userIcon })
+                    .addTo(mapInstance.current)
+                    .bindPopup("<b style='font-family:inherit;'>📍 La tua Posizione (Google Maps)</b>");
+                }
               }
             }
           },
-          (err) => console.log('Geolocation error:', err),
-          { enableHighAccuracy: true, maximumAge: 0, timeout: 10000 }
+          (err) => console.log('Geolocation watch error:', err),
+          { enableHighAccuracy: true, timeout: 20000, maximumAge: 0 }
         );
-      }
 
-      // Allow clicking ANYWHERE on the map to instantly relocate/fine-tune the user's pin
-      mapInstance.current.on('click', (e: L.LeafletMouseEvent) => {
-        const lat = e.latlng.lat;
-        const lng = e.latlng.lng;
-        localStorage.setItem('beerdex_manual_lat', lat.toString());
-        localStorage.setItem('beerdex_manual_lng', lng.toString());
-        placeUserMarker(lat, lng, true);
-        setLocationStatus('📍 Posizione spostata nel punto cliccato!');
-      });
+        // Save watchId for cleanup
+        (mapInstance.current as any)._geoWatchId = watchId;
+      }
     }
 
     return () => {
-      // Clean up map when component unmounts
+      // Clean up map and geolocation listener when component unmounts
       if (mapInstance.current) {
+        const wId = (mapInstance.current as any)._geoWatchId;
+        if (wId !== undefined && navigator.geolocation) {
+          navigator.geolocation.clearWatch(wId);
+        }
         mapInstance.current.remove();
         mapInstance.current = null;
         markersGroup.current = null;
@@ -210,94 +181,5 @@ export const MapContainer: React.FC<MapContainerProps> = ({
     }
   }, [isActive, posts, currentUserNick]);
 
-  const handleResetToAutoGps = () => {
-    localStorage.removeItem('beerdex_manual_lat');
-    localStorage.removeItem('beerdex_manual_lng');
-    setIsManualPin(false);
-    setLocationStatus('Rilevamento GPS in corso...');
-
-    if (navigator.geolocation && mapInstance.current) {
-      navigator.geolocation.getCurrentPosition(
-        (pos) => {
-          const lat = pos.coords.latitude;
-          const lng = pos.coords.longitude;
-
-          mapInstance.current?.setView([lat, lng], 16);
-          if (userMarkerRef.current) {
-            userMarkerRef.current.setLatLng([lat, lng]);
-            const userIcon = L.divIcon({
-              html: '<div style="background:#4285F4; width:20px; height:20px; border-radius:50%; border:3px solid #FFFFFF; box-shadow:0 0 10px rgba(0,0,0,0.5); cursor:move;"></div>',
-              className: 'user-loc-icon',
-              iconSize: [26, 26],
-              iconAnchor: [13, 13],
-            });
-            userMarkerRef.current.setIcon(userIcon);
-          }
-          setLocationStatus('📍 Posizione GPS ripristinata!');
-        },
-        (_err) => setLocationStatus('Impossibile rilevare posizione GPS automaticamente'),
-        { enableHighAccuracy: true, maximumAge: 0, timeout: 10000 }
-      );
-    }
-  };
-
-  return (
-    <div style={{ position: 'relative', width: '100%', height: '100%' }}>
-      {/* Help Banner Overlay for manual pin adjustment */}
-      <div
-        style={{
-          position: 'absolute',
-          top: '12px',
-          left: '50%',
-          transform: 'translateX(-50%)',
-          width: 'calc(100% - 32px)',
-          maxWidth: '500px',
-          zIndex: 999,
-          background: 'rgba(15, 23, 42, 0.88)',
-          backdropFilter: 'blur(8px)',
-          color: '#FFFFFF',
-          padding: '10px 14px',
-          borderRadius: '16px',
-          fontSize: '12px',
-          boxShadow: '0 4px 20px rgba(0,0,0,0.3)',
-          border: '1px solid rgba(245,158,11,0.3)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          gap: '10px',
-        }}
-      >
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flex: 1 }}>
-          <span className="material-symbols-outlined" style={{ color: '#F59E0B', fontSize: '20px' }}>
-            touch_app
-          </span>
-          <span style={{ lineHeight: '1.3' }}>
-            {locationStatus || 'Clicca sulla mappa o trascina il pallino per posizionarti sul tuo pub!'}
-          </span>
-        </div>
-
-        {isManualPin && (
-          <button
-            onClick={handleResetToAutoGps}
-            style={{
-              background: 'rgba(255,255,255,0.15)',
-              border: 'none',
-              color: '#FDE68A',
-              padding: '4px 10px',
-              borderRadius: '10px',
-              fontSize: '11px',
-              fontWeight: 800,
-              cursor: 'pointer',
-              whiteSpace: 'nowrap',
-            }}
-          >
-            Reset GPS
-          </button>
-        )}
-      </div>
-
-      {/* Map View */}
-      <div ref={mapRef} id="mapContainer" style={{ width: '100%', height: '100%' }}></div>
-    </div>
-  );
+  return <div ref={mapRef} id="mapContainer" style={{ width: '100%', height: '100%' }}></div>;
 };

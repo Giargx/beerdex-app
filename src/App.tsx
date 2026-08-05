@@ -1195,22 +1195,14 @@ export default function App() {
     const targetBeer = beers.find((b) => b.brand === scannerConfig.brand);
 
     try {
-      const manualLat = localStorage.getItem('beerdex_manual_lat');
-      const manualLng = localStorage.getItem('beerdex_manual_lng');
-
-      let lat: number | null = manualLat ? parseFloat(manualLat) : null;
-      let lng: number | null = manualLng ? parseFloat(manualLng) : null;
+      const pos = await getPositionWithTimeout(10000);
       let isShiny = false;
+      let lat: number | null = null;
+      let lng: number | null = null;
 
-      if (!lat || !lng) {
-        const pos = await getPositionWithTimeout(8000);
-        if (pos) {
-          lat = pos.coords.latitude;
-          lng = pos.coords.longitude;
-        }
-      }
-
-      if (lat !== null && lng !== null) {
+      if (pos) {
+        lat = pos.coords.latitude;
+        lng = pos.coords.longitude;
         isShiny = await checkShinyStatusWithTimeout(lat, lng, targetBeer);
       }
 
