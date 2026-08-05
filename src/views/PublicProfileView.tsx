@@ -345,7 +345,7 @@ export const PublicProfileView: React.FC<PublicProfileViewProps> = ({
               medalSortDir={medalSortDir}
               showDeleteButton={false}
               mode="events"
-              userPosts={myPosts}
+              userPosts={[]}
             />
           </div>
         </div>

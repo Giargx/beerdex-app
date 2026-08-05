@@ -267,17 +267,17 @@ export const PubView: React.FC<PubViewProps> = ({
 
   return (
     <div className="page-container-view" style={{ paddingBottom: '40px' }}>
-      {/* Luxury Pub Hero Banner */}
+      {/* Pub Hero Banner - Identico a Esplora */}
       <header
         className="hero"
         style={{
           position: 'relative',
           padding: '28px 20px 24px 20px',
-          background: 'linear-gradient(135deg, #FFFDF0 0%, #FEF9C3 50%, #FDE68A 100%)',
-          color: '#451A03',
+          background: 'linear-gradient(135deg, #FFFBEB 0%, #FEF3C7 100%)',
+          color: '#1E293B',
           borderRadius: '0 0 24px 24px',
-          borderBottom: '2px solid rgba(245, 158, 11, 0.35)',
-          boxShadow: '0 8px 25px rgba(245, 158, 11, 0.15)',
+          borderBottom: '1px solid rgba(245, 158, 11, 0.25)',
+          boxShadow: '0 8px 25px rgba(245, 158, 11, 0.1)',
           overflow: 'hidden',
         }}
       >
@@ -291,7 +291,7 @@ export const PubView: React.FC<PubViewProps> = ({
             right: '-50px',
             width: '200px',
             height: '200px',
-            background: 'radial-gradient(circle, rgba(245, 158, 11, 0.25) 0%, rgba(217, 119, 6, 0) 70%)',
+            background: 'radial-gradient(circle, rgba(245, 158, 11, 0.2) 0%, rgba(217, 119, 6, 0) 70%)',
             borderRadius: '50%',
             pointerEvents: 'none',
           }}
@@ -323,12 +323,12 @@ export const PubView: React.FC<PubViewProps> = ({
                 sports_bar
               </span>
             </div>
-            <h1 style={{ fontSize: '32px', margin: 0, fontWeight: 900, letterSpacing: '-0.5px', color: '#451A03' }}>
+            <h1 style={{ fontSize: '32px', margin: 0, fontWeight: 900, letterSpacing: '-0.5px', color: '#1E293B' }}>
               Il Pub
             </h1>
           </div>
 
-          <p style={{ margin: '0 0 14px 0', fontSize: '13px', color: '#78350F', fontWeight: 600 }}>
+          <p style={{ margin: '0 0 14px 0', fontSize: '13px', color: '#475569', fontWeight: 500 }}>
             Il bancone virtuale dove festeggiare e brindare con i tuoi amici.
           </p>
 
