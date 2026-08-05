@@ -59,6 +59,7 @@ interface Post {
 export default function App() {
   // Navigation State
   const [currentPage, setCurrentPage] = useState<string>('page-home');
+  const [subPageBackPage, setSubPageBackPage] = useState<string>('page-home');
 
   // User Posts Detail View State
   const [detailViewUser, setDetailViewUser] = useState<string>('');
@@ -396,11 +397,11 @@ export default function App() {
         } else if (currentPage === 'page-user-posts-detail') {
           navigateTo(detailViewBackPage || 'page-profile');
         } else if (currentPage === 'page-map-view') {
-          navigateTo('page-explore');
+          navigateTo(subPageBackPage || 'page-home');
         } else if (currentPage === 'page-friends') {
-          navigateTo('page-profile');
+          navigateTo(subPageBackPage || 'page-home');
         } else if (currentPage === 'page-rules') {
-          navigateTo('page-profile');
+          navigateTo(subPageBackPage || 'page-home');
         }
       }
 
@@ -1030,6 +1031,10 @@ export default function App() {
 
   // Navigation Logic
   const navigateTo = (pageId: string) => {
+    const mainTabs = ['page-home', 'page-explore', 'page-leaderboard', 'page-social', 'page-profile'];
+    if (!mainTabs.includes(pageId)) {
+      setSubPageBackPage(currentPage);
+    }
     // Close any active drawers, menus, or modals on view switch
     setSettingsOpen(false);
     setProposeModalOpen(false);
@@ -3068,8 +3073,32 @@ export default function App() {
         <div className={`page-view ${currentPage === 'page-map-view' ? 'active' : ''}`}>
           {currentPage === 'page-map-view' && (
             <div id="page-map-view">
-              <header className="hero">
+              <header className="hero" style={{ position: 'relative' }}>
                 <FoamBubbles />
+                <button
+                  onClick={() => navigateTo(subPageBackPage || 'page-home')}
+                  style={{
+                    position: 'absolute',
+                    top: '16px',
+                    left: '16px',
+                    background: 'rgba(255, 255, 255, 0.9)',
+                    border: 'none',
+                    borderRadius: '20px',
+                    padding: '6px 14px',
+                    color: 'var(--dark)',
+                    fontWeight: 800,
+                    fontSize: '12px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '4px',
+                    cursor: 'pointer',
+                    zIndex: 10,
+                    boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+                  }}
+                >
+                  <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>arrow_back</span>
+                  Indietro
+                </button>
                 <h1 style={{ position: 'relative', zIndex: 2 }}>Mappa Sblocchi</h1>
                 <p style={{ position: 'relative', zIndex: 2 }}>Esplora il mondo e traccia i pub in cui hai conquistato le tue birre.</p>
               </header>
@@ -3100,13 +3129,14 @@ export default function App() {
               onRemoveFriend={handleRemoveFriend}
               onRestoreRejectedRequest={handleRestoreRejectedRequest}
               onOpenPublicProfile={handleOpenPublicProfile}
+              onBack={() => navigateTo(subPageBackPage || 'page-home')}
             />
           ) : null}
         </div>
 
         {/* Page Rules */}
         <div className={`page-view ${currentPage === 'page-rules' ? 'active' : ''}`}>
-          {currentPage === 'page-rules' ? <RulesView /> : null}
+          {currentPage === 'page-rules' ? <RulesView onBack={() => navigateTo(subPageBackPage || 'page-home')} /> : null}
         </div>
 
         {/* Page User Posts Detail */}

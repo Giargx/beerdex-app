@@ -1,11 +1,41 @@
 import React from 'react';
 import { FoamBubbles } from '../components/FoamBubbles';
 
-export const RulesView: React.FC = () => {
+interface RulesViewProps {
+  onBack?: () => void;
+}
+
+export const RulesView: React.FC<RulesViewProps> = ({ onBack }) => {
   return (
     <div className="page-container-view">
-      <header className="hero">
+      <header className="hero" style={{ position: 'relative' }}>
         <FoamBubbles />
+        {onBack && (
+          <button
+            onClick={onBack}
+            style={{
+              position: 'absolute',
+              top: '16px',
+              left: '16px',
+              background: 'rgba(255, 255, 255, 0.9)',
+              border: 'none',
+              borderRadius: '20px',
+              padding: '6px 14px',
+              color: 'var(--dark)',
+              fontWeight: 800,
+              fontSize: '12px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '4px',
+              cursor: 'pointer',
+              zIndex: 10,
+              boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+            }}
+          >
+            <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>arrow_back</span>
+            Indietro
+          </button>
+        )}
         <h1 style={{ position: 'relative', zIndex: 2 }}>Le Regole del Pub</h1>
         <p style={{ position: 'relative', zIndex: 2 }}>Come funziona la sfida (senza fare i furbi!).</p>
       </header>
