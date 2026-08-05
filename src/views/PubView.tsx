@@ -67,7 +67,6 @@ export const PubView: React.FC<PubViewProps> = ({
   onShareToStory,
   getAvatarZoomProps,
 }) => {
-  const [activeFilter, setActiveFilter] = useState<'all' | 'friends' | 'me'>('all');
   const [searchQuery, setSearchQuery] = useState<string>('');
   
   // Modals & Interactive States
@@ -101,7 +100,7 @@ export const PubView: React.FC<PubViewProps> = ({
     const accessible = posts.filter((post) => {
       if (post.isStory) return false; // 24h stories only appear in top Story bar
       const isMine = post.user === currentUserNick;
-      const isFriend = myFriendsList.includes(post.user);
+      const isFriend = Array.isArray(myFriendsList) && myFriendsList.some((f) => f.toLowerCase() === (post.user || '').toLowerCase());
       const isPostOwnerPrivate = globalUserPrivacy?.[post.user] === true;
 
       // Privacy Check: if post owner's profile is private, only friends, owner, or admin can view
@@ -109,11 +108,8 @@ export const PubView: React.FC<PubViewProps> = ({
         return false;
       }
 
-      const canAccess = isMine || isFriend || isAdminUser;
-      if (!canAccess) return false;
-
-      if (activeFilter === 'friends' && !isFriend && !isMine) return false;
-      if (activeFilter === 'me' && !isMine) return false;
+      // In Pub view, only show posts from friends
+      if (!isFriend) return false;
 
       if (searchQuery.trim()) {
         const q = searchQuery.toLowerCase().trim();
@@ -165,7 +161,7 @@ export const PubView: React.FC<PubViewProps> = ({
     });
 
     return uniquePosts;
-  }, [posts, currentUserNick, myFriendsList, isAdminUser, activeFilter, searchQuery, globalDisplayNames, globalUserPrivacy]);
+  }, [posts, currentUserNick, myFriendsList, isAdminUser, searchQuery, globalDisplayNames, globalUserPrivacy]);
 
   // Active 24h Stories
   const storyPosts = useMemo(() => {
@@ -269,91 +265,11 @@ export const PubView: React.FC<PubViewProps> = ({
 
   return (
     <div className="page-container-view" style={{ paddingBottom: '40px' }}>
-      {/* Pub Hero Banner - Identico a Esplora */}
-      <header
-        className="hero"
-        style={{
-          position: 'relative',
-          padding: '28px 20px 24px 20px',
-          background: 'linear-gradient(135deg, #FFFBEB 0%, #FEF3C7 100%)',
-          color: '#1E293B',
-          borderRadius: '0 0 24px 24px',
-          borderBottom: '1px solid rgba(245, 158, 11, 0.25)',
-          boxShadow: '0 8px 25px rgba(245, 158, 11, 0.1)',
-          overflow: 'hidden',
-        }}
-      >
+      {/* Pub Hero Banner - Identico a Esplora e Classifiche */}
+      <header className="hero">
         <FoamBubbles />
-
-        {/* Ambient Amber Glow */}
-        <div
-          style={{
-            position: 'absolute',
-            top: '-50px',
-            right: '-50px',
-            width: '200px',
-            height: '200px',
-            background: 'radial-gradient(circle, rgba(245, 158, 11, 0.2) 0%, rgba(217, 119, 6, 0) 70%)',
-            borderRadius: '50%',
-            pointerEvents: 'none',
-          }}
-        />
-
-        <div style={{ position: 'relative', zIndex: 2, textAlign: 'center' }}>
-          <div
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: '10px',
-              marginBottom: '6px',
-            }}
-          >
-            <div
-              style={{
-                width: '46px',
-                height: '46px',
-                borderRadius: '14px',
-                background: 'linear-gradient(135deg, #F59E0B 0%, #D97706 100%)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                boxShadow: '0 4px 14px rgba(245, 158, 11, 0.4)',
-              }}
-            >
-              <span className="material-symbols-outlined" style={{ fontSize: '28px', color: '#FFFFFF' }}>
-                sports_bar
-              </span>
-            </div>
-            <h1 style={{ fontSize: '32px', margin: 0, fontWeight: 900, letterSpacing: '-0.5px', color: '#1E293B' }}>
-              Il Pub
-            </h1>
-          </div>
-
-          <p style={{ margin: '0 0 14px 0', fontSize: '13px', color: '#475569', fontWeight: 500 }}>
-            Il bancone virtuale dove festeggiare e brindare con i tuoi amici.
-          </p>
-
-          {/* Stat Counter Pill */}
-          <div
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '6px',
-              background: 'rgba(255, 255, 255, 0.85)',
-              backdropFilter: 'blur(10px)',
-              padding: '6px 18px',
-              borderRadius: '30px',
-              border: '1px solid rgba(245, 158, 11, 0.4)',
-              boxShadow: '0 2px 8px rgba(245, 158, 11, 0.12)',
-            }}
-          >
-            <span style={{ fontSize: '12px', fontWeight: 800, color: '#B45309', display: 'flex', alignItems: 'center', gap: '5px' }}>
-              <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>sports_bar</span>
-              {totalToastCount} Brindisi al Bancone
-            </span>
-          </div>
-        </div>
+        <h1 style={{ position: 'relative', zIndex: 2 }}>Il Pub</h1>
+        <p style={{ position: 'relative', zIndex: 2 }}>Il bancone virtuale dove festeggiare e brindare con i tuoi amici.</p>
       </header>
 
       {/* 24h Instagram-style Stories Carousel Bar */}
@@ -609,91 +525,6 @@ export const PubView: React.FC<PubViewProps> = ({
           )}
         </div>
 
-        {/* Filter Pills with touch-action: pan-x to lock vertical page scrolling */}
-        <div
-          style={{
-            display: 'flex',
-            gap: '8px',
-            overflowX: 'auto',
-            paddingBottom: '4px',
-            touchAction: 'pan-x',
-            overscrollBehaviorX: 'contain',
-          }}
-        >
-          <button
-            className={`pub-filter-pill ${activeFilter === 'all' ? 'active' : ''}`}
-            onClick={() => setActiveFilter('all')}
-            style={{
-              padding: '7px 14px',
-              borderRadius: '20px',
-              border: activeFilter === 'all' ? 'none' : '1px solid #E2E8F0',
-              background: activeFilter === 'all' ? 'linear-gradient(135deg, #F59E0B, #D97706)' : '#FFFFFF',
-              color: activeFilter === 'all' ? '#FFFFFF' : '#475569',
-              fontSize: '12px',
-              fontWeight: 800,
-              cursor: 'pointer',
-              boxShadow: activeFilter === 'all' ? '0 3px 10px rgba(245, 158, 11, 0.3)' : '0 1px 3px rgba(0,0,0,0.04)',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '4px',
-              transition: 'all 0.2s ease',
-              whiteSpace: 'nowrap',
-            }}
-          >
-            <span className="material-symbols-outlined" style={{ fontSize: '15px' }}>dynamic_feed</span>
-            Tutti i Brindisi ({posts.length})
-          </button>
-
-          <button
-            className={`pub-filter-pill ${activeFilter === 'friends' ? 'active' : ''}`}
-            onClick={() => setActiveFilter('friends')}
-            style={{
-              padding: '7px 14px',
-              borderRadius: '20px',
-              border: activeFilter === 'friends' ? 'none' : '1px solid #E2E8F0',
-              background: activeFilter === 'friends' ? 'linear-gradient(135deg, #F59E0B, #D97706)' : '#FFFFFF',
-              color: activeFilter === 'friends' ? '#FFFFFF' : '#475569',
-              fontSize: '12px',
-              fontWeight: 800,
-              cursor: 'pointer',
-              boxShadow: activeFilter === 'friends' ? '0 3px 10px rgba(245, 158, 11, 0.3)' : '0 1px 3px rgba(0,0,0,0.04)',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '4px',
-              transition: 'all 0.2s ease',
-              whiteSpace: 'nowrap',
-            }}
-          >
-            <span className="material-symbols-outlined" style={{ fontSize: '15px' }}>group</span>
-            Amici
-          </button>
-
-          <button
-            className={`pub-filter-pill ${activeFilter === 'me' ? 'active' : ''}`}
-            onClick={() => setActiveFilter('me')}
-            style={{
-              padding: '7px 14px',
-              borderRadius: '20px',
-              border: activeFilter === 'me' ? 'none' : '1px solid #E2E8F0',
-              background: activeFilter === 'me' ? 'linear-gradient(135deg, #F59E0B, #D97706)' : '#FFFFFF',
-              color: activeFilter === 'me' ? '#FFFFFF' : '#475569',
-              fontSize: '12px',
-              fontWeight: 800,
-              cursor: 'pointer',
-              boxShadow: activeFilter === 'me' ? '0 3px 10px rgba(245, 158, 11, 0.3)' : '0 1px 3px rgba(0,0,0,0.04)',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '4px',
-              transition: 'all 0.2s ease',
-              whiteSpace: 'nowrap',
-            }}
-          >
-            <span className="material-symbols-outlined" style={{ fontSize: '15px' }}>person</span>
-            I Miei Post
-          </button>
-        </div>
-      </div>
-
       {/* Main Feed Container */}
       <div className="social-page-container" style={{ maxWidth: '640px', margin: '16px auto 0 auto' }}>
         <div className="social-feed">
@@ -730,11 +561,7 @@ export const PubView: React.FC<PubViewProps> = ({
               <p style={{ margin: 0, fontSize: '13px', color: '#64748B', lineHeight: '1.5' }}>
                 {searchQuery
                   ? `Nessuna birra o amico corrisponde alla ricerca "${searchQuery}".`
-                  : activeFilter === 'friends'
-                  ? 'I tuoi amici non hanno ancora pubblicato brindisi. Aggiungi altri amici o sblocca tu una birra!'
-                  : activeFilter === 'me'
-                  ? 'Non hai ancora sbloccato nessuna birra. Vai a sbloccarne una con il codice a barre!'
-                  : 'Il bancone del pub è momentaneamente vuoto. Sblocca la tua prima birra per inaugurare la bacheca!'}
+                  : 'I tuoi amici non hanno ancora pubblicato brindisi. Aggiungi altri amici o fai un bel brindisi!'}
               </p>
             </div>
           ) : (
