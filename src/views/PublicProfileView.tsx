@@ -49,7 +49,7 @@ export const PublicProfileView: React.FC<PublicProfileViewProps> = ({
   isPrivate = false,
   isFriend = false,
   currentUserNick = '',
-  myFriendsList = [],
+  myFriendsList: _myFriendsList = [],
   mySentRequests = [],
   myReceivedRequests = [],
   onAddFriend,
