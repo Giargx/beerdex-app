@@ -14,6 +14,7 @@ interface ExploreViewProps {
   onRateBeer?: (brand: string, variant: string, rating: number) => void;
   isAdminUser?: boolean;
   onDeleteCustomBeerCatalog?: (brand: string) => void;
+  initialSearchTerm?: string;
 }
 
 export const ExploreView: React.FC<ExploreViewProps> = ({
@@ -25,8 +26,9 @@ export const ExploreView: React.FC<ExploreViewProps> = ({
   onRateBeer,
   isAdminUser,
   onDeleteCustomBeerCatalog,
+  initialSearchTerm = '',
 }) => {
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchTerm, setSearchTerm] = useState(initialSearchTerm);
   const [countryFilter, setCountryFilter] = useState('Tutte');
   const [regionFilter, setRegionFilter] = useState('Tutte');
   const [sortFilter, setSortFilter] = useState(() => {
@@ -40,7 +42,19 @@ export const ExploreView: React.FC<ExploreViewProps> = ({
   });
   
   // Track expanded state for each beer brand card
-  const [expandedCards, setExpandedCards] = useState<Record<string, boolean>>({});
+  const [expandedCards, setExpandedCards] = useState<Record<string, boolean>>(() => {
+    if (initialSearchTerm) {
+      return { [initialSearchTerm]: true };
+    }
+    return {};
+  });
+
+  React.useEffect(() => {
+    if (initialSearchTerm) {
+      setSearchTerm(initialSearchTerm);
+      setExpandedCards((prev) => ({ ...prev, [initialSearchTerm]: true }));
+    }
+  }, [initialSearchTerm]);
 
   const toggleCard = (brand: string) => {
     setExpandedCards((prev) => ({

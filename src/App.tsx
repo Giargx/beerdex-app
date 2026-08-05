@@ -204,6 +204,17 @@ export default function App() {
   }, [currentTheme]);
 
   // UI Modals State
+  const [exploreSearchTerm, setExploreSearchTerm] = useState<string>('');
+
+  const handleNavigateToExplore = (brand?: string) => {
+    if (brand) {
+      setExploreSearchTerm(brand);
+    } else {
+      setExploreSearchTerm('');
+    }
+    navigateTo('page-explore');
+  };
+
   const [alertConfig, setAlertConfig] = useState<{
     open: boolean;
     title: string;
@@ -2907,6 +2918,7 @@ export default function App() {
                     myFriendsList={myFriendsList}
                     myReceivedRequests={myReceivedRequests}
                     onNavigate={navigateTo}
+                    onNavigateToExplore={handleNavigateToExplore}
                     getUserRankTitle={getUserRankTitle}
                     myPokedex={myPokedex}
                     allBeersCatalog={allBeersCatalog}
@@ -2933,6 +2945,7 @@ export default function App() {
                     onRateBeer={handleRateBeer}
                     isAdminUser={isAdminUser}
                     onDeleteCustomBeerCatalog={handleDeleteCustomBeerCatalog}
+                    initialSearchTerm={exploreSearchTerm}
                   />
                 )}
               </div>

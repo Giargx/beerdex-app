@@ -718,7 +718,9 @@ export const LeaderboardView: React.FC<LeaderboardViewProps> = ({
                           {avatar ? (
                             <img src={avatar} alt={player.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                           ) : (
-                            player.name.substring(0, 2).toUpperCase()
+                            <span style={{ fontSize: '18px', fontWeight: 900, color: 'white', textTransform: 'uppercase' }}>
+                              {(safeDisplayNames[player.name] || player.name).charAt(0).toUpperCase()}
+                            </span>
                           )}
                         </div>
 

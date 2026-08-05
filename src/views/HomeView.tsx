@@ -23,6 +23,7 @@ interface HomeViewProps {
   myFriendsList?: string[];
   myReceivedRequests?: string[];
   onNavigate: (pageId: string) => void;
+  onNavigateToExplore?: (brand?: string) => void;
   getUserRankTitle: (score: number, unlockedCount?: number) => string;
   myPokedex?: Record<string, any>;
   allBeersCatalog?: any[];
@@ -42,6 +43,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
   myFriendsList = [],
   myReceivedRequests = [],
   onNavigate,
+  onNavigateToExplore,
   getUserRankTitle,
   myPokedex = {},
   allBeersCatalog = beers,
@@ -1012,7 +1014,13 @@ export const HomeView: React.FC<HomeViewProps> = ({
             </p>
 
             <button
-              onClick={() => onNavigate('page-explore')}
+              onClick={() => {
+                if (onNavigateToExplore) {
+                  onNavigateToExplore(featuredBeer.brand);
+                } else {
+                  onNavigate('page-explore');
+                }
+              }}
               style={{
                 marginTop: '14px',
                 width: '100%',
