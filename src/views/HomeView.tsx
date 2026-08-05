@@ -292,64 +292,73 @@ export const HomeView: React.FC<HomeViewProps> = ({
   const getEventProgress = () => {
     if (!timedEvent) return null;
 
-    const unlockedKeys = new Set(Object.keys(myPokedex));
-    const myPostKeys = new Set(myPosts.map((p) => `${p.brand} - ${p.variant}`));
+    const norm = (s: string) => (s || '').toLowerCase().trim();
 
-    const allCatalogVariants = catalogList.flatMap((b) => {
-      const variants = Array.isArray(b?.variants) && b.variants.length > 0 ? b.variants : [b?.type || 'Standard'];
-      return variants.map((v: string) => ({
-        brand: b.brand,
-        variantName: v,
-        type: b.type || '',
-        country: b.country || '',
-        rarity: b.rarity || 'comune',
-        isUnlocked: unlockedKeys.has(`${b.brand} - ${v}`) || myPostKeys.has(`${b.brand} - ${v}`) || unlockedBrands.has(b.brand),
-      }));
+    // Collect all unlocked items for currentUser from both myPokedex and myPosts
+    const unlockedMap = new Map<string, { brand: string; variant: string }>();
+
+    // 1. From myPokedex
+    Object.values(myPokedex || {}).forEach((entry: any) => {
+      if (entry && entry.brand) {
+        const b = entry.brand;
+        const v = entry.variant || entry.type || 'Standard';
+        unlockedMap.set(`${norm(b)}-${norm(v)}`, { brand: b, variant: v });
+      }
     });
 
-    const unlockedItems = allCatalogVariants.filter((item) => item.isUnlocked);
+    // 2. From myPosts
+    myPosts.forEach((p) => {
+      if (p && p.brand) {
+        const b = p.brand;
+        const v = p.variant || 'Standard';
+        unlockedMap.set(`${norm(b)}-${norm(v)}`, { brand: b, variant: v });
+      }
+    });
+
+    const unlockedList = Array.from(unlockedMap.values());
     const eventName = timedEvent.name;
 
     let target = 10;
     let count = 0;
 
+    // Helper to find beer details in catalog
+    const isMatchingCategory = (brand: string, variant: string, keywords: string[], countryMatch?: string) => {
+      const catBeer = catalogList.find((b) => norm(b.brand) === norm(brand));
+      const str = norm(`${brand} ${variant} ${catBeer?.type || ''} ${catBeer?.country || ''} ${Array.isArray(catBeer?.variants) ? catBeer.variants.join(' ') : ''}`);
+      
+      if (countryMatch && catBeer?.country && norm(catBeer.country) === norm(countryMatch)) {
+        return true;
+      }
+
+      return keywords.some((kw) => str.includes(norm(kw)));
+    };
+
     if (eventName === 'Estate') {
       target = 10;
-      count = unlockedItems.filter((b) => {
-        const str = (b.type + ' ' + b.variantName).toLowerCase();
-        return str.includes('bionda') || str.includes('lager') || str.includes('ipa') || str.includes('pils') || str.includes('pale ale');
-      }).length;
+      const keywords = ['bionda', 'lager', 'ipa', 'pils', 'pale ale', 'session', 'corona', 'heineken', 'peroni', 'moretti', 'ichnusa', 'nastro azzurro', 'stella artois', 'beck'];
+      count = unlockedList.filter((item) => isMatchingCategory(item.brand, item.variant, keywords)).length;
     } else if (eventName === 'Autunno') {
       target = 10;
-      count = unlockedItems.filter((b) => {
-        const str = (b.type + ' ' + b.variantName).toLowerCase();
-        return str.includes('rossa') || str.includes('ipa') || str.includes('amber') || str.includes('marzen') || str.includes('doppelbock') || b.country.toLowerCase() === 'germania';
-      }).length;
+      const keywords = ['rossa', 'ipa', 'amber', 'marzen', 'doppelbock', 'menabrea', 'ceres', 'duvel'];
+      count = unlockedList.filter((item) => isMatchingCategory(item.brand, item.variant, keywords, 'Germania')).length;
     } else if (eventName === 'Primavera') {
       target = 10;
-      count = unlockedItems.filter((b) => {
-        const str = (b.type + ' ' + b.variantName).toLowerCase();
-        return str.includes('bianca') || str.includes('blanche') || str.includes('weiss') || str.includes('weizen') || str.includes('saison');
-      }).length;
+      const keywords = ['bianca', 'blanche', 'weiss', 'weizen', 'saison', 'hoegaarden', 'franziskaner'];
+      count = unlockedList.filter((item) => isMatchingCategory(item.brand, item.variant, keywords)).length;
     } else if (eventName === 'Inverno') {
       target = 10;
-      count = unlockedItems.filter((b) => {
-        const str = (b.type + ' ' + b.variantName).toLowerCase();
-        return str.includes('scura') || str.includes('stout') || str.includes('porter') || str.includes('bock') || str.includes('rossa');
-      }).length;
+      const keywords = ['scura', 'stout', 'porter', 'bock', 'rossa', 'chimay', 'leffe', 'guinness', 'affligem'];
+      count = unlockedList.filter((item) => isMatchingCategory(item.brand, item.variant, keywords)).length;
     } else if (eventName === 'San Patrizio') {
       target = 1;
-      count = unlockedItems.filter((b) => {
-        const str = (b.type + ' ' + b.variantName).toLowerCase();
-        const c = b.country.toLowerCase();
-        return c === 'irlanda' || c === 'scozia' || str.includes('scura') || str.includes('stout');
-      }).length;
+      const keywords = ['scura', 'stout', 'kilkenny', 'guinness'];
+      count = unlockedList.filter((item) => isMatchingCategory(item.brand, item.variant, keywords, 'Irlanda') || isMatchingCategory(item.brand, item.variant, keywords, 'Scozia')).length;
     } else if (eventName === 'Oktoberfest') {
       target = 3;
-      count = unlockedItems.filter((b) => b.country.toLowerCase() === 'germania').length;
+      count = unlockedList.filter((item) => isMatchingCategory(item.brand, item.variant, [], 'Germania')).length;
     } else if (eventName === 'Ferragosto' || eventName === 'Pasquetta') {
       target = 1;
-      count = Math.min(unlockedItems.length, 1);
+      count = Math.min(unlockedList.length, 1);
     }
 
     const current = Math.min(count, target);
@@ -813,100 +822,112 @@ export const HomeView: React.FC<HomeViewProps> = ({
             borderRadius: '24px',
             marginBottom: '25px',
             display: 'flex',
-            alignItems: 'center',
-            gap: '16px',
+            flexDirection: 'column',
+            gap: '12px',
             textAlign: 'left',
             boxShadow: timedEvent ? '0 10px 25px rgba(180, 83, 9, 0.2)' : '0 4px 15px rgba(15, 23, 42, 0.05)',
             position: 'relative',
             overflow: 'hidden'
           }}
         >
-          <div style={{ 
-            color: eventConfig.iconColor,
-            background: timedEvent ? 'rgba(255, 255, 255, 0.12)' : 'rgba(255, 179, 0, 0.12)',
-            padding: '12px',
-            borderRadius: '18px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center'
-          }}>
-            <span className="material-symbols-outlined" style={{ fontSize: '30px' }}>
-              {eventConfig.icon}
-            </span>
-          </div>
-          <div style={{ flex: 1 }}>
-            <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
-              <h4 style={{ margin: 0, color: eventConfig.titleColor, fontSize: '14px', fontWeight: 800 }}>
-                Evento Speciale
-              </h4>
-              {eventConfig.badge && (
-                <span style={{
-                  background: 'rgba(255, 255, 255, 0.2)',
-                  color: '#FFFFFF',
-                  fontSize: '9px',
-                  fontWeight: 'bold',
-                  padding: '2px 8px',
-                  borderRadius: '20px',
-                  letterSpacing: '0.5px',
-                  backdropFilter: 'blur(4px)',
-                  whiteSpace: 'nowrap'
-                }}>
-                  {eventConfig.badge}
-                </span>
-              )}
+          {/* Top Row: Icon aligned alongside first lines (Title + Badge + Active Header) */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+            <div style={{ 
+              color: eventConfig.iconColor,
+              background: timedEvent ? 'rgba(255, 255, 255, 0.15)' : 'rgba(255, 179, 0, 0.15)',
+              padding: '12px',
+              borderRadius: '18px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              flexShrink: 0
+            }}>
+              <span className="material-symbols-outlined" style={{ fontSize: '32px' }}>
+                {eventConfig.icon}
+              </span>
             </div>
-            {timedEvent ? (
-              <div>
-                <p style={{ margin: 0, fontSize: '13px', color: eventConfig.descColor, lineHeight: '1.4' }}>
-                  <strong style={{ fontSize: '14px' }}>{timedEvent.name} ATTIVO!</strong>
-                  <br />
-                  {timedEvent.desc}
-                </p>
 
-                {eventProgress && (
-                  <div style={{
-                    marginTop: '12px',
-                    background: 'rgba(0, 0, 0, 0.25)',
-                    padding: '10px 14px',
-                    borderRadius: '14px',
-                    backdropFilter: 'blur(6px)',
-                    border: '1px solid rgba(255, 255, 255, 0.15)',
+            <div style={{ flex: 1 }}>
+              <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+                <h4 style={{ margin: 0, color: eventConfig.titleColor, fontSize: '13px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                  Evento Speciale
+                </h4>
+                {eventConfig.badge && (
+                  <span style={{
+                    background: 'rgba(255, 255, 255, 0.25)',
+                    color: '#FFFFFF',
+                    fontSize: '9px',
+                    fontWeight: 'bold',
+                    padding: '2px 8px',
+                    borderRadius: '20px',
+                    letterSpacing: '0.5px',
+                    backdropFilter: 'blur(4px)',
+                    whiteSpace: 'nowrap'
                   }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px', fontSize: '12px', fontWeight: 800 }}>
-                      <span style={{ color: eventConfig.titleColor }}>I Tuoi Progressi</span>
-                      <span style={{
-                        color: '#FFFFFF',
-                        background: eventProgress.current >= eventProgress.target ? '#10B981' : 'rgba(255,255,255,0.25)',
-                        padding: '2px 8px',
-                        borderRadius: '10px',
-                        fontSize: '11px',
-                        fontWeight: 800,
-                      }}>
-                        {eventProgress.current} / {eventProgress.target} Sbloccate ({eventProgress.pct}%)
-                      </span>
-                    </div>
-                    <div style={{ width: '100%', height: '8px', background: 'rgba(255, 255, 255, 0.2)', borderRadius: '4px', overflow: 'hidden' }}>
-                      <div style={{
-                        width: `${eventProgress.pct}%`,
-                        height: '100%',
-                        background: eventProgress.current >= eventProgress.target
-                          ? 'linear-gradient(90deg, #10B981, #34D399)'
-                          : 'linear-gradient(90deg, #F59E0B, #FBBF24)',
-                        borderRadius: '4px',
-                        transition: 'width 0.4s ease',
-                      }} />
-                    </div>
-                  </div>
+                    {eventConfig.badge}
+                  </span>
                 )}
               </div>
-            ) : (
-              <p style={{ margin: 0, fontSize: '13px', color: eventConfig.descColor, lineHeight: '1.4' }}>
-                <strong>Nessun evento attivo in questo momento</strong>
-                <br />
-                Prossimi eventi: San Patrizio (Marzo) e Oktoberfest (Settembre/Ottobre).
-              </p>
-            )}
+              {timedEvent && (
+                <div style={{ fontSize: '16px', fontWeight: 900, color: '#FFFFFF' }}>
+                  {timedEvent.name} ATTIVO!
+                </div>
+              )}
+            </div>
           </div>
+
+          {/* Full Width Description & Progress Bar */}
+          {timedEvent ? (
+            <div style={{ width: '100%' }}>
+              <p style={{ margin: 0, fontSize: '13px', color: eventConfig.descColor, lineHeight: '1.45' }}>
+                {timedEvent.desc}
+              </p>
+
+              {eventProgress && (
+                <div style={{
+                  marginTop: '12px',
+                  width: '100%',
+                  boxSizing: 'border-box',
+                  background: 'rgba(0, 0, 0, 0.25)',
+                  padding: '12px 16px',
+                  borderRadius: '16px',
+                  backdropFilter: 'blur(6px)',
+                  border: '1px solid rgba(255, 255, 255, 0.15)',
+                }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px', fontSize: '12px', fontWeight: 800 }}>
+                    <span style={{ color: eventConfig.titleColor }}>I Tuoi Progressi</span>
+                    <span style={{
+                      color: '#FFFFFF',
+                      background: eventProgress.current >= eventProgress.target ? '#10B981' : 'rgba(255,255,255,0.25)',
+                      padding: '3px 10px',
+                      borderRadius: '12px',
+                      fontSize: '11px',
+                      fontWeight: 800,
+                    }}>
+                      {eventProgress.current} / {eventProgress.target} Sbloccate ({eventProgress.pct}%)
+                    </span>
+                  </div>
+                  <div style={{ width: '100%', height: '10px', background: 'rgba(255, 255, 255, 0.2)', borderRadius: '5px', overflow: 'hidden' }}>
+                    <div style={{
+                      width: `${eventProgress.pct}%`,
+                      height: '100%',
+                      background: eventProgress.current >= eventProgress.target
+                        ? 'linear-gradient(90deg, #10B981, #34D399)'
+                        : 'linear-gradient(90deg, #F59E0B, #FBBF24)',
+                      borderRadius: '5px',
+                      transition: 'width 0.4s ease',
+                    }} />
+                  </div>
+                </div>
+              )}
+            </div>
+          ) : (
+            <p style={{ margin: 0, fontSize: '13px', color: eventConfig.descColor, lineHeight: '1.4' }}>
+              <strong>Nessun evento attivo in questo momento</strong>
+              <br />
+              Prossimi eventi: San Patrizio (Marzo) e Oktoberfest (Settembre/Ottobre).
+            </p>
+          )}
         </div>
 
         {/* LA SPINA DEL GIORNO (UNICA BIRRA CONSIGLIATA STAGIONALE) */}
