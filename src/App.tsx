@@ -239,6 +239,38 @@ export default function App() {
   const [settingsOpen, setSettingsOpen] = useState<boolean>(false);
   const [isProfilePrivate, setIsProfilePrivate] = useState<boolean>(false);
   const [globalUserPrivacy, setGlobalUserPrivacy] = useState<Record<string, boolean>>({});
+
+  // PWA Deferred Installation Prompt State
+  const [deferredInstallPrompt, setDeferredInstallPrompt] = useState<any>(null);
+  const [showInstallBanner, setShowInstallBanner] = useState<boolean>(false);
+
+  useEffect(() => {
+    const handleBeforeInstallPrompt = (e: Event) => {
+      e.preventDefault();
+      setDeferredInstallPrompt(e);
+      setShowInstallBanner(true);
+    };
+
+    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+
+    return () => {
+      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+    };
+  }, []);
+
+  const handleInstallAppClick = async () => {
+    if (deferredInstallPrompt) {
+      deferredInstallPrompt.prompt();
+      const { outcome } = await deferredInstallPrompt.userChoice;
+      if (outcome === 'accepted') {
+        console.log('Installazione accettata dall\'utente!');
+      }
+      setDeferredInstallPrompt(null);
+      setShowInstallBanner(false);
+    } else {
+      alert('📲 Come installare l\'app POP IT su Chrome:\n\n1. Tocca i tre puntini (⋮) in alto a destra su Chrome.\n2. Seleziona "Aggiungi a Schermata Home" oppure "Installa app".\n3. L\'app apparirà sul tuo dispositivo come un\'applicazione nativa!');
+    }
+  };
   
   // Nickname & Password Input State in settings
   const [newNickname, setNewNickname] = useState<string>('');
@@ -2639,6 +2671,18 @@ export default function App() {
           <div className="settings-instagram-section">
             <div className="section-title">Altre Opzioni</div>
             
+            {/* Install PWA Row */}
+            <div className="settings-row" onClick={handleInstallAppClick} style={{ background: '#FFFBEB', cursor: 'pointer' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                <span className="material-symbols-outlined icon" style={{ color: '#D97706' }}>download</span>
+                <div>
+                  <div className="row-label" style={{ color: '#92400E' }}>Installa L'App su Dispositivo</div>
+                  <div className="row-desc" style={{ color: '#B45309' }}>Aggiungi POP IT alla schermata Home (Chrome PWA)</div>
+                </div>
+              </div>
+              <span className="material-symbols-outlined chevron" style={{ color: '#F59E0B' }}>install_mobile</span>
+            </div>
+
             {/* Info row */}
             <div className="settings-row-expanded" style={{ textAlign: 'center', background: '#FAFAFC', borderBottom: '1px solid rgba(226,232,240,0.4)', padding: '16px 12px' }}>
               <div style={{ marginBottom: '6px' }}>
@@ -2666,6 +2710,72 @@ export default function App() {
           </div>
         </div>
       </div>
+
+      {/* Floating PWA Install Banner */}
+      {showInstallBanner && (
+        <div
+          style={{
+            position: 'fixed',
+            top: '14px',
+            left: '50%',
+            transform: 'translateX(-50%)',
+            width: 'calc(100% - 32px)',
+            maxWidth: '440px',
+            background: 'linear-gradient(135deg, #0F172A 0%, #1E293B 100%)',
+            color: '#FFFFFF',
+            borderRadius: '16px',
+            padding: '12px 16px',
+            boxShadow: '0 8px 30px rgba(15, 23, 42, 0.4)',
+            zIndex: 999999,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            border: '1px solid rgba(245, 158, 11, 0.4)',
+            animation: 'fadeIn 0.3s ease-out',
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <img src="/pop-it-logo.png" alt="Logo" style={{ width: '36px', height: '36px', borderRadius: '8px', objectFit: 'contain', background: '#FFFFFF', padding: '2px' }} />
+            <div>
+              <div style={{ fontSize: '13px', fontWeight: 800, color: '#F8FAFC' }}>Installa POP IT</div>
+              <div style={{ fontSize: '11px', color: '#94A3B8' }}>Aggiungi l'app alla Schermata Home</div>
+            </div>
+          </div>
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <button
+              onClick={handleInstallAppClick}
+              style={{
+                background: 'linear-gradient(135deg, #F59E0B, #D97706)',
+                color: '#FFFFFF',
+                border: 'none',
+                padding: '6px 14px',
+                borderRadius: '20px',
+                fontSize: '12px',
+                fontWeight: 800,
+                cursor: 'pointer',
+                boxShadow: '0 2px 8px rgba(245, 158, 11, 0.3)',
+              }}
+            >
+              Installa
+            </button>
+            <button
+              onClick={() => setShowInstallBanner(false)}
+              style={{
+                background: 'transparent',
+                border: 'none',
+                color: '#64748B',
+                cursor: 'pointer',
+                padding: '4px',
+                display: 'flex',
+                alignItems: 'center',
+              }}
+            >
+              <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>close</span>
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* MAIN CONTAINER CONTENT VIEW */}
       <div className="main-content">

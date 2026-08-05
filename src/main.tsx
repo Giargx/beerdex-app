@@ -14,20 +14,21 @@ createRoot(document.getElementById('root')!).render(
 
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('sw.js')
-      .then(reg => {
+    navigator.serviceWorker
+      .register('/sw.js', { scope: '/' })
+      .then((reg) => {
         console.log('PWA registrata con successo!');
         reg.onupdatefound = () => {
           const installingWorker = reg.installing;
           if (installingWorker) {
             installingWorker.onstatechange = () => {
               if (installingWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                console.log('Nuova versione PWA disponibile. Verrà caricata al prossimo avvio.');
+                console.log('Nuova versione PWA disponibile.');
               }
             };
           }
         };
       })
-      .catch(err => console.error('Errore registrazione PWA:', err));
+      .catch((err) => console.error('Errore registrazione PWA:', err));
   });
 }
