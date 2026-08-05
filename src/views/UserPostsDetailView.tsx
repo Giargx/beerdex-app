@@ -439,16 +439,24 @@ export const UserPostsDetailView: React.FC<UserPostsDetailViewProps> = ({
                       )}
                     </button>
                     
-                    {canReport && onReportFakePost && (
-                      <button
-                        className="btn-report"
-                        onClick={() => onReportFakePost(post.postId, post.user, post.brand, post.variant)}
-                        title="Segnala Post"
-                        style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: 'var(--text-muted)' }}
-                      >
-                        <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>flag</span>
-                      </button>
-                    )}
+                    {/* Bookmark Button */}
+                    <button
+                      onClick={() => handleToggleSavePost(post.postId)}
+                      title={savedPostIds.includes(post.postId) ? 'Rimuovi dai Segnalibri' : 'Salva Post'}
+                      style={{
+                        background: 'transparent',
+                        border: 'none',
+                        cursor: 'pointer',
+                        color: savedPostIds.includes(post.postId) ? '#F59E0B' : '#94A3B8',
+                        padding: '6px',
+                        display: 'flex',
+                        alignItems: 'center',
+                      }}
+                    >
+                      <span className="material-symbols-outlined" style={{ fontSize: '22px' }}>
+                        {savedPostIds.includes(post.postId) ? 'bookmark_added' : 'bookmark'}
+                      </span>
+                    </button>
                   </div>
 
                   <BrindisiSummary

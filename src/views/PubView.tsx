@@ -63,7 +63,7 @@ export const PubView: React.FC<PubViewProps> = ({
   onOpenPublicProfile,
   onOpenScanner,
   onOpenStoryUpload,
-  onShareToStory,
+  onShareToStory: _onShareToStory,
   getAvatarZoomProps,
 }) => {
   const [searchQuery, setSearchQuery] = useState<string>('');
