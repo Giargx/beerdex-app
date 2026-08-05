@@ -1494,3 +1494,12 @@ header.hero p {
     color: #94A3B8;
 }
 
+/* CLICKABLE USERNAMES STYLING */
+.clickable-user {
+    text-decoration: none !important;
+    cursor: pointer;
+}
+.clickable-user:hover {
+    text-decoration: none !important;
+}
+

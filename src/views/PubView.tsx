@@ -816,7 +816,7 @@ export const PubView: React.FC<PubViewProps> = ({
                                       <strong
                                         className="clickable-user"
                                         onClick={() => onOpenPublicProfile(pNick)}
-                                        style={{ cursor: 'pointer', textDecoration: 'underline' }}
+                                        style={{ cursor: 'pointer' }}
                                       >
                                         {globalDisplayNames?.[pNick] || pNick}
                                       </strong>
@@ -829,7 +829,7 @@ export const PubView: React.FC<PubViewProps> = ({
                                     <strong
                                       className="clickable-user"
                                       onClick={() => onOpenPublicProfile(allParticipants[0])}
-                                      style={{ cursor: 'pointer', textDecoration: 'underline' }}
+                                      style={{ cursor: 'pointer' }}
                                     >
                                       {globalDisplayNames?.[allParticipants[0]] || allParticipants[0]}
                                     </strong>
@@ -837,7 +837,7 @@ export const PubView: React.FC<PubViewProps> = ({
                                     <strong
                                       className="clickable-user"
                                       onClick={() => onOpenPublicProfile(allParticipants[1])}
-                                      style={{ cursor: 'pointer', textDecoration: 'underline' }}
+                                      style={{ cursor: 'pointer' }}
                                     >
                                       {globalDisplayNames?.[allParticipants[1]] || allParticipants[1]}
                                     </strong>
