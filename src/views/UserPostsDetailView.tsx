@@ -20,6 +20,8 @@ interface UserPostsDetailViewProps {
   onReportFakePost?: (postId: string, user: string, brand: string, variant: string) => void;
   onOpenPublicProfile: (username: string) => void;
   isAdminUser?: boolean;
+  isPrivate?: boolean;
+  isFriend?: boolean;
 }
 
 export const UserPostsDetailView: React.FC<UserPostsDetailViewProps> = ({
@@ -38,6 +40,8 @@ export const UserPostsDetailView: React.FC<UserPostsDetailViewProps> = ({
   onReportFakePost,
   onOpenPublicProfile,
   isAdminUser,
+  isPrivate = false,
+  isFriend = false,
 }) => {
   const safePosts = Array.isArray(posts) ? posts : [];
   const myPosts = safePosts.filter((p) => p && p.user === username).reverse();
@@ -168,7 +172,17 @@ export const UserPostsDetailView: React.FC<UserPostsDetailViewProps> = ({
       {/* Main Content Area */}
       <div className="social-page-container" style={{ flexGrow: 1 }}>
         <div className="social-feed">
-          {myPosts.length === 0 ? (
+          {isPrivate && !isFriend && username.toLowerCase() !== currentUserNick.toLowerCase() && !isAdminUser ? (
+            <div style={{ textAlign: 'center', padding: '60px 20px', color: 'var(--text-muted)' }}>
+              <div style={{ width: '64px', height: '64px', borderRadius: '50%', background: 'linear-gradient(135deg, #FFFBEB 0%, #FEF3C7 100%)', border: '2px solid #FCD34D', color: '#D97706', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', marginBottom: '16px', boxShadow: '0 4px 12px rgba(245, 158, 11, 0.2)' }}>
+                <span className="material-symbols-outlined" style={{ fontSize: '32px' }}>lock</span>
+              </div>
+              <h3 style={{ margin: '0 0 8px 0', fontSize: '18px', fontWeight: 900, color: '#0F172A' }}>Profilo Privato</h3>
+              <p style={{ margin: '0 auto', fontSize: '14px', color: '#64748B', maxWidth: '300px', lineHeight: '1.4' }}>
+                I post e i dettagli di @{username} sono visibili solo ai suoi amici confermati.
+              </p>
+            </div>
+          ) : myPosts.length === 0 ? (
             <div style={{ textAlign: 'center', padding: '40px 20px', color: 'var(--text-muted)' }}>
               <span className="material-symbols-outlined" style={{ fontSize: '48px', marginBottom: '10px' }}>photo_camera</span>
               <p style={{ margin: 0, fontSize: '14px' }}>Nessun post trovato.</p>

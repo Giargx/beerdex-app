@@ -2843,8 +2843,13 @@ export default function App() {
               allBeersCatalog={allBeersCatalog}
               isAdminUser={isAdminUser}
               onDeleteVariant={handleDeleteVariant}
-              isPrivate={globalUserPrivacy && pubProfileUser ? globalUserPrivacy[pubProfileUser] === true : false}
-              isFriend={Array.isArray(myFriendsList) && pubProfileUser ? myFriendsList.includes(pubProfileUser) : false}
+              isPrivate={(() => {
+                if (!globalUserPrivacy || !pubProfileUser) return false;
+                const lower = pubProfileUser.toLowerCase();
+                const matchKey = Object.keys(globalUserPrivacy).find((k) => k.toLowerCase() === lower);
+                return matchKey ? globalUserPrivacy[matchKey] === true : false;
+              })()}
+              isFriend={Array.isArray(myFriendsList) && pubProfileUser ? myFriendsList.some((f) => f.toLowerCase() === pubProfileUser.toLowerCase()) : false}
               currentUserNick={currentUserNick}
             />
           ) : null}
@@ -2912,6 +2917,13 @@ export default function App() {
               onReportFakePost={handleReportFakePost}
               onOpenPublicProfile={handleOpenPublicProfile}
               isAdminUser={isAdminUser}
+              isPrivate={(() => {
+                if (!globalUserPrivacy || !detailViewUser) return false;
+                const lower = detailViewUser.toLowerCase();
+                const matchKey = Object.keys(globalUserPrivacy).find((k) => k.toLowerCase() === lower);
+                return matchKey ? globalUserPrivacy[matchKey] === true : false;
+              })()}
+              isFriend={Array.isArray(myFriendsList) && detailViewUser ? myFriendsList.some((f) => f.toLowerCase() === detailViewUser.toLowerCase()) : false}
             />
           ) : null}
         </div>

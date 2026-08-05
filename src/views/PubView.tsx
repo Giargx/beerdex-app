@@ -1062,7 +1062,13 @@ export const PubView: React.FC<PubViewProps> = ({
 
                     {/* 3-Dots Options Menu Button (more_vert) */}
                     <button
-                      onClick={() => setSelectedOptionsMenuPost(post)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        e.preventDefault();
+                        setSelectedOptionsMenuPost(post);
+                      }}
+                      onTouchStart={(e) => e.stopPropagation()}
+                      onTouchEnd={(e) => e.stopPropagation()}
                       title="Opzioni Post"
                       style={{
                         background: 'transparent',
@@ -1075,6 +1081,8 @@ export const PubView: React.FC<PubViewProps> = ({
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
+                        position: 'relative',
+                        zIndex: 10,
                         transition: 'background 0.15s ease',
                       }}
                     >
