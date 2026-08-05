@@ -52,7 +52,6 @@ export const HomeView: React.FC<HomeViewProps> = ({
   isAdminUser = false,
 }) => {
   const [timedEvent, setTimedEvent] = useState<{ name: string; desc: string } | null>(null);
-  const [recommendTab, setRecommendTab] = useState<'recommended' | 'rare' | 'foreign'>('recommended');
   const [cheersToast, setCheersToast] = useState<string | null>(null);
   const [cheeredPosts, setCheeredPosts] = useState<Record<string, boolean>>({});
 
@@ -217,27 +216,149 @@ export const HomeView: React.FC<HomeViewProps> = ({
   const unlockedBrands = new Set(myPosts.map((p) => p.brand));
   const missingBeers = catalogList.filter((b) => !unlockedBrands.has(b.brand));
 
-  // Beer Recommendations logic
-  const getRecommendedBeer = () => {
+  // Seasonal Beer Recommendation logic (single seasonal recommendation)
+  const getSeasonalRecommendedBeer = () => {
     const list = missingBeers.length > 0 ? missingBeers : catalogList;
-    if (recommendTab === 'rare') {
-      const rareList = list.filter(b => b.rarity === 'rara' || b.rarity === 'media');
-      if (rareList.length > 0) return rareList[0];
+    const now = new Date();
+    const month = now.getMonth();
+
+    let targetKeywords: string[] = [];
+    let seasonLabel = 'Consigliata per la stagione';
+
+    if (timedEvent) {
+      if (timedEvent.name === 'San Patrizio') {
+        targetKeywords = ['irlanda', 'scozia', 'scura', 'stout', 'kilkenny', 'guinness'];
+        seasonLabel = 'Consigliata per San Patrizio 🍀';
+      } else if (timedEvent.name === 'Oktoberfest') {
+        targetKeywords = ['germania', 'tedesca', 'marzen', 'bock', 'paulaner', 'augustiner', 'franziskaner'];
+        seasonLabel = 'Consigliata per Oktoberfest 🍺';
+      } else if (timedEvent.name === 'Estate' || timedEvent.name === 'Ferragosto') {
+        targetKeywords = ['bionda', 'lager', 'ipa', 'pils', 'corona', 'heineken', 'peroni', 'moretti', 'ichnusa', 'session'];
+        seasonLabel = 'Consigliata per l\'Estate ☀️ (Bionda/IPA)';
+      } else if (timedEvent.name === 'Autunno') {
+        targetKeywords = ['rossa', 'ipa', 'amber', 'marzen', 'doppelbock', 'menabrea', 'ceres', 'duvel'];
+        seasonLabel = 'Consigliata per l\'Autunno 🍂';
+      } else if (timedEvent.name === 'Primavera' || timedEvent.name === 'Pasquetta') {
+        targetKeywords = ['bianca', 'blanche', 'weiss', 'weizen', 'saison', 'hoegaarden', 'franziskaner'];
+        seasonLabel = 'Consigliata per la Primavera 🌸';
+      } else if (timedEvent.name === 'Inverno') {
+        targetKeywords = ['scura', 'stout', 'porter', 'rossa', 'bock', 'chimay', 'leffe', 'guinness', 'affligem'];
+        seasonLabel = 'Consigliata per l\'Inverno ❄️';
+      }
     }
-    if (recommendTab === 'foreign') {
-      const foreignList = list.filter(b => b.country && b.country.toLowerCase() !== 'italia');
-      if (foreignList.length > 0) return foreignList[0];
+
+    if (targetKeywords.length === 0) {
+      if (month >= 5 && month <= 8) {
+        targetKeywords = ['bionda', 'lager', 'ipa', 'pils'];
+        seasonLabel = 'Consigliata per l\'Estate ☀️ (Bionda/IPA)';
+      } else if (month >= 9 && month <= 10) {
+        targetKeywords = ['rossa', 'ipa', 'amber', 'marzen'];
+        seasonLabel = 'Consigliata per l\'Autunno 🍂';
+      } else if (month >= 11 || month <= 2) {
+        targetKeywords = ['scura', 'stout', 'porter', 'rossa'];
+        seasonLabel = 'Consigliata per l\'Inverno ❄️';
+      } else {
+        targetKeywords = ['bianca', 'blanche', 'weiss', 'saison'];
+        seasonLabel = 'Consigliata per la Primavera 🌸';
+      }
     }
-    // Default weekly recommended
-    const today = new Date();
-    const firstDayOfYear = new Date(today.getFullYear(), 0, 1);
-    const pastDaysOfYear = (today.getTime() - firstDayOfYear.getTime()) / 86400000;
-    const weekNum = Math.ceil((pastDaysOfYear + firstDayOfYear.getDay() + 1) / 7);
-    const index = (weekNum + today.getFullYear()) % list.length;
-    return list[index] || catalogList[0];
+
+    const seasonalBeers = list.filter((b) => {
+      const str = (
+        (b.brand || '') +
+        ' ' +
+        (b.type || '') +
+        ' ' +
+        (b.country || '') +
+        ' ' +
+        (Array.isArray(b.variants) ? b.variants.join(' ') : '')
+      ).toLowerCase();
+      return targetKeywords.some((kw) => str.includes(kw));
+    });
+
+    const candidateList = seasonalBeers.length > 0 ? seasonalBeers : list;
+    const startOfYear = new Date(now.getFullYear(), 0, 0);
+    const diff = now.getTime() - startOfYear.getTime();
+    const dayOfYear = Math.floor(diff / 86400000);
+    const index = Math.abs(dayOfYear) % candidateList.length;
+
+    return { beer: candidateList[index] || catalogList[0], seasonLabel };
   };
 
-  const featuredBeer = getRecommendedBeer();
+  const featuredBeerData = getSeasonalRecommendedBeer();
+  const featuredBeer = featuredBeerData.beer;
+
+  // Timed Event Progress Calculation
+  const getEventProgress = () => {
+    if (!timedEvent) return null;
+
+    const unlockedKeys = new Set(Object.keys(myPokedex));
+    const myPostKeys = new Set(myPosts.map((p) => `${p.brand} - ${p.variant}`));
+
+    const allCatalogVariants = catalogList.flatMap((b) => {
+      const variants = Array.isArray(b?.variants) && b.variants.length > 0 ? b.variants : [b?.type || 'Standard'];
+      return variants.map((v: string) => ({
+        brand: b.brand,
+        variantName: v,
+        type: b.type || '',
+        country: b.country || '',
+        rarity: b.rarity || 'comune',
+        isUnlocked: unlockedKeys.has(`${b.brand} - ${v}`) || myPostKeys.has(`${b.brand} - ${v}`) || unlockedBrands.has(b.brand),
+      }));
+    });
+
+    const unlockedItems = allCatalogVariants.filter((item) => item.isUnlocked);
+    const eventName = timedEvent.name;
+
+    let target = 10;
+    let count = 0;
+
+    if (eventName === 'Estate') {
+      target = 10;
+      count = unlockedItems.filter((b) => {
+        const str = (b.type + ' ' + b.variantName).toLowerCase();
+        return str.includes('bionda') || str.includes('lager') || str.includes('ipa') || str.includes('pils') || str.includes('pale ale');
+      }).length;
+    } else if (eventName === 'Autunno') {
+      target = 10;
+      count = unlockedItems.filter((b) => {
+        const str = (b.type + ' ' + b.variantName).toLowerCase();
+        return str.includes('rossa') || str.includes('ipa') || str.includes('amber') || str.includes('marzen') || str.includes('doppelbock') || b.country.toLowerCase() === 'germania';
+      }).length;
+    } else if (eventName === 'Primavera') {
+      target = 10;
+      count = unlockedItems.filter((b) => {
+        const str = (b.type + ' ' + b.variantName).toLowerCase();
+        return str.includes('bianca') || str.includes('blanche') || str.includes('weiss') || str.includes('weizen') || str.includes('saison');
+      }).length;
+    } else if (eventName === 'Inverno') {
+      target = 10;
+      count = unlockedItems.filter((b) => {
+        const str = (b.type + ' ' + b.variantName).toLowerCase();
+        return str.includes('scura') || str.includes('stout') || str.includes('porter') || str.includes('bock') || str.includes('rossa');
+      }).length;
+    } else if (eventName === 'San Patrizio') {
+      target = 1;
+      count = unlockedItems.filter((b) => {
+        const str = (b.type + ' ' + b.variantName).toLowerCase();
+        const c = b.country.toLowerCase();
+        return c === 'irlanda' || c === 'scozia' || str.includes('scura') || str.includes('stout');
+      }).length;
+    } else if (eventName === 'Oktoberfest') {
+      target = 3;
+      count = unlockedItems.filter((b) => b.country.toLowerCase() === 'germania').length;
+    } else if (eventName === 'Ferragosto' || eventName === 'Pasquetta') {
+      target = 1;
+      count = Math.min(unlockedItems.length, 1);
+    }
+
+    const current = Math.min(count, target);
+    const pct = Math.min(Math.round((current / target) * 100), 100);
+
+    return { current, target, pct };
+  };
+
+  const eventProgress = getEventProgress();
 
   // Relative time formatter helper
   const formatRelativeTime = (timestamp: number) => {
@@ -735,11 +856,49 @@ export const HomeView: React.FC<HomeViewProps> = ({
               )}
             </div>
             {timedEvent ? (
-              <p style={{ margin: 0, fontSize: '13px', color: eventConfig.descColor, lineHeight: '1.4' }}>
-                <strong style={{ fontSize: '14px' }}>{timedEvent.name} ATTIVO!</strong>
-                <br />
-                {timedEvent.desc}
-              </p>
+              <div>
+                <p style={{ margin: 0, fontSize: '13px', color: eventConfig.descColor, lineHeight: '1.4' }}>
+                  <strong style={{ fontSize: '14px' }}>{timedEvent.name} ATTIVO!</strong>
+                  <br />
+                  {timedEvent.desc}
+                </p>
+
+                {eventProgress && (
+                  <div style={{
+                    marginTop: '12px',
+                    background: 'rgba(0, 0, 0, 0.25)',
+                    padding: '10px 14px',
+                    borderRadius: '14px',
+                    backdropFilter: 'blur(6px)',
+                    border: '1px solid rgba(255, 255, 255, 0.15)',
+                  }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px', fontSize: '12px', fontWeight: 800 }}>
+                      <span style={{ color: eventConfig.titleColor }}>I Tuoi Progressi</span>
+                      <span style={{
+                        color: '#FFFFFF',
+                        background: eventProgress.current >= eventProgress.target ? '#10B981' : 'rgba(255,255,255,0.25)',
+                        padding: '2px 8px',
+                        borderRadius: '10px',
+                        fontSize: '11px',
+                        fontWeight: 800,
+                      }}>
+                        {eventProgress.current} / {eventProgress.target} Sbloccate ({eventProgress.pct}%)
+                      </span>
+                    </div>
+                    <div style={{ width: '100%', height: '8px', background: 'rgba(255, 255, 255, 0.2)', borderRadius: '4px', overflow: 'hidden' }}>
+                      <div style={{
+                        width: `${eventProgress.pct}%`,
+                        height: '100%',
+                        background: eventProgress.current >= eventProgress.target
+                          ? 'linear-gradient(90deg, #10B981, #34D399)'
+                          : 'linear-gradient(90deg, #F59E0B, #FBBF24)',
+                        borderRadius: '4px',
+                        transition: 'width 0.4s ease',
+                      }} />
+                    </div>
+                  </div>
+                )}
+              </div>
             ) : (
               <p style={{ margin: 0, fontSize: '13px', color: eventConfig.descColor, lineHeight: '1.4' }}>
                 <strong>Nessun evento attivo in questo momento</strong>
@@ -750,7 +909,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
           </div>
         </div>
 
-        {/* LA SPINA DEL GIORNO & CAROSELLO CONSIGLIATI */}
+        {/* LA SPINA DEL GIORNO (UNICA BIRRA CONSIGLIATA STAGIONALE) */}
         {featuredBeer && (
           <div style={{
             background: 'linear-gradient(135deg, #FFFDF5 0%, #FFF9E6 100%)',
@@ -762,8 +921,8 @@ export const HomeView: React.FC<HomeViewProps> = ({
             position: 'relative',
             textAlign: 'left'
           }}>
-            {/* Header pill & filters */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
+            {/* Header pill & seasonal label */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px', flexWrap: 'wrap', gap: '8px' }}>
               <span style={{
                 background: 'linear-gradient(135deg, #F59E0B, #D97706)',
                 color: 'white',
@@ -771,58 +930,22 @@ export const HomeView: React.FC<HomeViewProps> = ({
                 fontWeight: 850,
                 padding: '4px 12px',
                 borderRadius: '20px',
-                boxShadow: '0 4px 10px rgba(245,158,11,0.25)'
+                boxShadow: '0 4px 10px rgba(245,158,11,0.25)',
+                letterSpacing: '0.5px'
               }}>
                 🍺 LA SPINA DEL GIORNO
               </span>
 
-              <div style={{ display: 'flex', gap: '4px' }}>
-                <button
-                  onClick={() => setRecommendTab('recommended')}
-                  style={{
-                    border: 'none',
-                    background: recommendTab === 'recommended' ? '#D97706' : 'rgba(217, 119, 6, 0.15)',
-                    color: recommendTab === 'recommended' ? '#FFFFFF' : '#92400E',
-                    fontSize: '10px',
-                    fontWeight: 750,
-                    padding: '4px 8px',
-                    borderRadius: '8px',
-                    cursor: 'pointer'
-                  }}
-                >
-                  Top
-                </button>
-                <button
-                  onClick={() => setRecommendTab('rare')}
-                  style={{
-                    border: 'none',
-                    background: recommendTab === 'rare' ? '#D97706' : 'rgba(217, 119, 6, 0.15)',
-                    color: recommendTab === 'rare' ? '#FFFFFF' : '#92400E',
-                    fontSize: '10px',
-                    fontWeight: 750,
-                    padding: '4px 8px',
-                    borderRadius: '8px',
-                    cursor: 'pointer'
-                  }}
-                >
-                  Rara
-                </button>
-                <button
-                  onClick={() => setRecommendTab('foreign')}
-                  style={{
-                    border: 'none',
-                    background: recommendTab === 'foreign' ? '#D97706' : 'rgba(217, 119, 6, 0.15)',
-                    color: recommendTab === 'foreign' ? '#FFFFFF' : '#92400E',
-                    fontSize: '10px',
-                    fontWeight: 750,
-                    padding: '4px 8px',
-                    borderRadius: '8px',
-                    cursor: 'pointer'
-                  }}
-                >
-                  Estera
-                </button>
-              </div>
+              <span style={{
+                fontSize: '11px',
+                color: '#92400E',
+                fontWeight: 800,
+                background: 'rgba(245, 158, 11, 0.15)',
+                padding: '3px 10px',
+                borderRadius: '12px',
+              }}>
+                {featuredBeerData.seasonLabel}
+              </span>
             </div>
 
             <div style={{ display: 'flex', gap: '15px', alignItems: 'center' }}>
@@ -836,7 +959,8 @@ export const HomeView: React.FC<HomeViewProps> = ({
                 justifyContent: 'center',
                 fontSize: '28px',
                 border: '1px solid rgba(245,158,11,0.2)',
-                boxShadow: '0 4px 12px rgba(0,0,0,0.04)'
+                boxShadow: '0 4px 12px rgba(0,0,0,0.04)',
+                flexShrink: 0
               }}>
                 🍺
               </div>
@@ -863,7 +987,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
             </div>
             
             <p style={{ margin: '12px 0 0 0', fontSize: '13px', color: 'var(--text-muted)', lineHeight: '1.4' }}>
-              <strong>Varianti:</strong> {Array.isArray(featuredBeer?.variants) ? featuredBeer.variants.join(', ') : 'Classica'}. Una birra fantastica da aggiungere alla tua Collezione del Pub!
+              <strong>Varianti:</strong> {Array.isArray(featuredBeer?.variants) ? featuredBeer.variants.join(', ') : 'Classica'}. Consigliata per la stagione per avanzare nella sfida ed esplorare nuovi stili!
             </p>
 
             <button
