@@ -1168,11 +1168,15 @@ export const PubView: React.FC<PubViewProps> = ({
         onClose={() => setSelectedOptionsMenuPost(null)}
         onSavePost={(postId) => handleToggleSavePost(postId)}
         onShareToStory={(postId) => {
-          const idx = storyPosts.findIndex((s) => s.postId === postId);
-          if (idx !== -1) {
-            setActiveStoryViewerIndex(idx);
+          if (onShareToStory) {
+            onShareToStory(postId);
           } else {
-            setActiveStoryViewerIndex(0);
+            const idx = storyPosts.findIndex((s) => s.postId === postId);
+            if (idx !== -1) {
+              setActiveStoryViewerIndex(idx);
+            } else {
+              setActiveStoryViewerIndex(0);
+            }
           }
         }}
         onOpenReportModal={(post) => setSelectedReportPost(post)}
