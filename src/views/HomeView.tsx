@@ -21,6 +21,7 @@ interface HomeViewProps {
   posts: Post[];
   leaderboardScores: Record<string, number>;
   myFriendsList?: string[];
+  myReceivedRequests?: string[];
   onNavigate: (pageId: string) => void;
   getUserRankTitle: (score: number, unlockedCount?: number) => string;
   myPokedex?: Record<string, any>;
@@ -39,6 +40,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
   posts,
   leaderboardScores,
   myFriendsList = [],
+  myReceivedRequests = [],
   onNavigate,
   getUserRankTitle,
   myPokedex = {},
@@ -610,9 +612,26 @@ export const HomeView: React.FC<HomeViewProps> = ({
               gap: '6px',
               cursor: 'pointer',
               boxShadow: 'var(--card-shadow)',
-              transition: 'transform 0.15s ease'
+              transition: 'transform 0.15s ease',
+              position: 'relative',
             }}
           >
+            {Array.isArray(myReceivedRequests) && myReceivedRequests.length > 0 && (
+              <span
+                style={{
+                  position: 'absolute',
+                  top: '8px',
+                  right: '8px',
+                  width: '10px',
+                  height: '10px',
+                  borderRadius: '50%',
+                  background: '#EF4444',
+                  boxShadow: '0 0 8px rgba(239, 68, 68, 0.9)',
+                  border: '2px solid #FFFFFF',
+                  animation: 'pulse 1.5s infinite',
+                }}
+              />
+            )}
             <span className="material-symbols-outlined" style={{ fontSize: '26px', color: 'var(--primary-dark)' }}>group</span>
             <span style={{ fontSize: '11px', fontWeight: 800 }}>Amici</span>
           </button>

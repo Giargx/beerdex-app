@@ -2893,6 +2893,7 @@ export default function App() {
                     posts={globalPosts}
                     leaderboardScores={globalLeaderboardScores}
                     myFriendsList={myFriendsList}
+                    myReceivedRequests={myReceivedRequests}
                     onNavigate={navigateTo}
                     getUserRankTitle={getUserRankTitle}
                     myPokedex={myPokedex}
