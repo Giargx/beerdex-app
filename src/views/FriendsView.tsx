@@ -269,7 +269,7 @@ export const FriendsView: React.FC<FriendsViewProps> = ({
                     >
                       <div
                         onClick={() => onOpenPublicProfile(sender)}
-                        style={{ display: 'flex', alignItems: 'center', gap: '12px', cursor: 'pointer' }}
+                        style={{ display: 'flex', alignItems: 'center', gap: '12px', cursor: 'pointer', marginRight: '16px', flex: 1, minWidth: 0 }}
                       >
                         <div
                           style={{
@@ -279,6 +279,7 @@ export const FriendsView: React.FC<FriendsViewProps> = ({
                             padding: '2px',
                             background: 'linear-gradient(135deg, #F59E0B 0%, #D97706 100%)',
                             boxShadow: '0 2px 6px rgba(245, 158, 11, 0.25)',
+                            flexShrink: 0,
                           }}
                         >
                           <div
@@ -303,31 +304,31 @@ export const FriendsView: React.FC<FriendsViewProps> = ({
                           </div>
                         </div>
 
-                        <div>
-                          <div style={{ fontSize: '15px', fontWeight: 800, color: '#0F172A' }}>{disp}</div>
-                          <div style={{ fontSize: '12px', color: '#64748B', fontWeight: 600 }}>@{sender}</div>
+                        <div style={{ overflow: 'hidden' }}>
+                          <div style={{ fontSize: '14px', fontWeight: 800, color: '#0F172A', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{disp}</div>
+                          <div style={{ fontSize: '11px', color: '#64748B', fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>@{sender}</div>
                         </div>
                       </div>
 
-                      <div style={{ display: 'flex', gap: '8px' }}>
+                      <div style={{ display: 'flex', gap: '6px', flexShrink: 0 }}>
                         <button
                           onClick={() => onAcceptRequest(sender)}
                           style={{
                             background: 'linear-gradient(135deg, #10B981 0%, #059669 100%)',
                             color: '#FFFFFF',
                             border: 'none',
-                            padding: '8px 14px',
-                            borderRadius: '16px',
-                            fontSize: '12px',
+                            padding: '6px 10px',
+                            borderRadius: '12px',
+                            fontSize: '11px',
                             fontWeight: 800,
                             cursor: 'pointer',
                             display: 'inline-flex',
                             alignItems: 'center',
-                            gap: '4px',
-                            boxShadow: '0 3px 8px rgba(16, 185, 129, 0.25)',
+                            gap: '3px',
+                            boxShadow: '0 2px 6px rgba(16, 185, 129, 0.25)',
                           }}
                         >
-                          <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>check</span>
+                          <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>check</span>
                           Accetta
                         </button>
                         <button
@@ -336,17 +337,17 @@ export const FriendsView: React.FC<FriendsViewProps> = ({
                             background: '#FEF2F2',
                             color: '#EF4444',
                             border: '1px solid #FCA5A5',
-                            padding: '8px 12px',
-                            borderRadius: '16px',
-                            fontSize: '12px',
+                            padding: '6px 9px',
+                            borderRadius: '12px',
+                            fontSize: '11px',
                             fontWeight: 800,
                             cursor: 'pointer',
                             display: 'inline-flex',
                             alignItems: 'center',
-                            gap: '4px',
+                            gap: '3px',
                           }}
                         >
-                          <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>close</span>
+                          <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>close</span>
                           Rifiuta
                         </button>
                       </div>

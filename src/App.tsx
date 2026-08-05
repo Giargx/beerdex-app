@@ -3232,7 +3232,7 @@ export default function App() {
             >
               <div className="nav-icon" style={{ position: 'relative' }}>
                 <span className="material-symbols-outlined">person</span>
-                {((isAdminUser && (beerProposals || []).filter((p: BeerProposalItem) => p && p.status === 'pending').length > 0) || (myReceivedRequests || []).length > 0 || (myTagRequests || []).length > 0) && (
+                {((isAdminUser && (beerProposals || []).filter((p: BeerProposalItem) => p && p.status === 'pending').length > 0) || (myTagRequests || []).length > 0) && (
                   <span
                     style={{
                       position: 'absolute',

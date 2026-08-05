@@ -306,7 +306,7 @@ export const PublicProfileView: React.FC<PublicProfileViewProps> = ({
                 }}
               >
                 <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>group</span>
-                <span>Amici ✓ (Rimuovi)</span>
+                <span>Amici ✓</span>
               </button>
             ) : Array.isArray(myReceivedRequests) && myReceivedRequests.some((r) => r.toLowerCase() === username.toLowerCase()) ? (
               <div style={{ display: 'flex', gap: '8px', justifyContent: 'center' }}>
