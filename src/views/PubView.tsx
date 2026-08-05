@@ -71,6 +71,7 @@ export const PubView: React.FC<PubViewProps> = ({
   // Modals & Interactive States
   const [selectedOptionsMenuPost, setSelectedOptionsMenuPost] = useState<Post | null>(null);
   const [selectedReportPost, setSelectedReportPost] = useState<Post | null>(null);
+  const [selectedParticipantsPost, setSelectedParticipantsPost] = useState<Post | null>(null);
   const [activeStoryViewerIndex, setActiveStoryViewerIndex] = useState<number | null>(null);
   const [savedPostIds, setSavedPostIds] = useState<string[]>(() => {
     try {
@@ -737,15 +738,9 @@ export const PubView: React.FC<PubViewProps> = ({
           ) : (
             [...visiblePosts].reverse().map((post) => {
               const isSaved = savedPostIds.includes(post.postId);
-              const isShared = post.isShared && Boolean(post.taggedFriend);
-
-              // Co-authors list for shared post header
               const user1 = post.user;
-              const user2 = post.taggedFriend;
               const av1 = globalAvatars[user1];
-              const av2 = user2 ? globalAvatars[user2] : undefined;
               const disp1 = globalDisplayNames?.[user1] || user1;
-              const disp2 = user2 ? (globalDisplayNames?.[user2] || user2) : undefined;
 
               // Calculate points received upon unlocking
               const basePts = getBasePoints(post.brand, post.variant);
@@ -816,156 +811,254 @@ export const PubView: React.FC<PubViewProps> = ({
                       justifyContent: 'space-between',
                     }}
                   >
-                    <div style={{ display: 'flex', alignItems: 'center' }}>
-                      {isShared && user2 ? (
-                        /* Joint Dual Avatar Container */
-                        <div
-                          style={{
-                            position: 'relative',
-                            display: 'inline-flex',
-                            alignItems: 'center',
-                            marginRight: '8px',
-                          }}
-                        >
-                          {/* First Avatar */}
-                          <div
-                            onClick={() => onOpenPublicProfile(user1)}
-                            style={{
-                              width: '38px',
-                              height: '38px',
-                              borderRadius: '50%',
-                              padding: '2px',
-                              background: 'linear-gradient(135deg, #F59E0B 0%, #D97706 100%)',
-                              boxShadow: '0 2px 6px rgba(245, 158, 11, 0.3)',
-                              zIndex: 2,
-                              cursor: 'pointer',
-                            }}
-                          >
-                            <div style={{ width: '100%', height: '100%', borderRadius: '50%', overflow: 'hidden', background: '#FFF' }}>
-                              {av1 ? (
-                                <img src={av1} alt={user1} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                              ) : (
-                                <span className="material-symbols-outlined" style={{ fontSize: '22px', color: '#64748B' }}>person</span>
-                              )}
-                            </div>
-                          </div>
+                    {(() => {
+                      const allParticipants: string[] = Array.from(
+                        new Set([
+                          post.user,
+                          ...(Array.isArray((post as any).taggedFriends) ? (post as any).taggedFriends.filter(Boolean) : []),
+                          ...(post.taggedFriend ? post.taggedFriend.split(',').map((s: string) => s.trim()).filter(Boolean) : []),
+                        ])
+                      );
 
-                          {/* Second Avatar */}
-                          <div
-                            onClick={() => onOpenPublicProfile(user2)}
-                            style={{
-                              width: '38px',
-                              height: '38px',
-                              borderRadius: '50%',
-                              padding: '2px',
-                              background: 'linear-gradient(135deg, #E67E22 0%, #D35400 100%)',
-                              boxShadow: '0 2px 6px rgba(230, 126, 34, 0.3)',
-                              marginLeft: '-14px',
-                              zIndex: 1,
-                              cursor: 'pointer',
-                            }}
-                          >
-                            <div style={{ width: '100%', height: '100%', borderRadius: '50%', overflow: 'hidden', background: '#FFF' }}>
-                              {av2 ? (
-                                <img src={av2} alt={user2} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                              ) : (
-                                <span className="material-symbols-outlined" style={{ fontSize: '22px', color: '#64748B' }}>person</span>
-                              )}
-                            </div>
-                          </div>
+                      const isShared = allParticipants.length > 1;
+                      const displayedAvatars = allParticipants.slice(0, 3);
+                      const extraCount = allParticipants.length - 3;
 
-                          {/* Joint Drink 🍻 Badge */}
-                          <div
-                            style={{
-                              position: 'absolute',
-                              bottom: '-2px',
-                              right: '-6px',
-                              background: '#F59E0B',
-                              borderRadius: '50%',
-                              width: '16px',
-                              height: '16px',
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              fontSize: '10px',
-                              boxShadow: '0 1px 3px rgba(0,0,0,0.3)',
-                              zIndex: 3,
-                            }}
-                          >
-                            🍻
-                          </div>
-                        </div>
-                      ) : (
-                        /* Single User Avatar */
-                        <div
-                          className="post-avatar clickable-user"
-                          onClick={() => onOpenPublicProfile(user1)}
-                          style={{
-                            cursor: 'pointer',
-                            width: '42px',
-                            height: '42px',
-                            borderRadius: '50%',
-                            padding: '2px',
-                            background: 'linear-gradient(135deg, #F59E0B 0%, #D97706 100%)',
-                            boxShadow: '0 2px 8px rgba(245, 158, 11, 0.25)',
-                          }}
-                          {...(getAvatarZoomProps ? getAvatarZoomProps(av1) : {})}
-                        >
-                          <div
-                            style={{
-                              width: '100%',
-                              height: '100%',
-                              borderRadius: '50%',
-                              overflow: 'hidden',
-                              background: '#FFFFFF',
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                            }}
-                          >
-                            {av1 ? (
-                              <img
-                                src={av1}
-                                alt={user1}
-                                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                                onContextMenu={(e) => e.preventDefault()}
-                                draggable={false}
-                              />
+                      return (
+                        <div style={{ display: 'flex', alignItems: 'center' }}>
+                          {isShared ? (
+                            /* Multi-Participant Avatar Stack */
+                            <div
+                              onClick={() => {
+                                if (allParticipants.length > 3) {
+                                  setSelectedParticipantsPost(post);
+                                } else {
+                                  onOpenPublicProfile(allParticipants[0]);
+                                }
+                              }}
+                              style={{
+                                position: 'relative',
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                marginRight: '10px',
+                                cursor: 'pointer',
+                              }}
+                            >
+                              {displayedAvatars.map((pNick, idx) => {
+                                const pAv = globalAvatars[pNick];
+                                return (
+                                  <div
+                                    key={pNick}
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      onOpenPublicProfile(pNick);
+                                    }}
+                                    style={{
+                                      width: '36px',
+                                      height: '36px',
+                                      borderRadius: '50%',
+                                      padding: '2px',
+                                      background: idx === 0
+                                        ? 'linear-gradient(135deg, #F59E0B 0%, #D97706 100%)'
+                                        : 'linear-gradient(135deg, #E67E22 0%, #D35400 100%)',
+                                      boxShadow: '0 2px 6px rgba(0,0,0,0.15)',
+                                      marginLeft: idx > 0 ? '-12px' : '0',
+                                      zIndex: 3 - idx,
+                                      cursor: 'pointer',
+                                    }}
+                                  >
+                                    <div
+                                      style={{
+                                        width: '100%',
+                                        height: '100%',
+                                        borderRadius: '50%',
+                                        overflow: 'hidden',
+                                        background: '#FFF',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                      }}
+                                    >
+                                      {pAv ? (
+                                        <img src={pAv} alt={pNick} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                      ) : (
+                                        <span className="material-symbols-outlined" style={{ fontSize: '20px', color: '#64748B' }}>
+                                          person
+                                        </span>
+                                      )}
+                                    </div>
+                                  </div>
+                                );
+                              })}
+
+                              {extraCount > 0 && (
+                                <div
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setSelectedParticipantsPost(post);
+                                  }}
+                                  style={{
+                                    width: '32px',
+                                    height: '32px',
+                                    borderRadius: '50%',
+                                    background: '#0F172A',
+                                    color: '#FFFFFF',
+                                    fontSize: '11px',
+                                    fontWeight: 900,
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    marginLeft: '-10px',
+                                    zIndex: 4,
+                                    border: '2px solid #FFFFFF',
+                                    boxShadow: '0 2px 6px rgba(0,0,0,0.2)',
+                                  }}
+                                >
+                                  +{extraCount}
+                                </div>
+                              )}
+
+                              {/* Joint Drink 🍻 Badge */}
+                              <div
+                                style={{
+                                  position: 'absolute',
+                                  bottom: '-2px',
+                                  right: '-6px',
+                                  background: '#F59E0B',
+                                  borderRadius: '50%',
+                                  width: '16px',
+                                  height: '16px',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                  fontSize: '10px',
+                                  boxShadow: '0 1px 3px rgba(0,0,0,0.3)',
+                                  zIndex: 5,
+                                }}
+                              >
+                                🍻
+                              </div>
+                            </div>
+                          ) : (
+                            /* Single User Avatar */
+                            <div
+                              className="post-avatar clickable-user"
+                              onClick={() => onOpenPublicProfile(post.user)}
+                              style={{
+                                cursor: 'pointer',
+                                width: '42px',
+                                height: '42px',
+                                borderRadius: '50%',
+                                padding: '2px',
+                                background: 'linear-gradient(135deg, #F59E0B 0%, #D97706 100%)',
+                                boxShadow: '0 2px 8px rgba(245, 158, 11, 0.25)',
+                              }}
+                              {...(getAvatarZoomProps ? getAvatarZoomProps(av1) : {})}
+                            >
+                              <div
+                                style={{
+                                  width: '100%',
+                                  height: '100%',
+                                  borderRadius: '50%',
+                                  overflow: 'hidden',
+                                  background: '#FFFFFF',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                }}
+                              >
+                                {av1 ? (
+                                  <img
+                                    src={av1}
+                                    alt={user1}
+                                    style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                                    onContextMenu={(e) => e.preventDefault()}
+                                    draggable={false}
+                                  />
+                                ) : (
+                                  <span className="material-symbols-outlined" style={{ fontSize: '24px', color: '#64748B' }}>
+                                    person
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                          )}
+
+                          <div style={{ marginLeft: '4px' }}>
+                            {isShared ? (
+                              <div style={{ fontSize: '14px', fontWeight: 800, color: '#0F172A', display: 'flex', alignItems: 'center', gap: '4px', flexWrap: 'wrap' }}>
+                                {allParticipants.length <= 3 ? (
+                                  allParticipants.map((pNick, idx) => (
+                                    <React.Fragment key={pNick}>
+                                      <strong
+                                        className="clickable-user"
+                                        onClick={() => onOpenPublicProfile(pNick)}
+                                        style={{ cursor: 'pointer', textDecoration: 'underline' }}
+                                      >
+                                        {globalDisplayNames?.[pNick] || pNick}
+                                      </strong>
+                                      {idx < allParticipants.length - 2 && <span>,</span>}
+                                      {idx === allParticipants.length - 2 && <span style={{ color: '#D97706', fontWeight: 700 }}>e</span>}
+                                    </React.Fragment>
+                                  ))
+                                ) : (
+                                  <>
+                                    <strong
+                                      className="clickable-user"
+                                      onClick={() => onOpenPublicProfile(allParticipants[0])}
+                                      style={{ cursor: 'pointer', textDecoration: 'underline' }}
+                                    >
+                                      {globalDisplayNames?.[allParticipants[0]] || allParticipants[0]}
+                                    </strong>
+                                    <span>,</span>
+                                    <strong
+                                      className="clickable-user"
+                                      onClick={() => onOpenPublicProfile(allParticipants[1])}
+                                      style={{ cursor: 'pointer', textDecoration: 'underline' }}
+                                    >
+                                      {globalDisplayNames?.[allParticipants[1]] || allParticipants[1]}
+                                    </strong>
+                                    <button
+                                      onClick={() => setSelectedParticipantsPost(post)}
+                                      style={{
+                                        background: 'rgba(245, 158, 11, 0.15)',
+                                        border: 'none',
+                                        borderRadius: '12px',
+                                        padding: '2px 8px',
+                                        color: '#B45309',
+                                        fontSize: '12px',
+                                        fontWeight: 800,
+                                        cursor: 'pointer',
+                                        display: 'inline-flex',
+                                        alignItems: 'center',
+                                        gap: '2px',
+                                      }}
+                                    >
+                                      <span>e altri {allParticipants.length - 2}</span>
+                                      <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>
+                                        expand_more
+                                      </span>
+                                    </button>
+                                  </>
+                                )}
+                              </div>
                             ) : (
-                              <span className="material-symbols-outlined" style={{ fontSize: '24px', color: '#64748B' }}>
-                                person
-                              </span>
+                              <div
+                                className="post-user clickable-user"
+                                onClick={() => onOpenPublicProfile(user1)}
+                                style={{ fontSize: '14px', fontWeight: 800, color: '#0F172A', cursor: 'pointer' }}
+                              >
+                                {disp1}
+                              </div>
                             )}
+
+                            <div style={{ fontSize: '11px', color: '#94A3B8', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '4px', marginTop: '2px' }}>
+                              {isShared ? 'Bevuta condivisa 🍻 • ' : ''}{timeStr}
+                            </div>
                           </div>
                         </div>
-                      )}
-
-                      <div style={{ marginLeft: '10px' }}>
-                        {isShared && user2 ? (
-                          <div style={{ fontSize: '14px', fontWeight: 800, color: '#0F172A' }}>
-                            <strong className="clickable-user" onClick={() => onOpenPublicProfile(user1)} style={{ cursor: 'pointer' }}>
-                              {disp1}
-                            </strong>{' '}
-                            <span style={{ color: '#D97706', fontWeight: 700 }}>&</span>{' '}
-                            <strong className="clickable-user" onClick={() => onOpenPublicProfile(user2)} style={{ cursor: 'pointer' }}>
-                              {disp2}
-                            </strong>
-                          </div>
-                        ) : (
-                          <div
-                            className="post-user clickable-user"
-                            onClick={() => onOpenPublicProfile(user1)}
-                            style={{ fontSize: '14px', fontWeight: 800, color: '#0F172A', cursor: 'pointer' }}
-                          >
-                            {disp1}
-                          </div>
-                        )}
-
-                        <div style={{ fontSize: '11px', color: '#94A3B8', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '4px' }}>
-                          {isShared ? 'Bevuta condivisa 🍻 • ' : ''}{timeStr}
-                        </div>
-                      </div>
-                    </div>
+                      );
+                    })()}
 
                     {/* 3-Dots Options Menu Button (more_vert) */}
                     <button
@@ -1356,6 +1449,164 @@ export const PubView: React.FC<PubViewProps> = ({
           onToggleLike={onToggleLike}
           onOpenPublicProfile={onOpenPublicProfile}
         />
+      )}
+
+      {/* Participants Sheet / Tendina Modal */}
+      {selectedParticipantsPost && (
+        <div
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            width: '100vw',
+            height: '100vh',
+            background: 'rgba(15, 23, 42, 0.65)',
+            backdropFilter: 'blur(8px)',
+            WebkitBackdropFilter: 'blur(8px)',
+            zIndex: 29000,
+            display: 'flex',
+            alignItems: 'flex-end',
+            justifyContent: 'center',
+          }}
+          onClick={() => setSelectedParticipantsPost(null)}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              width: '100%',
+              maxWidth: '480px',
+              background: '#FFFFFF',
+              borderRadius: '24px 24px 0 0',
+              padding: '24px 20px',
+              boxSizing: 'border-box',
+              maxHeight: '80vh',
+              overflowY: 'auto',
+              animation: 'slideUp 0.2s cubic-bezier(0.16, 1, 0.3, 1)',
+            }}
+          >
+            <div
+              style={{
+                width: '36px',
+                height: '4px',
+                background: '#CBD5E1',
+                borderRadius: '2px',
+                margin: '0 auto 16px auto',
+              }}
+            />
+
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
+              <div style={{ fontSize: '18px', fontWeight: 900, color: '#0F172A', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span>🍻</span>
+                <span>Partecipanti al Brindisi</span>
+              </div>
+              <button
+                onClick={() => setSelectedParticipantsPost(null)}
+                style={{
+                  background: '#F1F5F9',
+                  border: 'none',
+                  borderRadius: '50%',
+                  width: '32px',
+                  height: '32px',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: '#64748B',
+                }}
+              >
+                <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>close</span>
+              </button>
+            </div>
+
+            {(() => {
+              const parts: string[] = Array.from(
+                new Set([
+                  selectedParticipantsPost.user,
+                  ...(Array.isArray((selectedParticipantsPost as any).taggedFriends) ? (selectedParticipantsPost as any).taggedFriends.filter(Boolean) : []),
+                  ...(selectedParticipantsPost.taggedFriend ? selectedParticipantsPost.taggedFriend.split(',').map((s: string) => s.trim()).filter(Boolean) : []),
+                ])
+              );
+
+              return (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                  {parts.map((pNick) => {
+                    const av = globalAvatars[pNick];
+                    const disp = globalDisplayNames?.[pNick] || pNick;
+                    const isAuthor = pNick === selectedParticipantsPost.user;
+
+                    return (
+                      <div
+                        key={pNick}
+                        onClick={() => {
+                          setSelectedParticipantsPost(null);
+                          onOpenPublicProfile(pNick);
+                        }}
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                          padding: '12px 14px',
+                          borderRadius: '16px',
+                          background: '#F8FAFC',
+                          border: '1px solid #E2E8F0',
+                          cursor: 'pointer',
+                          transition: 'background 0.15s ease',
+                        }}
+                      >
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                          <div
+                            style={{
+                              width: '42px',
+                              height: '42px',
+                              borderRadius: '50%',
+                              overflow: 'hidden',
+                              background: '#E2E8F0',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              border: '2px solid #FFFFFF',
+                              boxShadow: '0 2px 6px rgba(0,0,0,0.1)',
+                            }}
+                          >
+                            {av ? (
+                              <img src={av} alt={disp} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                            ) : (
+                              <span className="material-symbols-outlined" style={{ color: '#64748B' }}>person</span>
+                            )}
+                          </div>
+                          <div>
+                            <div style={{ fontSize: '14px', fontWeight: 800, color: '#0F172A', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                              <span>{disp}</span>
+                              {isAuthor && (
+                                <span
+                                  style={{
+                                    fontSize: '10px',
+                                    background: 'linear-gradient(135deg, #F59E0B, #D97706)',
+                                    color: 'white',
+                                    padding: '2px 8px',
+                                    borderRadius: '10px',
+                                    fontWeight: 800,
+                                  }}
+                                >
+                                  Creatore
+                                </span>
+                              )}
+                            </div>
+                            <div style={{ fontSize: '12px', color: '#64748B', fontWeight: 500 }}>@{pNick}</div>
+                          </div>
+                        </div>
+
+                        <span className="material-symbols-outlined" style={{ color: '#94A3B8', fontSize: '20px' }}>
+                          chevron_right
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
+              );
+            })()}
+          </div>
+        </div>
       )}
     </div>
   );

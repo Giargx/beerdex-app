@@ -57,7 +57,15 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
   onOpenScanner,
   onOpenStoryUpload,
 }) => {
-  const [activeTab, setActiveTab] = useState<'collection' | 'posts' | 'stats' | 'ratings'>('posts');
+  const [activeTab, setActiveTab] = useState<'collection' | 'posts' | 'saved' | 'stats' | 'ratings'>('posts');
+  const [savedPostIds] = useState<string[]>(() => {
+    try {
+      const saved = localStorage.getItem('beerdex_saved_posts');
+      return saved ? JSON.parse(saved) : [];
+    } catch (e) {
+      return [];
+    }
+  });
   const [profileCameraMenuOpen, setProfileCameraMenuOpen] = useState<boolean>(false);
   const [variantSort, setVariantSort] = useState<'alpha' | 'unlocked' | 'rarity' | 'nation'>('unlocked');
   const [variantSortDir, setVariantSortDir] = useState<number>(1);
@@ -506,6 +514,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
       }}>
         {[
           { id: 'posts', label: 'I Miei Post', icon: 'photo_library' },
+          { id: 'saved', label: 'Salvati', icon: 'bookmark' },
           { id: 'collection', label: 'Collezione', icon: 'collections_bookmark' },
           { id: 'stats', label: 'Statistiche', icon: 'bar_chart' },
           { id: 'ratings', label: 'Gusti & Voti', icon: 'star' }
@@ -855,6 +864,118 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
                     </div>
                     <div style={{ opacity: 0.8, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                       {formatBeerTitle(post.variant)}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* 2.5 SAVED POSTS TAB */}
+      {activeTab === 'saved' && (
+        <div style={{ padding: '0 20px', animation: 'fadeIn 0.2s ease-out' }}>
+          <h3
+            style={{
+              borderBottom: '2px solid var(--gray)',
+              paddingBottom: '8px',
+              margin: '20px 0 15px 0',
+              fontSize: '16px',
+              color: 'var(--dark)',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+            }}
+          >
+            <span className="material-symbols-outlined" style={{ color: '#F59E0B' }}>bookmark</span>
+            Post Salvati ({posts.filter((p) => savedPostIds.includes(p.postId)).length})
+          </h3>
+          {posts.filter((p) => savedPostIds.includes(p.postId)).length === 0 ? (
+            <div style={{ textAlign: 'center', padding: '40px 20px', color: 'var(--text-muted)' }}>
+              <span className="material-symbols-outlined" style={{ fontSize: '48px', marginBottom: '10px', color: '#94A3B8' }}>
+                bookmark_border
+              </span>
+              <p style={{ margin: '0 0 6px 0', fontSize: '15px', fontWeight: 'bold', color: '#334155' }}>
+                Nessun post nei segnalibri
+              </p>
+              <p style={{ margin: 0, fontSize: '13px', color: '#64748B' }}>
+                Tocca l'icona del segnalibro sotto un post nel Pub per salvarlo qui.
+              </p>
+            </div>
+          ) : (
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(3, 1fr)',
+                gap: '8px',
+                marginBottom: '20px',
+              }}
+            >
+              {[...posts.filter((p) => savedPostIds.includes(p.postId))].reverse().map((post) => (
+                <div
+                  key={post.postId}
+                  onClick={() => onOpenPostDetail(post.user, post.postId)}
+                  style={{
+                    position: 'relative',
+                    aspectRatio: '1/1',
+                    borderRadius: '12px',
+                    overflow: 'hidden',
+                    background: '#f1f5f9',
+                    border: '1px solid var(--gray)',
+                    boxShadow: '0 2px 8px rgba(0,0,0,0.05)',
+                    cursor: 'pointer',
+                  }}
+                >
+                  <img
+                    src={post.photo}
+                    alt={`${post.brand} - ${post.variant}`}
+                    style={{
+                      width: '100%',
+                      height: '100%',
+                      objectFit: 'cover',
+                    }}
+                    onContextMenu={(e) => e.preventDefault()}
+                  />
+                  <div
+                    style={{
+                      position: 'absolute',
+                      top: '4px',
+                      right: '4px',
+                      background: 'rgba(15, 23, 42, 0.75)',
+                      backdropFilter: 'blur(4px)',
+                      borderRadius: '50%',
+                      width: '22px',
+                      height: '22px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      color: '#F59E0B',
+                    }}
+                  >
+                    <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>
+                      bookmark
+                    </span>
+                  </div>
+                  <div
+                    style={{
+                      position: 'absolute',
+                      bottom: 0,
+                      left: 0,
+                      width: '100%',
+                      background: 'rgba(0, 0, 0, 0.65)',
+                      padding: '4px 6px',
+                      color: 'white',
+                      boxSizing: 'border-box',
+                      fontSize: '9px',
+                      lineHeight: 1.2,
+                    }}
+                  >
+                    <div style={{ fontWeight: 'bold', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      {formatBeerTitle(post.brand)}
+                    </div>
+                    <div style={{ opacity: 0.8, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      @{post.user}
                     </div>
                   </div>
                 </div>
