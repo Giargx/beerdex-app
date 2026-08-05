@@ -27,9 +27,9 @@ export function getEventMedals(userPosts: any[]): EventMedal[] {
   const now = new Date();
   const currentYear = now.getFullYear();
 
-  // We evaluate current year and next year in chronological order
+  // We evaluate current year and next year in reverse chronological order
   const years = [currentYear, currentYear + 1];
-  years.sort((a, b) => a - b);
+  years.sort((a, b) => b - a);
 
   const medals: EventMedal[] = [];
 
@@ -253,11 +253,11 @@ export function getEventMedals(userPosts: any[]): EventMedal[] {
     }, autumnStart, autumnEnd);
   });
 
-  // Sort medals strictly in chronological order by start date
+  // Sort medals in reverse chronological order (newest/latest events first)
   medals.sort((a, b) => {
     const timeA = a.startDate ? a.startDate.getTime() : 0;
     const timeB = b.startDate ? b.startDate.getTime() : 0;
-    return timeA - timeB;
+    return timeB - timeA;
   });
 
   return medals;
