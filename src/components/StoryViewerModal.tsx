@@ -190,7 +190,7 @@ export const StoryViewerModal: React.FC<StoryViewerModalProps> = ({
                   background: 'linear-gradient(45deg, #F59E0B, #E67E22, #EC4899)',
                 }}
               >
-                <div style={{ width: '100%', height: '100%', borderRadius: '50%', overflow: 'hidden', background: '#FFF' }}>
+                <div style={{ width: '100%', height: '100%', borderRadius: '50%', overflow: 'hidden', background: '#FFF', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                   {avatar ? (
                     <img src={avatar} alt={displayName} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                   ) : (
@@ -276,13 +276,21 @@ export const StoryViewerModal: React.FC<StoryViewerModalProps> = ({
           }}
         >
           <div>
-            <div style={{ color: '#FFFFFF', fontSize: '15px', fontWeight: 800 }}>
-              🍺 {formatBeerTitle(currentStory.brand || 'Storia del Pub')}
-            </div>
-            <div style={{ color: 'rgba(255, 255, 255, 0.8)', fontSize: '12px', fontWeight: 600 }}>
-              {isStoryPost ? 'Storia 24h' : formatBeerTitle(currentStory.variant)} • <span style={{ color: '#FDE047' }}>+{earnedPts} pt</span>
-            </div>
-            {(() => {
+            {currentStory.brand ? (
+              <>
+                <div style={{ color: '#FFFFFF', fontSize: '15px', fontWeight: 800 }}>
+                  🍺 {formatBeerTitle(currentStory.brand || 'Storia del Pub')}
+                </div>
+                <div style={{ color: 'rgba(255, 255, 255, 0.8)', fontSize: '12px', fontWeight: 600 }}>
+                  {isStoryPost ? 'Storia 24h' : formatBeerTitle(currentStory.variant)} • <span style={{ color: '#FDE047' }}>+{earnedPts} pt</span>
+                </div>
+              </>
+            ) : (
+              <div style={{ color: '#FFFFFF', fontSize: '15px', fontWeight: 800 }}>
+                {(currentStory as any).caption || `Storia di ${displayName}`}
+              </div>
+            )}
+            {currentStory.brand && (() => {
               const authorPokedex = allPokedexProfiles?.[currentStory.user];
               const effectiveRating =
                 (typeof currentStory.rating === 'number' && currentStory.rating > 0 ? currentStory.rating : 0) ||

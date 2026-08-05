@@ -284,8 +284,15 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
               <button
                 onClick={(e) => {
                   e.stopPropagation();
-                  setProfileCameraMenuOpen(true);
+                  e.preventDefault();
+                  if (onChangeAvatar) {
+                    onChangeAvatar();
+                  } else {
+                    setProfileCameraMenuOpen(true);
+                  }
                 }}
+                onTouchStart={(e) => e.stopPropagation()}
+                onTouchEnd={(e) => e.stopPropagation()}
                 title="Fotocamera e Storie"
                 style={{
                   position: 'absolute',

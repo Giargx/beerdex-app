@@ -33,6 +33,8 @@ interface PubViewProps {
   isAdminUser: boolean;
   myPokedex?: Record<string, PokedexEntry>;
   allPokedexProfiles?: Record<string, Record<string, PokedexEntry>>;
+  globalUserPrivacy?: Record<string, boolean>;
+  onRateBeer?: (brand: string, variant: string, rating: number) => void;
   onToggleLike: (postId: string, cardElement: HTMLElement | null) => void;
   onDeletePost: (postId: string, postUser: string, brand: string, variant: string) => void;
   onReportFakePost: (postId: string, postUser: string, brand: string, variant: string) => void;
@@ -52,6 +54,8 @@ export const PubView: React.FC<PubViewProps> = ({
   isAdminUser,
   myPokedex,
   allPokedexProfiles,
+  globalUserPrivacy,
+  onRateBeer,
   onToggleLike,
   onDeletePost,
   onReportFakePost,
@@ -95,6 +99,13 @@ export const PubView: React.FC<PubViewProps> = ({
       if (post.isStory) return false; // 24h stories only appear in top Story bar
       const isMine = post.user === currentUserNick;
       const isFriend = myFriendsList.includes(post.user);
+      const isPostOwnerPrivate = globalUserPrivacy?.[post.user] === true;
+
+      // Privacy Check: if post owner's profile is private, only friends, owner, or admin can view
+      if (isPostOwnerPrivate && !isMine && !isFriend && !isAdminUser) {
+        return false;
+      }
+
       const canAccess = isMine || isFriend || isAdminUser;
       if (!canAccess) return false;
 
@@ -128,19 +139,30 @@ export const PubView: React.FC<PubViewProps> = ({
     const seenSessions = new Set<string>();
 
     accessible.forEach((post) => {
-      if (post.isShared && post.taggedFriend) {
-        const pairKey = [post.user, post.taggedFriend].sort().join('::');
-        const sessionKey = `${pairKey}::${post.brand}::${post.variant}`;
-        if (seenSessions.has(sessionKey)) {
+      let participants: string[] = [post.user];
+      if (Array.isArray((post as any).taggedFriends)) {
+        participants.push(...(post as any).taggedFriends.filter(Boolean));
+      } else if (post.taggedFriend) {
+        participants.push(...post.taggedFriend.split(',').map((s) => s.trim()).filter(Boolean));
+      }
+      participants = Array.from(new Set(participants)).sort();
+
+      if (post.isShared || participants.length > 1) {
+        const timeGroup = Math.floor(post.time / (10 * 60 * 1000));
+        const sessionKey = `${participants.join('::')}::${post.brand}::${post.variant}::${timeGroup}`;
+        const photoKey = post.photo ? `${participants.join('::')}::${post.photo}` : '';
+
+        if (seenSessions.has(sessionKey) || (photoKey && seenSessions.has(photoKey))) {
           return; // Skip duplicate post for the same shared session
         }
         seenSessions.add(sessionKey);
+        if (photoKey) seenSessions.add(photoKey);
       }
       uniquePosts.push(post);
     });
 
     return uniquePosts;
-  }, [posts, currentUserNick, myFriendsList, isAdminUser, activeFilter, searchQuery, globalDisplayNames]);
+  }, [posts, currentUserNick, myFriendsList, isAdminUser, activeFilter, searchQuery, globalDisplayNames, globalUserPrivacy]);
 
   // Active 24h Stories
   const storyPosts = useMemo(() => {
@@ -250,10 +272,11 @@ export const PubView: React.FC<PubViewProps> = ({
         style={{
           position: 'relative',
           padding: '28px 20px 24px 20px',
-          background: 'linear-gradient(135deg, #0F172A 0%, #1E293B 50%, #334155 100%)',
-          color: '#FFFFFF',
+          background: 'linear-gradient(135deg, #FFFDF0 0%, #FEF9C3 50%, #FDE68A 100%)',
+          color: '#451A03',
           borderRadius: '0 0 24px 24px',
-          boxShadow: '0 12px 30px rgba(15, 23, 42, 0.25)',
+          borderBottom: '2px solid rgba(245, 158, 11, 0.35)',
+          boxShadow: '0 8px 25px rgba(245, 158, 11, 0.15)',
           overflow: 'hidden',
         }}
       >
@@ -267,7 +290,7 @@ export const PubView: React.FC<PubViewProps> = ({
             right: '-50px',
             width: '200px',
             height: '200px',
-            background: 'radial-gradient(circle, rgba(245, 158, 11, 0.35) 0%, rgba(217, 119, 6, 0) 70%)',
+            background: 'radial-gradient(circle, rgba(245, 158, 11, 0.25) 0%, rgba(217, 119, 6, 0) 70%)',
             borderRadius: '50%',
             pointerEvents: 'none',
           }}
@@ -299,12 +322,12 @@ export const PubView: React.FC<PubViewProps> = ({
                 sports_bar
               </span>
             </div>
-            <h1 style={{ fontSize: '32px', margin: 0, fontWeight: 900, letterSpacing: '-0.5px', color: '#FFFFFF' }}>
+            <h1 style={{ fontSize: '32px', margin: 0, fontWeight: 900, letterSpacing: '-0.5px', color: '#451A03' }}>
               Il Pub
             </h1>
           </div>
 
-          <p style={{ margin: '0 0 14px 0', fontSize: '13px', color: '#94A3B8', fontWeight: 500 }}>
+          <p style={{ margin: '0 0 14px 0', fontSize: '13px', color: '#78350F', fontWeight: 600 }}>
             Il bancone virtuale dove festeggiare e brindare con i tuoi amici.
           </p>
 
@@ -314,14 +337,15 @@ export const PubView: React.FC<PubViewProps> = ({
               display: 'inline-flex',
               alignItems: 'center',
               gap: '6px',
-              background: 'rgba(255, 255, 255, 0.08)',
+              background: 'rgba(255, 255, 255, 0.85)',
               backdropFilter: 'blur(10px)',
               padding: '6px 18px',
               borderRadius: '30px',
-              border: '1px solid rgba(255, 255, 255, 0.12)',
+              border: '1px solid rgba(245, 158, 11, 0.4)',
+              boxShadow: '0 2px 8px rgba(245, 158, 11, 0.12)',
             }}
           >
-            <span style={{ fontSize: '12px', fontWeight: 800, color: '#F59E0B', display: 'flex', alignItems: 'center', gap: '5px' }}>
+            <span style={{ fontSize: '12px', fontWeight: 800, color: '#B45309', display: 'flex', alignItems: 'center', gap: '5px' }}>
               <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>sports_bar</span>
               {totalToastCount} Brindisi al Bancone
             </span>
@@ -1111,45 +1135,170 @@ export const PubView: React.FC<PubViewProps> = ({
 
                   {/* Clear Structural Card Division: Dedicated Beer Info Box & Caption */}
                   <div className="post-caption" style={{ padding: '0 16px 16px 16px' }}>
-                    <div
-                      style={{
-                        background: '#FFFDF5',
-                        border: '1px solid rgba(245, 158, 11, 0.25)',
-                        borderRadius: '16px',
-                        padding: '12px 14px',
-                        marginTop: '4px',
-                      }}
-                    >
-                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '4px' }}>
-                        <div style={{ fontSize: '14px', fontWeight: 900, color: '#0F172A', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                          <span style={{ fontSize: '18px' }}>🍺</span>
-                          <span>{formatBeerTitle(post.brand)}</span>
-                          <span style={{ fontSize: '13px', fontWeight: 600, color: '#64748B' }}>({formatBeerTitle(post.variant)})</span>
-                        </div>
-                        {pointsBadge}
-                      </div>
+                    {(() => {
+                      const allParticipants: string[] = Array.from(
+                        new Set([
+                          post.user,
+                          ...(Array.isArray((post as any).taggedFriends) ? (post as any).taggedFriends.filter(Boolean) : []),
+                          ...(post.taggedFriend ? post.taggedFriend.split(',').map((s: string) => s.trim()).filter(Boolean) : []),
+                        ])
+                      );
 
-                      {isShared && user2 && (
-                        <div style={{ fontSize: '12px', color: '#D97706', fontWeight: 700, marginTop: '4px', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                          <span>🍻 Bevuta condivisa da</span>
-                          <strong
-                            className="clickable-user"
-                            onClick={() => onOpenPublicProfile(user1)}
-                            style={{ textDecoration: 'underline', cursor: 'pointer' }}
-                          >
-                            @{disp1}
-                          </strong>
-                          <span>e</span>
-                          <strong
-                            className="clickable-user"
-                            onClick={() => onOpenPublicProfile(user2)}
-                            style={{ textDecoration: 'underline', cursor: 'pointer' }}
-                          >
-                            @{disp2}
-                          </strong>
+                      const participantRatings = allParticipants.map((partNick) => {
+                        const name = globalDisplayNames?.[partNick] || partNick;
+                        const postRating = (post as any).ratings && typeof (post as any).ratings[partNick] === 'number' ? (post as any).ratings[partNick] : 0;
+                        const userPokedex = allPokedexProfiles?.[partNick] || (partNick === currentUserNick ? myPokedex : undefined);
+                        const dexRating = userPokedex?.[`${post.brand}-${post.variant}`]?.rating || 0;
+                        const fallbackRating = partNick === post.user && typeof post.rating === 'number' ? post.rating : 0;
+                        const rating = postRating || dexRating || fallbackRating || 0;
+
+                        return { user: partNick, name, rating };
+                      });
+
+                      const myParticipantRating = participantRatings.find((p) => p.user === currentUserNick);
+
+                      return (
+                        <div
+                          style={{
+                            background: '#FFFDF5',
+                            border: '1px solid rgba(245, 158, 11, 0.25)',
+                            borderRadius: '16px',
+                            padding: '12px 14px',
+                            marginTop: '4px',
+                          }}
+                        >
+                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '4px' }}>
+                            <div style={{ fontSize: '14px', fontWeight: 900, color: '#0F172A', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                              <span style={{ fontSize: '18px' }}>🍺</span>
+                              <span>{formatBeerTitle(post.brand)}</span>
+                              <span style={{ fontSize: '13px', fontWeight: 600, color: '#64748B' }}>({formatBeerTitle(post.variant)})</span>
+                            </div>
+                            {pointsBadge}
+                          </div>
+
+                          {/* Participants List - Perfectly Aligned */}
+                          {allParticipants.length > 1 && (
+                            <div
+                              style={{
+                                fontSize: '12px',
+                                color: '#78350F',
+                                fontWeight: 700,
+                                marginTop: '8px',
+                                paddingTop: '8px',
+                                borderTop: '1px dashed rgba(245, 158, 11, 0.3)',
+                                display: 'flex',
+                                alignItems: 'center',
+                                flexWrap: 'wrap',
+                                gap: '6px',
+                              }}
+                            >
+                              <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', color: '#D97706' }}>
+                                🍻 Bevuta condivisa con:
+                              </span>
+                              {allParticipants.map((partNick, idx) => (
+                                <React.Fragment key={partNick}>
+                                  <span
+                                    className="clickable-user"
+                                    onClick={() => onOpenPublicProfile(partNick)}
+                                    style={{
+                                      cursor: 'pointer',
+                                      background: 'rgba(245, 158, 11, 0.15)',
+                                      padding: '2px 8px',
+                                      borderRadius: '10px',
+                                      color: '#B45309',
+                                      fontWeight: 800,
+                                      display: 'inline-flex',
+                                      alignItems: 'center',
+                                      gap: '4px',
+                                    }}
+                                  >
+                                    @{globalDisplayNames?.[partNick] || partNick}
+                                  </span>
+                                  {idx < allParticipants.length - 1 && <span style={{ color: '#D97706' }}>•</span>}
+                                </React.Fragment>
+                              ))}
+                            </div>
+                          )}
+
+                          {/* Individual Participant Ratings */}
+                          <div style={{ marginTop: '10px', paddingTop: '8px', borderTop: '1px solid rgba(245, 158, 11, 0.2)' }}>
+                            <div style={{ fontSize: '11px', fontWeight: 800, color: '#92400E', letterSpacing: '0.5px', textTransform: 'uppercase', marginBottom: '6px' }}>
+                              Valutazioni dei Partecipanti
+                            </div>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                              {participantRatings.map((pr) => (
+                                <div
+                                  key={pr.user}
+                                  style={{
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'space-between',
+                                    fontSize: '12px',
+                                    background: 'rgba(255, 255, 255, 0.85)',
+                                    padding: '6px 10px',
+                                    borderRadius: '10px',
+                                    border: '1px solid rgba(245, 158, 11, 0.15)',
+                                  }}
+                                >
+                                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontWeight: 700, color: '#1E293B' }}>
+                                    <span
+                                      className="clickable-user"
+                                      onClick={() => onOpenPublicProfile(pr.user)}
+                                      style={{ cursor: 'pointer', textDecoration: 'underline' }}
+                                    >
+                                      {pr.name}
+                                    </span>
+                                  </div>
+                                  {pr.rating > 0 ? (
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                      <StarRating rating={pr.rating} readOnly size={13} />
+                                      <span style={{ fontSize: '11px', fontWeight: 800, color: '#B45309' }}>
+                                        {pr.rating.toFixed(1)}/5
+                                      </span>
+                                    </div>
+                                  ) : (
+                                    <span style={{ fontSize: '11px', color: '#94A3B8', fontStyle: 'italic' }}>
+                                      Non ancora votata
+                                    </span>
+                                  )}
+                                </div>
+                              ))}
+                            </div>
+
+                            {/* Button for current user to rate/edit rating if participant */}
+                            {allParticipants.includes(currentUserNick) && onRateBeer && (
+                              <button
+                                onClick={() => {
+                                  onRateBeer(post.brand, post.variant, myParticipantRating?.rating || 0);
+                                }}
+                                style={{
+                                  marginTop: '8px',
+                                  width: '100%',
+                                  padding: '7px 12px',
+                                  borderRadius: '10px',
+                                  border: '1px solid #FCD34D',
+                                  background: 'linear-gradient(135deg, #FFFBEB, #FEF3C7)',
+                                  color: '#B45309',
+                                  fontSize: '12px',
+                                  fontWeight: 800,
+                                  cursor: 'pointer',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                  gap: '6px',
+                                  boxShadow: '0 2px 6px rgba(245, 158, 11, 0.12)',
+                                }}
+                              >
+                                <span className="material-symbols-outlined" style={{ fontSize: '16px', color: '#F59E0B' }}>
+                                  star
+                                </span>
+                                {myParticipantRating?.rating ? 'Modifica la tua Valutazione' : 'Aggiungi la tua Valutazione ⭐'}
+                              </button>
+                            )}
+                          </div>
                         </div>
-                      )}
-                    </div>
+                      );
+                    })()}
                   </div>
                 </div>
               );

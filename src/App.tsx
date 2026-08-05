@@ -429,41 +429,28 @@ export default function App() {
 
       await set(ref(db, `pokedex_profiles/${currentUserNick}/${uniqueId}`), pokedexEntry);
 
-      // 2. Publish post to social timeline for current user
-      const newPostRef = push(ref(db, 'social_timeline'));
-      const postData: any = {
-        user: currentUserNick,
-        brand: formattedBrand,
-        variant: formattedVariant,
-        photo: request.photo,
-        time: Date.now(),
-        isShiny: request.isShiny || false,
-        isShared: true,
-        taggedFriend: request.fromUser,
-        taggedFriends: [request.fromUser],
-        fakeVotes: {},
-      };
-      if (request.lat !== null && request.lat !== undefined && request.lng !== null && request.lng !== undefined) {
-        postData.lat = request.lat;
-        postData.lng = request.lng;
-      }
-
-      await set(newPostRef, postData);
-
-      // 3. Mark tag request as accepted in DB
+      // 2. Mark tag request as accepted in DB
       await update(ref(db, `tag_requests/${currentUserNick}/${request.requestId}`), {
         status: 'accepted',
       });
 
-      // 4. Recalculate score & trigger pop sound
+      // 3. Recalculate score & trigger pop sound
       await recalculateTotalScore(currentUserNick);
       playPopSound();
 
       setActiveTagRequestModal(null);
+
+      // Offer rating modal to the accepting participant
+      setUnlockRatingModalState({
+        isOpen: true,
+        brand: formattedBrand,
+        variant: formattedVariant,
+      });
+
       showAlert(
         replaceExisting
           ? `Sblocco per "${formattedBrand} - ${formattedVariant}" sostituito con successo! Foto e punti aggiornati.`
-          : `Sblocco in compagnia per "${formattedBrand} - ${formattedVariant}" accettato e pubblicato sul tuo profilo!`,
+          : `Sblocco in compagnia per "${formattedBrand} - ${formattedVariant}" aggiunto alla tua collezione!`,
         'Sblocco Conquistato! 🍺'
       );
     } catch (err: any) {
@@ -1688,8 +1675,18 @@ export default function App() {
         const postsData = postsSnap.val();
         const updatesObj: Record<string, any> = {};
         Object.entries(postsData).forEach(([postId, p]: [string, any]) => {
-          if (p && p.user === currentUserNick && p.brand === brand && p.variant === variant) {
-            updatesObj[`social_timeline/${postId}/rating`] = rating;
+          if (p && p.brand === brand && p.variant === variant) {
+            const isParticipant =
+              p.user === currentUserNick ||
+              (Array.isArray(p.taggedFriends) && p.taggedFriends.includes(currentUserNick)) ||
+              (typeof p.taggedFriend === 'string' && p.taggedFriend.includes(currentUserNick));
+
+            if (isParticipant) {
+              updatesObj[`social_timeline/${postId}/ratings/${currentUserNick}`] = rating;
+              if (p.user === currentUserNick) {
+                updatesObj[`social_timeline/${postId}/rating`] = rating;
+              }
+            }
           }
         });
         if (Object.keys(updatesObj).length > 0) {
@@ -2758,6 +2755,8 @@ export default function App() {
                     isAdminUser={isAdminUser}
                     myPokedex={myPokedex}
                     allPokedexProfiles={allPokedexProfiles}
+                    globalUserPrivacy={globalUserPrivacy}
+                    onRateBeer={handleRateBeer}
                     onToggleLike={handleToggleLike}
                     onDeletePost={handleDeletePost}
                     onReportFakePost={handleReportFakePost}
