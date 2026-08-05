@@ -19,32 +19,35 @@ export interface EventMedal {
   isUnlocked: boolean;
   desc: string;
   points: number;
+  startDate?: Date;
+  endDate?: Date;
 }
 
 export function getEventMedals(userPosts: any[]): EventMedal[] {
   const now = new Date();
   const currentYear = now.getFullYear();
 
-  // We evaluate current year and next year
+  // We evaluate current year and next year in chronological order
   const years = [currentYear, currentYear + 1];
-  years.sort((a, b) => b - a);
+  years.sort((a, b) => a - b);
 
   const medals: EventMedal[] = [];
 
   const addMedalIfValid = (medal: EventMedal, startDate: Date, endDate: Date) => {
+    const medalWithDates = { ...medal, startDate, endDate };
     // 1. If unlocked, always include it so the user keeps earned trophies
     if (medal.isUnlocked) {
-      medals.push(medal);
+      medals.push(medalWithDates);
       return;
     }
     // 2. If currently active, include it
     if (now >= startDate && now <= endDate) {
-      medals.push(medal);
+      medals.push(medalWithDates);
       return;
     }
     // 3. If in the future, include it if it's upcoming (within 1 year)
     if (now < startDate && startDate.getTime() - now.getTime() <= 365 * 24 * 60 * 60 * 1000) {
-      medals.push(medal);
+      medals.push(medalWithDates);
       return;
     }
     // 4. If in the past and NOT unlocked, DO NOT include it
@@ -70,74 +73,7 @@ export function getEventMedals(userPosts: any[]): EventMedal[] {
   };
 
   years.forEach(year => {
-    // --- 1. EVENTI STAGIONALI (10 birre, 10 punti) ---
-
-    // 🌸 Primavera (21 Mar - 20 Giu)
-    const springStart = new Date(year, 2, 21, 0, 0, 0);
-    const springEnd = new Date(year, 5, 20, 23, 59, 59);
-    const springPosts = userPosts.filter(p => {
-      const t = new Date(p.time);
-      return t >= springStart && t <= springEnd;
-    });
-    const springCount = springPosts.filter(p => getBeerType(p.brand, p.variant) === "bianca").length;
-    addMedalIfValid({
-      id: `spring-${year}`,
-      name: `Primavera ${year}`,
-      year,
-      icon: 'local_florist',
-      color: '#E0F2FE',
-      isUnlocked: springCount >= 10,
-      desc: `Sblocca 10 birre Bianche (Blanche, Weizen, Saison) dal 21 Mar al 20 Giu. (${springCount}/10)`,
-      points: 10
-    }, springStart, springEnd);
-
-    // ☀️ Estate (21 Giu - 22 Set)
-    const summerStart = new Date(year, 5, 21, 0, 0, 0);
-    const summerEnd = new Date(year, 8, 22, 23, 59, 59);
-    const summerPosts = userPosts.filter(p => {
-      const t = new Date(p.time);
-      return t >= summerStart && t <= summerEnd;
-    });
-    const summerCount = summerPosts.filter(p => {
-      const type = getBeerType(p.brand, p.variant);
-      return type === "bionda" || type === "ipa";
-    }).length;
-    addMedalIfValid({
-      id: `summer-${year}`,
-      name: `Estate ${year}`,
-      year,
-      icon: 'wb_sunny',
-      color: '#FDE68A',
-      isUnlocked: summerCount >= 10,
-      desc: `Sblocca 10 birre Bionde o IPA dal 21 Giu al 22 Set. (${summerCount}/10)`,
-      points: 10
-    }, summerStart, summerEnd);
-
-    // 🍁 Autunno (23 Set - 20 Dic)
-    const autumnStart = new Date(year, 8, 23, 0, 0, 0);
-    const autumnEnd = new Date(year, 11, 20, 23, 59, 59);
-    const autumnPosts = userPosts.filter(p => {
-      const t = new Date(p.time);
-      return t >= autumnStart && t <= autumnEnd;
-    });
-    const autumnCount = autumnPosts.filter(p => {
-      const type = getBeerType(p.brand, p.variant);
-      const beer = beers.find(b => b.brand === p.brand);
-      const isGerman = beer && beer.country === "Germania";
-      return type === "rossa" || type === "ipa" || isGerman;
-    }).length;
-    addMedalIfValid({
-      id: `autumn-${year}`,
-      name: `Autunno ${year}`,
-      year,
-      icon: 'wb_twilight',
-      color: '#FDBA74',
-      isUnlocked: autumnCount >= 10,
-      desc: `Sblocca 10 birre Rosse, IPA o Tedesche dal 23 Set al 20 Dic. (${autumnCount}/10)`,
-      points: 10
-    }, autumnStart, autumnEnd);
-
-    // ❄️ Inverno Y (21 Dic Y-1 - 20 Mar Y) -> Associato all'anno Y (anno con più mesi)
+    // 1. ❄️ Inverno Y (21 Dic Y-1 - 20 Mar Y)
     const winterStart = new Date(year - 1, 11, 21, 0, 0, 0);
     const winterEnd = new Date(year, 2, 20, 23, 59, 59);
     const winterPosts = userPosts.filter(p => {
@@ -159,9 +95,7 @@ export function getEventMedals(userPosts: any[]): EventMedal[] {
       points: 10
     }, winterStart, winterEnd);
 
-    // --- 2. EVENTI FESTIVITÀ BIRRA (3 o 5 punti) ---
-
-    // 🍀 San Patrizio (15 - 21 Mar) -> 3 punti
+    // 2. 🍀 San Patrizio (15 - 21 Mar)
     const patrizioStart = new Date(year, 2, 15, 0, 0, 0);
     const patrizioEnd = new Date(year, 2, 21, 23, 59, 59);
     const patrizioPosts = userPosts.filter(p => {
@@ -184,7 +118,26 @@ export function getEventMedals(userPosts: any[]): EventMedal[] {
       points: 3
     }, patrizioStart, patrizioEnd);
 
-    // 🧺 Pasquetta (Weekend Pasquetta) -> 3 punti
+    // 3. 🌸 Primavera (21 Mar - 20 Giu)
+    const springStart = new Date(year, 2, 21, 0, 0, 0);
+    const springEnd = new Date(year, 5, 20, 23, 59, 59);
+    const springPosts = userPosts.filter(p => {
+      const t = new Date(p.time);
+      return t >= springStart && t <= springEnd;
+    });
+    const springCount = springPosts.filter(p => getBeerType(p.brand, p.variant) === "bianca").length;
+    addMedalIfValid({
+      id: `spring-${year}`,
+      name: `Primavera ${year}`,
+      year,
+      icon: 'local_florist',
+      color: '#E0F2FE',
+      isUnlocked: springCount >= 10,
+      desc: `Sblocca 10 birre Bianche (Blanche, Weizen, Saison) dal 21 Mar al 20 Giu. (${springCount}/10)`,
+      points: 10
+    }, springStart, springEnd);
+
+    // 4. 🧺 Pasquetta (Weekend Pasquetta)
     const easterDate = getEasterDate(year);
     const pasquettaStart = new Date(easterDate);
     pasquettaStart.setDate(easterDate.getDate() - 1);
@@ -212,7 +165,29 @@ export function getEventMedals(userPosts: any[]): EventMedal[] {
       points: 3
     }, pasquettaStart, pasquettaEnd);
 
-    // ☀️ Ferragosto (14 - 16 Ago) -> 3 punti
+    // 5. ☀️ Estate (21 Giu - 22 Set)
+    const summerStart = new Date(year, 5, 21, 0, 0, 0);
+    const summerEnd = new Date(year, 8, 22, 23, 59, 59);
+    const summerPosts = userPosts.filter(p => {
+      const t = new Date(p.time);
+      return t >= summerStart && t <= summerEnd;
+    });
+    const summerCount = summerPosts.filter(p => {
+      const type = getBeerType(p.brand, p.variant);
+      return type === "bionda" || type === "ipa";
+    }).length;
+    addMedalIfValid({
+      id: `summer-${year}`,
+      name: `Estate ${year}`,
+      year,
+      icon: 'wb_sunny',
+      color: '#FDE68A',
+      isUnlocked: summerCount >= 10,
+      desc: `Sblocca 10 birre Bionde o IPA dal 21 Giu al 22 Set. (${summerCount}/10)`,
+      points: 10
+    }, summerStart, summerEnd);
+
+    // 6. 🍉 Ferragosto (14 - 16 Ago)
     const ferragostoStart = new Date(year, 7, 14, 0, 0, 0);
     const ferragostoEnd = new Date(year, 7, 16, 23, 59, 59);
     const ferragostoPosts = userPosts.filter(p => {
@@ -231,7 +206,7 @@ export function getEventMedals(userPosts: any[]): EventMedal[] {
       points: 3
     }, ferragostoStart, ferragostoEnd);
 
-    // 🍺 Oktoberfest (16 Set - 4 Ott) -> 5 punti
+    // 7. 🍺 Oktoberfest (16 Set - 4 Ott)
     const oktoberfestStart = new Date(year, 8, 16, 0, 0, 0);
     const oktoberfestEnd = new Date(year, 9, 4, 23, 59, 59);
     const oktoberfestPosts = userPosts.filter(p => {
@@ -252,6 +227,37 @@ export function getEventMedals(userPosts: any[]): EventMedal[] {
       desc: `Sblocca 3 birre tedesche durante l'Oktoberfest (16 Set - 4 Ott). (${oktoberfestCount}/3)`,
       points: 5
     }, oktoberfestStart, oktoberfestEnd);
+
+    // 8. 🍁 Autunno (23 Set - 20 Dic)
+    const autumnStart = new Date(year, 8, 23, 0, 0, 0);
+    const autumnEnd = new Date(year, 11, 20, 23, 59, 59);
+    const autumnPosts = userPosts.filter(p => {
+      const t = new Date(p.time);
+      return t >= autumnStart && t <= autumnEnd;
+    });
+    const autumnCount = autumnPosts.filter(p => {
+      const type = getBeerType(p.brand, p.variant);
+      const beer = beers.find(b => b.brand === p.brand);
+      const isGerman = beer && beer.country === "Germania";
+      return type === "rossa" || type === "ipa" || isGerman;
+    }).length;
+    addMedalIfValid({
+      id: `autumn-${year}`,
+      name: `Autunno ${year}`,
+      year,
+      icon: 'wb_twilight',
+      color: '#FDBA74',
+      isUnlocked: autumnCount >= 10,
+      desc: `Sblocca 10 birre Rosse, IPA o Tedesche dal 23 Set al 20 Dic. (${autumnCount}/10)`,
+      points: 10
+    }, autumnStart, autumnEnd);
+  });
+
+  // Sort medals strictly in chronological order by start date
+  medals.sort((a, b) => {
+    const timeA = a.startDate ? a.startDate.getTime() : 0;
+    const timeB = b.startDate ? b.startDate.getTime() : 0;
+    return timeA - timeB;
   });
 
   return medals;
