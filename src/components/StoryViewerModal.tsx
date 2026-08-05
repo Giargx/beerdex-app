@@ -10,6 +10,7 @@ export interface StoryPost {
   photo: string;
   time: number;
   isShiny: boolean;
+  isStory?: boolean;
   likes?: Record<string, boolean>;
   rating?: number;
 }
@@ -78,7 +79,8 @@ export const StoryViewerModal: React.FC<StoryViewerModalProps> = ({
   const displayName = globalDisplayNames[currentStory.user] || currentStory.user;
   const isLiked = currentStory.likes && currentStory.likes[currentUserNick];
   const likesCount = currentStory.likes ? Object.keys(currentStory.likes).length : 0;
-  const earnedPts = currentStory.isShiny ? getBasePoints(currentStory.brand, currentStory.variant) * 2 : getBasePoints(currentStory.brand, currentStory.variant);
+  const isStoryPost = currentStory.isStory || currentStory.brand === 'Storia del Pub';
+  const earnedPts = isStoryPost ? 0 : (currentStory.isShiny ? getBasePoints(currentStory.brand, currentStory.variant) * 2 : getBasePoints(currentStory.brand, currentStory.variant));
 
   const timeAgo = () => {
     const diff = Math.floor((Date.now() - currentStory.time) / 1000 / 60);
@@ -275,10 +277,10 @@ export const StoryViewerModal: React.FC<StoryViewerModalProps> = ({
         >
           <div>
             <div style={{ color: '#FFFFFF', fontSize: '15px', fontWeight: 800 }}>
-              🍺 {formatBeerTitle(currentStory.brand)}
+              🍺 {formatBeerTitle(currentStory.brand || 'Storia del Pub')}
             </div>
             <div style={{ color: 'rgba(255, 255, 255, 0.8)', fontSize: '12px', fontWeight: 600 }}>
-              {formatBeerTitle(currentStory.variant)} • <span style={{ color: '#FDE047' }}>+{earnedPts} pt</span>
+              {isStoryPost ? 'Storia 24h' : formatBeerTitle(currentStory.variant)} • <span style={{ color: '#FDE047' }}>+{earnedPts} pt</span>
             </div>
             {(() => {
               const authorPokedex = allPokedexProfiles?.[currentStory.user];

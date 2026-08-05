@@ -18,6 +18,7 @@ interface Post {
   time: number;
   isShiny: boolean;
   isShared: boolean;
+  isStory?: boolean;
   taggedFriend: string | null;
   likes?: Record<string, boolean>;
   rating?: number;
@@ -37,6 +38,8 @@ interface PubViewProps {
   onReportFakePost: (postId: string, postUser: string, brand: string, variant: string) => void;
   onOpenPublicProfile: (username: string) => void;
   onOpenScanner?: () => void;
+  onOpenStoryUpload?: () => void;
+  onShareToStory?: (postId: string) => void;
   getAvatarZoomProps?: (url: string | undefined) => any;
 }
 
@@ -54,6 +57,8 @@ export const PubView: React.FC<PubViewProps> = ({
   onReportFakePost,
   onOpenPublicProfile,
   onOpenScanner,
+  onOpenStoryUpload,
+  onShareToStory,
   getAvatarZoomProps,
 }) => {
   const [activeFilter, setActiveFilter] = useState<'all' | 'friends' | 'me'>('all');
@@ -84,9 +89,10 @@ export const PubView: React.FC<PubViewProps> = ({
     });
   };
 
-  // Base visible posts filter with DEDUPLICATION for shared drinking sessions
+  // Base visible posts filter with DEDUPLICATION for shared drinking sessions (Excludes 24h Stories from main feed)
   const visiblePosts = useMemo(() => {
     const accessible = posts.filter((post) => {
+      if (post.isStory) return false; // 24h stories only appear in top Story bar
       const isMine = post.user === currentUserNick;
       const isFriend = myFriendsList.includes(post.user);
       const canAccess = isMine || isFriend || isAdminUser;
@@ -139,17 +145,24 @@ export const PubView: React.FC<PubViewProps> = ({
   // Active 24h Stories
   const storyPosts = useMemo(() => {
     const twentyFourHoursAgo = Date.now() - 24 * 60 * 60 * 1000;
-    const recent = visiblePosts.filter((p) => p.time >= twentyFourHoursAgo);
+    const accessibleAll = posts.filter((p) => {
+      const isMine = p.user === currentUserNick;
+      const isFriend = myFriendsList.includes(p.user);
+      return (isMine || isFriend || isAdminUser) && p.time >= twentyFourHoursAgo;
+    });
+
+    const explicitStories = accessibleAll.filter((p) => p.isStory);
+    const pool = explicitStories.length > 0 ? explicitStories : accessibleAll;
 
     const userStoryMap = new Map<string, Post>();
-    recent.forEach((p) => {
+    pool.forEach((p) => {
       if (!userStoryMap.has(p.user) || p.time > userStoryMap.get(p.user)!.time) {
         userStoryMap.set(p.user, p);
       }
     });
 
     return Array.from(userStoryMap.values());
-  }, [visiblePosts]);
+  }, [posts, currentUserNick, myFriendsList, isAdminUser]);
 
   // Statistics for Pub Header
   const totalToastCount = useMemo(() => {
@@ -343,6 +356,8 @@ export const PubView: React.FC<PubViewProps> = ({
                 onClick={() => {
                   if (hasMyStory) {
                     setActiveStoryViewerIndex(myStoryIdx);
+                  } else if (onOpenStoryUpload) {
+                    onOpenStoryUpload();
                   } else if (onOpenScanner) {
                     onOpenScanner();
                   }
@@ -392,7 +407,11 @@ export const PubView: React.FC<PubViewProps> = ({
                   <div
                     onClick={(e) => {
                       e.stopPropagation();
-                      if (onOpenScanner) onOpenScanner();
+                      if (onOpenStoryUpload) {
+                        onOpenStoryUpload();
+                      } else if (onOpenScanner) {
+                        onOpenScanner();
+                      }
                     }}
                     title="Aggiungi una Storia (Scatta foto)"
                     style={{

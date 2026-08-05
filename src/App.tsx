@@ -225,6 +225,7 @@ export default function App() {
   }>({ open: false, brand: '', variant: '' });
 
   const [captureOpen, setCaptureOpen] = useState<boolean>(false);
+  const [storyCaptureOpen, setStoryCaptureOpen] = useState<boolean>(false);
   const [shareOpen, setShareOpen] = useState<boolean>(false);
   const [selectedTaggedFriends, setSelectedTaggedFriends] = useState<string[]>([]);
   const [pendingUploadData, setPendingUploadData] = useState<any>(null);
@@ -710,7 +711,8 @@ export default function App() {
 
   // Score Recalculation
   const recalculateTotalScore = async (username: string) => {
-    const snap = await get(ref(db, `pokedex_profiles/${username}`));
+    if (!username) return;
+    let snap = await get(ref(db, `pokedex_profiles/${username}`));
     let totalScore = 0;
     const brandUnlockCounts: Record<string, number> = {};
 
@@ -728,6 +730,47 @@ export default function App() {
     currentCatalog.forEach((b) => {
       brandUnlockCounts[b.brand] = 0;
     });
+
+    // 1. Backfill pokedex_profiles from social_timeline checkins if missing
+    const timelineSnap = await get(ref(db, 'social_timeline'));
+    const userPosts: any[] = [];
+    if (timelineSnap.exists()) {
+      const timelineData = timelineSnap.val();
+      const dexUpdates: Record<string, any> = {};
+      let needsDexUpdate = false;
+      const existingDex = snap.exists() ? snap.val() : {};
+
+      for (const key in timelineData) {
+        const post = timelineData[key];
+        if (post && post.user === username) {
+          if (!post.isStory) {
+            userPosts.push(post);
+            if (post.brand && post.variant) {
+              const formattedB = formatBeerTitle(post.brand);
+              const formattedV = formatBeerTitle(post.variant);
+              const uId = `${formattedB}-${formattedV}`;
+              if (!existingDex[uId] && !dexUpdates[uId]) {
+                dexUpdates[uId] = {
+                  photo: post.photo || '',
+                  isShiny: post.isShiny || false,
+                  isShared: post.isShared || false,
+                  taggedFriend: post.taggedFriend || null,
+                  brand: formattedB,
+                  variant: formattedV,
+                  timestamp: post.time || Date.now(),
+                };
+                needsDexUpdate = true;
+              }
+            }
+          }
+        }
+      }
+
+      if (needsDexUpdate) {
+        await update(ref(db, `pokedex_profiles/${username}`), dexUpdates);
+        snap = await get(ref(db, `pokedex_profiles/${username}`));
+      }
+    }
 
     if (snap.exists()) {
       const profileData = snap.val();
@@ -758,17 +801,6 @@ export default function App() {
     });
 
     // Event Medals Recalculation
-    const timelineSnap = await get(ref(db, 'social_timeline'));
-    const userPosts: any[] = [];
-    if (timelineSnap.exists()) {
-      const timelineData = timelineSnap.val();
-      for (const key in timelineData) {
-        const post = timelineData[key];
-        if (post.user === username) {
-          userPosts.push(post);
-        }
-      }
-    }
     const eventMedals = getEventMedals(userPosts);
     eventMedals.forEach((medal) => {
       if (medal.isUnlocked) {
@@ -929,13 +961,33 @@ export default function App() {
     );
   };
 
-  // Recalculate all scores to adapt existing database records
+  // Recalculate all scores to adapt existing database records across all users
   const recalculateAllScores = async () => {
     try {
+      const usernames = new Set<string>();
+
       const scoresSnap = await get(ref(db, 'leaderboard_scores'));
-      if (scoresSnap.exists()) {
-        const scores = scoresSnap.val();
-        for (const username in scores) {
+      if (scoresSnap.exists()) Object.keys(scoresSnap.val()).forEach((u) => usernames.add(u));
+
+      const dexProfilesSnap = await get(ref(db, 'pokedex_profiles'));
+      if (dexProfilesSnap.exists()) Object.keys(dexProfilesSnap.val()).forEach((u) => usernames.add(u));
+
+      const usersSnap = await get(ref(db, 'users'));
+      if (usersSnap.exists()) Object.keys(usersSnap.val()).forEach((u) => usernames.add(u));
+
+      const avatarsSnap = await get(ref(db, 'all_avatars'));
+      if (avatarsSnap.exists()) Object.keys(avatarsSnap.val()).forEach((u) => usernames.add(u));
+
+      const timelineSnap = await get(ref(db, 'social_timeline'));
+      if (timelineSnap.exists()) {
+        const timelineData = timelineSnap.val();
+        for (const key in timelineData) {
+          if (timelineData[key]?.user) usernames.add(timelineData[key].user);
+        }
+      }
+
+      for (const username of usernames) {
+        if (username) {
           await recalculateTotalScore(username);
         }
       }
@@ -1342,6 +1394,132 @@ export default function App() {
     }
   };
 
+  // 24h Story Creation & Share Handlers (No Barcode Required, 0 Points)
+  const handleOpenStoryUpload = () => {
+    setStoryCaptureOpen(true);
+  };
+
+  const handleStoryPhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setStoryCaptureOpen(false);
+    showAlert("Elaborazione foto storia in corso...", "Storia 24h", false);
+
+    try {
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        const img = new Image();
+        img.onload = () => {
+          try {
+            const canvas = document.createElement('canvas');
+            const MAX_SIZE = 750;
+            let width = img.width;
+            let height = img.height;
+            if (width > height) {
+              if (width > MAX_SIZE) {
+                height = Math.round((height * MAX_SIZE) / width);
+                width = MAX_SIZE;
+              }
+            } else {
+              if (height > MAX_SIZE) {
+                width = Math.round((width * MAX_SIZE) / height);
+                height = MAX_SIZE;
+              }
+            }
+            canvas.width = width;
+            canvas.height = height;
+            const ctx = canvas.getContext('2d');
+            if (!ctx) {
+              hideAlert();
+              showAlert("Errore durante la creazione dell'immagine.", "Errore");
+              return;
+            }
+            ctx.drawImage(img, 0, 0, width, height);
+            const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.65);
+
+            checkImageSafety(compressedDataUrl)
+              .then(async (safety) => {
+                if (!safety.isSafe) {
+                  hideAlert();
+                  showAlert(safety.reason || "L'immagine contiene contenuti non appropriati.", "Foto Rifiutata");
+                  return;
+                }
+                const newStoryRef = push(ref(db, 'social_timeline'));
+                await set(newStoryRef, {
+                  user: currentUserNick,
+                  brand: 'Storia del Pub',
+                  variant: 'Foto al volo',
+                  photo: compressedDataUrl,
+                  time: Date.now(),
+                  isShiny: false,
+                  isShared: false,
+                  isStory: true,
+                  likes: {},
+                });
+                hideAlert();
+                showAlert("Storia pubblicata nel Pub! Visibile per 24 ore 🍺 (0 pt)", "Storia Pubblicata");
+                playPopSound();
+              })
+              .catch(async () => {
+                const newStoryRef = push(ref(db, 'social_timeline'));
+                await set(newStoryRef, {
+                  user: currentUserNick,
+                  brand: 'Storia del Pub',
+                  variant: 'Foto al volo',
+                  photo: compressedDataUrl,
+                  time: Date.now(),
+                  isShiny: false,
+                  isShared: false,
+                  isStory: true,
+                  likes: {},
+                });
+                hideAlert();
+                showAlert("Storia pubblicata nel Pub! Visibile per 24 ore 🍺 (0 pt)", "Storia Pubblicata");
+                playPopSound();
+              });
+          } catch (err: any) {
+            hideAlert();
+            showAlert("Errore durante l'elaborazione della storia: " + err.message, "Errore");
+          }
+        };
+        img.src = ev.target?.result as string;
+      };
+      reader.readAsDataURL(file);
+    } catch (e: any) {
+      hideAlert();
+      showAlert("Errore durante il caricamento della foto.", "Errore");
+    } finally {
+      e.target.value = '';
+    }
+  };
+
+  const handleShareToStory = async (postId: string) => {
+    try {
+      const post = globalPosts.find((p) => p.postId === postId);
+      if (!post) return;
+
+      const newStoryRef = push(ref(db, 'social_timeline'));
+      await set(newStoryRef, {
+        user: currentUserNick,
+        brand: post.brand || 'Storia del Pub',
+        variant: post.variant || 'Foto al volo',
+        photo: post.photo,
+        time: Date.now(),
+        isShiny: false,
+        isShared: false,
+        isStory: true,
+        likes: {},
+      });
+
+      showAlert("Post condiviso nelle Storie per 24 ore! 🍺", "Storia Pubblicata");
+      playPopSound();
+    } catch (e: any) {
+      console.error("Error sharing post to story:", e);
+      showAlert("Errore durante la condivisione nelle Storie.", "Errore");
+    }
+  };
+
   // Like operations (triggered doubletap or button clink)
   const handleToggleLike = async (postId: string, _imageContainer: HTMLElement | null) => {
     const likeRef = ref(db, `social_timeline/${postId}/likes/${currentUserNick}`);
@@ -1535,6 +1713,7 @@ export default function App() {
     navigateTo('page-public-profile');
 
     try {
+      await recalculateTotalScore(username);
       const snap = await get(ref(db, `pokedex_profiles/${username}`));
       const dex = snap.val() || {};
       setPubProfileDex(dex);
@@ -1854,6 +2033,84 @@ export default function App() {
         style={{ display: 'none' }}
         onChange={handlePhotoUpload}
       />
+
+      {/* Hidden Story Capture Inputs (No barcode required, 24h duration, 0 points) */}
+      <input
+        type="file"
+        id="storyCaptureCamera"
+        accept="image/*"
+        capture="environment"
+        style={{ display: 'none' }}
+        onChange={handleStoryPhotoUpload}
+      />
+      <input
+        type="file"
+        id="storyCaptureGallery"
+        accept="image/*"
+        style={{ display: 'none' }}
+        onChange={handleStoryPhotoUpload}
+      />
+
+      {/* Story Photo Upload Trigger Modal */}
+      {storyCaptureOpen && (
+        <div className="auth-modal" style={{ zIndex: 18000 }}>
+          <div className="auth-container" style={{ maxWidth: '400px', width: '90%', boxSizing: 'border-box', margin: '0 auto' }}>
+            <h3 style={{ marginTop: 0, color: 'var(--dark)', fontSize: '20px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', textAlign: 'center' }}>
+              <span className="material-symbols-outlined" style={{ color: '#F59E0B' }}>auto_awesome</span> Crea Storia (24h)
+            </h3>
+            <p style={{ color: 'var(--text-muted)', fontSize: '14px', marginBottom: '20px', textAlign: 'center' }}>
+              Scatta o carica qualsiasi foto di una birra. Le storie durano 24 ore e non richiedono la scansione del codice a barre (0 pt).
+            </p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '10px' }}>
+              <button 
+                className="btn-main" 
+                onClick={() => {
+                  document.getElementById('storyCaptureCamera')?.click();
+                }}
+                style={{ 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  justifyContent: 'center', 
+                  gap: '8px', 
+                  textAlign: 'center', 
+                  padding: '14px', 
+                  cursor: 'pointer',
+                  margin: 0,
+                  width: '100%',
+                  boxSizing: 'border-box'
+                }}
+              >
+                <span className="material-symbols-outlined" style={{ fontSize: '22px' }}>photo_camera</span>
+                <span>Scatta Foto (Fotocamera)</span>
+              </button>
+              <button 
+                className="btn-secondary" 
+                onClick={() => {
+                  document.getElementById('storyCaptureGallery')?.click();
+                }}
+                style={{ 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  justifyContent: 'center', 
+                  gap: '8px', 
+                  textAlign: 'center', 
+                  padding: '12px', 
+                  cursor: 'pointer',
+                  margin: 0,
+                  width: '100%',
+                  boxSizing: 'border-box'
+                }}
+              >
+                <span className="material-symbols-outlined" style={{ fontSize: '22px' }}>photo_library</span>
+                <span>Scegli da Galleria</span>
+              </button>
+            </div>
+            <button className="btn-secondary" onClick={() => setStoryCaptureOpen(false)} style={{ justifyContent: 'center', width: '100%', boxSizing: 'border-box' }}>
+              Annulla
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Pokedex Photo upload trigger modal */}
       {captureOpen && (
@@ -2506,6 +2763,8 @@ export default function App() {
                     onReportFakePost={handleReportFakePost}
                     onOpenPublicProfile={handleOpenPublicProfile}
                     onOpenScanner={() => setScannerConfig({ open: true, brand: '', variant: '' })}
+                    onOpenStoryUpload={handleOpenStoryUpload}
+                    onShareToStory={handleShareToStory}
                     getAvatarZoomProps={getAvatarZoomProps}
                   />
                 )}
@@ -2555,6 +2814,7 @@ export default function App() {
                     onOpenTagRequest={(req) => setActiveTagRequestModal(req)}
                     onChangeAvatar={() => setAvatarSelectorOpen(true)}
                     onOpenScanner={() => setScannerConfig({ open: true, brand: '', variant: '' })}
+                    onOpenStoryUpload={handleOpenStoryUpload}
                   />
                 )}
               </div>

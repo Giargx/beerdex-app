@@ -28,6 +28,7 @@ interface ProfileViewProps {
   onOpenTagRequest?: (req: any) => void;
   onChangeAvatar?: () => void;
   onOpenScanner?: () => void;
+  onOpenStoryUpload?: () => void;
 }
 
 export const ProfileView: React.FC<ProfileViewProps> = ({
@@ -54,6 +55,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
   onOpenTagRequest,
   onChangeAvatar,
   onOpenScanner,
+  onOpenStoryUpload,
 }) => {
   const [activeTab, setActiveTab] = useState<'collection' | 'posts' | 'stats' | 'ratings'>('posts');
   const [profileCameraMenuOpen, setProfileCameraMenuOpen] = useState<boolean>(false);
@@ -1224,11 +1226,15 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
               {/* Add Story */}
-              {onOpenScanner && (
+              {(onOpenStoryUpload || onOpenScanner) && (
                 <button
                   onClick={() => {
                     setProfileCameraMenuOpen(false);
-                    onOpenScanner();
+                    if (onOpenStoryUpload) {
+                      onOpenStoryUpload();
+                    } else if (onOpenScanner) {
+                      onOpenScanner();
+                    }
                   }}
                   style={{
                     display: 'flex',
