@@ -1223,18 +1223,50 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
               Puoi assegnare o cambiare il tuo voto da 1 a 5 stelle in qualsiasi momento dopo averla bevuta.
             </p>
 
-            {Object.keys(myPokedex || {}).length === 0 ? (
-              <p style={{ textAlign: 'center', color: 'var(--text-muted)', fontSize: '13px', padding: '20px 0' }}>
-                Non hai ancora sbloccato nessuna birra da valutare.
-              </p>
-            ) : (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                {Object.entries(myPokedex || {}).map(([key, entry]) => {
-                  const brand = entry.brand || key.split('-')[0];
-                  const variant = key.split('-').slice(1).join('-');
-                  return (
+            {(() => {
+              const deduplicatedMap = new Map<string, { brand: string; variant: string; rating: number; photo: string }>();
+
+              Object.entries(myPokedex || {}).forEach(([key, entry]) => {
+                if (!entry) return;
+                const b = ((entry as any).brand || key.split('-')[0] || '').trim();
+                const v = ((entry as any).variant || key.split('-').slice(1).join('-') || '').trim();
+                if (!b || !v) return;
+
+                const normKey = `${b.toLowerCase()}-${v.toLowerCase()}`;
+                const existing = deduplicatedMap.get(normKey);
+
+                if (!existing) {
+                  deduplicatedMap.set(normKey, {
+                    brand: b,
+                    variant: v,
+                    rating: entry.rating || 0,
+                    photo: entry.photo || '',
+                  });
+                } else {
+                  if ((!existing.rating && entry.rating) || (entry.rating && entry.rating > existing.rating)) {
+                    existing.rating = entry.rating;
+                  }
+                  if (!existing.photo && entry.photo) {
+                    existing.photo = entry.photo;
+                  }
+                }
+              });
+
+              const list = Array.from(deduplicatedMap.values());
+
+              if (list.length === 0) {
+                return (
+                  <p style={{ textAlign: 'center', color: 'var(--text-muted)', fontSize: '13px', padding: '20px 0' }}>
+                    Non hai ancora sbloccato nessuna birra da valutare.
+                  </p>
+                );
+              }
+
+              return (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                  {list.map((item) => (
                     <div
-                      key={key}
+                      key={`${item.brand}-${item.variant}`}
                       style={{
                         display: 'flex',
                         alignItems: 'center',
@@ -1247,8 +1279,8 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
                     >
                       <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                         <div style={{ width: '36px', height: '36px', borderRadius: '8px', overflow: 'hidden', flexShrink: 0, border: '1px solid var(--gray)' }}>
-                          {entry.photo ? (
-                            <img src={entry.photo} alt={variant} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                          {item.photo ? (
+                            <img src={item.photo} alt={item.variant} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                           ) : (
                             <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#F1F5F9', color: '#94A3B8' }}>
                               🍺
@@ -1257,20 +1289,20 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
                         </div>
                         <div>
                           <div style={{ fontSize: '13px', fontWeight: 'bold', color: 'var(--dark)' }}>
-                            {brand}
+                            {item.brand}
                           </div>
                           <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
-                            {variant}
+                            {item.variant}
                           </div>
                         </div>
                       </div>
 
                       <div>
                         <StarRating
-                          rating={entry.rating || 0}
+                          rating={item.rating || 0}
                           onRate={(newRating) => {
                             if (onRateBeer) {
-                              onRateBeer(brand, variant, newRating);
+                              onRateBeer(item.brand, item.variant, newRating);
                             }
                           }}
                           size={18}
@@ -1278,10 +1310,10 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
                         />
                       </div>
                     </div>
-                  );
-                })}
-              </div>
-            )}
+                  ))}
+                </div>
+              );
+            })()}
           </div>
         </div>
       )}

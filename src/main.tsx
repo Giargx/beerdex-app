@@ -17,18 +17,27 @@ if ('serviceWorker' in navigator) {
     navigator.serviceWorker
       .register('/sw.js', { scope: '/' })
       .then((reg) => {
-        console.log('PWA registrata con successo!');
+        reg.update();
         reg.onupdatefound = () => {
           const installingWorker = reg.installing;
           if (installingWorker) {
             installingWorker.onstatechange = () => {
               if (installingWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                console.log('Nuova versione PWA disponibile.');
+                console.log('Nuova versione PWA disponibile, ricarico la pagina...');
+                window.location.reload();
               }
             };
           }
         };
       })
       .catch((err) => console.error('Errore registrazione PWA:', err));
+  });
+
+  let refreshing = false;
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    if (!refreshing) {
+      refreshing = true;
+      window.location.reload();
+    }
   });
 }
