@@ -1123,7 +1123,30 @@ export default function App() {
     setPendingUploadData({ isSpinaBypass });
   };
 
-  const getPositionWithTimeout = (timeoutMs = 3500): Promise<GeolocationPosition | null> => {
+  const italianRegionBounds: Record<string, { latMin: number; latMax: number; lngMin: number; lngMax: number }> = {
+    'Piemonte': { latMin: 44.05, latMax: 46.46, lngMin: 6.62, lngMax: 9.21 },
+    'Lombardia': { latMin: 44.79, latMax: 46.63, lngMin: 8.50, lngMax: 11.42 },
+    'Valle d\'Aosta': { latMin: 45.45, latMax: 45.98, lngMin: 6.79, lngMax: 7.94 },
+    'Liguria': { latMin: 43.78, latMax: 44.66, lngMin: 7.50, lngMax: 10.05 },
+    'Trentino-Alto Adige': { latMin: 45.68, latMax: 47.09, lngMin: 10.45, lngMax: 12.48 },
+    'Veneto': { latMin: 44.79, latMax: 46.65, lngMin: 10.62, lngMax: 13.10 },
+    'Friuli-Venezia Giulia': { latMin: 45.56, latMax: 46.65, lngMin: 12.32, lngMax: 13.92 },
+    'Emilia-Romagna': { latMin: 44.05, latMax: 45.14, lngMin: 9.20, lngMax: 12.75 },
+    'Toscana': { latMin: 42.24, latMax: 44.47, lngMin: 9.68, lngMax: 12.37 },
+    'Umbria': { latMin: 42.40, latMax: 43.62, lngMin: 11.90, lngMax: 13.25 },
+    'Marche': { latMin: 42.68, latMax: 43.97, lngMin: 12.15, lngMax: 13.92 },
+    'Lazio': { latMin: 41.20, latMax: 42.84, lngMin: 11.45, lngMax: 13.90 },
+    'Abruzzo': { latMin: 41.68, latMax: 42.89, lngMin: 13.02, lngMax: 14.78 },
+    'Molise': { latMin: 41.38, latMax: 42.06, lngMin: 13.96, lngMax: 15.15 },
+    'Campania': { latMin: 39.99, latMax: 41.51, lngMin: 13.75, lngMax: 15.65 },
+    'Puglia': { latMin: 39.78, latMax: 41.90, lngMin: 14.92, lngMax: 18.52 },
+    'Basilicata': { latMin: 39.90, latMax: 41.13, lngMin: 15.34, lngMax: 16.86 },
+    'Calabria': { latMin: 37.91, latMax: 40.15, lngMin: 15.63, lngMax: 17.22 },
+    'Sicilia': { latMin: 36.65, latMax: 38.82, lngMin: 12.43, lngMax: 15.65 },
+    'Sardegna': { latMin: 38.85, latMax: 41.32, lngMin: 8.13, lngMax: 9.83 },
+  };
+
+  const getPositionWithTimeout = (timeoutMs = 6000): Promise<GeolocationPosition | null> => {
     return new Promise((resolve) => {
       if (!navigator.geolocation) {
         resolve(null);
@@ -1152,7 +1175,7 @@ export default function App() {
             resolve(null);
           }
         },
-        { timeout: timeoutMs, maximumAge: 60000, enableHighAccuracy: false }
+        { timeout: timeoutMs, maximumAge: 30000, enableHighAccuracy: true }
       );
     });
   };
@@ -1167,7 +1190,7 @@ export default function App() {
     const targetBeer = beers.find((b) => b.brand === scannerConfig.brand);
 
     try {
-      const pos = await getPositionWithTimeout(3500);
+      const pos = await getPositionWithTimeout(6000);
       let isShiny = false;
       let lat: number | null = null;
       let lng: number | null = null;
@@ -1190,7 +1213,7 @@ export default function App() {
   const checkShinyStatusWithTimeout = async (lat: number, lng: number, targetBeer: any) => {
     try {
       const shinyPromise = checkShinyStatus(lat, lng, targetBeer);
-      const timeoutPromise = new Promise<boolean>((resolve) => setTimeout(() => resolve(false), 2500));
+      const timeoutPromise = new Promise<boolean>((resolve) => setTimeout(() => resolve(false), 4500));
       return await Promise.race([shinyPromise, timeoutPromise]);
     } catch (e) {
       console.error("Shiny check timeout/error:", e);
@@ -1204,15 +1227,24 @@ export default function App() {
       const bounds = countryCoordinates[targetBeer.country];
       if (lat >= bounds.latMin && lat <= bounds.latMax && lng >= bounds.lngMin && lng <= bounds.lngMax) {
         if (targetBeer.country === 'Italia' && targetBeer.regione) {
-          try {
-            const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=10`);
-            const data = await res.json();
-            const currentRegion = data.address.state || data.address.region || "";
-            if (normalizeStr(currentRegion).includes(normalizeStr(targetBeer.regione))) {
-              isShiny = true;
+          const regName = targetBeer.regione;
+          const regBounds = italianRegionBounds[regName];
+
+          // 1. Direct Region Polygon Boundary Check (Instant & Offline Capable)
+          if (regBounds && lat >= regBounds.latMin && lat <= regBounds.latMax && lng >= regBounds.lngMin && lng <= regBounds.lngMax) {
+            isShiny = true;
+          } else {
+            // 2. Reverse Geocoding Fallback via Nominatim
+            try {
+              const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=10`);
+              const data = await res.json();
+              const currentRegion = data.address?.state || data.address?.region || data.address?.county || data.address?.province || "";
+              if (normalizeStr(currentRegion).includes(normalizeStr(regName))) {
+                isShiny = true;
+              }
+            } catch (e) {
+              console.log("Nominatim reverse geocode error:", e);
             }
-          } catch (e) {
-            console.log("Nominatim reverse geocode error:", e);
           }
         } else {
           isShiny = true;
@@ -1581,17 +1613,64 @@ export default function App() {
     );
   };
 
-  const handleDeletePost = (postId: string, postUser: string, brand: string, variant: string) => {
+  const handleDeletePost = (postId: string, _postUser: string, brand: string, variant: string) => {
+    const targetUser = currentUserNick;
     showConfirm(
-      `Vuoi davvero eliminare lo sblocco di ${postUser} per ${brand} - ${variant}?`,
+      `Vuoi davvero eliminare lo sblocco di ${brand} - ${variant}?`,
       'Conferma Eliminazione',
       async () => {
         try {
           const uniqueId = `${brand}-${variant}`;
-          await remove(ref(db, `pokedex_profiles/${postUser}/${uniqueId}`));
-          await remove(ref(db, `social_timeline/${postId}`));
-          await recalculateTotalScore(postUser);
-          showAlert('Post rimosso con successo.');
+
+          // Fetch current post data from Firebase
+          const postRef = ref(db, `social_timeline/${postId}`);
+          const postSnap = await get(postRef);
+
+          if (postSnap.exists()) {
+            const postVal = postSnap.val();
+            // Get all participants
+            const participants: string[] = Array.from(
+              new Set([
+                postVal.user,
+                ...(Array.isArray(postVal.taggedFriends) ? postVal.taggedFriends.filter(Boolean) : []),
+                ...(postVal.taggedFriend ? postVal.taggedFriend.split(',').map((s: string) => s.trim()).filter(Boolean) : []),
+              ])
+            );
+
+            // 1. Remove targetUser's pokedex entry & rating
+            await remove(ref(db, `pokedex_profiles/${targetUser}/${uniqueId}`));
+            await remove(ref(db, `social_timeline/${postId}/ratings/${targetUser}`));
+
+            const remainingParticipants = participants.filter(
+              (p) => p.toLowerCase() !== targetUser.toLowerCase()
+            );
+
+            if (remainingParticipants.length > 0) {
+              // Post still has other participants! Update post for remaining participants
+              const newAuthor = remainingParticipants[0];
+              const newTagged = remainingParticipants.slice(1);
+
+              await update(postRef, {
+                user: newAuthor,
+                taggedFriends: newTagged,
+                taggedFriend: newTagged.join(', '),
+                isShared: newTagged.length > 0,
+              });
+
+              await recalculateTotalScore(targetUser);
+              showAlert('Post rimosso dal tuo profilo. La bevuta rimane visibile per gli altri partecipanti.');
+            } else {
+              // Last participant deleted the post -> delete entire post from timeline
+              await remove(postRef);
+              await recalculateTotalScore(targetUser);
+              showAlert('Post rimosso con successo.');
+            }
+          } else {
+            // Post fallback
+            await remove(ref(db, `pokedex_profiles/${targetUser}/${uniqueId}`));
+            await recalculateTotalScore(targetUser);
+            showAlert('Post rimosso dal tuo profilo.');
+          }
         } catch (err: any) {
           showAlert(err.message, 'Errore');
         }
