@@ -1068,11 +1068,6 @@ export const PubView: React.FC<PubViewProps> = ({
                         e.preventDefault();
                         setSelectedOptionsMenuPost(post);
                       }}
-                      onTouchEnd={(e) => {
-                        e.stopPropagation();
-                        e.preventDefault();
-                        setSelectedOptionsMenuPost(post);
-                      }}
                       title="Opzioni Post"
                       style={{
                         background: '#F1F5F9',

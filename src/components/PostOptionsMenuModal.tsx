@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 
 interface PostOptionsMenuModalProps {
   isOpen: boolean;
@@ -30,10 +30,26 @@ export const PostOptionsMenuModal: React.FC<PostOptionsMenuModalProps> = ({
   onOpenReportModal,
   onDeletePost,
 }) => {
+  const mountedAt = useRef<number>(Date.now());
+
+  useEffect(() => {
+    if (isOpen) {
+      mountedAt.current = Date.now();
+    }
+  }, [isOpen]);
+
   if (!isOpen || !post) return null;
 
   const canDelete = post.user === currentUserNick || isAdminUser;
   const canReport = post.user !== currentUserNick && !isAdminUser;
+
+  const handleBackdropClick = (_e: React.MouseEvent) => {
+    // Prevent synthetic tap-through clicks from immediately closing the modal on touch devices
+    if (Date.now() - mountedAt.current < 250) {
+      return;
+    }
+    onClose();
+  };
 
   return (
     <div
@@ -55,7 +71,7 @@ export const PostOptionsMenuModal: React.FC<PostOptionsMenuModalProps> = ({
         padding: '0 0 16px 0',
         animation: 'fadeIn 0.2s ease-out',
       }}
-      onClick={onClose}
+      onClick={handleBackdropClick}
     >
       <div
         onClick={(e) => e.stopPropagation()}

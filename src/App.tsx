@@ -2891,6 +2891,8 @@ export default function App() {
                     onInitUnlock={handleInitUnlock}
                     onOpenScanner={() => setScannerConfig({ open: true, brand: '', variant: '' })}
                     onOpenPublicProfile={handleOpenPublicProfile}
+                    globalUserPrivacy={globalUserPrivacy}
+                    isAdminUser={isAdminUser}
                   />
                 )}
               </div>

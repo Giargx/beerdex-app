@@ -28,6 +28,8 @@ interface HomeViewProps {
   onInitUnlock?: (brand: string, variant: string) => void;
   onOpenScanner?: () => void;
   onOpenPublicProfile?: (username: string) => void;
+  globalUserPrivacy?: Record<string, boolean>;
+  isAdminUser?: boolean;
 }
 
 export const HomeView: React.FC<HomeViewProps> = ({
@@ -44,6 +46,8 @@ export const HomeView: React.FC<HomeViewProps> = ({
   onInitUnlock: _onInitUnlock,
   onOpenScanner,
   onOpenPublicProfile,
+  globalUserPrivacy = {},
+  isAdminUser = false,
 }) => {
   const [timedEvent, setTimedEvent] = useState<{ name: string; desc: string } | null>(null);
   const [recommendTab, setRecommendTab] = useState<'recommended' | 'rare' | 'foreign'>('recommended');
@@ -247,16 +251,36 @@ export const HomeView: React.FC<HomeViewProps> = ({
     return new Date(timestamp).toLocaleDateString([], { day: '2-digit', month: '2-digit' });
   };
 
+  const isPostOwnerPrivate = (nick: string) => {
+    if (!globalUserPrivacy || !nick) return false;
+    const lower = nick.toLowerCase();
+    const matchKey = Object.keys(globalUserPrivacy).find((k) => k.toLowerCase() === lower);
+    return matchKey ? globalUserPrivacy[matchKey] === true : false;
+  };
+
+  const isFriend = (nick: string) =>
+    Array.isArray(myFriendsList) && myFriendsList.some((f) => f.toLowerCase() === nick.toLowerCase());
+
+  // Filter out posts from private profiles for non-friends
+  const publicAccessiblePosts = posts.filter((p) => {
+    if (!p || !p.user) return false;
+    if (p.user.toLowerCase() === currentUserNick.toLowerCase()) return true;
+    if (isPostOwnerPrivate(p.user) && !isFriend(p.user) && !isAdminUser) {
+      return false;
+    }
+    return true;
+  });
+
   // Filter posts from friends, sorted chronologically descending (newest first)
-  const friendsPosts = posts.filter(
-    (p) => p && p.user && Array.isArray(myFriendsList) && myFriendsList.includes(p.user) && p.user !== currentUserNick
+  const friendsPosts = publicAccessiblePosts.filter(
+    (p) => p && p.user && isFriend(p.user) && p.user.toLowerCase() !== currentUserNick.toLowerCase()
   );
 
   // If user has friends with posts, display them; otherwise fallback to recent global community posts so it's not empty
   const recentCommunityPosts = (
     friendsPosts.length > 0
       ? [...friendsPosts]
-      : [...posts.filter((p) => p && p.user && p.user !== currentUserNick)]
+      : [...publicAccessiblePosts.filter((p) => p && p.user && p.user.toLowerCase() !== currentUserNick.toLowerCase())]
   )
     .sort((a, b) => (b.time || 0) - (a.time || 0))
     .slice(0, 10);
