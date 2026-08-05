@@ -1062,31 +1062,35 @@ export const PubView: React.FC<PubViewProps> = ({
 
                     {/* 3-Dots Options Menu Button (more_vert) */}
                     <button
+                      type="button"
                       onClick={(e) => {
                         e.stopPropagation();
                         e.preventDefault();
                         setSelectedOptionsMenuPost(post);
                       }}
-                      onTouchStart={(e) => e.stopPropagation()}
-                      onTouchEnd={(e) => e.stopPropagation()}
+                      onTouchEnd={(e) => {
+                        e.stopPropagation();
+                        e.preventDefault();
+                        setSelectedOptionsMenuPost(post);
+                      }}
                       title="Opzioni Post"
                       style={{
-                        background: 'transparent',
+                        background: '#F1F5F9',
                         border: 'none',
                         cursor: 'pointer',
-                        color: '#64748B',
-                        width: '36px',
-                        height: '36px',
+                        color: '#475569',
+                        width: '38px',
+                        height: '38px',
                         borderRadius: '50%',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
                         position: 'relative',
-                        zIndex: 10,
-                        transition: 'background 0.15s ease',
+                        zIndex: 20,
+                        WebkitTapHighlightColor: 'rgba(245, 158, 11, 0.3)',
                       }}
                     >
-                      <span className="material-symbols-outlined" style={{ fontSize: '22px' }}>more_vert</span>
+                      <span className="material-symbols-outlined" style={{ fontSize: '22px', pointerEvents: 'none' }}>more_vert</span>
                     </button>
                   </div>
 

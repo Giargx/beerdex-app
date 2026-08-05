@@ -1,8 +1,10 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { StarRating } from '../components/StarRating';
 import { formatBeerTitle, getBasePoints } from '../beers';
 import { BrindisiSummary } from '../components/BrindisiSummary';
 import { playClinkSound } from '../utils/audio';
+import { PostOptionsMenuModal } from '../components/PostOptionsMenuModal';
+import { ReportPostModal } from '../components/ReportPostModal';
 
 interface UserPostsDetailViewProps {
   username: string;
@@ -43,6 +45,29 @@ export const UserPostsDetailView: React.FC<UserPostsDetailViewProps> = ({
   isPrivate = false,
   isFriend = false,
 }) => {
+  const [selectedOptionsMenuPost, setSelectedOptionsMenuPost] = useState<any>(null);
+  const [selectedReportPost, setSelectedReportPost] = useState<any>(null);
+  const [savedPostIds, setSavedPostIds] = useState<string[]>(() => {
+    try {
+      const saved = localStorage.getItem('beerdex_saved_posts');
+      return saved ? JSON.parse(saved) : [];
+    } catch (e) {
+      return [];
+    }
+  });
+
+  const handleToggleSavePost = (postId: string) => {
+    setSavedPostIds((prev) => {
+      const next = prev.includes(postId) ? prev.filter((id) => id !== postId) : [...prev, postId];
+      try {
+        localStorage.setItem('beerdex_saved_posts', JSON.stringify(next));
+      } catch (e) {
+        console.error(e);
+      }
+      return next;
+    });
+  };
+
   const safePosts = Array.isArray(posts) ? posts : [];
   const myPosts = safePosts.filter((p) => p && p.user === username).reverse();
 
@@ -198,9 +223,7 @@ export const UserPostsDetailView: React.FC<UserPostsDetailViewProps> = ({
                 month: 'long',
                 year: 'numeric'
               });
-              const canDelete = post.user === currentUserNick || isAdminUser;
               const canReport = post.user !== currentUserNick;
-
               const basePts = getBasePoints(post.brand, post.variant);
               let earnedPts = basePts;
               if (post.isShiny) earnedPts *= 2;
@@ -276,16 +299,36 @@ export const UserPostsDetailView: React.FC<UserPostsDetailViewProps> = ({
                       >
                         +{earnedPts} pt
                       </span>
-                      {canDelete && onDeletePost && (
-                        <button
-                          className="btn-delete"
-                          onClick={() => onDeletePost(post.postId, post.user, post.brand, post.variant)}
-                          title="Elimina post e punti"
-                          style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: 'var(--text-muted)' }}
-                        >
-                          <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>delete</span>
-                        </button>
-                      )}
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          e.preventDefault();
+                          setSelectedOptionsMenuPost(post);
+                        }}
+                        onTouchEnd={(e) => {
+                          e.stopPropagation();
+                          e.preventDefault();
+                          setSelectedOptionsMenuPost(post);
+                        }}
+                        title="Opzioni Post"
+                        style={{
+                          background: '#F1F5F9',
+                          border: 'none',
+                          cursor: 'pointer',
+                          color: '#475569',
+                          width: '32px',
+                          height: '32px',
+                          borderRadius: '50%',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          position: 'relative',
+                          zIndex: 10,
+                        }}
+                      >
+                        <span className="material-symbols-outlined" style={{ fontSize: '18px', pointerEvents: 'none' }}>more_vert</span>
+                      </button>
                     </div>
                   </div>
 
@@ -476,6 +519,32 @@ export const UserPostsDetailView: React.FC<UserPostsDetailViewProps> = ({
           )}
         </div>
       </div>
+
+      {/* 3-Dots Options Menu Modal */}
+      <PostOptionsMenuModal
+        isOpen={Boolean(selectedOptionsMenuPost)}
+        post={selectedOptionsMenuPost}
+        currentUserNick={currentUserNick}
+        isAdminUser={Boolean(isAdminUser)}
+        isSaved={selectedOptionsMenuPost ? savedPostIds.includes(selectedOptionsMenuPost.postId) : false}
+        onClose={() => setSelectedOptionsMenuPost(null)}
+        onSavePost={(postId) => handleToggleSavePost(postId)}
+        onShareToStory={() => setSelectedOptionsMenuPost(null)}
+        onOpenReportModal={(post) => setSelectedReportPost(post)}
+        onDeletePost={onDeletePost}
+      />
+
+      {/* Report Post Modal */}
+      <ReportPostModal
+        isOpen={Boolean(selectedReportPost)}
+        post={selectedReportPost}
+        onClose={() => setSelectedReportPost(null)}
+        onSubmitReport={(postId, postUser, brand, variant) => {
+          if (onReportFakePost) {
+            onReportFakePost(postId, postUser, brand, variant);
+          }
+        }}
+      />
     </div>
   );
 };
