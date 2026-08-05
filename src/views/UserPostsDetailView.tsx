@@ -3,7 +3,6 @@ import { StarRating } from '../components/StarRating';
 import { formatBeerTitle, getBasePoints } from '../beers';
 import { BrindisiSummary } from '../components/BrindisiSummary';
 import { playClinkSound } from '../utils/audio';
-import { PostOptionsMenuModal } from '../components/PostOptionsMenuModal';
 import { ReportPostModal } from '../components/ReportPostModal';
 
 interface UserPostsDetailViewProps {
@@ -45,7 +44,6 @@ export const UserPostsDetailView: React.FC<UserPostsDetailViewProps> = ({
   isPrivate = false,
   isFriend = false,
 }) => {
-  const [selectedOptionsMenuPost, setSelectedOptionsMenuPost] = useState<any>(null);
   const [selectedReportPost, setSelectedReportPost] = useState<any>(null);
   const [savedPostIds, setSavedPostIds] = useState<string[]>(() => {
     try {
@@ -69,7 +67,9 @@ export const UserPostsDetailView: React.FC<UserPostsDetailViewProps> = ({
   };
 
   const safePosts = Array.isArray(posts) ? posts : [];
-  const myPosts = safePosts.filter((p) => p && p.user === username).reverse();
+  const myPosts = username === '__SINGLE_POST__'
+    ? safePosts.filter((p) => p && p.postId === initialPostId)
+    : safePosts.filter((p) => p && p.user === username).reverse();
 
   useEffect(() => {
     if (initialPostId) {
@@ -189,7 +189,7 @@ export const UserPostsDetailView: React.FC<UserPostsDetailViewProps> = ({
           <span className="material-symbols-outlined" style={{ fontSize: '28px' }}>arrow_back</span>
         </button>
         <div style={{ fontWeight: 800, fontSize: '16px', color: 'var(--dark)', textAlign: 'center' }}>
-          Post di {displayName || username}
+          {username === '__SINGLE_POST__' ? 'Dettaglio Post' : `Post di ${displayName || username}`}
         </div>
         <div style={{ width: '36px' }} /> {/* Spacer for symmetry */}
       </div>
@@ -197,7 +197,7 @@ export const UserPostsDetailView: React.FC<UserPostsDetailViewProps> = ({
       {/* Main Content Area */}
       <div className="social-page-container" style={{ flexGrow: 1 }}>
         <div className="social-feed">
-          {isPrivate && !isFriend && username.toLowerCase() !== currentUserNick.toLowerCase() && !isAdminUser ? (
+          {isPrivate && !isFriend && username.toLowerCase() !== currentUserNick.toLowerCase() && !isAdminUser && username !== '__SINGLE_POST__' ? (
             <div style={{ textAlign: 'center', padding: '60px 20px', color: 'var(--text-muted)' }}>
               <div style={{ width: '64px', height: '64px', borderRadius: '50%', background: 'linear-gradient(135deg, #FFFBEB 0%, #FEF3C7 100%)', border: '2px solid #FCD34D', color: '#D97706', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', marginBottom: '16px', boxShadow: '0 4px 12px rgba(245, 158, 11, 0.2)' }}>
                 <span className="material-symbols-outlined" style={{ fontSize: '32px' }}>lock</span>
@@ -223,7 +223,6 @@ export const UserPostsDetailView: React.FC<UserPostsDetailViewProps> = ({
                 month: 'long',
                 year: 'numeric'
               });
-              const canReport = post.user !== currentUserNick;
               const basePts = getBasePoints(post.brand, post.variant);
               let earnedPts = basePts;
               if (post.isShiny) earnedPts *= 2;
@@ -299,36 +298,62 @@ export const UserPostsDetailView: React.FC<UserPostsDetailViewProps> = ({
                       >
                         +{earnedPts} pt
                       </span>
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          e.preventDefault();
-                          setSelectedOptionsMenuPost(post);
-                        }}
-                        onTouchEnd={(e) => {
-                          e.stopPropagation();
-                          e.preventDefault();
-                          setSelectedOptionsMenuPost(post);
-                        }}
-                        title="Opzioni Post"
-                        style={{
-                          background: '#F1F5F9',
-                          border: 'none',
-                          cursor: 'pointer',
-                          color: '#475569',
-                          width: '32px',
-                          height: '32px',
-                          borderRadius: '50%',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          position: 'relative',
-                          zIndex: 10,
-                        }}
-                      >
-                        <span className="material-symbols-outlined" style={{ fontSize: '18px', pointerEvents: 'none' }}>more_vert</span>
-                      </button>
+                      {/* Trash Icon for My Post / Flag Icon for Other User's Post */}
+                      {post.user === currentUserNick || isAdminUser ? (
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            e.preventDefault();
+                            if (window.confirm('Sei sicuro di voler eliminare questo post?')) {
+                              if (onDeletePost) onDeletePost(post.postId, post.user, post.brand, post.variant);
+                            }
+                          }}
+                          title="Elimina Post"
+                          style={{
+                            background: '#FEF2F2',
+                            border: '1px solid #FCA5A5',
+                            cursor: 'pointer',
+                            color: '#EF4444',
+                            width: '32px',
+                            height: '32px',
+                            borderRadius: '50%',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                          }}
+                        >
+                          <span className="material-symbols-outlined" style={{ fontSize: '18px', pointerEvents: 'none' }}>
+                            delete
+                          </span>
+                        </button>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            e.preventDefault();
+                            setSelectedReportPost(post);
+                          }}
+                          title="Segnala Post"
+                          style={{
+                            background: '#F1F5F9',
+                            border: '1px solid #E2E8F0',
+                            cursor: 'pointer',
+                            color: '#64748B',
+                            width: '32px',
+                            height: '32px',
+                            borderRadius: '50%',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                          }}
+                        >
+                          <span className="material-symbols-outlined" style={{ fontSize: '18px', pointerEvents: 'none' }}>
+                            flag
+                          </span>
+                        </button>
+                      )}
                     </div>
                   </div>
 
@@ -520,19 +545,7 @@ export const UserPostsDetailView: React.FC<UserPostsDetailViewProps> = ({
         </div>
       </div>
 
-      {/* 3-Dots Options Menu Modal */}
-      <PostOptionsMenuModal
-        isOpen={Boolean(selectedOptionsMenuPost)}
-        post={selectedOptionsMenuPost}
-        currentUserNick={currentUserNick}
-        isAdminUser={Boolean(isAdminUser)}
-        isSaved={selectedOptionsMenuPost ? savedPostIds.includes(selectedOptionsMenuPost.postId) : false}
-        onClose={() => setSelectedOptionsMenuPost(null)}
-        onSavePost={(postId) => handleToggleSavePost(postId)}
-        onShareToStory={() => setSelectedOptionsMenuPost(null)}
-        onOpenReportModal={(post) => setSelectedReportPost(post)}
-        onDeletePost={onDeletePost}
-      />
+
 
       {/* Report Post Modal */}
       <ReportPostModal

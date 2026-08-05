@@ -915,7 +915,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
               {[...posts.filter((p) => savedPostIds.includes(p.postId))].reverse().map((post) => (
                 <div
                   key={post.postId}
-                  onClick={() => onOpenPostDetail(post.user, post.postId)}
+                  onClick={() => onOpenPostDetail('__SINGLE_POST__', post.postId)}
                   style={{
                     position: 'relative',
                     aspectRatio: '1/1',

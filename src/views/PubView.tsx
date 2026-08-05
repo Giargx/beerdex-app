@@ -4,7 +4,6 @@ import { FoamBubbles } from '../components/FoamBubbles';
 import { getBasePoints, formatBeerTitle } from '../beers';
 import { StarRating } from '../components/StarRating';
 import { BrindisiSummary } from '../components/BrindisiSummary';
-import { PostOptionsMenuModal } from '../components/PostOptionsMenuModal';
 import { ReportPostModal } from '../components/ReportPostModal';
 import { StoryViewerModal } from '../components/StoryViewerModal';
 import type { PokedexEntry } from '../components/TrophyGrid';
@@ -70,7 +69,6 @@ export const PubView: React.FC<PubViewProps> = ({
   const [searchQuery, setSearchQuery] = useState<string>('');
   
   // Modals & Interactive States
-  const [selectedOptionsMenuPost, setSelectedOptionsMenuPost] = useState<Post | null>(null);
   const [selectedReportPost, setSelectedReportPost] = useState<Post | null>(null);
   const [selectedParticipantsPost, setSelectedParticipantsPost] = useState<Post | null>(null);
   const [activeStoryViewerIndex, setActiveStoryViewerIndex] = useState<number | null>(null);
@@ -108,8 +106,8 @@ export const PubView: React.FC<PubViewProps> = ({
         return false;
       }
 
-      // In Pub view, only show posts from friends
-      if (!isFriend) return false;
+      // In Pub view, show posts from friends and posts from current user
+      if (!isFriend && !isMine) return false;
 
       if (searchQuery.trim()) {
         const q = searchQuery.toLowerCase().trim();
@@ -885,33 +883,68 @@ export const PubView: React.FC<PubViewProps> = ({
                       );
                     })()}
 
-                    {/* 3-Dots Options Menu Button (more_vert) */}
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        e.preventDefault();
-                        setSelectedOptionsMenuPost(post);
-                      }}
-                      title="Opzioni Post"
-                      style={{
-                        background: '#F1F5F9',
-                        border: 'none',
-                        cursor: 'pointer',
-                        color: '#475569',
-                        width: '38px',
-                        height: '38px',
-                        borderRadius: '50%',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        position: 'relative',
-                        zIndex: 20,
-                        WebkitTapHighlightColor: 'rgba(245, 158, 11, 0.3)',
-                      }}
-                    >
-                      <span className="material-symbols-outlined" style={{ fontSize: '22px', pointerEvents: 'none' }}>more_vert</span>
-                    </button>
+                    {/* Trash Icon for My Post / Flag Icon for Other User's Post */}
+                    {post.user === currentUserNick || isAdminUser ? (
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          e.preventDefault();
+                          if (window.confirm('Sei sicuro di voler eliminare questo post?')) {
+                            onDeletePost(post.postId, post.user, post.brand, post.variant);
+                          }
+                        }}
+                        title="Elimina Post"
+                        style={{
+                          background: '#FEF2F2',
+                          border: '1px solid #FCA5A5',
+                          cursor: 'pointer',
+                          color: '#EF4444',
+                          width: '36px',
+                          height: '36px',
+                          borderRadius: '50%',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          position: 'relative',
+                          zIndex: 20,
+                          WebkitTapHighlightColor: 'rgba(239, 68, 68, 0.2)',
+                        }}
+                      >
+                        <span className="material-symbols-outlined" style={{ fontSize: '20px', pointerEvents: 'none' }}>
+                          delete
+                        </span>
+                      </button>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          e.preventDefault();
+                          setSelectedReportPost(post);
+                        }}
+                        title="Segnala Post"
+                        style={{
+                          background: '#F1F5F9',
+                          border: '1px solid #E2E8F0',
+                          cursor: 'pointer',
+                          color: '#64748B',
+                          width: '36px',
+                          height: '36px',
+                          borderRadius: '50%',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          position: 'relative',
+                          zIndex: 20,
+                          WebkitTapHighlightColor: 'rgba(245, 158, 11, 0.3)',
+                        }}
+                      >
+                        <span className="material-symbols-outlined" style={{ fontSize: '20px', pointerEvents: 'none' }}>
+                          flag
+                        </span>
+                      </button>
+                    )}
                   </div>
 
                   {/* Post Image Container */}
@@ -1240,30 +1273,7 @@ export const PubView: React.FC<PubViewProps> = ({
         </div>
       </div>
 
-      {/* 3-Dots Options Menu Modal */}
-      <PostOptionsMenuModal
-        isOpen={Boolean(selectedOptionsMenuPost)}
-        post={selectedOptionsMenuPost}
-        currentUserNick={currentUserNick}
-        isAdminUser={isAdminUser}
-        isSaved={selectedOptionsMenuPost ? savedPostIds.includes(selectedOptionsMenuPost.postId) : false}
-        onClose={() => setSelectedOptionsMenuPost(null)}
-        onSavePost={(postId) => handleToggleSavePost(postId)}
-        onShareToStory={(postId) => {
-          if (onShareToStory) {
-            onShareToStory(postId);
-          } else {
-            const idx = storyPosts.findIndex((s) => s.postId === postId);
-            if (idx !== -1) {
-              setActiveStoryViewerIndex(idx);
-            } else {
-              setActiveStoryViewerIndex(0);
-            }
-          }
-        }}
-        onOpenReportModal={(post) => setSelectedReportPost(post)}
-        onDeletePost={onDeletePost}
-      />
+
 
       {/* Report Post Modal with Reasons */}
       <ReportPostModal
