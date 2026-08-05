@@ -35,6 +35,7 @@ interface PubViewProps {
   allPokedexProfiles?: Record<string, Record<string, PokedexEntry>>;
   globalUserPrivacy?: Record<string, boolean>;
   onRateBeer?: (brand: string, variant: string, rating: number) => void;
+  onOpenRatingModal?: (brand: string, variant: string, photo?: string) => void;
   onToggleLike: (postId: string, cardElement: HTMLElement | null) => void;
   onDeletePost: (postId: string, postUser: string, brand: string, variant: string) => void;
   onReportFakePost: (postId: string, postUser: string, brand: string, variant: string) => void;
@@ -56,6 +57,7 @@ export const PubView: React.FC<PubViewProps> = ({
   allPokedexProfiles,
   globalUserPrivacy,
   onRateBeer,
+  onOpenRatingModal,
   onToggleLike,
   onDeletePost,
   onReportFakePost,
@@ -1366,15 +1368,22 @@ export const PubView: React.FC<PubViewProps> = ({
                             </div>
 
                             {/* Button for current user to rate/edit rating if participant */}
-                            {allParticipants.includes(currentUserNick) && onRateBeer && (
+                            {allParticipants.some((p) => p.toLowerCase() === currentUserNick.toLowerCase()) && (onOpenRatingModal || onRateBeer) && (
                               <button
-                                onClick={() => {
-                                  onRateBeer(post.brand, post.variant, myParticipantRating?.rating || 0);
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  e.preventDefault();
+                                  if (onOpenRatingModal) {
+                                    onOpenRatingModal(post.brand, post.variant, post.photo);
+                                  } else if (onRateBeer) {
+                                    onRateBeer(post.brand, post.variant, myParticipantRating?.rating || 5);
+                                  }
                                 }}
                                 style={{
                                   marginTop: '8px',
                                   width: '100%',
-                                  padding: '7px 12px',
+                                  padding: '8px 12px',
                                   borderRadius: '10px',
                                   border: '1px solid #FCD34D',
                                   background: 'linear-gradient(135deg, #FFFBEB, #FEF3C7)',
@@ -1387,6 +1396,7 @@ export const PubView: React.FC<PubViewProps> = ({
                                   justifyContent: 'center',
                                   gap: '6px',
                                   boxShadow: '0 2px 6px rgba(245, 158, 11, 0.12)',
+                                  WebkitTapHighlightColor: 'rgba(245, 158, 11, 0.3)',
                                 }}
                               >
                                 <span className="material-symbols-outlined" style={{ fontSize: '16px', color: '#F59E0B' }}>

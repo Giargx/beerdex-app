@@ -1775,6 +1775,15 @@ export default function App() {
     }
   };
 
+  const handleOpenRatingForBeer = (brand: string, variant: string, photo?: string) => {
+    setUnlockRatingModalState({
+      isOpen: true,
+      brand,
+      variant,
+      photo,
+    });
+  };
+
   const handleRateBeer = async (brand: string, variant: string, rating: number) => {
     if (!currentUserNick) return;
     try {
@@ -2948,6 +2957,7 @@ export default function App() {
                     allPokedexProfiles={allPokedexProfiles}
                     globalUserPrivacy={globalUserPrivacy}
                     onRateBeer={handleRateBeer}
+                    onOpenRatingModal={handleOpenRatingForBeer}
                     onToggleLike={handleToggleLike}
                     onDeletePost={handleDeletePost}
                     onReportFakePost={handleReportFakePost}
