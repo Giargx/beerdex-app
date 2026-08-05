@@ -185,11 +185,6 @@ export const PubView: React.FC<PubViewProps> = ({
     return Array.from(userStoryMap.values());
   }, [posts, currentUserNick, myFriendsList, isAdminUser]);
 
-  // Statistics for Pub Header
-  const totalToastCount = useMemo(() => {
-    return posts.reduce((sum, p) => sum + (p.likes ? Object.keys(p.likes).length : 0), 0);
-  }, [posts]);
-
   const triggerCinAnimation = (targetContainer: HTMLElement) => {
     if (!targetContainer) return;
     if (targetContainer.querySelector('.cin-toast-container')) return;
