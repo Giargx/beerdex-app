@@ -283,8 +283,8 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
                   onContextMenu={(e) => e.preventDefault()}
                 />
               ) : (
-                <span className="material-symbols-outlined" style={{ fontSize: '40px' }}>
-                  person
+                <span style={{ fontSize: '38px', fontWeight: 900, color: 'var(--primary-dark)', textTransform: 'uppercase' }}>
+                  {(currentUserDisplayName || currentUserNick).charAt(0).toUpperCase()}
                 </span>
               )}
             </div>

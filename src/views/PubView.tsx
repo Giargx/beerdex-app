@@ -335,7 +335,9 @@ export const PubView: React.FC<PubViewProps> = ({
                     {myAvatar ? (
                       <img src={myAvatar} alt="La tua storia" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                     ) : (
-                      <span className="material-symbols-outlined" style={{ fontSize: '32px', color: '#64748B' }}>person</span>
+                      <span style={{ fontSize: '24px', fontWeight: 900, color: '#334155', textTransform: 'uppercase' }}>
+                        {(globalDisplayNames?.[currentUserNick] || currentUserNick).charAt(0).toUpperCase()}
+                      </span>
                     )}
                   </div>
 
@@ -434,7 +436,9 @@ export const PubView: React.FC<PubViewProps> = ({
                       {av ? (
                         <img src={av} alt={disp} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                       ) : (
-                        <span className="material-symbols-outlined" style={{ fontSize: '32px', color: '#64748B' }}>person</span>
+                        <span style={{ fontSize: '24px', fontWeight: 900, color: '#334155', textTransform: 'uppercase' }}>
+                          {disp.charAt(0).toUpperCase()}
+                        </span>
                       )}
                     </div>
                   </div>
@@ -608,6 +612,12 @@ export const PubView: React.FC<PubViewProps> = ({
                 (typeof post.rating === 'number' && post.rating > 0 ? post.rating : 0) ||
                 (authorPokedex?.[`${post.brand}-${post.variant}`]?.rating || 0);
 
+              const isPostShared = Boolean(
+                post.isShared ||
+                (post.taggedFriend && post.taggedFriend.trim() !== '') ||
+                (Array.isArray((post as any).taggedFriends) && (post as any).taggedFriends.filter(Boolean).length > 0)
+              );
+
               return (
                 <div
                   key={post.postId}
@@ -705,8 +715,8 @@ export const PubView: React.FC<PubViewProps> = ({
                                       {pAv ? (
                                         <img src={pAv} alt={pNick} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                                       ) : (
-                                        <span className="material-symbols-outlined" style={{ fontSize: '20px', color: '#64748B' }}>
-                                          person
+                                        <span style={{ fontSize: '15px', fontWeight: 900, color: '#D97706', textTransform: 'uppercase' }}>
+                                          {(globalDisplayNames?.[pNick] || pNick).charAt(0).toUpperCase()}
                                         </span>
                                       )}
                                     </div>
@@ -799,8 +809,8 @@ export const PubView: React.FC<PubViewProps> = ({
                                     draggable={false}
                                   />
                                 ) : (
-                                  <span className="material-symbols-outlined" style={{ fontSize: '24px', color: '#64748B' }}>
-                                    person
+                                  <span style={{ fontSize: '18px', fontWeight: 900, color: '#D97706', textTransform: 'uppercase' }}>
+                                    {disp1.charAt(0).toUpperCase()}
                                   </span>
                                 )}
                               </div>
@@ -977,8 +987,8 @@ export const PubView: React.FC<PubViewProps> = ({
                       </div>
                     )}
 
-                    {/* Star Rating Badge */}
-                    {effectiveRating > 0 && (
+                    {/* Star Rating Badge (Only on Single Posts) */}
+                    {effectiveRating > 0 && !isPostShared && (
                       <div
                         style={{
                           position: 'absolute',
@@ -1178,90 +1188,92 @@ export const PubView: React.FC<PubViewProps> = ({
                             </div>
                           )}
 
-                          {/* Individual Participant Ratings */}
-                          <div style={{ marginTop: '10px', paddingTop: '8px', borderTop: '1px solid rgba(245, 158, 11, 0.2)' }}>
-                            <div style={{ fontSize: '11px', fontWeight: 800, color: '#92400E', letterSpacing: '0.5px', textTransform: 'uppercase', marginBottom: '6px' }}>
-                              Valutazioni dei Partecipanti
-                            </div>
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                              {participantRatings.map((pr) => (
-                                <div
-                                  key={pr.user}
-                                  style={{
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'space-between',
-                                    fontSize: '12px',
-                                    background: 'rgba(255, 255, 255, 0.85)',
-                                    padding: '6px 10px',
-                                    borderRadius: '10px',
-                                    border: '1px solid rgba(245, 158, 11, 0.15)',
-                                  }}
-                                >
-                                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontWeight: 700, color: '#1E293B' }}>
-                                    <span
-                                      className="clickable-user"
-                                      onClick={() => onOpenPublicProfile(pr.user)}
-                                      style={{ cursor: 'pointer', textDecoration: 'underline' }}
-                                    >
-                                      {pr.name}
-                                    </span>
-                                  </div>
-                                  {pr.rating > 0 ? (
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                                      <StarRating rating={pr.rating} readOnly size={13} />
-                                      <span style={{ fontSize: '11px', fontWeight: 800, color: '#B45309' }}>
-                                        {pr.rating.toFixed(1)}/5
+                          {/* Individual Participant Ratings (Only on Shared Posts) */}
+                          {isPostShared && (
+                            <div style={{ marginTop: '10px', paddingTop: '8px', borderTop: '1px solid rgba(245, 158, 11, 0.2)' }}>
+                              <div style={{ fontSize: '11px', fontWeight: 800, color: '#92400E', letterSpacing: '0.5px', textTransform: 'uppercase', marginBottom: '6px' }}>
+                                Valutazioni dei Partecipanti
+                              </div>
+                              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                                {participantRatings.map((pr) => (
+                                  <div
+                                    key={pr.user}
+                                    style={{
+                                      display: 'flex',
+                                      alignItems: 'center',
+                                      justifyContent: 'space-between',
+                                      fontSize: '12px',
+                                      background: 'rgba(255, 255, 255, 0.85)',
+                                      padding: '6px 10px',
+                                      borderRadius: '10px',
+                                      border: '1px solid rgba(245, 158, 11, 0.15)',
+                                    }}
+                                  >
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontWeight: 700, color: '#1E293B' }}>
+                                      <span
+                                        className="clickable-user"
+                                        onClick={() => onOpenPublicProfile(pr.user)}
+                                        style={{ cursor: 'pointer' }}
+                                      >
+                                        {pr.name}
                                       </span>
                                     </div>
-                                  ) : (
-                                    <span style={{ fontSize: '11px', color: '#94A3B8', fontStyle: 'italic' }}>
-                                      Non ancora votata
-                                    </span>
-                                  )}
-                                </div>
-                              ))}
-                            </div>
+                                    {pr.rating > 0 ? (
+                                      <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                        <StarRating rating={pr.rating} readOnly size={13} />
+                                        <span style={{ fontSize: '11px', fontWeight: 800, color: '#B45309' }}>
+                                          {pr.rating.toFixed(1)}/5
+                                        </span>
+                                      </div>
+                                    ) : (
+                                      <span style={{ fontSize: '11px', color: '#94A3B8', fontStyle: 'italic' }}>
+                                        Non ancora votata
+                                      </span>
+                                    )}
+                                  </div>
+                                ))}
+                              </div>
 
-                            {/* Button for current user to rate/edit rating if participant */}
-                            {allParticipants.some((p) => p.toLowerCase() === currentUserNick.toLowerCase()) && (onOpenRatingModal || onRateBeer) && (
-                              <button
-                                type="button"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  e.preventDefault();
-                                  if (onOpenRatingModal) {
-                                    onOpenRatingModal(post.brand, post.variant, post.photo);
-                                  } else if (onRateBeer) {
-                                    onRateBeer(post.brand, post.variant, myParticipantRating?.rating || 5);
-                                  }
-                                }}
-                                style={{
-                                  marginTop: '8px',
-                                  width: '100%',
-                                  padding: '8px 12px',
-                                  borderRadius: '10px',
-                                  border: '1px solid #FCD34D',
-                                  background: 'linear-gradient(135deg, #FFFBEB, #FEF3C7)',
-                                  color: '#B45309',
-                                  fontSize: '12px',
-                                  fontWeight: 800,
-                                  cursor: 'pointer',
-                                  display: 'flex',
-                                  alignItems: 'center',
-                                  justifyContent: 'center',
-                                  gap: '6px',
-                                  boxShadow: '0 2px 6px rgba(245, 158, 11, 0.12)',
-                                  WebkitTapHighlightColor: 'rgba(245, 158, 11, 0.3)',
-                                }}
-                              >
-                                <span className="material-symbols-outlined" style={{ fontSize: '16px', color: '#F59E0B' }}>
-                                  star
-                                </span>
-                                {myParticipantRating?.rating ? 'Modifica la tua Valutazione' : 'Aggiungi la tua Valutazione ⭐'}
-                              </button>
-                            )}
-                          </div>
+                              {/* Button for current user to rate/edit rating if participant */}
+                              {allParticipants.some((p) => p.toLowerCase() === currentUserNick.toLowerCase()) && (onOpenRatingModal || onRateBeer) && (
+                                <button
+                                  type="button"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    e.preventDefault();
+                                    if (onOpenRatingModal) {
+                                      onOpenRatingModal(post.brand, post.variant, post.photo);
+                                    } else if (onRateBeer) {
+                                      onRateBeer(post.brand, post.variant, myParticipantRating?.rating || 5);
+                                    }
+                                  }}
+                                  style={{
+                                    marginTop: '8px',
+                                    width: '100%',
+                                    padding: '8px 12px',
+                                    borderRadius: '10px',
+                                    border: '1px solid #FCD34D',
+                                    background: 'linear-gradient(135deg, #FFFBEB, #FEF3C7)',
+                                    color: '#B45309',
+                                    fontSize: '12px',
+                                    fontWeight: 800,
+                                    cursor: 'pointer',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    gap: '6px',
+                                    boxShadow: '0 2px 6px rgba(245, 158, 11, 0.12)',
+                                    WebkitTapHighlightColor: 'rgba(245, 158, 11, 0.3)',
+                                  }}
+                                >
+                                  <span className="material-symbols-outlined" style={{ fontSize: '16px', color: '#F59E0B' }}>
+                                    star
+                                  </span>
+                                  {myParticipantRating?.rating ? 'Modifica la tua Valutazione' : 'Aggiungi la tua Valutazione ⭐'}
+                                </button>
+                              )}
+                            </div>
+                          )}
                         </div>
                       );
                     })()}
@@ -1421,7 +1433,9 @@ export const PubView: React.FC<PubViewProps> = ({
                             {av ? (
                               <img src={av} alt={disp} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                             ) : (
-                              <span className="material-symbols-outlined" style={{ color: '#64748B' }}>person</span>
+                              <span style={{ fontSize: '18px', fontWeight: 900, color: '#334155', textTransform: 'uppercase' }}>
+                                {disp.charAt(0).toUpperCase()}
+                              </span>
                             )}
                           </div>
                           <div>

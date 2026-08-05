@@ -268,7 +268,7 @@ export const UserPostsDetailView: React.FC<UserPostsDetailViewProps> = ({
                             draggable={false}
                           />
                         ) : (
-                          post.user.substring(0, 2)
+                          postUserDisplayName.charAt(0).toUpperCase()
                         )}
                       </div>
                       <div>

@@ -100,8 +100,8 @@ export const BrindisiSummary: React.FC<BrindisiSummaryProps> = ({
               {av ? (
                 <img src={av} alt={nick} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
               ) : (
-                <span className="material-symbols-outlined" style={{ fontSize: '12px', color: '#64748B' }}>
-                  person
+                <span style={{ fontSize: '11px', fontWeight: 900, color: '#334155', textTransform: 'uppercase' }}>
+                  {getDisplayName(nick).charAt(0).toUpperCase()}
                 </span>
               )}
             </div>

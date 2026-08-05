@@ -239,8 +239,8 @@ export const PublicProfileView: React.FC<PublicProfileViewProps> = ({
           {avatar ? (
             <img src={avatar} alt={username} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
           ) : (
-            <span className="material-symbols-outlined" style={{ fontSize: '32px' }}>
-              person
+            <span style={{ fontSize: '32px', fontWeight: 900, color: 'var(--primary-dark)', textTransform: 'uppercase' }}>
+              {(displayName || username).charAt(0).toUpperCase()}
             </span>
           )}
         </div>
