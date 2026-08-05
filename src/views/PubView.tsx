@@ -524,6 +524,7 @@ export const PubView: React.FC<PubViewProps> = ({
             </button>
           )}
         </div>
+      </div>
 
       {/* Main Feed Container */}
       <div className="social-page-container" style={{ maxWidth: '640px', margin: '16px auto 0 auto' }}>
