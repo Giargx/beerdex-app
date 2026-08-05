@@ -3052,6 +3052,13 @@ export default function App() {
               })()}
               isFriend={Array.isArray(myFriendsList) && pubProfileUser ? myFriendsList.some((f) => f.toLowerCase() === pubProfileUser.toLowerCase()) : false}
               currentUserNick={currentUserNick}
+              myFriendsList={myFriendsList}
+              mySentRequests={mySentRequests}
+              myReceivedRequests={myReceivedRequests}
+              onAddFriend={handleAddFriend}
+              onRemoveFriend={handleRemoveFriend}
+              onAcceptRequest={handleAcceptRequest}
+              onCancelSentRequest={handleCancelSentRequest}
             />
           ) : null}
         </div>
@@ -3084,6 +3091,8 @@ export default function App() {
               myReceivedRequests={myReceivedRequests}
               mySentRequests={mySentRequests}
               myRejectedRequests={myRejectedRequests}
+              globalAvatars={globalAvatars}
+              globalDisplayNames={globalDisplayNames}
               onAcceptRequest={handleAcceptRequest}
               onRejectRequest={handleRejectRequest}
               onCancelSentRequest={handleCancelSentRequest}

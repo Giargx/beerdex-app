@@ -23,6 +23,13 @@ interface PublicProfileViewProps {
   isPrivate?: boolean;
   isFriend?: boolean;
   currentUserNick?: string;
+  myFriendsList?: string[];
+  mySentRequests?: string[];
+  myReceivedRequests?: string[];
+  onAddFriend?: (name: string) => void;
+  onRemoveFriend?: (name: string) => void;
+  onAcceptRequest?: (sender: string) => void;
+  onCancelSentRequest?: (target: string) => void;
 }
 
 export const PublicProfileView: React.FC<PublicProfileViewProps> = ({
@@ -42,6 +49,13 @@ export const PublicProfileView: React.FC<PublicProfileViewProps> = ({
   isPrivate = false,
   isFriend = false,
   currentUserNick = '',
+  myFriendsList = [],
+  mySentRequests = [],
+  myReceivedRequests = [],
+  onAddFriend,
+  onRemoveFriend,
+  onAcceptRequest,
+  onCancelSentRequest,
 }) => {
   const [activeTab, setActiveTab] = useState<'collection' | 'posts' | 'stats' | 'ratings'>('posts');
 
@@ -262,6 +276,109 @@ export const PublicProfileView: React.FC<PublicProfileViewProps> = ({
         <p id="pubProfileRank" style={{ fontWeight: 'bold', color: 'var(--dark)', opacity: 0.7, position: 'relative', zIndex: 2, margin: '5px 0' }}>
           {rankTitle}
         </p>
+
+        {/* Interactive Friend Action Button */}
+        {currentUserNick && username.toLowerCase() !== currentUserNick.toLowerCase() && (
+          <div style={{ marginTop: '10px', marginBottom: '6px', position: 'relative', zIndex: 2 }}>
+            {isFriend ? (
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  if (onRemoveFriend) {
+                    onRemoveFriend(username);
+                  }
+                }}
+                style={{
+                  background: '#ECFDF5',
+                  border: '1px solid #A7F3D0',
+                  color: '#059669',
+                  padding: '8px 18px',
+                  borderRadius: '20px',
+                  fontSize: '13px',
+                  fontWeight: 800,
+                  cursor: 'pointer',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  boxShadow: '0 2px 8px rgba(16, 185, 129, 0.15)',
+                  transition: 'all 0.2s ease',
+                }}
+              >
+                <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>group</span>
+                <span>Amici ✓ (Rimuovi)</span>
+              </button>
+            ) : Array.isArray(myReceivedRequests) && myReceivedRequests.some((r) => r.toLowerCase() === username.toLowerCase()) ? (
+              <div style={{ display: 'flex', gap: '8px', justifyContent: 'center' }}>
+                <button
+                  type="button"
+                  onClick={() => onAcceptRequest && onAcceptRequest(username)}
+                  style={{
+                    background: 'linear-gradient(135deg, #10B981 0%, #059669 100%)',
+                    border: 'none',
+                    color: '#FFFFFF',
+                    padding: '8px 16px',
+                    borderRadius: '20px',
+                    fontSize: '13px',
+                    fontWeight: 800,
+                    cursor: 'pointer',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    boxShadow: '0 4px 12px rgba(16, 185, 129, 0.3)',
+                  }}
+                >
+                  <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>check</span>
+                  Accetta Richiesta
+                </button>
+              </div>
+            ) : Array.isArray(mySentRequests) && mySentRequests.some((r) => r.toLowerCase() === username.toLowerCase()) ? (
+              <button
+                type="button"
+                onClick={() => onCancelSentRequest && onCancelSentRequest(username)}
+                style={{
+                  background: '#F1F5F9',
+                  border: '1px solid #CBD5E1',
+                  color: '#64748B',
+                  padding: '8px 18px',
+                  borderRadius: '20px',
+                  fontSize: '13px',
+                  fontWeight: 800,
+                  cursor: 'pointer',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                }}
+              >
+                <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>schedule</span>
+                <span>Richiesta Inviata (Annulla)</span>
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={() => onAddFriend && onAddFriend(username)}
+                style={{
+                  background: 'linear-gradient(135deg, #F59E0B 0%, #D97706 100%)',
+                  border: 'none',
+                  color: '#FFFFFF',
+                  padding: '8px 20px',
+                  borderRadius: '20px',
+                  fontSize: '13px',
+                  fontWeight: 800,
+                  cursor: 'pointer',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  boxShadow: '0 4px 14px rgba(245, 158, 11, 0.35)',
+                  transition: 'all 0.2s ease',
+                }}
+              >
+                <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>person_add</span>
+                <span>Aggiungi agli Amici</span>
+              </button>
+            )}
+          </div>
+        )}
         
         {/* Instagram-style user stats row */}
         <div style={{ display: 'flex', justifyContent: 'center', gap: '30px', marginTop: '18px', padding: '0 10px', position: 'relative', zIndex: 2 }}>
