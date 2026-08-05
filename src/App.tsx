@@ -1180,7 +1180,7 @@ export default function App() {
             resolve(null);
           }
         },
-        { timeout: timeoutMs, maximumAge: 30000, enableHighAccuracy: true }
+        { timeout: timeoutMs, maximumAge: 0, enableHighAccuracy: true }
       );
     });
   };
@@ -1195,7 +1195,7 @@ export default function App() {
     const targetBeer = beers.find((b) => b.brand === scannerConfig.brand);
 
     try {
-      const pos = await getPositionWithTimeout(6000);
+      const pos = await getPositionWithTimeout(8000);
       let isShiny = false;
       let lat: number | null = null;
       let lng: number | null = null;
@@ -1218,7 +1218,7 @@ export default function App() {
   const checkShinyStatusWithTimeout = async (lat: number, lng: number, targetBeer: any) => {
     try {
       const shinyPromise = checkShinyStatus(lat, lng, targetBeer);
-      const timeoutPromise = new Promise<boolean>((resolve) => setTimeout(() => resolve(false), 4500));
+      const timeoutPromise = new Promise<boolean>((resolve) => setTimeout(() => resolve(false), 5000));
       return await Promise.race([shinyPromise, timeoutPromise]);
     } catch (e) {
       console.error("Shiny check timeout/error:", e);
@@ -1239,16 +1239,23 @@ export default function App() {
           if (regBounds && lat >= regBounds.latMin && lat <= regBounds.latMax && lng >= regBounds.lngMin && lng <= regBounds.lngMax) {
             isShiny = true;
           } else {
-            // 2. Reverse Geocoding Fallback via Nominatim
+            // 2. High-Precision Reverse Geocoding via BigDataCloud & Nominatim APIs
             try {
-              const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=10`);
-              const data = await res.json();
-              const currentRegion = data.address?.state || data.address?.region || data.address?.county || data.address?.province || "";
-              if (normalizeStr(currentRegion).includes(normalizeStr(regName))) {
+              const bdcRes = await fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lng}&localityLanguage=it`);
+              const bdcData = await bdcRes.json();
+              const bdcRegion = bdcData.principalSubdivision || bdcData.localityInfo?.administrative?.[1]?.name || "";
+              if (normalizeStr(bdcRegion).includes(normalizeStr(regName))) {
                 isShiny = true;
+              } else {
+                const nomRes = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18`);
+                const nomData = await nomRes.json();
+                const currentRegion = nomData.address?.state || nomData.address?.region || nomData.address?.county || nomData.address?.province || "";
+                if (normalizeStr(currentRegion).includes(normalizeStr(regName))) {
+                  isShiny = true;
+                }
               }
             } catch (e) {
-              console.log("Nominatim reverse geocode error:", e);
+              console.log("Reverse geocode error:", e);
             }
           }
         } else {

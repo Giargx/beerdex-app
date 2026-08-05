@@ -43,41 +43,56 @@ export const MapContainer: React.FC<MapContainerProps> = ({
         minZoom: 2,
       }).setView([41.9028, 12.4964], 5);
 
-      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        maxZoom: 19,
+      L.tileLayer('https://mt{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}', {
+        maxZoom: 20,
+        subdomains: ['0', '1', '2', '3'],
         noWrap: true,
         bounds: [
           [-90, -180],
           [90, 180],
         ],
-        attribution: '© OpenStreetMap',
+        attribution: '© Google Maps',
       }).addTo(mapInstance.current);
 
       markersGroup.current = L.layerGroup().addTo(mapInstance.current);
 
-      // Try geolocating user
+      // High-Precision Geolocation via GPS / WiFi
       if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(
           (pos) => {
             const lat = pos.coords.latitude;
             const lng = pos.coords.longitude;
+            const accuracy = pos.coords.accuracy || 0;
             
             if (mapInstance.current) {
-              mapInstance.current.setView([lat, lng], 13);
+              mapInstance.current.setView([lat, lng], 15);
 
+              // Accuracy Circle
+              if (accuracy > 0) {
+                L.circle([lat, lng], {
+                  radius: Math.min(accuracy, 500),
+                  color: '#4285F4',
+                  fillColor: '#4285F4',
+                  fillOpacity: 0.15,
+                  weight: 1,
+                }).addTo(mapInstance.current);
+              }
+
+              // Google Maps Style Blue Location Pin
               const userIcon = L.divIcon({
-                html: '<div style="background:#3498db; width:16px; height:16px; border-radius:50%; border:3px solid #fff; box-shadow:0 0 5px rgba(0,0,0,0.5);"></div>',
+                html: '<div style="background:#4285F4; width:18px; height:18px; border-radius:50%; border:3px solid #FFFFFF; box-shadow:0 0 8px rgba(66,133,244,0.8);"></div>',
                 className: 'user-loc-icon',
-                iconSize: [22, 22],
-                iconAnchor: [11, 11],
+                iconSize: [24, 24],
+                iconAnchor: [12, 12],
               });
 
               L.marker([lat, lng], { icon: userIcon })
                 .addTo(mapInstance.current)
-                .bindPopup("<b style='font-family:inherit;'>Sei qui!</b>");
+                .bindPopup("<b style='font-family:inherit;'>La tua Posizione GPS (Google Maps)</b>");
             }
           },
-          (err) => console.log("Geolocation error:", err)
+          (err) => console.log("Geolocation error:", err),
+          { enableHighAccuracy: true, maximumAge: 0, timeout: 10000 }
         );
       }
     }
