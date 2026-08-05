@@ -3171,70 +3171,88 @@ export default function App() {
       </div>
 
       {/* FLOATING NAVIGATION CAP BAR */}
-      {currentUser && (
-        <nav className="bottom-nav">
-          <div
-            className={`nav-item ${currentPage === 'page-home' ? 'active' : ''}`}
-            onClick={() => navigateTo('page-home')}
-          >
-            <div className="nav-icon">
-              <span className="material-symbols-outlined">home</span>
+      {currentUser && (() => {
+        const getActiveBottomNavTab = () => {
+          const mainTabs = ['page-home', 'page-explore', 'page-leaderboard', 'page-social', 'page-profile'];
+          if (mainTabs.includes(currentPage)) {
+            return currentPage;
+          }
+          if (currentPage === 'page-public-profile') {
+            return pubProfileBackPage || 'page-leaderboard';
+          }
+          if (currentPage === 'page-user-posts-detail') {
+            return detailViewBackPage || 'page-profile';
+          }
+          return subPageBackPage || 'page-home';
+        };
+
+        const activeBottomTab = getActiveBottomNavTab();
+
+        return (
+          <nav className="bottom-nav">
+            <div
+              className={`nav-item ${activeBottomTab === 'page-home' ? 'active' : ''}`}
+              onClick={() => navigateTo('page-home')}
+            >
+              <div className="nav-icon">
+                <span className="material-symbols-outlined">home</span>
+              </div>
+              <div className="nav-text">Home</div>
             </div>
-            <div className="nav-text">Home</div>
-          </div>
-          <div
-            className={`nav-item ${currentPage === 'page-explore' || currentPage === 'page-map-view' ? 'active' : ''}`}
-            onClick={() => navigateTo('page-explore')}
-          >
-            <div className="nav-icon">
-              <span className="material-symbols-outlined">search</span>
+            <div
+              className={`nav-item ${activeBottomTab === 'page-explore' ? 'active' : ''}`}
+              onClick={() => navigateTo('page-explore')}
+            >
+              <div className="nav-icon">
+                <span className="material-symbols-outlined">search</span>
+              </div>
+              <div className="nav-text">Esplora</div>
             </div>
-            <div className="nav-text">Esplora</div>
-          </div>
-          <div
-            className={`nav-item ${currentPage === 'page-leaderboard' || currentPage === 'page-public-profile' ? 'active' : ''}`}
-            onClick={() => navigateTo('page-leaderboard')}
-          >
-            <div className="nav-icon">
-              <span className="material-symbols-outlined">leaderboard</span>
+            <div
+              className={`nav-item ${activeBottomTab === 'page-leaderboard' ? 'active' : ''}`}
+              onClick={() => navigateTo('page-leaderboard')}
+            >
+              <div className="nav-icon">
+                <span className="material-symbols-outlined">leaderboard</span>
+              </div>
+              <div className="nav-text">Classifica</div>
             </div>
-            <div className="nav-text">Classifica</div>
-          </div>
-          <div
-            className={`nav-item ${currentPage === 'page-social' ? 'active' : ''}`}
-            onClick={() => navigateTo('page-social')}
-          >
-            <div className="nav-icon">
-              <span className="material-symbols-outlined">sports_bar</span>
+            <div
+              className={`nav-item ${activeBottomTab === 'page-social' ? 'active' : ''}`}
+              onClick={() => navigateTo('page-social')}
+            >
+              <div className="nav-icon">
+                <span className="material-symbols-outlined">sports_bar</span>
+              </div>
+              <div className="nav-text">Pub</div>
             </div>
-            <div className="nav-text">Pub</div>
-          </div>
-          <div
-            className={`nav-item ${currentPage === 'page-profile' || currentPage === 'page-friends' || currentPage === 'page-rules' ? 'active' : ''}`}
-            onClick={() => navigateTo('page-profile')}
-          >
-            <div className="nav-icon" style={{ position: 'relative' }}>
-              <span className="material-symbols-outlined">person</span>
-              {((isAdminUser && (beerProposals || []).filter((p: BeerProposalItem) => p && p.status === 'pending').length > 0) || (myReceivedRequests || []).length > 0 || (myTagRequests || []).length > 0) && (
-                <span
-                  style={{
-                    position: 'absolute',
-                    top: '-1px',
-                    right: '-1px',
-                    width: '8px',
-                    height: '8px',
-                    borderRadius: '50%',
-                    background: '#FF6F00',
-                    boxShadow: '0 0 6px rgba(255, 111, 0, 0.9)',
-                  }}
-                  title="Notifiche in sospeso"
-                />
-              )}
+            <div
+              className={`nav-item ${activeBottomTab === 'page-profile' ? 'active' : ''}`}
+              onClick={() => navigateTo('page-profile')}
+            >
+              <div className="nav-icon" style={{ position: 'relative' }}>
+                <span className="material-symbols-outlined">person</span>
+                {((isAdminUser && (beerProposals || []).filter((p: BeerProposalItem) => p && p.status === 'pending').length > 0) || (myReceivedRequests || []).length > 0 || (myTagRequests || []).length > 0) && (
+                  <span
+                    style={{
+                      position: 'absolute',
+                      top: '-1px',
+                      right: '-1px',
+                      width: '8px',
+                      height: '8px',
+                      borderRadius: '50%',
+                      background: '#FF6F00',
+                      boxShadow: '0 0 6px rgba(255, 111, 0, 0.9)',
+                    }}
+                    title="Notifiche in sospeso"
+                  />
+                )}
+              </div>
+              <div className="nav-text">Profilo</div>
             </div>
-            <div className="nav-text">Profilo</div>
-          </div>
-        </nav>
-      )}
+          </nav>
+        );
+      })()}
 
       {/* Zoomed Profile Avatar modal */}
       {zoomedAvatarUrl && (
