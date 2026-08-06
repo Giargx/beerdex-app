@@ -39,10 +39,10 @@ export const AppTutorialModal: React.FC<AppTutorialModalProps> = ({
     {
       pageName: 'page-home',
       targetId: 'homeTopActionTiles',
-      badge: 'FASE 1 DI 5 • HOME • AZIONI PRINCIPALI',
+      badge: 'FASE 1 DI 5 • HOME',
       badgeBg: '#F59E0B',
       title: 'Benvenuto su PopIt! 🍺🕶️',
-      mascotSpeech: 'Ciao! Sono POP 🍺🕶️, la tua guida personale. Ti mostro le icone principali: la Fotocamera per scansionare i codici a barre, il tasto Amici, la Mappa dei pub ed il Regolamento!',
+      mascotSpeech: 'Ciao! Sono POP 🍺🕶️, la tua guida personale. Ti mostro le icone principali: la Fotocamera per immortalare le tue birre, il tasto Amici, la Mappa dei pub ed il Regolamento!',
       targetPosition: { top: '340px', left: '50%', width: '92%', height: '90px', borderRadius: '24px' },
     },
     // ----------------------------------------------------
@@ -51,7 +51,7 @@ export const AppTutorialModal: React.FC<AppTutorialModalProps> = ({
     {
       pageName: 'page-home',
       targetId: 'dashEventBox',
-      badge: 'FASE 1 DI 5 • HOME • EVENTI & CONSIGLI',
+      badge: 'FASE 1 DI 5 • HOME',
       badgeBg: '#D97706',
       title: 'Eventi Speciali & Spina 🍺',
       mascotSpeech: 'Sempre nella Home trovi il banner dell\'Evento Stagionale attivo (es. Oktoberfest o San Patrizio) e la Spina del Giorno con le birre consigliate!',
@@ -63,7 +63,7 @@ export const AppTutorialModal: React.FC<AppTutorialModalProps> = ({
     {
       pageName: 'page-explore',
       targetId: 'exploreSearchHeader',
-      badge: 'FASE 2 DI 5 • ESPLORA • RICERCA & FILTRI',
+      badge: 'FASE 2 DI 5 • ESPLORA',
       badgeBg: '#3B82F6',
       title: 'Cerca & Filtra le Birre 🔍',
       mascotSpeech: 'Siamo in Esplora! In alto puoi digitare la marca della birra che cerchi e filtrarla per Rarità (Comuni, Medie, Rare) o per Nazione!',
@@ -75,22 +75,22 @@ export const AppTutorialModal: React.FC<AppTutorialModalProps> = ({
     {
       pageName: 'page-explore',
       targetId: 'beerList',
-      badge: 'FASE 2 DI 5 • ESPLORA • SBLOCCO CON BARCODE',
+      badge: 'FASE 2 DI 5 • ESPLORA',
       badgeBg: '#2563EB',
       title: 'Banner Rarità & Scansione 📸',
-      mascotSpeech: 'Toccando un banner di rarità apri la scheda della birra. Premi "Sblocca": prima inquadra il codice a barre (Barcode) sul retro della bottiglia, poi scatta la foto alla tua birra!',
+      mascotSpeech: 'Toccando un banner di rarità apri la scheda della birra. Premi "Sblocca": scatta una foto alla tua birra per immortalare la bevuta!',
       targetPosition: { top: '270px', left: '50%', width: '94%', height: '180px', borderRadius: '20px' },
     },
     // ----------------------------------------------------
-    // PASSO 3A: CLASSIFICHE - AMICI E GLOBALE (TOP 5)
+    // PASSO 3A: CLASSIFICHE - AMICI E GLOBALE (TOP 50)
     // ----------------------------------------------------
     {
       pageName: 'page-leaderboard',
       targetId: 'leaderboardTabs',
-      badge: 'FASE 3 DI 5 • CLASSIFICHE • AMICI E TOP 5',
+      badge: 'FASE 3 DI 5 • CLASSIFICHE',
       badgeBg: '#8B5CF6',
       title: 'Classifica Amici & Globale 🏆',
-      mascotSpeech: 'Nelle Classifiche puoi confrontare i tuoi punti XP con i tuoi amici. Nella scheda Globale trovi i Top 5 Bevitori migliori dell\'intera applicazione!',
+      mascotSpeech: 'Nelle Classifiche puoi confrontare i tuoi punti XP con i tuoi amici. Nella scheda Globale trovi i Top 50 Bevitori migliori dell\'intera applicazione!',
       targetPosition: { top: '75px', left: '50%', width: '92%', height: '55px', borderRadius: '20px' },
     },
     // ----------------------------------------------------
@@ -99,7 +99,7 @@ export const AppTutorialModal: React.FC<AppTutorialModalProps> = ({
     {
       pageName: 'page-leaderboard',
       targetId: 'leaderboardSearchBox',
-      badge: 'FASE 3 DI 5 • CLASSIFICHE • CERCA UTENTI',
+      badge: 'FASE 3 DI 5 • CLASSIFICHE',
       badgeBg: '#7C3AED',
       title: 'Cerca Utenti per Nickname 🔎',
       mascotSpeech: 'Vuoi cercare un altro bevitore? Usa la barra di ricerca in alto per digitare il nickname univoco di qualsiasi utente e trovarlo al volo!',
@@ -111,7 +111,7 @@ export const AppTutorialModal: React.FC<AppTutorialModalProps> = ({
     {
       pageName: 'page-social',
       targetId: 'pubStoriesSection',
-      badge: 'FASE 4 DI 5 • IL PUB • STORIE 24H',
+      badge: 'FASE 4 DI 5 • IL PUB',
       badgeBg: '#EC4899',
       title: 'Le Storie 24h al Bancone 🍻',
       mascotSpeech: 'Siamo al Pub Social! In alto trovi le Storie 24h dei bevitori. Tocca il cerchio profilo di un amico per guardare la sua storia o scattarne una tua!',
@@ -123,7 +123,7 @@ export const AppTutorialModal: React.FC<AppTutorialModalProps> = ({
     {
       pageName: 'page-social',
       targetId: 'pubPostsFeed',
-      badge: 'FASE 4 DI 5 • IL PUB • POST & SEGNALIBRO',
+      badge: 'FASE 4 DI 5 • IL PUB',
       badgeBg: '#DB2777',
       title: 'Post degli Amici & Salvataggio 📌',
       mascotSpeech: 'Nel feed del Pub vedi i post pubblicati dai tuoi amici. Usa l\'icona del Segnalibro per salvarli tra i tuoi preferiti o l\'icona della Bandierina per segnalarli.',
@@ -135,7 +135,7 @@ export const AppTutorialModal: React.FC<AppTutorialModalProps> = ({
     {
       pageName: 'page-profile',
       targetId: 'profileSettingsBtn',
-      badge: 'FASE 5 DI 5 • PROFILO • IMPOSTAZIONI & AVATAR',
+      badge: 'FASE 5 DI 5 • PROFILO',
       badgeBg: '#EF4444',
       title: 'Impostazioni & Foto Profilo ⚙️',
       mascotSpeech: 'Siamo nel tuo Profilo! In alto a destra c\'è l\'ingranaggio per modificare il tuo nickname (ogni 3 mesi), cambiare la password e riaprire questo tutorial!',
@@ -147,7 +147,7 @@ export const AppTutorialModal: React.FC<AppTutorialModalProps> = ({
     {
       pageName: 'page-profile',
       targetId: 'profileTabButtons',
-      badge: 'FASE 5 DI 5 • PROFILO • LE SCHEDE PERSONALI',
+      badge: 'FASE 5 DI 5 • PROFILO',
       badgeBg: '#DC2626',
       title: 'Le tue Schede Personali 📊',
       mascotSpeech: 'In basso nel profilo trovi 5 schede: "I Miei Post", "Post Salvati", "Medaglie & Trofei", "Statistiche Stili" e "Valutazioni". Esplorale tutte!',
@@ -264,6 +264,7 @@ export const AppTutorialModal: React.FC<AppTutorialModalProps> = ({
 
   return (
     <div
+      onClick={handleNext}
       style={{
         position: 'fixed',
         top: 0,
@@ -271,7 +272,8 @@ export const AppTutorialModal: React.FC<AppTutorialModalProps> = ({
         width: '100vw',
         height: '100vh',
         zIndex: 99999,
-        pointerEvents: 'none',
+        pointerEvents: 'auto',
+        cursor: 'pointer',
         boxSizing: 'border-box',
       }}
     >
@@ -303,7 +305,6 @@ export const AppTutorialModal: React.FC<AppTutorialModalProps> = ({
             cursor: 'pointer',
             boxSizing: 'border-box',
           }}
-          onClick={handleNext}
         >
           <div
             style={{
@@ -342,7 +343,6 @@ export const AppTutorialModal: React.FC<AppTutorialModalProps> = ({
             cursor: 'pointer',
             boxSizing: 'border-box',
           }}
-          onClick={handleNext}
         >
           <div
             style={{
@@ -422,7 +422,7 @@ export const AppTutorialModal: React.FC<AppTutorialModalProps> = ({
         <div
           style={{
             flex: 1,
-            height: '190px',
+            height: '175px',
             background: '#FFFFFF',
             borderRadius: '20px',
             borderBottomLeftRadius: '4px',
@@ -457,7 +457,7 @@ export const AppTutorialModal: React.FC<AppTutorialModalProps> = ({
               style={{
                 background: current.badgeBg,
                 color: '#FFF',
-                fontSize: '9.5px',
+                fontSize: '10px',
                 fontWeight: 900,
                 padding: '3px 8px',
                 borderRadius: '10px',
@@ -471,7 +471,10 @@ export const AppTutorialModal: React.FC<AppTutorialModalProps> = ({
             </span>
 
             <button
-              onClick={onClose}
+              onClick={(e) => {
+                e.stopPropagation();
+                onClose();
+              }}
               style={{ background: 'transparent', border: 'none', color: '#94A3B8', cursor: 'pointer', padding: 0 }}
               title="Chiudi Tutorial"
             >
@@ -479,8 +482,8 @@ export const AppTutorialModal: React.FC<AppTutorialModalProps> = ({
             </button>
           </div>
 
-          {/* SCROLLABLE INNER TEXT AREA (TITLE + SPEECH) */}
-          <div style={{ flex: 1, overflowY: 'auto', margin: '6px 0', paddingRight: '2px' }}>
+          {/* INNER TEXT AREA (NO INTERNAL SCROLLING) */}
+          <div style={{ flex: 1, margin: '6px 0', overflow: 'hidden' }}>
             <div style={{ fontSize: '14px', fontWeight: 900, color: '#0F172A', lineHeight: '1.25', marginBottom: '4px' }}>
               {current.title}
             </div>
@@ -493,18 +496,21 @@ export const AppTutorialModal: React.FC<AppTutorialModalProps> = ({
           {/* CONTROLS */}
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexShrink: 0, marginTop: '2px' }}>
             <div style={{ fontSize: '10.5px', fontWeight: 800, color: '#64748B' }}>
-              {currentStep + 1} di {steps.length}
+              {currentStep + 1} di {steps.length} • Touch ovunque per proseguire
             </div>
 
             <div style={{ display: 'flex', gap: '6px' }}>
               {currentStep > 0 && (
                 <button
-                  onClick={handlePrev}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handlePrev();
+                  }}
                   style={{
                     background: '#F1F5F9',
                     border: '1px solid #CBD5E1',
                     color: '#475569',
-                    padding: '5px 11px',
+                    padding: '5px 12px',
                     borderRadius: '10px',
                     fontSize: '11px',
                     fontWeight: 800,
@@ -514,29 +520,6 @@ export const AppTutorialModal: React.FC<AppTutorialModalProps> = ({
                   Indietro
                 </button>
               )}
-
-              <button
-                onClick={handleNext}
-                style={{
-                  background: 'linear-gradient(135deg, #F59E0B 0%, #D97706 100%)',
-                  border: 'none',
-                  color: '#FFFFFF',
-                  padding: '5px 14px',
-                  borderRadius: '10px',
-                  fontSize: '11px',
-                  fontWeight: 900,
-                  cursor: 'pointer',
-                  boxShadow: '0 3px 10px rgba(245, 158, 11, 0.4)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '3px',
-                }}
-              >
-                <span>{currentStep === steps.length - 1 ? 'Inizia a Stappare! 🍺' : 'Avanti'}</span>
-                <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>
-                  {currentStep === steps.length - 1 ? 'check' : 'arrow_forward'}
-                </span>
-              </button>
             </div>
           </div>
         </div>
