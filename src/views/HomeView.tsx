@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { FoamBubbles } from '../components/FoamBubbles';
 import { beers, formatBeerTitle, getBeerType } from '../beers';
+import { playClinkSound } from '../utils/audio';
 
 interface Post {
   postId: string;
@@ -478,6 +479,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
     .slice(0, 10);
 
   const handleTriggerCheers = (postUser: string, postId: string) => {
+    playClinkSound();
     setCheeredPosts(prev => ({ ...prev, [postId]: true }));
     setCheersToast(`Hai brindato con ${postUser}! 🥂✨`);
     setTimeout(() => {

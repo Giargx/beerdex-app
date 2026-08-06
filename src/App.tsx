@@ -5,7 +5,7 @@ import { auth, db } from './firebase';
 
 import { beers, getBeerPoints, countryCoordinates, normalizeStr, mergeBeers, getCountryFlag, formatBeerTitle, resolvePokedexEntryBeer } from './beers';
 import type { Beer } from './beers';
-import { playPopSound } from './utils/audio';
+import { playPopSound, playClinkSound } from './utils/audio';
 import { checkImageSafety } from './utils/imageModeration';
 import { containsProfanity } from './utils/textFilter';
 import { getEventMedals } from './components/TrophyGrid';
@@ -1661,6 +1661,7 @@ export default function App() {
 
   // Like operations (triggered doubletap or button clink)
   const handleToggleLike = async (postId: string, _imageContainer: HTMLElement | null) => {
+    playClinkSound();
     const likeRef = ref(db, `social_timeline/${postId}/likes/${currentUserNick}`);
     const snap = await get(likeRef);
     if (snap.exists()) {
