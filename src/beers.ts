@@ -359,16 +359,18 @@ export function resolvePokedexEntryBeer(
     });
   }
 
-  // 3. Match longest brand prefix in key
+  // 3. Match longest brand prefix or substring in key
   if (!foundBeer && key) {
     let longestMatch: Beer | undefined = undefined;
+    const normKey = normalizeStr(key);
     safeCatalog.forEach((b) => {
       if (!b || !b.brand) return;
-      const formattedB = formatBeerTitle(b.brand);
+      const normBrand = normalizeStr(b.brand);
       if (
         key.startsWith(`${b.brand}-`) ||
-        key.startsWith(`${formattedB}-`) ||
-        normalizeStr(key).startsWith(`${normalizeStr(b.brand)}-`)
+        key.startsWith(`${formatBeerTitle(b.brand)}-`) ||
+        normKey.startsWith(`${normBrand}-`) ||
+        normKey.startsWith(normBrand)
       ) {
         if (!longestMatch || b.brand.length > longestMatch.brand.length) {
           longestMatch = b;
@@ -394,7 +396,10 @@ export function resolvePokedexEntryBeer(
   }
   if (!variant) variant = 'Classica';
 
-  const rawRarity = String(foundBeer?.rarity || entry?.rarity || 'comune').toLowerCase().trim();
+  const rawRarity = String(
+    foundBeer?.rarity || (entry && typeof entry === 'object' ? (entry.rarity || entry.beer?.rarity) : '') || 'comune'
+  ).toLowerCase().trim();
+
   let rarity: 'comune' | 'media' | 'rara' = 'comune';
   if (rawRarity === 'media' || rawRarity === 'medium' || rawRarity === 'medio') {
     rarity = 'media';
@@ -404,7 +409,7 @@ export function resolvePokedexEntryBeer(
     rarity = 'comune';
   }
 
-  const country = foundBeer?.country || entry?.country || 'Italia';
+  const country = foundBeer?.country || (entry && typeof entry === 'object' ? (entry.country || entry.beer?.country) : '') || 'Italia';
 
   return { beer: foundBeer, brand, variant, rarity, country };
 }

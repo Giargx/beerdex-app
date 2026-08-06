@@ -171,26 +171,32 @@ export const PublicProfileView: React.FC<PublicProfileViewProps> = ({
     if (!countryCounts[c]) {
       countryCounts[c] = { unlocked: 0, total: 0 };
     }
-    countryCounts[c].total += Array.isArray(beer?.variants) ? beer.variants.length : 1;
+    countryCounts[c].total += Array.isArray(beer?.variants) && beer.variants.length > 0 ? beer.variants.length : 1;
   });
   Object.keys(safePokedex).forEach(key => {
     if (!safePokedex[key]) return;
     const entry = safePokedex[key];
     const { country } = resolvePokedexEntryBeer(key, entry, safeCatalog);
-    if (!countryCounts[country]) {
-      countryCounts[country] = { unlocked: 0, total: 0 };
+    const validCountry = country || 'Sconosciuta';
+    if (!countryCounts[validCountry]) {
+      countryCounts[validCountry] = { unlocked: 0, total: 0 };
     }
-    countryCounts[country].unlocked += 1;
+    countryCounts[validCountry].unlocked += 1;
   });
 
   const countryStatsList = Object.entries(countryCounts)
-    .map(([country, stats]) => ({
-      country,
-      percentage: stats.total > 0 ? Math.round((stats.unlocked / stats.total) * 100) : 0,
-      ...stats
-    }))
+    .map(([country, stats]) => {
+      const safeTotal = Math.max(stats.total, stats.unlocked);
+      const percentage = safeTotal > 0 ? Math.min(100, Math.round((stats.unlocked / safeTotal) * 100)) : 0;
+      return {
+        country,
+        unlocked: stats.unlocked,
+        total: safeTotal,
+        percentage
+      };
+    })
     .filter(stat => stat.unlocked > 0)
-    .sort((a, b) => b.percentage - a.percentage);
+    .sort((a, b) => b.percentage - a.percentage || b.unlocked - a.unlocked);
 
   return (
     <div className="page-container-view">
