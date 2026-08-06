@@ -55,6 +55,7 @@ export const StoryViewerModal: React.FC<StoryViewerModalProps> = ({
   const [isPaused, setIsPaused] = useState<boolean>(false);
   const [isFlipping, setIsFlipping] = useState<boolean>(false);
   const [isMuted, setIsMuted] = useState<boolean>(false);
+  const [isAudioPlaying, setIsAudioPlaying] = useState<boolean>(false);
 
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
@@ -71,57 +72,39 @@ export const StoryViewerModal: React.FC<StoryViewerModalProps> = ({
     }
   }, [stories.length, currentIndex, isOpen, onClose]);
 
-  // Handle Background Music Playback
+  // Calcola l'URL dell'audio per la storia corrente
+  const currentStory = stories[currentIndex];
+  let currentAudioUrl = currentStory?.musicAudioUrl;
+  if (currentAudioUrl && currentAudioUrl.includes('pixabay.com')) {
+    currentAudioUrl = '';
+  }
+  if (!currentAudioUrl && currentStory?.musicTrackId) {
+    const foundTrack = POPULAR_MUSIC_TRACKS.find((t) => t.id === currentStory.musicTrackId);
+    if (foundTrack) currentAudioUrl = foundTrack.audioUrl;
+  }
+  if (!currentAudioUrl && (currentStory?.musicTitle || currentStory?.musicTrackId)) {
+    currentAudioUrl = POPULAR_MUSIC_TRACKS[0]?.audioUrl;
+  }
+
+  // Gestione Riproduzione Audio
   useEffect(() => {
-    if (!isOpen || stories.length === 0) {
-      if (audioRef.current) {
-        audioRef.current.pause();
-        audioRef.current = null;
-      }
+    if (!isOpen || stories.length === 0 || !currentAudioUrl) {
+      setIsAudioPlaying(false);
       return;
     }
 
-    const story = stories[currentIndex];
     if (audioRef.current) {
-      audioRef.current.pause();
-      audioRef.current = null;
-    }
-
-    let audioUrl = story?.musicAudioUrl;
-    if (audioUrl && audioUrl.includes('pixabay.com')) {
-      audioUrl = ''; // Ripulisci i vecchi link Pixabay bloccati
-    }
-
-    if (!audioUrl && story?.musicTrackId) {
-      const foundTrack = POPULAR_MUSIC_TRACKS.find((t) => t.id === story.musicTrackId);
-      if (foundTrack) audioUrl = foundTrack.audioUrl;
-    }
-
-    if (!audioUrl && (story?.musicTitle || story?.musicTrackId)) {
-      audioUrl = POPULAR_MUSIC_TRACKS[0]?.audioUrl;
-    }
-
-    if (story && audioUrl) {
-      const audio = new Audio(audioUrl);
-      audio.volume = isMuted ? 0 : 1.0;
-      audio.loop = true;
-      audioRef.current = audio;
-
-      const playPromise = audio.play();
+      audioRef.current.volume = isMuted ? 0 : 1.0;
+      const playPromise = audioRef.current.play();
       if (playPromise !== undefined) {
-        playPromise.catch(() => {
-          // Autoplay deferred until user interaction
-        });
+        playPromise
+          .then(() => setIsAudioPlaying(true))
+          .catch(() => {
+            setIsAudioPlaying(false);
+          });
       }
     }
-
-    return () => {
-      if (audioRef.current) {
-        audioRef.current.pause();
-        audioRef.current = null;
-      }
-    };
-  }, [currentIndex, isOpen, stories, isMuted]);
+  }, [currentIndex, isOpen, currentAudioUrl, isMuted]);
 
   useEffect(() => {
     if (audioRef.current) {
@@ -130,13 +113,20 @@ export const StoryViewerModal: React.FC<StoryViewerModalProps> = ({
   }, [isMuted]);
 
   const tryPlayAudio = () => {
-    if (audioRef.current && audioRef.current.paused && !isMuted) {
-      audioRef.current.play().catch(() => {});
+    if (audioRef.current && !isMuted) {
+      audioRef.current.play().then(() => {
+        setIsAudioPlaying(true);
+      }).catch(() => {});
     }
   };
 
+  // Timer per la durata della storia: 15 SECONDI (15.000 ms)
   useEffect(() => {
     if (!isOpen || stories.length === 0 || isPaused || isFlipping) return;
+
+    const STORY_DURATION_MS = 15000; // 15 secondi per storia
+    const TICK_MS = 100;
+    const INCREMENT = (TICK_MS / STORY_DURATION_MS) * 100; // ~0.6667% per tick
 
     const interval = setInterval(() => {
       setProgress((prev) => {
@@ -164,16 +154,14 @@ export const StoryViewerModal: React.FC<StoryViewerModalProps> = ({
             return 100;
           }
         }
-        return prev + 2; // 50 steps x 100ms = 5s per story
+        return prev + INCREMENT;
       });
-    }, 100);
+    }, TICK_MS);
 
     return () => clearInterval(interval);
   }, [isOpen, currentIndex, stories, isPaused, isFlipping, onClose]);
 
   if (!isOpen || stories.length === 0) return null;
-
-  const currentStory = stories[currentIndex];
   if (!currentStory) return null;
 
   const avatar = globalAvatars[currentStory.user];
@@ -240,6 +228,48 @@ export const StoryViewerModal: React.FC<StoryViewerModalProps> = ({
           100% { transform: translateX(-100%); }
         }
       `}</style>
+      {currentAudioUrl && (
+        <audio
+          ref={audioRef}
+          src={currentAudioUrl}
+          loop
+          preload="auto"
+          playsInline
+          onPlay={() => setIsAudioPlaying(true)}
+          onPause={() => setIsAudioPlaying(false)}
+        />
+      )}
+
+      {!isAudioPlaying && !isMuted && currentAudioUrl && (
+        <div
+          onClick={(e) => {
+            e.stopPropagation();
+            tryPlayAudio();
+          }}
+          style={{
+            position: 'absolute',
+            top: '80px',
+            left: '50%',
+            transform: 'translateX(-50%)',
+            zIndex: 1000000,
+            background: '#F59E0B',
+            color: '#000000',
+            padding: '8px 16px',
+            borderRadius: '20px',
+            fontSize: '12px',
+            fontWeight: 800,
+            display: 'flex',
+            alignItems: 'center',
+            gap: '6px',
+            boxShadow: '0 4px 15px rgba(245, 158, 11, 0.5)',
+            cursor: 'pointer',
+          }}
+        >
+          <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>volume_up</span>
+          Tocca per ascoltare la musica 🎵
+        </div>
+      )}
+
       <div
         style={{
           position: 'fixed',
