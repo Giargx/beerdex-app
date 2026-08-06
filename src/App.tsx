@@ -2059,13 +2059,19 @@ export default function App() {
 
   // Like operations (triggered doubletap or button clink)
   const handleToggleLike = async (postId: string, _imageContainer: HTMLElement | null) => {
-    const likeRef = ref(db, `social_timeline/${postId}/likes/${currentUserNick}`);
-    const snap = await get(likeRef);
-    if (snap.exists()) {
-      await remove(likeRef);
-    } else {
-      playClinkSound();
-      await set(likeRef, true);
+    // Suona il suono di brindisi/like IMMEDIATAMENTE sul tocco dell'utente
+    playClinkSound();
+
+    try {
+      const likeRef = ref(db, `social_timeline/${postId}/likes/${currentUserNick}`);
+      const snap = await get(likeRef);
+      if (snap.exists()) {
+        await remove(likeRef);
+      } else {
+        await set(likeRef, true);
+      }
+    } catch (e) {
+      console.error("Error toggling like:", e);
     }
   };
 
