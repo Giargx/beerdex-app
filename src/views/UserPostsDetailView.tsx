@@ -2,7 +2,6 @@ import React, { useEffect, useState } from 'react';
 import { StarRating } from '../components/StarRating';
 import { formatBeerTitle, getBasePoints, getUniqueParticipantPosts } from '../beers';
 import { BrindisiSummary } from '../components/BrindisiSummary';
-import { playClinkSound } from '../utils/audio';
 import { ReportPostModal } from '../components/ReportPostModal';
 
 interface UserPostsDetailViewProps {
@@ -87,8 +86,6 @@ export const UserPostsDetailView: React.FC<UserPostsDetailViewProps> = ({
   const triggerCinAnimation = (container: HTMLElement) => {
     const exists = container.querySelector('.cin-toast-container');
     if (exists) return;
-
-    playClinkSound();
 
     const animDiv = document.createElement('div');
     animDiv.className = 'cin-toast-container';

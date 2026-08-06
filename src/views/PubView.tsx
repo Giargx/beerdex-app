@@ -1,7 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { ref, onValue } from 'firebase/database';
 import { db } from '../firebase';
-import { playClinkSound } from '../utils/audio';
 import { FoamBubbles } from '../components/FoamBubbles';
 import { getBasePoints, formatBeerTitle } from '../beers';
 import { StarRating } from '../components/StarRating';
@@ -239,8 +238,6 @@ export const PubView: React.FC<PubViewProps> = ({
   const triggerCinAnimation = (targetContainer: HTMLElement) => {
     if (!targetContainer) return;
     if (targetContainer.querySelector('.cin-toast-container')) return;
-
-    playClinkSound();
 
     const container = document.createElement('div');
     container.className = 'cin-toast-container';

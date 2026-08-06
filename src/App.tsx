@@ -1853,12 +1853,12 @@ export default function App() {
 
   // Like operations (triggered doubletap or button clink)
   const handleToggleLike = async (postId: string, _imageContainer: HTMLElement | null) => {
-    playClinkSound();
     const likeRef = ref(db, `social_timeline/${postId}/likes/${currentUserNick}`);
     const snap = await get(likeRef);
     if (snap.exists()) {
       await remove(likeRef);
     } else {
+      playClinkSound();
       await set(likeRef, true);
     }
   };
