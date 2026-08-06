@@ -341,13 +341,27 @@ export const PubView: React.FC<PubViewProps> = ({
           {(() => {
             const userLower = (currentUserNick || '').toLowerCase();
             const myAvatar = globalAvatars[currentUserNick] || globalAvatars[userLower];
-            const myStoryIdx = storyPosts.findIndex((s) => s && s.user && s.user.toLowerCase() === userLower);
+            
+            // Fail-proof index search for current user's story
+            let myStoryIdx = storyPosts.findIndex(
+              (s) => s && s.user && (s.user.toLowerCase() === userLower || s.user === currentUserNick)
+            );
+
+            // Fallback: If story was just published or user match is loose
+            if (myStoryIdx === -1 && storyPosts.length > 0) {
+              const firstUser = (storyPosts[0]?.user || '').toLowerCase();
+              if (firstUser === userLower || !storyPosts[0]?.user) {
+                myStoryIdx = 0;
+              }
+            }
+
             const hasMyStory = myStoryIdx !== -1;
 
             return (
               <div
-                onClick={() => {
-                  if (hasMyStory) {
+                onClick={(e) => {
+                  e.stopPropagation();
+                  if (hasMyStory && myStoryIdx !== -1) {
                     setActiveStoryViewerIndex(myStoryIdx);
                   } else if (onOpenStoryUpload) {
                     onOpenStoryUpload();
