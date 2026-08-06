@@ -178,9 +178,8 @@ export const PubView: React.FC<PubViewProps> = ({
     return () => unsubscribe();
   }, []);
 
-  // Active 24h Stories from pub_stories node and posts fallback
+  // Active Stories from pub_stories node and posts fallback
   const storyPosts = useMemo(() => {
-    const twentyFourHoursAgo = Date.now() - 24 * 60 * 60 * 1000;
     const storiesList: any[] = [];
     const seenStoryIds = new Set<string>();
 
@@ -190,7 +189,7 @@ export const PubView: React.FC<PubViewProps> = ({
       if (!media) return;
 
       const storyTime = val.time || val.timestamp || Date.now();
-      if (!seenStoryIds.has(key) && (storyTime >= twentyFourHoursAgo || !val.time)) {
+      if (!seenStoryIds.has(key)) {
         seenStoryIds.add(key);
         storiesList.push({
           postId: key,
@@ -347,12 +346,9 @@ export const PubView: React.FC<PubViewProps> = ({
               (s) => s && s.user && (s.user.toLowerCase() === userLower || s.user === currentUserNick)
             );
 
-            // Fallback: If story was just published or user match is loose
+            // Fallback: If story was published, open the story feed starting at index 0
             if (myStoryIdx === -1 && storyPosts.length > 0) {
-              const firstUser = (storyPosts[0]?.user || '').toLowerCase();
-              if (firstUser === userLower || !storyPosts[0]?.user) {
-                myStoryIdx = 0;
-              }
+              myStoryIdx = 0;
             }
 
             const hasMyStory = myStoryIdx !== -1;
