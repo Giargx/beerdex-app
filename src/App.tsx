@@ -751,36 +751,50 @@ export default function App() {
     if (ageGateOpen) return;
 
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
-      if (user) {
-        setCurrentUser(user);
-        const email = user.email ? user.email.toLowerCase() : '';
-        setCurrentUserEmail(email);
+      try {
+        if (user) {
+          setCurrentUser(user);
+          const email = user.email ? user.email.toLowerCase() : '';
+          setCurrentUserEmail(email);
 
-        // Fetch Nickname
-        const nickSnap = await get(ref(db, `users_directory/${user.uid}`));
-        let nickname = '';
-        if (nickSnap.exists()) {
-          nickname = nickSnap.val();
+          // Fetch Nickname
+          const nickSnap = await get(ref(db, `users_directory/${user.uid}`));
+          let nickname = '';
+          if (nickSnap.exists()) {
+            nickname = nickSnap.val();
+          } else {
+            const rawFallback = user.email ? user.email.split('@')[0] : 'Utente';
+            nickname = rawFallback.replace(/[.#$\[\]]/g, '_');
+            try {
+              await set(ref(db, `users_directory/${user.uid}`), nickname);
+              await set(ref(db, `usernames_emails/${nickname.toLowerCase()}`), email);
+            } catch (e) {
+              console.error("Errore salvataggio nickname fallback:", e);
+            }
+          }
+
+          if (/[.#$\[\]]/.test(nickname)) {
+            nickname = nickname.replace(/[.#$\[\]]/g, '_');
+          }
+          setCurrentUserNick(nickname);
+
+          const adminNicknames = ['gargo', 'forne02', 'aviatore'];
+          const isUserAdmin = email === 'barcello.luca02@gmail.com' || adminNicknames.includes((nickname || '').toLowerCase());
+          setIsAdminUser(isUserAdmin);
+
+          setAuthOpen(false);
+
+          // Load Realtime Data
+          setupRealtimeListeners(nickname);
         } else {
-          nickname = user.email ? user.email.split('@')[0] : 'Utente';
-          await set(ref(db, `users_directory/${user.uid}`), nickname);
+          setCurrentUser(null);
+          setCurrentUserNick('');
+          setCurrentUserEmail('');
+          setIsAdminUser(false);
+          setAuthOpen(true);
         }
-        setCurrentUserNick(nickname);
-
-        const adminNicknames = ['gargo', 'forne02', 'aviatore'];
-        const isUserAdmin = email === 'barcello.luca02@gmail.com' || adminNicknames.includes((nickname || '').toLowerCase());
-        setIsAdminUser(isUserAdmin);
-
-        setAuthOpen(false);
-
-        // Load Realtime Data
-        setupRealtimeListeners(nickname);
-      } else {
-        setCurrentUser(null);
-        setCurrentUserNick('');
-        setCurrentUserEmail('');
-        setIsAdminUser(false);
-        setAuthOpen(true);
+      } catch (err: any) {
+        console.error("Errore onAuthStateChanged:", err);
       }
     });
 
@@ -2272,6 +2286,11 @@ export default function App() {
       }
     } catch (e) {
       console.warn("Error checking last nickname change timestamp:", e);
+    }
+
+    if (/[.#$\[\]]/.test(nick)) {
+      showAlert("Il nickname non può contenere punti (.) o simboli speciali come #, $, [, ]", "Nickname Non Valido");
+      return;
     }
 
     if (containsProfanity(nick)) {

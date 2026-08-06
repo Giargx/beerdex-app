@@ -47,6 +47,10 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ isOpen, onAuthSuccess, s
         showAlert("Scegli un Nickname di almeno 3 caratteri!");
         return;
       }
+      if (/[.#$\[\]]/.test(trimmedNickname)) {
+        showAlert("Il Nickname non può contenere punti (.) o simboli speciali come #, $, [, ]", "Nickname Non Valido");
+        return;
+      }
       if (password !== confirmPassword) {
         showAlert("I due codici di stappo inseriti non coincidono. Riprova!");
         return;
@@ -104,7 +108,15 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ isOpen, onAuthSuccess, s
         
         onAuthSuccess("BENVENUTO! STAPPO IN CORSO...");
       } catch (err: any) {
-        showAlert("Errore Registrazione: " + err.message, "Errore");
+        let msg = err.message;
+        if (err.code === 'auth/email-already-in-use') {
+          msg = "Questa email è già registrata. Prova ad accedere col tuo codice di stappo oppure usa il recupero se lo hai dimenticato.";
+        } else if (err.code === 'auth/invalid-email') {
+          msg = "L'indirizzo email inserito non è valido.";
+        } else if (err.code === 'auth/weak-password') {
+          msg = "Il codice di stappo è troppo debole.";
+        }
+        showAlert(msg, "Errore Registrazione");
       }
     } else {
       const trimmedLoginId = loginId.trim();
@@ -118,6 +130,10 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ isOpen, onAuthSuccess, s
           await signInWithEmailAndPassword(auth, trimmedLoginId, password);
           onAuthSuccess("BENTORNATO! STAPPO IN CORSO...");
         } else {
+          if (/[.#$\[\]]/.test(trimmedLoginId)) {
+            showAlert("Il Nickname inserito contiene caratteri non validi.", "Login Fallito");
+            return;
+          }
           const snap = await get(ref(db, `usernames_emails/${trimmedLoginId.toLowerCase()}`));
           const mappedEmail = snap.val();
           if (mappedEmail) {
@@ -128,7 +144,11 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ isOpen, onAuthSuccess, s
           }
         }
       } catch (err: any) {
-        showAlert("Codice di stappo o credenziali errate.", "Login Fallito");
+        let msg = "Codice di stappo o credenziali errate.";
+        if (err.code === 'auth/user-not-found' || err.code === 'auth/wrong-password' || err.code === 'auth/invalid-credential') {
+          msg = "Credenziali non valide. Verifica l'email o il nickname e la password.";
+        }
+        showAlert(msg, "Login Fallito");
       }
     }
   };
