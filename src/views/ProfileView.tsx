@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { TrophyGrid } from '../components/TrophyGrid';
+import { TrophyGrid, getEventMedals } from '../components/TrophyGrid';
 import type { PokedexEntry } from '../components/TrophyGrid';
 import { beers, getBeerType, formatBeerTitle, isUserParticipantInPost } from '../beers';
 import { StarRating } from '../components/StarRating';
@@ -639,6 +639,9 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
                 event_note
               </span>{' '}
               Medaglie Evento
+              <span style={{ fontSize: '11px', color: 'var(--text-muted)', background: '#F1F5F9', padding: '2px 8px', borderRadius: '10px' }}>
+                {getEventMedals(posts.filter(p => isUserParticipantInPost(p, currentUserNick))).filter((e: any) => e.isUnlocked).length} / {getEventMedals(posts.filter(p => isUserParticipantInPost(p, currentUserNick))).length}
+              </span>
               <span
                 className="material-symbols-outlined"
                 style={{

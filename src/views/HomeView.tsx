@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { FoamBubbles } from '../components/FoamBubbles';
-import { beers, formatBeerTitle } from '../beers';
+import { beers, formatBeerTitle, getBeerType } from '../beers';
 
 interface Post {
   postId: string;
@@ -290,77 +290,134 @@ export const HomeView: React.FC<HomeViewProps> = ({
   const featuredBeerData = getSeasonalRecommendedBeer();
   const featuredBeer = featuredBeerData.beer;
 
-  // Timed Event Progress Calculation
+  // Timed Event Progress Calculation (aligned 100% with TrophyGrid event rules)
   const getEventProgress = () => {
     if (!timedEvent) return null;
 
-    const norm = (s: string) => (s || '').toLowerCase().trim();
-
-    // Collect all unlocked items for currentUser from both myPokedex and myPosts
-    const unlockedMap = new Map<string, { brand: string; variant: string }>();
-
-    // 1. From myPokedex
-    Object.values(myPokedex || {}).forEach((entry: any) => {
-      if (entry && entry.brand) {
-        const b = entry.brand;
-        const v = entry.variant || entry.type || 'Standard';
-        unlockedMap.set(`${norm(b)}-${norm(v)}`, { brand: b, variant: v });
-      }
-    });
-
-    // 2. From myPosts
-    myPosts.forEach((p) => {
-      if (p && p.brand) {
-        const b = p.brand;
-        const v = p.variant || 'Standard';
-        unlockedMap.set(`${norm(b)}-${norm(v)}`, { brand: b, variant: v });
-      }
-    });
-
-    const unlockedList = Array.from(unlockedMap.values());
+    const now = new Date();
+    const currentYear = now.getFullYear();
     const eventName = timedEvent.name;
 
     let target = 10;
     let count = 0;
 
-    // Helper to find beer details in catalog
-    const isMatchingCategory = (brand: string, variant: string, keywords: string[], countryMatch?: string) => {
-      const catBeer = catalogList.find((b) => norm(b.brand) === norm(brand));
-      const str = norm(`${brand} ${variant} ${catBeer?.type || ''} ${catBeer?.country || ''} ${Array.isArray(catBeer?.variants) ? catBeer.variants.join(' ') : ''}`);
-      
-      if (countryMatch && catBeer?.country && norm(catBeer.country) === norm(countryMatch)) {
-        return true;
-      }
-
-      return keywords.some((kw) => str.includes(norm(kw)));
+    const getEasterDate = (year: number) => {
+      const a = year % 19;
+      const b = Math.floor(year / 100);
+      const c = year % 100;
+      const d = Math.floor(b / 4);
+      const e = b % 4;
+      const f = Math.floor((b + 8) / 25);
+      const g = Math.floor((b - f + 1) / 3);
+      const h = (19 * a + b - d - g + 15) % 30;
+      const i = Math.floor(c / 4);
+      const k = c % 4;
+      const L = (32 + 2 * e + 2 * i - h - k) % 7;
+      const m = Math.floor((a + 11 * h + 22 * L) / 451);
+      const month = Math.floor((h + L - 7 * m + 114) / 31);
+      const day = ((h + L - 7 * m + 114) % 31) + 1;
+      return new Date(year, month - 1, day);
     };
 
     if (eventName === 'Estate') {
       target = 10;
-      const keywords = ['bionda', 'lager', 'ipa', 'pils', 'pale ale', 'session', 'corona', 'heineken', 'peroni', 'moretti', 'ichnusa', 'nastro azzurro', 'stella artois', 'beck'];
-      count = unlockedList.filter((item) => isMatchingCategory(item.brand, item.variant, keywords)).length;
+      const summerStart = new Date(currentYear, 5, 21, 0, 0, 0);
+      const summerEnd = new Date(currentYear, 8, 22, 23, 59, 59);
+      const summerPosts = myPosts.filter((p) => {
+        const t = new Date(p.time);
+        return t >= summerStart && t <= summerEnd;
+      });
+      count = summerPosts.filter((p) => {
+        const type = getBeerType(p.brand, p.variant);
+        return type === 'bionda' || type === 'ipa';
+      }).length;
     } else if (eventName === 'Autunno') {
       target = 10;
-      const keywords = ['rossa', 'ipa', 'amber', 'marzen', 'doppelbock', 'menabrea', 'ceres', 'duvel'];
-      count = unlockedList.filter((item) => isMatchingCategory(item.brand, item.variant, keywords, 'Germania')).length;
+      const autumnStart = new Date(currentYear, 8, 23, 0, 0, 0);
+      const autumnEnd = new Date(currentYear, 11, 20, 23, 59, 59);
+      const autumnPosts = myPosts.filter((p) => {
+        const t = new Date(p.time);
+        return t >= autumnStart && t <= autumnEnd;
+      });
+      count = autumnPosts.filter((p) => {
+        const type = getBeerType(p.brand, p.variant);
+        const beer = beers.find((b) => b.brand === p.brand);
+        const isGerman = beer && beer.country === 'Germania';
+        return type === 'rossa' || type === 'ipa' || isGerman;
+      }).length;
     } else if (eventName === 'Primavera') {
       target = 10;
-      const keywords = ['bianca', 'blanche', 'weiss', 'weizen', 'saison', 'hoegaarden', 'franziskaner'];
-      count = unlockedList.filter((item) => isMatchingCategory(item.brand, item.variant, keywords)).length;
+      const springStart = new Date(currentYear, 2, 21, 0, 0, 0);
+      const springEnd = new Date(currentYear, 5, 20, 23, 59, 59);
+      const springPosts = myPosts.filter((p) => {
+        const t = new Date(p.time);
+        return t >= springStart && t <= springEnd;
+      });
+      count = springPosts.filter((p) => getBeerType(p.brand, p.variant) === 'bianca').length;
     } else if (eventName === 'Inverno') {
       target = 10;
-      const keywords = ['scura', 'stout', 'porter', 'bock', 'rossa', 'chimay', 'leffe', 'guinness', 'affligem'];
-      count = unlockedList.filter((item) => isMatchingCategory(item.brand, item.variant, keywords)).length;
+      const winterStart = new Date(currentYear - 1, 11, 21, 0, 0, 0);
+      const winterEnd = new Date(currentYear, 2, 20, 23, 59, 59);
+      const winterPosts = myPosts.filter((p) => {
+        const t = new Date(p.time);
+        return t >= winterStart && t <= winterEnd;
+      });
+      count = winterPosts.filter((p) => {
+        const type = getBeerType(p.brand, p.variant);
+        return type === 'scura' || type === 'rossa';
+      }).length;
     } else if (eventName === 'San Patrizio') {
       target = 1;
-      const keywords = ['scura', 'stout', 'kilkenny', 'guinness'];
-      count = unlockedList.filter((item) => isMatchingCategory(item.brand, item.variant, keywords, 'Irlanda') || isMatchingCategory(item.brand, item.variant, keywords, 'Scozia')).length;
+      const patrizioStart = new Date(currentYear, 2, 15, 0, 0, 0);
+      const patrizioEnd = new Date(currentYear, 2, 21, 23, 59, 59);
+      const patrizioPosts = myPosts.filter((p) => {
+        const t = new Date(p.time);
+        return t >= patrizioStart && t <= patrizioEnd;
+      });
+      count = patrizioPosts.filter((p) => {
+        const beer = beers.find((b) => b.brand === p.brand);
+        const type = getBeerType(p.brand, p.variant);
+        return (beer && (beer.country === 'Irlanda' || beer.country === 'Scozia')) || type === 'scura';
+      }).length;
     } else if (eventName === 'Oktoberfest') {
       target = 3;
-      count = unlockedList.filter((item) => isMatchingCategory(item.brand, item.variant, [], 'Germania')).length;
-    } else if (eventName === 'Ferragosto' || eventName === 'Pasquetta') {
+      const oktoberfestStart = new Date(currentYear, 8, 16, 0, 0, 0);
+      const oktoberfestEnd = new Date(currentYear, 9, 4, 23, 59, 59);
+      const oktoberfestPosts = myPosts.filter((p) => {
+        const t = new Date(p.time);
+        return t >= oktoberfestStart && t <= oktoberfestEnd;
+      });
+      count = oktoberfestPosts.filter((p) => {
+        const beer = beers.find((b) => b.brand === p.brand);
+        return beer && beer.country === 'Germania';
+      }).length;
+    } else if (eventName === 'Ferragosto') {
       target = 1;
-      count = Math.min(unlockedList.length, 1);
+      const ferragostoStart = new Date(currentYear, 7, 14, 0, 0, 0);
+      const ferragostoEnd = new Date(currentYear, 7, 16, 23, 59, 59);
+      const ferragostoPosts = myPosts.filter((p) => {
+        const t = new Date(p.time);
+        return t >= ferragostoStart && t <= ferragostoEnd;
+      });
+      count = ferragostoPosts.length;
+    } else if (eventName === 'Pasquetta') {
+      target = 1;
+      const easterDate = getEasterDate(currentYear);
+      const pasquettaStart = new Date(easterDate);
+      pasquettaStart.setDate(easterDate.getDate() - 1);
+      pasquettaStart.setHours(0, 0, 0, 0);
+      const pasquettaEnd = new Date(easterDate);
+      pasquettaEnd.setDate(easterDate.getDate() + 1);
+      pasquettaEnd.setHours(23, 59, 59, 999);
+      const pasquettaPosts = myPosts.filter((p) => {
+        const t = new Date(p.time);
+        return t >= pasquettaStart && t <= pasquettaEnd;
+      });
+      count = pasquettaPosts.filter((p) => {
+        const beer = beers.find((b) => b.brand === p.brand);
+        const type = getBeerType(p.brand, p.variant);
+        return (beer && beer.country === 'Belgio') || type === 'bionda';
+      }).length;
     }
 
     const current = Math.min(count, target);
@@ -897,7 +954,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
                   border: '1px solid rgba(255, 255, 255, 0.15)',
                 }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px', fontSize: '12px', fontWeight: 800 }}>
-                    <span style={{ color: eventConfig.titleColor }}>I Tuoi Progressi</span>
+                    <span style={{ color: eventConfig.titleColor }}>Progresso Sfida Attuale</span>
                     <span style={{
                       color: '#FFFFFF',
                       background: eventProgress.current >= eventProgress.target ? '#10B981' : 'rgba(255,255,255,0.25)',
@@ -906,7 +963,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
                       fontSize: '11px',
                       fontWeight: 800,
                     }}>
-                      {eventProgress.current} / {eventProgress.target} Sbloccate ({eventProgress.pct}%)
+                      {eventProgress.current} / {eventProgress.target} Birre Sbloccate ({eventProgress.pct}%)
                     </span>
                   </div>
                   <div style={{ width: '100%', height: '10px', background: 'rgba(255, 255, 255, 0.2)', borderRadius: '5px', overflow: 'hidden' }}>
