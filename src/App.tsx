@@ -264,8 +264,6 @@ export default function App() {
 
       setGlobalPosts((prev) => prev.filter((p) => p.postId !== postId));
       setStoryViewerQueue((prev) => prev.filter((s) => s.postId !== postId));
-
-      playPopSound();
     } catch (e) {
       console.error("Error deleting story:", e);
     }
