@@ -98,6 +98,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ isOpen, onAuthSuccess, s
         const uid = userCredential.user.uid;
         
         await set(ref(db, `users_directory/${uid}`), trimmedNickname);
+        await set(ref(db, `users_last_nickname_change/${uid}`), Date.now());
         await set(ref(db, `usernames_emails/${trimmedNickname.toLowerCase()}`), trimmedEmail);
         await set(ref(db, `leaderboard_scores/${trimmedNickname}`), 0);
         

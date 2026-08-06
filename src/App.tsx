@@ -2105,6 +2105,32 @@ export default function App() {
       showAlert("È già il tuo nickname!");
       return;
     }
+
+    const uid = auth.currentUser?.uid;
+    if (!uid) return;
+
+    // Check 3-month (90 days) nickname change restriction
+    const NINETY_DAYS_MS = 90 * 24 * 60 * 60 * 1000;
+    try {
+      const lastChangeSnap = await get(ref(db, `users_last_nickname_change/${uid}`));
+      if (lastChangeSnap.exists()) {
+        const lastChangeTime = lastChangeSnap.val();
+        if (typeof lastChangeTime === 'number') {
+          const elapsedTime = Date.now() - lastChangeTime;
+          if (elapsedTime < NINETY_DAYS_MS) {
+            const remainingDays = Math.ceil((NINETY_DAYS_MS - elapsedTime) / (24 * 60 * 60 * 1000));
+            showAlert(
+              `Puoi cambiare il tuo nickname univoco solo una volta ogni 3 mesi (90 giorni).\nPotrai modificarlo di nuovo tra ${remainingDays} ${remainingDays === 1 ? 'giorno' : 'giorni'}.`,
+              "Cambio Nickname Limitato"
+            );
+            return;
+          }
+        }
+      }
+    } catch (e) {
+      console.warn("Error checking last nickname change timestamp:", e);
+    }
+
     if (containsProfanity(nick)) {
       showAlert("Il nickname contiene termini non appropriati o blasfemi. Scegli un nickname diverso.", "Nickname Non Valido");
       return;
@@ -2121,7 +2147,7 @@ export default function App() {
       if (dirSnap.exists()) {
         const dirData = dirSnap.val();
         const isTaken = Object.entries(dirData).some(([uKey, val]: [string, any]) => {
-          if (uKey === auth.currentUser?.uid) return false;
+          if (uKey === uid) return false;
           return (val || '').toString().trim().toLowerCase() === nick.toLowerCase();
         });
         if (isTaken) {
@@ -2130,11 +2156,9 @@ export default function App() {
         }
       }
 
-      const uid = auth.currentUser?.uid;
-      if (!uid) return;
-
       const updates: any = {};
       updates[`users_directory/${uid}`] = nick;
+      updates[`users_last_nickname_change/${uid}`] = Date.now();
       updates[`usernames_emails/${nick.toLowerCase()}`] = currentUserEmail;
       updates[`usernames_emails/${currentUserNick.toLowerCase()}`] = null;
       updates[`leaderboard_scores/${nick}`] = globalLeaderboardScores[currentUserNick] || 0;
@@ -2784,7 +2808,7 @@ export default function App() {
                 <span className="material-symbols-outlined icon">alternate_email</span>
                 <div>
                   <div className="row-label">Nickname univoco (@username)</div>
-                  <div className="row-desc">L'identificativo unico per taggare e farsi trovare</div>
+                  <div className="row-desc">L'identificativo unico per taggare e farsi trovare (modificabile max 1 volta ogni 3 mesi)</div>
                 </div>
               </div>
               <div style={{ display: 'flex', gap: '8px', marginTop: '10px' }}>
