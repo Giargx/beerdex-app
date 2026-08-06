@@ -288,7 +288,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ isOpen, onAuthSuccess, s
             <div className="pwd-container">
               <input
                 type={showPassword ? 'text' : 'password'}
-                placeholder="Nuovo Codice di stappo"
+                placeholder="Nuovo codice di stappo"
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
               />
@@ -300,10 +300,10 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ isOpen, onAuthSuccess, s
               </span>
             </div>
 
-            <div className="pwd-container" style={{ marginTop: '10px' }}>
+            <div className="pwd-container" style={{ marginTop: '12px' }}>
               <input
                 type={showConfirmPassword ? 'text' : 'password'}
-                placeholder="Conferma Nuovo Codice"
+                placeholder="Conferma nuovo codice di stappo"
                 value={confirmNewPassword}
                 onChange={(e) => setConfirmNewPassword(e.target.value)}
               />
