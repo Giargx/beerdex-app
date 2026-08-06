@@ -2059,15 +2059,15 @@ export default function App() {
 
   // Like operations (triggered doubletap or button clink)
   const handleToggleLike = async (postId: string, _imageContainer: HTMLElement | null) => {
-    // Suona il suono di brindisi/like IMMEDIATAMENTE sul tocco dell'utente
-    playClinkSound();
-
     try {
       const likeRef = ref(db, `social_timeline/${postId}/likes/${currentUserNick}`);
       const snap = await get(likeRef);
       if (snap.exists()) {
+        // RIMOZIONE BRINDISI: Silenzioso (nessun suono)
         await remove(likeRef);
       } else {
+        // INSERIMENTO BRINDISI: Suona il brindisi
+        playClinkSound();
         await set(likeRef, true);
       }
     } catch (e) {
