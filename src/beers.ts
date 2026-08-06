@@ -353,7 +353,16 @@ export function resolvePokedexEntryBeer(
   }
   if (!variant) variant = 'Classica';
 
-  const rarity = (foundBeer?.rarity || entry?.rarity || 'comune') as 'comune' | 'media' | 'rara';
+  const rawRarity = String(foundBeer?.rarity || entry?.rarity || 'comune').toLowerCase().trim();
+  let rarity: 'comune' | 'media' | 'rara' = 'comune';
+  if (rawRarity === 'media' || rawRarity === 'medium' || rawRarity === 'medio') {
+    rarity = 'media';
+  } else if (rawRarity === 'rara' || rawRarity === 'rare' || rawRarity === 'raro') {
+    rarity = 'rara';
+  } else {
+    rarity = 'comune';
+  }
+
   const country = foundBeer?.country || entry?.country || 'Italia';
 
   return { beer: foundBeer, brand, variant, rarity, country };

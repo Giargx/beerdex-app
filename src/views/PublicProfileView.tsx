@@ -153,12 +153,13 @@ export const PublicProfileView: React.FC<PublicProfileViewProps> = ({
     if (entry && entry.taggedFriend) taggedCount++;
   });
 
-  const rarityCounts = { comune: 0, media: 0, rara: 0 };
+  const rarityCounts: Record<'comune' | 'media' | 'rara', number> = { comune: 0, media: 0, rara: 0 };
   Object.keys(safePokedex).forEach(key => {
     if (!safePokedex[key]) return;
     const entry = safePokedex[key];
     const { rarity } = resolvePokedexEntryBeer(key, entry, safeCatalog);
-    rarityCounts[rarity] = (rarityCounts[rarity] || 0) + 1;
+    const validKey: 'comune' | 'media' | 'rara' = (rarity === 'media' ? 'media' : rarity === 'rara' ? 'rara' : 'comune');
+    rarityCounts[validKey] = (rarityCounts[validKey] || 0) + 1;
   });
 
   const countryCounts: Record<string, { unlocked: number, total: number }> = {};
