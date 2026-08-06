@@ -5,13 +5,15 @@ interface AppTutorialModalProps {
   onClose: () => void;
 }
 
-interface TutorialStep {
-  icon: string;
+interface GuidedStep {
+  target: 'home' | 'pokedex' | 'scanner' | 'pub' | 'explore' | 'profile';
   badge: string;
   badgeBg: string;
   title: string;
-  subtitle: string;
-  points: { icon: string; title: string; desc: string }[];
+  mascotQuote: string;
+  explanation: string;
+  highlights: { icon: string; text: string }[];
+  pointerPosition: 'bottom' | 'center' | 'top';
 }
 
 export const AppTutorialModal: React.FC<AppTutorialModalProps> = ({ isOpen, onClose }) => {
@@ -19,81 +21,91 @@ export const AppTutorialModal: React.FC<AppTutorialModalProps> = ({ isOpen, onCl
 
   if (!isOpen) return null;
 
-  const steps: TutorialStep[] = [
+  const steps: GuidedStep[] = [
     {
-      icon: 'home',
+      target: 'home',
       badge: 'PASSO 1 DI 6 • FEED & HOME',
       badgeBg: '#F59E0B',
-      title: 'La tua Taverna Digitale 🍺',
-      subtitle: 'Condividi brindisi, scopri nuove birre e partecipa alla community.',
-      points: [
-        { icon: 'photo_camera', title: 'Feed Social & Storie', desc: 'Guarda i check-in in tempo reale dei tuoi amici e le loro storie nelle ultime 24 ore.' },
-        { icon: 'celebration', title: 'Brindisi & Reazioni', desc: 'Lascia un commento o manda un brindisi sonoro per festeggiare le birre sbloccate.' },
-        { icon: 'local_fire_department', title: 'Streak Giornaliera', desc: 'Fai check-in ogni giorno per mantenere attiva la tua fiammella di sblocchi consecutivi!' },
-        { icon: 'sports_bar', title: 'Consigli Stagionali', desc: 'Scopri la birra consigliata in base al periodo dell\'anno in corso.' },
-      ]
+      title: 'Benvenuto in Beerdex! 🍺',
+      mascotQuote: 'Ciao Mastro Bevitore! Sono Birretta Boss 🕶️ la tua guida del Pub. Ti mostro subito come conquistare l\'app!',
+      explanation: 'Qui in Home trovi la tua Taverna Digitale: vedi i check-in dei tuoi amici in tempo reale, fai un bel "Cin Cin" con audio e tieni d\'occhio la tua streak di sblocchi!',
+      highlights: [
+        { icon: 'photo_camera', text: 'Feed Social con foto ed attività al bancone' },
+        { icon: 'celebration', text: 'Fai "Cin Cin" per mandare un suono di brindisi' },
+        { icon: 'local_fire_department', text: 'Streak giornaliera sblocchi consecutivi' },
+      ],
+      pointerPosition: 'bottom',
     },
     {
-      icon: 'explore',
-      badge: 'PASSO 2 DI 6 • CATALOGO & RICERCA',
+      target: 'pokedex',
+      badge: 'PASSO 2 DI 6 • POKEDEX & COLLEZIONE',
       badgeBg: '#3B82F6',
-      title: 'Esplora & Cerca Birre 🔍',
-      subtitle: 'Sfoglia centinaia di marche e varianti con filtri per stile, rarità e nazione.',
-      points: [
-        { icon: 'info', title: 'Scheda Dettagliata', desc: 'Consulta gradazione alcolica, stile, paese d\'origine e note di degustazione.' },
-        { icon: 'auto_awesome', title: 'Varianti Shiny (Luccicanti)', desc: 'Trova le rare varianti Shiny per raddoppiare i punti ottenuti!' },
-        { icon: 'add_circle', title: 'Proponi Nuove Birre', desc: 'Se una birra manca, invia una proposta agli Admin per sbloccarla e ricevere +2 Punti Bonus!' },
-      ]
+      title: 'Il tuo Pokédex delle Birre 📚',
+      mascotQuote: 'Collezionale tutte! Ci sono centinaia di varianti da scoprire in giro per il mondo!',
+      explanation: 'Nella Collezione vedi il tuo album delle birre sbloccate. Filtra per Comuni, Medie e Rare. Se trovi una variante Shiny luccicante raddoppi i tuoi punti!',
+      highlights: [
+        { icon: 'pie_chart', text: 'Stato collezione divisa per rarità e nazione' },
+        { icon: 'auto_awesome', text: 'Birre Shiny (Luccicanti) valgono il doppio dei punti' },
+        { icon: 'add_circle', text: 'Proponi nuove birre mancanti per ricevere punti bonus' },
+      ],
+      pointerPosition: 'bottom',
     },
     {
-      icon: 'map',
-      badge: 'PASSO 3 DI 6 • MAPPA & PUB',
+      target: 'scanner',
+      badge: 'PASSO 3 DI 6 • SCANNER STAPPO',
       badgeBg: '#10B981',
-      title: 'Trova i Pub nei Dintorni 📍',
-      subtitle: 'Trova i migliori locali, fai check-in sul posto e scala la classifica del pub!',
-      points: [
-        { icon: 'near_me', title: 'Mappa Interattiva', desc: 'Esplora la mappa dei locali registrati attorno a te con indicazioni stradali.' },
-        { icon: 'military_tech', title: 'Mastro Bevitore del Pub', desc: 'Fai check-in nel locale per guadagnare punti e diventare il numero #1 del pub!' },
-        { icon: 'history_toggle_off', title: 'Storie del Pub (24h)', desc: 'Condividi momenti speciali ed eventi direttamente all\'interno della pagina del pub.' },
-      ]
+      title: 'Tasto Stappo & Scanner Barcode 📸',
+      mascotQuote: 'Inquadra il codice a barre e... STAPPO! La birra viene riconosciuta al volo!',
+      explanation: 'Premi il tasto centrale "Stappo" quando hai in mano una bottiglia. Inquadra il codice a barre sul retro per sbloccarla, accumulare XP e condividere la foto col tuo amico!',
+      highlights: [
+        { icon: 'crop_free', text: 'Scansione barcode istantanea con fotocamera' },
+        { icon: 'loyalty', text: 'Sblocco in compagnia: tagga un amico al pub con te' },
+        { icon: 'workspace_premium', text: 'Guadagna Punti Esperienza (XP) per la classifica' },
+      ],
+      pointerPosition: 'center',
     },
     {
-      icon: 'person',
-      badge: 'PASSO 4 DI 6 • PROFILO & POKEDEX',
-      badgeBg: '#8B5CF6',
-      title: 'Il tuo Pokedex & Trofei 🏆',
-      subtitle: 'Colleziona varianti, accumula punti esperienza e sblocca trofei esclusivi!',
-      points: [
-        { icon: 'pie_chart', title: 'Progresso & Rarità', desc: 'Monitora la tua collezione divisa tra birre Comuni, Medie e Rare.' },
-        { icon: 'workspace_premium', title: 'Medaglie Brand', desc: 'Completa tutte le varianti di una marca per ottenere il bonus +3 pt a variante.' },
-        { icon: 'event_note', title: 'Medaglie Evento', desc: 'Partecipa alle sfide stagionali (Oktoberfest, San Patrizio, Pasquetta, ecc.).' },
-        { icon: 'star', title: 'Valutazioni & Stile Preferito', desc: 'Vota le tue birre (1-5 stelle) per scoprire il tuo stile brassicolo preferito.' },
-      ]
-    },
-    {
-      icon: 'group',
-      badge: 'PASSO 5 DI 6 • AMICI & COMMUNITY',
+      target: 'pub',
+      badge: 'PASSO 4 DI 6 • IL PUB & STORIE 24H',
       badgeBg: '#EC4899',
-      title: 'Bevi in Compagnia & Tagga 🤝',
-      subtitle: 'Aggiungi amici, condividi la passione per la birra e mantieni il controllo della privacy.',
-      points: [
-        { icon: 'loyalty', title: 'Tag nei Check-in', desc: 'Sei al pub con un amico? Taggali nel tuo check-in per sbloccare la birra anche a loro.' },
-        { icon: 'mark_email_unread', title: 'Gestione Richieste Tag', desc: 'Ricevi notifiche quando qualcuno ti tagga ed accetta lo sblocco con un click.' },
-        { icon: 'lock', title: 'Profilo Privato', desc: 'Attiva il profilo privato se vuoi mostrare i tuoi sblocchi solo agli amici che accetti.' },
-      ]
+      title: 'Il Bancone del Pub & Storie 24h 🍻',
+      mascotQuote: 'Qui la festa non finisce mai! Guarda i bevitori al bancone e pubblica Storie dal vivo!',
+      explanation: 'Nel Pub trovi i bevitori presenti al bancone. Clicca sui loro avatar per guardare le loro Storie 24h, oppure usa lo Studio fotocamera con filtri Instagram, musica e testi!',
+      highlights: [
+        { icon: 'auto_awesome', text: 'Guarda le Storie 24h dei bevitori al pub' },
+        { icon: 'photo_camera', text: 'Studio Storie: foto/video dal vivo con filtri e musica' },
+        { icon: 'groups', text: 'Brinda ed interagisci con gli amici al bancone' },
+      ],
+      pointerPosition: 'bottom',
     },
     {
-      icon: 'qr_code_scanner',
-      badge: 'PASSO 6 DI 6 • SCANNER & TIPS',
-      badgeBg: '#6366F1',
-      title: 'Scanner Barcode & Consigli 📷',
-      subtitle: 'Usa la fotocamera per scansionare le bottiglie e sbloccare tutto alla velocità della luce!',
-      points: [
-        { icon: 'crop_free', title: 'Scansione Barcode', desc: 'Premi l\'icona scanner in basso ed inquadra il codice a barre sul retro della bottiglia.' },
-        { icon: 'bolt', title: 'Sblocco Istantaneo', desc: 'Se la birra viene riconosciuta, la scheda si apre automaticamente in un attimo!' },
-        { icon: 'school', title: 'Rivedi il Tutorial', desc: 'Puoi riaprire questa guida quando vuoi andando nelle Impostazioni (icona ingranaggio nel profilo).' },
-      ]
-    }
+      target: 'explore',
+      badge: 'PASSO 5 DI 6 • ESPLORA & MAPPA PUB',
+      badgeBg: '#8B5CF6',
+      title: 'Esplora & Mappa dei Locali 🗺️',
+      mascotQuote: 'In cerca del locale perfetto stasera? Trova i pub registrati sulla mappa!',
+      explanation: 'In Esplora puoi scoprire le birre più gettonate dalla community, la mappa dei pub e locali nei dintorni per fare check-in sul posto e diventare Mastro del Locale!',
+      highlights: [
+        { icon: 'near_me', text: 'Mappa dei pub con indicazioni stradali' },
+        { icon: 'military_tech', text: 'Fai check-in nel locale e diventa il #1 del Pub' },
+        { icon: 'search', text: 'Cerca birre per stile, gradazione e nazione' },
+      ],
+      pointerPosition: 'bottom',
+    },
+    {
+      target: 'profile',
+      badge: 'PASSO 6 DI 6 • CLASSIFICHE & PROFILO',
+      badgeBg: '#EF4444',
+      title: 'Trofei, Medaglie e Profilo 🏆',
+      mascotQuote: 'Tutto pronto! Conquista il 1° posto in Classifica e completa la tua bacheca trofei!',
+      explanation: 'Sblocca medaglie di marca ed evento, personalizza il tuo avatar e confronta il tuo punteggio nelle Classifiche globali ed amicali. Puoi riaprire questo tutorial dalle Impostazioni!',
+      highlights: [
+        { icon: 'leaderboard', text: 'Classifica Mastro Bevitore Globale e Amici' },
+        { icon: 'workspace_premium', text: 'Bacheca Medaglie Brand e Trofei Evento' },
+        { icon: 'settings', text: 'Riapri il tutorial quando vuoi nelle Impostazioni' },
+      ],
+      pointerPosition: 'bottom',
+    },
   ];
 
   const current = steps[currentStep];
@@ -116,204 +128,281 @@ export const AppTutorialModal: React.FC<AppTutorialModalProps> = ({ isOpen, onCl
     <div
       style={{
         position: 'fixed',
-        inset: 0,
+        top: 0,
+        left: 0,
+        width: '100vw',
+        height: '100vh',
         zIndex: 99999,
-        background: 'rgba(15, 23, 42, 0.75)',
+        background: 'rgba(15, 23, 42, 0.72)',
         backdropFilter: 'blur(8px)',
+        WebkitBackdropFilter: 'blur(8px)',
         display: 'flex',
+        flexDirection: 'column',
         alignItems: 'center',
-        justifyContent: 'center',
-        padding: '20px',
-        animation: 'fadeIn 0.25s ease-out',
+        justifyContent: current.pointerPosition === 'center' ? 'center' : 'flex-end',
+        padding: '20px 16px env(safe-area-inset-bottom, 24px) 16px',
+        boxSizing: 'border-box',
+        animation: 'fadeIn 0.2s ease-out',
       }}
     >
+      {/* BIRRETTA BOSS MASCOT POP-UP CARD */}
       <div
         style={{
-          background: 'var(--white)',
-          borderRadius: '28px',
-          maxWidth: '520px',
           width: '100%',
-          maxHeight: '90vh',
+          maxWidth: '460px',
+          background: 'linear-gradient(145deg, #FFFFFF 0%, #F8FAFC 100%)',
+          borderRadius: '32px',
+          boxShadow: '0 25px 60px -15px rgba(0, 0, 0, 0.45), 0 0 0 1px rgba(255, 255, 255, 0.6) inset',
+          padding: '24px 22px 20px 22px',
+          position: 'relative',
           display: 'flex',
           flexDirection: 'column',
-          boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
-          overflow: 'hidden',
-          position: 'relative',
-          border: '1px solid rgba(255,255,255,0.2)',
+          alignItems: 'center',
+          boxSizing: 'border-box',
+          marginBottom: current.pointerPosition === 'bottom' ? '70px' : '0',
+          border: '2px solid rgba(245, 158, 11, 0.3)',
         }}
       >
-        {/* Header Header Bar */}
+        {/* COOL BEER MASCOT AVATAR WITH SUNGLASSES 🍺🕶️ */}
         <div
           style={{
-            padding: '20px 24px 16px 24px',
-            background: `linear-gradient(135deg, ${current.badgeBg}15, ${current.badgeBg}05)`,
-            borderBottom: '1px solid var(--gray)',
+            position: 'absolute',
+            top: '-55px',
+            background: 'linear-gradient(135deg, #FFFBEB 0%, #FEF3C7 100%)',
+            border: '3px solid #F59E0B',
+            borderRadius: '50%',
+            width: '90px',
+            height: '90px',
             display: 'flex',
             alignItems: 'center',
-            justifyContent: 'space-between',
+            justifyContent: 'center',
+            boxShadow: '0 10px 25px rgba(245, 158, 11, 0.4)',
+            animation: 'bounce 2s infinite ease-in-out',
           }}
         >
-          <span
-            style={{
-              background: current.badgeBg,
-              color: 'white',
-              fontSize: '11px',
-              fontWeight: 800,
-              padding: '4px 10px',
-              borderRadius: '20px',
-              letterSpacing: '0.5px',
-            }}
-          >
-            {current.badge}
-          </span>
-          <button
-            onClick={onClose}
-            style={{
-              background: 'transparent',
-              border: 'none',
-              color: 'var(--text-muted)',
-              fontWeight: 700,
-              fontSize: '13px',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '4px',
-            }}
-          >
-            Salta <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>close</span>
-          </button>
+          {/* SVG COOL BEER MUG WITH SUNGLASSES */}
+          <svg width="68" height="68" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+            {/* Beer Mug Handle */}
+            <path d="M72 40 C 88 40, 88 70, 72 70" stroke="#D97706" strokeWidth="8" strokeLinecap="round" fill="none" />
+            {/* Beer Liquid Body */}
+            <rect x="25" y="32" width="48" height="48" rx="10" fill="url(#beerGrad)" stroke="#D97706" strokeWidth="3" />
+            {/* Foamy Head Top */}
+            <path d="M 20 34 C 20 22, 32 20, 40 24 C 48 18, 60 18, 66 24 C 74 20, 80 26, 78 34 Z" fill="#FFFFFF" stroke="#E2E8F0" strokeWidth="2" />
+            {/* Dark Sunglasses 🕶️ */}
+            <path d="M 30 46 L 47 46 L 47 55 L 34 55 Z" fill="#0F172A" />
+            <path d="M 53 46 L 70 46 L 66 55 L 53 55 Z" fill="#0F172A" />
+            <line x1="46" y1="48" x2="54" y2="48" stroke="#0F172A" strokeWidth="3" />
+            {/* Sunglasses Specular Glare */}
+            <line x1="33" y1="48" x2="42" y2="52" stroke="#FFFFFF" strokeWidth="2" strokeLinecap="round" />
+            <line x1="56" y1="48" x2="63" y2="52" stroke="#FFFFFF" strokeWidth="2" strokeLinecap="round" />
+            {/* Big Smile */}
+            <path d="M 38 64 Q 50 74 62 64" stroke="#0F172A" strokeWidth="3.5" strokeLinecap="round" fill="none" />
+            {/* Rosy Cheeks */}
+            <circle cx="32" cy="62" r="3" fill="#F43F5E" opacity="0.6" />
+            <circle cx="68" cy="62" r="3" fill="#F43F5E" opacity="0.6" />
+            {/* Gradient definition */}
+            <defs>
+              <linearGradient id="beerGrad" x1="25" y1="32" x2="25" y2="80" gradientUnits="userSpaceOnUse">
+                <stop stopColor="#F59E0B" />
+                <stop offset="1" stopColor="#D97706" />
+              </linearGradient>
+            </defs>
+          </svg>
         </div>
 
-        {/* Slide Body */}
-        <div style={{ padding: '24px', overflowY: 'auto', flexGrow: 1 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '16px' }}>
+        {/* TOP SKIP BUTTON */}
+        <button
+          onClick={onClose}
+          style={{
+            position: 'absolute',
+            top: '16px',
+            right: '16px',
+            background: '#F1F5F9',
+            border: 'none',
+            color: '#64748B',
+            borderRadius: '50%',
+            width: '32px',
+            height: '32px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            cursor: 'pointer',
+            fontWeight: 800,
+          }}
+          title="Salta Tutorial"
+        >
+          <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>close</span>
+        </button>
+
+        {/* STEP BADGE */}
+        <div
+          style={{
+            marginTop: '32px',
+            background: current.badgeBg,
+            color: '#FFFFFF',
+            fontSize: '11px',
+            fontWeight: 900,
+            padding: '5px 14px',
+            borderRadius: '20px',
+            letterSpacing: '0.5px',
+            boxShadow: `0 4px 12px ${current.badgeBg}50`,
+            marginBottom: '10px',
+          }}
+        >
+          {current.badge}
+        </div>
+
+        {/* STEP TITLE */}
+        <h2 style={{ margin: '0 0 8px 0', fontSize: '20px', fontWeight: 900, color: '#0F172A', textAlign: 'center' }}>
+          {current.title}
+        </h2>
+
+        {/* MASCOT SPEECH BUBBLE QUOTE */}
+        <div
+          style={{
+            background: 'linear-gradient(135deg, #FFFBEB 0%, #FEF3C7 100%)',
+            border: '1.5px solid #FCD34D',
+            borderRadius: '18px',
+            padding: '12px 16px',
+            color: '#78350F',
+            fontSize: '13px',
+            fontWeight: 700,
+            lineHeight: '1.4',
+            textAlign: 'center',
+            marginBottom: '14px',
+            boxShadow: '0 2px 8px rgba(245, 158, 11, 0.15)',
+            width: '100%',
+            boxSizing: 'border-box',
+          }}
+        >
+          {current.mascotQuote}
+        </div>
+
+        {/* EXPLANATION */}
+        <p style={{ margin: '0 0 14px 0', color: '#475569', fontSize: '13px', lineHeight: '1.5', textAlign: 'center' }}>
+          {current.explanation}
+        </p>
+
+        {/* HIGHLIGHT POINTS */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', width: '100%', marginBottom: '18px' }}>
+          {current.highlights.map((h, i) => (
             <div
+              key={i}
               style={{
-                width: '56px',
-                height: '56px',
-                borderRadius: '18px',
-                background: current.badgeBg,
-                color: 'white',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '10px',
+                padding: '8px 12px',
+                borderRadius: '12px',
+                background: '#F8FAFC',
+                border: '1px solid #E2E8F0',
+              }}
+            >
+              <span className="material-symbols-outlined" style={{ fontSize: '18px', color: current.badgeBg, fontWeight: 800 }}>
+                {h.icon}
+              </span>
+              <span style={{ fontSize: '12px', fontWeight: 700, color: '#1E293B', textAlign: 'left' }}>
+                {h.text}
+              </span>
+            </div>
+          ))}
+        </div>
+
+        {/* STEP PROGRESS DOTS */}
+        <div style={{ display: 'flex', gap: '6px', marginBottom: '18px' }}>
+          {steps.map((_, idx) => (
+            <div
+              key={idx}
+              onClick={() => setCurrentStep(idx)}
+              style={{
+                width: idx === currentStep ? '24px' : '8px',
+                height: '8px',
+                borderRadius: '4px',
+                background: idx === currentStep ? current.badgeBg : '#CBD5E1',
+                transition: 'all 0.2s ease',
+                cursor: 'pointer',
+              }}
+            />
+          ))}
+        </div>
+
+        {/* NAVIGATION BUTTONS */}
+        <div style={{ display: 'flex', gap: '10px', width: '100%' }}>
+          {currentStep > 0 && (
+            <button
+              onClick={handlePrev}
+              style={{
+                flex: 1,
+                padding: '12px',
+                borderRadius: '16px',
+                border: '1.5px solid #CBD5E1',
+                background: '#FFFFFF',
+                color: '#475569',
+                fontSize: '14px',
+                fontWeight: 800,
+                cursor: 'pointer',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                boxShadow: `0 8px 16px ${current.badgeBg}40`,
-                flexShrink: 0,
+                gap: '6px',
               }}
             >
-              <span className="material-symbols-outlined" style={{ fontSize: '32px' }}>
-                {current.icon}
-              </span>
-            </div>
-            <div>
-              <h2 style={{ margin: 0, color: 'var(--dark)', fontSize: '20px', fontWeight: 900 }}>
-                {current.title}
-              </h2>
-              <p style={{ margin: '4px 0 0 0', color: 'var(--text-muted)', fontSize: '13px', lineHeight: 1.4 }}>
-                {current.subtitle}
-              </p>
-            </div>
-          </div>
-
-          {/* Points list */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginTop: '20px' }}>
-            {current.points.map((pt, i) => (
-              <div
-                key={i}
-                style={{
-                  display: 'flex',
-                  alignItems: 'flex-start',
-                  gap: '12px',
-                  background: '#F8FAFC',
-                  borderRadius: '14px',
-                  padding: '12px 14px',
-                  border: '1px solid #E2E8F0',
-                }}
-              >
-                <span
-                  className="material-symbols-outlined"
-                  style={{ color: current.badgeBg, fontSize: '22px', marginTop: '1px', flexShrink: 0 }}
-                >
-                  {pt.icon}
-                </span>
-                <div>
-                  <div style={{ fontWeight: 'bold', fontSize: '13px', color: 'var(--dark)', marginBottom: '2px' }}>
-                    {pt.title}
-                  </div>
-                  <div style={{ fontSize: '12px', color: '#64748B', lineHeight: 1.4 }}>
-                    {pt.desc}
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Footer Navigation Bar */}
-        <div
-          style={{
-            padding: '16px 24px',
-            background: '#FAFAFC',
-            borderTop: '1px solid var(--gray)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-          }}
-        >
-          {/* Progress Dots */}
-          <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
-            {steps.map((_, index) => (
-              <div
-                key={index}
-                onClick={() => setCurrentStep(index)}
-                style={{
-                  width: index === currentStep ? '24px' : '8px',
-                  height: '8px',
-                  borderRadius: '4px',
-                  background: index === currentStep ? current.badgeBg : '#CBD5E1',
-                  transition: 'all 0.25s ease',
-                  cursor: 'pointer',
-                }}
-              />
-            ))}
-          </div>
-
-          {/* Buttons */}
-          <div style={{ display: 'flex', gap: '8px' }}>
-            {currentStep > 0 && (
-              <button
-                onClick={handlePrev}
-                style={{
-                  padding: '10px 16px',
-                  borderRadius: '12px',
-                  border: '1px solid var(--gray)',
-                  background: 'white',
-                  color: 'var(--dark)',
-                  fontWeight: 'bold',
-                  fontSize: '13px',
-                  cursor: 'pointer',
-                }}
-              >
-                Indietro
-              </button>
-            )}
-            <button
-              onClick={handleNext}
-              className="btn-main"
-              style={{
-                background: current.badgeBg,
-                padding: '10px 20px',
-                borderRadius: '12px',
-                fontSize: '13px',
-                fontWeight: 'bold',
-                marginTop: 0,
-                boxShadow: `0 4px 12px ${current.badgeBg}50`,
-              }}
-            >
-              {currentStep === steps.length - 1 ? 'Inizia ad Esplorare! 🍺' : 'Avanti ➜'}
+              <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>arrow_back</span>
+              <span>Indietro</span>
             </button>
-          </div>
+          )}
+
+          <button
+            onClick={handleNext}
+            style={{
+              flex: 2,
+              padding: '12px',
+              borderRadius: '16px',
+              border: 'none',
+              background: `linear-gradient(135deg, ${current.badgeBg} 0%, ${current.badgeBg}DD 100%)`,
+              color: '#FFFFFF',
+              fontSize: '14px',
+              fontWeight: 900,
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '6px',
+              boxShadow: `0 6px 20px ${current.badgeBg}60`,
+            }}
+          >
+            <span>{currentStep === steps.length - 1 ? 'Inizia a Stappare! 🍺' : 'Avanti'}</span>
+            <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>
+              {currentStep === steps.length - 1 ? 'check' : 'arrow_forward'}
+            </span>
+          </button>
         </div>
+
+        {/* POINTER ARROW POINTING TO APP SECTIONS */}
+        {current.pointerPosition === 'bottom' && (
+          <div
+            style={{
+              position: 'absolute',
+              bottom: '-28px',
+              left: '50%',
+              transform: 'translateX(-50%)',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              animation: 'bounce 1.5s infinite',
+            }}
+          >
+            <div
+              style={{
+                width: 0,
+                height: 0,
+                borderLeft: '12px solid transparent',
+                borderRight: '12px solid transparent',
+                borderTop: `14px solid ${current.badgeBg}`,
+              }}
+            />
+          </div>
+        )}
       </div>
     </div>
   );
