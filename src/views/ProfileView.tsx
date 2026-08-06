@@ -387,131 +387,177 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
 
 
       {isAdminUser && (
-        <div style={{ padding: '0 20px', marginTop: '14px', marginBottom: '8px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
-          <div style={{ fontSize: '11px', fontWeight: 800, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '2px' }}>
-            🛡️ Strumenti Amministratore
+        <div
+          style={{
+            margin: '16px 20px 8px 20px',
+            padding: '14px 16px',
+            background: 'linear-gradient(180deg, #FFFDF7 0%, #FFF9EC 100%)',
+            border: '1px solid rgba(245, 158, 11, 0.25)',
+            borderRadius: '20px',
+            boxShadow: '0 4px 15px rgba(245, 158, 11, 0.05)',
+          }}
+        >
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              marginBottom: '10px',
+            }}
+          >
+            <div
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px',
+                fontSize: '12px',
+                fontWeight: 800,
+                color: '#D97706',
+                textTransform: 'uppercase',
+                letterSpacing: '0.5px',
+              }}
+            >
+              <span className="material-symbols-outlined" style={{ fontSize: '16px', color: '#F59E0B' }}>
+                shield_person
+              </span>
+              <span>Pannello Amministratore</span>
+            </div>
+            <span
+              style={{
+                fontSize: '10px',
+                fontWeight: 800,
+                background: '#FEF3C7',
+                color: '#D97706',
+                padding: '2px 8px',
+                borderRadius: '10px',
+                border: '1px solid rgba(245, 158, 11, 0.3)',
+              }}
+            >
+              ADMIN
+            </span>
           </div>
 
-          {onOpenAdminUsers && (
-            <button
-              onClick={onOpenAdminUsers}
-              style={{
-                width: '100%',
-                background: 'linear-gradient(135deg, #4338CA 0%, #3730A3 100%)',
-                color: 'white',
-                border: 'none',
-                padding: '12px 16px',
-                borderRadius: '16px',
-                fontWeight: 'bold',
-                fontSize: '14px',
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '8px',
-                boxShadow: '0 4px 12px rgba(67, 56, 202, 0.25)'
-              }}
-            >
-              <span className="material-symbols-outlined" style={{ color: '#A5B4FC' }}>manage_accounts</span>
-              <span>Gestione & Eliminazione Utenti</span>
-            </button>
-          )}
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))',
+              gap: '8px',
+            }}
+          >
+            {onOpenAdminUsers && (
+              <button
+                onClick={onOpenAdminUsers}
+                style={{
+                  background: '#FFFFFF',
+                  border: '1px solid #E2E8F0',
+                  borderRadius: '12px',
+                  padding: '10px 12px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  cursor: 'pointer',
+                  fontSize: '12px',
+                  fontWeight: 700,
+                  color: '#1E293B',
+                  boxShadow: '0 2px 6px rgba(0,0,0,0.03)',
+                  transition: 'all 0.2s ease',
+                }}
+              >
+                <span className="material-symbols-outlined" style={{ fontSize: '18px', color: '#6366F1' }}>
+                  manage_accounts
+                </span>
+                <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>Gestione Utenti</span>
+              </button>
+            )}
 
-          {onOpenAdminProposals && (
-            <button
-              onClick={onOpenAdminProposals}
-              style={{
-                width: '100%',
-                background: 'linear-gradient(135deg, #F59E0B 0%, #D97706 100%)',
-                color: 'white',
-                border: 'none',
-                padding: '12px 16px',
-                borderRadius: '16px',
-                fontWeight: 'bold',
-                fontSize: '14px',
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '8px',
-                boxShadow: '0 4px 12px rgba(15,23,42,0.15)'
-              }}
-            >
-              <span className="material-symbols-outlined" style={{ color: 'var(--primary)' }}>sports_bar</span>
-              <span>Proposte Birre</span>
-              {pendingProposalsCount > 0 && (
-                <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', marginLeft: '4px' }}>
+            {onOpenAdminProposals && (
+              <button
+                onClick={onOpenAdminProposals}
+                style={{
+                  background: '#FFFFFF',
+                  border: '1px solid #E2E8F0',
+                  borderRadius: '12px',
+                  padding: '10px 12px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  gap: '8px',
+                  cursor: 'pointer',
+                  fontSize: '12px',
+                  fontWeight: 700,
+                  color: '#1E293B',
+                  boxShadow: '0 2px 6px rgba(0,0,0,0.03)',
+                  transition: 'all 0.2s ease',
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', overflow: 'hidden' }}>
+                  <span className="material-symbols-outlined" style={{ fontSize: '18px', color: '#F59E0B' }}>
+                    sports_bar
+                  </span>
+                  <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>Proposte Birre</span>
+                </div>
+                {pendingProposalsCount > 0 && (
                   <span
                     style={{
-                      width: '8px',
-                      height: '8px',
-                      borderRadius: '50%',
                       background: '#EF4444',
-                      boxShadow: '0 0 8px rgba(239, 68, 68, 0.9)',
+                      color: '#FFFFFF',
+                      fontSize: '10px',
+                      fontWeight: 900,
+                      borderRadius: '10px',
+                      padding: '1px 6px',
+                      flexShrink: 0,
                     }}
-                  />
-                  <span style={{
-                    background: 'var(--danger)',
-                    color: 'white',
-                    borderRadius: '10px',
-                    padding: '2px 8px',
-                    fontSize: '11px',
-                    fontWeight: '900'
-                  }}>
+                  >
                     {pendingProposalsCount}
                   </span>
-                </div>
-              )}
-            </button>
-          )}
+                )}
+              </button>
+            )}
 
-          {onOpenAdminReports && (
-            <button
-              onClick={onOpenAdminReports}
-              style={{
-                width: '100%',
-                background: 'linear-gradient(135deg, #451A03 0%, #78350F 100%)',
-                color: 'white',
-                border: '1px solid #B45309',
-                padding: '12px 16px',
-                borderRadius: '16px',
-                fontWeight: 'bold',
-                fontSize: '14px',
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '8px',
-                boxShadow: '0 4px 12px rgba(120,53,15,0.2)'
-              }}
-            >
-              <span className="material-symbols-outlined" style={{ color: '#FBBF24' }}>report_problem</span>
-              <span>Segnalazioni Post</span>
-              {flaggedPostsCount > 0 && (
-                <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', marginLeft: '4px' }}>
+            {onOpenAdminReports && (
+              <button
+                onClick={onOpenAdminReports}
+                style={{
+                  background: '#FFFFFF',
+                  border: '1px solid #E2E8F0',
+                  borderRadius: '12px',
+                  padding: '10px 12px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  gap: '8px',
+                  cursor: 'pointer',
+                  fontSize: '12px',
+                  fontWeight: 700,
+                  color: '#1E293B',
+                  boxShadow: '0 2px 6px rgba(0,0,0,0.03)',
+                  transition: 'all 0.2s ease',
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', overflow: 'hidden' }}>
+                  <span className="material-symbols-outlined" style={{ fontSize: '18px', color: '#E11D48' }}>
+                    report_problem
+                  </span>
+                  <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>Segnalazioni</span>
+                </div>
+                {flaggedPostsCount > 0 && (
                   <span
                     style={{
-                      width: '8px',
-                      height: '8px',
-                      borderRadius: '50%',
                       background: '#EF4444',
-                      boxShadow: '0 0 8px rgba(239, 68, 68, 0.9)',
+                      color: '#FFFFFF',
+                      fontSize: '10px',
+                      fontWeight: 900,
+                      borderRadius: '10px',
+                      padding: '1px 6px',
+                      flexShrink: 0,
                     }}
-                  />
-                  <span style={{
-                    background: '#EF4444',
-                    color: 'white',
-                    borderRadius: '10px',
-                    padding: '2px 8px',
-                    fontSize: '11px',
-                    fontWeight: '900'
-                  }}>
+                  >
                     {flaggedPostsCount}
                   </span>
-                </div>
-              )}
-            </button>
-          )}
+                )}
+              </button>
+            )}
+          </div>
         </div>
       )}
 
