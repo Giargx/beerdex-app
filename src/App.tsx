@@ -1183,35 +1183,74 @@ export default function App() {
       showAlert("Non puoi eliminare il tuo stesso profilo amministratore!", "Operazione Non Consentita");
       return;
     }
-    try {
-      // 1. Delete user profile nodes in Firebase Realtime DB
-      await remove(ref(db, `users/${targetUsername}`));
-      await remove(ref(db, `pokedex_profiles/${targetUsername}`));
-      await remove(ref(db, `leaderboard_scores/${targetUsername}`));
-      await remove(ref(db, `avatars/${targetUsername}`));
-      await remove(ref(db, `display_names/${targetUsername}`));
-      await remove(ref(db, `privacy_settings/${targetUsername}`));
-      await remove(ref(db, `tag_requests/${targetUsername}`));
-      await remove(ref(db, `user_friends/${targetUsername}`));
 
-      // 2. Remove user posts from social_timeline if any
-      const timelineSnap = await get(ref(db, 'social_timeline'));
-      if (timelineSnap.exists()) {
-        const val = timelineSnap.val();
-        const updates: Record<string, any> = {};
-        for (const key in val) {
-          if (val[key] && val[key].user && val[key].user.toLowerCase() === targetUsername.toLowerCase()) {
-            updates[`social_timeline/${key}`] = null;
+    try {
+      const updates: Record<string, any> = {};
+      const targetLower = targetUsername.toLowerCase();
+
+      // 1. Rimuovi da usernames_emails
+      updates[`usernames_emails/${targetLower}`] = null;
+
+      // 2. Rimuovi da users_directory cercando l'UID associato
+      const dirSnap = await get(ref(db, 'users_directory'));
+      if (dirSnap.exists()) {
+        const dirData = dirSnap.val();
+        Object.entries(dirData).forEach(([uidKey, nickVal]: [string, any]) => {
+          if ((nickVal || '').toString().trim().toLowerCase() === targetLower) {
+            updates[`users_directory/${uidKey}`] = null;
           }
-        }
-        if (Object.keys(updates).length > 0) {
-          await update(ref(db), updates);
-        }
+        });
       }
 
-      showAlert(`Il profilo dell'utente @${targetUsername} è stato definitivamente eliminato dal database.`, 'Profilo Eliminato');
+      // 3. Rimuovi tutti i nodi profilo e dati utente
+      updates[`users/${targetUsername}`] = null;
+      updates[`pokedex_profiles/${targetUsername}`] = null;
+      updates[`leaderboard_scores/${targetUsername}`] = null;
+      updates[`users_avatars/${targetUsername}`] = null;
+      updates[`avatars/${targetUsername}`] = null;
+      updates[`display_names/${targetUsername}`] = null;
+      updates[`privacy_settings/${targetUsername}`] = null;
+      updates[`user_privacy/${targetUsername}`] = null;
+      updates[`tag_requests/${targetUsername}`] = null;
+      updates[`users_friends/${targetUsername}`] = null;
+      updates[`user_friends/${targetUsername}`] = null;
 
-      if (currentPage === 'page-public-profile' && pubProfileUser && pubProfileUser.toLowerCase() === targetUsername.toLowerCase()) {
+      // 4. Rimuovi l'utente dalla lista amici di tutti i suoi amici
+      const friendsSnap = await get(ref(db, `users_friends/${targetUsername}`));
+      if (friendsSnap.exists()) {
+        Object.keys(friendsSnap.val()).forEach((friendNick) => {
+          updates[`users_friends/${friendNick}/${targetUsername}`] = null;
+        });
+      }
+
+      // 5. Rimuovi i post dell'utente dalla social_timeline
+      const timelineSnap = await get(ref(db, 'social_timeline'));
+      if (timelineSnap.exists()) {
+        timelineSnap.forEach((child) => {
+          const p = child.val();
+          if (p && p.user && p.user.toLowerCase() === targetLower) {
+            updates[`social_timeline/${child.key}`] = null;
+          }
+        });
+      }
+
+      // 6. Rimuovi le storie dell'utente da pub_stories
+      const pubStoriesSnap = await get(ref(db, 'pub_stories'));
+      if (pubStoriesSnap.exists()) {
+        pubStoriesSnap.forEach((child) => {
+          const s = child.val();
+          if (s && s.user && s.user.toLowerCase() === targetLower) {
+            updates[`pub_stories/${child.key}`] = null;
+          }
+        });
+      }
+
+      // Esegui la cancellazione atomica su Firebase Realtime Database
+      await update(ref(db), updates);
+
+      showAlert(`Il profilo dell'utente @${targetUsername} è stato definitivamente eliminato da Firebase. Il nickname è ora libero per un nuovo account!`, 'Profilo Eliminato');
+
+      if (currentPage === 'page-public-profile' && pubProfileUser && pubProfileUser.toLowerCase() === targetLower) {
         navigateTo('page-home');
       }
     } catch (err: any) {
@@ -1238,15 +1277,12 @@ export default function App() {
     }
 
     try {
-      // 1. Verifica che il nuovo nickname sia unico
+      // 1. Verifica se il nickname appartiene a un utente ATTIVO diverso da quello rinominato
       const emailSnap = await get(ref(db, `usernames_emails/${newNick.toLowerCase()}`));
-      if (emailSnap.exists()) {
-        showAlert(`Il nickname @${newNick} è già in uso da un altro utente!`, "Nickname Già In Uso");
-        return;
-      }
-
       const dirSnap = await get(ref(db, 'users_directory'));
+      
       let targetUid: string | null = null;
+      let isNickInActiveDirectory = false;
 
       if (dirSnap.exists()) {
         const dirData = dirSnap.val();
@@ -1256,10 +1292,14 @@ export default function App() {
             targetUid = uidKey;
           }
           if (formattedNick.toLowerCase() === newNick.toLowerCase() && formattedNick.toLowerCase() !== targetOldNick.toLowerCase()) {
-            showAlert(`Il nickname @${newNick} è già in uso da un altro utente!`, "Nickname Già In Uso");
-            throw new Error("NICKNAME_TAKEN");
+            isNickInActiveDirectory = true;
           }
         });
+      }
+
+      if (emailSnap.exists() && isNickInActiveDirectory) {
+        showAlert(`Il nickname @${newNick} è già occupato da un altro utente attivo!`, "Nickname Già In Uso");
+        return;
       }
 
       const updates: any = {};
@@ -1274,6 +1314,10 @@ export default function App() {
       const userEmail = oldEmailSnap.exists() ? oldEmailSnap.val() : '';
       if (userEmail) {
         updates[`usernames_emails/${newNick.toLowerCase()}`] = userEmail;
+        updates[`usernames_emails/${targetOldNick.toLowerCase()}`] = null;
+      } else {
+        // Se non trova l'email originale, pulisce l'eventuale voce orfana del nuovo nick
+        updates[`usernames_emails/${newNick.toLowerCase()}`] = `user_${Date.now()}@popit.app`;
         updates[`usernames_emails/${targetOldNick.toLowerCase()}`] = null;
       }
 
