@@ -31,6 +31,7 @@ interface ProfileViewProps {
   onOpenScanner?: () => void;
   onOpenStoryUpload?: () => void;
   onOpenAdminUsers?: () => void;
+  onOpenUserStory?: (username: string) => boolean;
 }
 
 export const ProfileView: React.FC<ProfileViewProps> = ({
@@ -43,7 +44,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
   onToggleSettings,
   onDeleteVariant,
   getUserRankTitle,
-  getAvatarZoomProps,
+  getAvatarZoomProps: _getAvatarZoomProps,
   posts = [],
   onOpenPostDetail,
   allBeersCatalog = beers,
@@ -60,6 +61,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
   onChangeAvatar,
   onOpenScanner,
   onOpenStoryUpload,
+  onOpenUserStory,
 }) => {
   const catalog = (allBeersCatalog && allBeersCatalog.length > 0) ? allBeersCatalog : beers;
   const [activeTab, setActiveTab] = useState<'collection' | 'posts' | 'saved' | 'stats' | 'ratings'>('posts');
@@ -263,7 +265,13 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
           >
             <div
               id="profileAvatarDisplay"
-              {...(getAvatarZoomProps ? getAvatarZoomProps(avatar) : {})}
+              onClick={(e) => {
+                e.stopPropagation();
+                const opened = onOpenUserStory ? onOpenUserStory(currentUserNick) : false;
+                if (!opened) {
+                  setProfileCameraMenuOpen(true);
+                }
+              }}
               style={{
                 width: '90px',
                 height: '90px',
@@ -271,6 +279,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
                 background: '#e0e6ed',
                 margin: '0 auto 15px auto',
                 border: '4px solid var(--primary)',
+                cursor: 'pointer',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',

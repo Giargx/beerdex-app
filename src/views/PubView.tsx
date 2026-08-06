@@ -45,6 +45,7 @@ interface PubViewProps {
   onOpenStoryUpload?: () => void;
   onShareToStory?: (postId: string) => void;
   getAvatarZoomProps?: (url: string | undefined) => any;
+  onOpenUserStory?: (username: string) => boolean;
 }
 
 export const PubView: React.FC<PubViewProps> = ({
@@ -67,6 +68,7 @@ export const PubView: React.FC<PubViewProps> = ({
   onOpenStoryUpload,
   onShareToStory: _onShareToStory,
   getAvatarZoomProps,
+  onOpenUserStory,
 }) => {
   const [searchQuery, setSearchQuery] = useState<string>('');
   
@@ -230,11 +232,14 @@ export const PubView: React.FC<PubViewProps> = ({
 
   // Helper for clicking user avatar: open story if available, else open public profile
   const handleUserAvatarClick = (username: string) => {
-    const storyIndex = storyPosts.findIndex((s) => s.user && s.user.toLowerCase() === username.toLowerCase());
-    if (storyIndex !== -1) {
-      setActiveStoryViewerIndex(storyIndex);
-    } else {
-      onOpenPublicProfile(username);
+    const opened = onOpenUserStory ? onOpenUserStory(username) : false;
+    if (!opened) {
+      const storyIndex = storyPosts.findIndex((s) => s.user && s.user.toLowerCase() === username.toLowerCase());
+      if (storyIndex !== -1) {
+        setActiveStoryViewerIndex(storyIndex);
+      } else {
+        onOpenPublicProfile(username);
+      }
     }
   };
 
@@ -357,12 +362,15 @@ export const PubView: React.FC<PubViewProps> = ({
               <div
                 onClick={(e) => {
                   e.stopPropagation();
-                  if (hasMyStory && myStoryIdx !== -1) {
-                    setActiveStoryViewerIndex(myStoryIdx);
-                  } else if (onOpenStoryUpload) {
-                    onOpenStoryUpload();
-                  } else if (onOpenScanner) {
-                    onOpenScanner();
+                  const opened = onOpenUserStory ? onOpenUserStory(currentUserNick) : false;
+                  if (!opened) {
+                    if (hasMyStory && myStoryIdx !== -1) {
+                      setActiveStoryViewerIndex(myStoryIdx);
+                    } else if (onOpenStoryUpload) {
+                      onOpenStoryUpload();
+                    } else if (onOpenScanner) {
+                      onOpenScanner();
+                    }
                   }
                 }}
                 style={{

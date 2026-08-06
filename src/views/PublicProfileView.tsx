@@ -31,6 +31,7 @@ interface PublicProfileViewProps {
   onAcceptRequest?: (sender: string) => void;
   onCancelSentRequest?: (target: string) => void;
   onDeleteUserProfile?: (username: string) => void;
+  onOpenUserStory?: (username: string) => boolean;
 }
 
 export const PublicProfileView: React.FC<PublicProfileViewProps> = ({
@@ -41,7 +42,7 @@ export const PublicProfileView: React.FC<PublicProfileViewProps> = ({
   avatar,
   onBack,
   getUserRankTitle,
-  getAvatarZoomProps,
+  getAvatarZoomProps: _getAvatarZoomProps,
   posts = [],
   onOpenPostDetail,
   allBeersCatalog = beers,
@@ -58,6 +59,7 @@ export const PublicProfileView: React.FC<PublicProfileViewProps> = ({
   onAcceptRequest,
   onCancelSentRequest,
   onDeleteUserProfile,
+  onOpenUserStory,
 }) => {
   const [activeTab, setActiveTab] = useState<'collection' | 'posts' | 'stats' | 'ratings' | 'medals'>('posts');
 
@@ -222,7 +224,12 @@ export const PublicProfileView: React.FC<PublicProfileViewProps> = ({
         
         <div
           id="pubAvatarDisplay"
-          {...(getAvatarZoomProps ? getAvatarZoomProps(avatar) : {})}
+          onClick={(e) => {
+            e.stopPropagation();
+            if (onOpenUserStory) {
+              onOpenUserStory(username);
+            }
+          }}
           style={{
             width: '70px',
             height: '70px',
@@ -230,6 +237,7 @@ export const PublicProfileView: React.FC<PublicProfileViewProps> = ({
             background: '#e0e6ed',
             margin: '10px auto 10px auto',
             border: '3px solid var(--white)',
+            cursor: 'pointer',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',

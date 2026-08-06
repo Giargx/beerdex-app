@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { onAuthStateChanged, signOut, updatePassword, EmailAuthProvider, reauthenticateWithCredential } from 'firebase/auth';
 import { ref, onValue, set, get, update, push, remove } from 'firebase/database';
 import { auth, db } from './firebase';
@@ -28,6 +28,7 @@ import { AgeGateModal } from './components/AgeGateModal';
 import { AuthScreen } from './components/AuthScreen';
 import { ScannerModal } from './components/ScannerModal';
 import { StoryEditorModal } from './components/StoryEditorModal';
+import { StoryViewerModal } from './components/StoryViewerModal';
 import { CropModal } from './components/CropModal';
 import { MapContainer } from './components/MapContainer';
 import { ProposeBeerModal } from './components/ProposeBeerModal';
@@ -127,6 +128,86 @@ export default function App() {
   const [unlockRatingModalState, setUnlockRatingModalState] = useState<{ isOpen: boolean; brand: string; variant: string; photo?: string } | null>(null);
   const [tutorialOpen, setTutorialOpen] = useState<boolean>(false);
   const [isStoryEditorOpen, setIsStoryEditorOpen] = useState<boolean>(false);
+  const [activeStoryViewerIndex, setActiveStoryViewerIndex] = useState<number | null>(null);
+  const [pubStories, setPubStories] = useState<Record<string, any>>({});
+
+  useEffect(() => {
+    const storiesRef = ref(db, 'pub_stories');
+    const unsubscribe = onValue(storiesRef, (snap) => {
+      if (snap.exists()) {
+        setPubStories(snap.val());
+      } else {
+        setPubStories({});
+      }
+    });
+    return () => unsubscribe();
+  }, []);
+
+  const activePubStories = useMemo(() => {
+    const storiesList: any[] = [];
+    const seenStoryIds = new Set<string>();
+
+    const parseAndAddStory = (key: string, val: any) => {
+      if (!val || typeof val !== 'object') return;
+      const media = val.mediaUrl || val.photo;
+      if (!media) return;
+
+      const storyTime = val.time || val.timestamp || Date.now();
+      if (!seenStoryIds.has(key)) {
+        seenStoryIds.add(key);
+        storiesList.push({
+          postId: key,
+          brand: 'Storia del Pub',
+          variant: 'Foto al volo',
+          isStory: true,
+          ...val,
+          photo: media,
+          mediaUrl: media,
+          time: storyTime,
+        });
+      }
+    };
+
+    if (pubStories && typeof pubStories === 'object') {
+      Object.entries(pubStories).forEach(([key, val]) => {
+        if (val && typeof val === 'object') {
+          if (val.user || val.photo || val.mediaUrl) {
+            parseAndAddStory(key, val);
+          } else {
+            Object.entries(val).forEach(([subKey, subVal]) => {
+              parseAndAddStory(subKey, subVal);
+            });
+          }
+        }
+      });
+    }
+
+    (globalPosts || []).forEach((p: any) => {
+      if (p && (p.isStory || p.brand === 'Storia del Pub') && (p.photo || p.mediaUrl)) {
+        parseAndAddStory(p.postId, p);
+      }
+    });
+
+    storiesList.sort((a, b) => (b.time || 0) - (a.time || 0));
+    return storiesList;
+  }, [pubStories, globalPosts]);
+
+  const handleOpenUserStory = (username: string): boolean => {
+    const targetLower = (username || '').toLowerCase();
+    let storyIndex = activePubStories.findIndex(
+      (s: any) => s && s.user && (s.user.toLowerCase() === targetLower || s.user === username)
+    );
+
+    if (storyIndex === -1 && targetLower === (currentUserNick || '').toLowerCase() && activePubStories.length > 0) {
+      storyIndex = 0;
+    }
+
+    if (storyIndex !== -1) {
+      setActiveStoryViewerIndex(storyIndex);
+      return true;
+    }
+    return false;
+  };
 
   useEffect(() => {
     if (currentUser) {
@@ -3214,6 +3295,7 @@ export default function App() {
                     onOpenStoryUpload={handleOpenStoryUpload}
                     onShareToStory={handleShareToStory}
                     getAvatarZoomProps={getAvatarZoomProps}
+                    onOpenUserStory={handleOpenUserStory}
                   />
                 )}
               </div>
@@ -3268,6 +3350,7 @@ export default function App() {
                     onChangeAvatar={() => setAvatarSelectorOpen(true)}
                     onOpenScanner={() => setScannerConfig({ open: true, brand: '', variant: '' })}
                     onOpenStoryUpload={handleOpenStoryUpload}
+                    onOpenUserStory={handleOpenUserStory}
                   />
                 )}
               </div>
@@ -3289,6 +3372,7 @@ export default function App() {
               getAvatarZoomProps={getAvatarZoomProps}
               posts={globalPosts}
               allBeersCatalog={allBeersCatalog}
+              onOpenUserStory={handleOpenUserStory}
               onOpenPostDetail={(uname, pid) => {
                 setDetailViewUser(uname);
                 setDetailViewPostId(pid);
@@ -3637,6 +3721,22 @@ export default function App() {
         onClose={() => setIsStoryEditorOpen(false)}
         onPublishStory={handlePublishStory}
       />
+
+      {/* Global 24h Fullscreen Story Viewer */}
+      {activeStoryViewerIndex !== null && (
+        <StoryViewerModal
+          isOpen={activeStoryViewerIndex !== null}
+          stories={activePubStories}
+          initialIndex={activeStoryViewerIndex}
+          currentUserNick={currentUserNick}
+          globalAvatars={globalAvatars}
+          globalDisplayNames={globalDisplayNames}
+          allPokedexProfiles={allPokedexProfiles}
+          onClose={() => setActiveStoryViewerIndex(null)}
+          onToggleLike={handleToggleLike}
+          onOpenPublicProfile={handleOpenPublicProfile}
+        />
+      )}
     </>
   );
 }
