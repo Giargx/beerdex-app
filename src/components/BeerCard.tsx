@@ -199,11 +199,15 @@ export const BeerCard: React.FC<BeerCardProps> = ({
                   </div>
                 </div>
 
-                {/* Row 2: Left = Points + Beer Style Type */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '2px' }}>
+                {/* Row 2: Left = Points */}
+                <div style={{ display: 'flex', alignItems: 'center', marginTop: '2px' }}>
                   <span style={{ fontSize: '11px', color: 'var(--text-muted)', fontWeight: 700 }}>
                     ({specificPts} pt)
                   </span>
+                </div>
+
+                {/* Row 3: Left = Beer Style Type */}
+                <div style={{ display: 'flex', alignItems: 'center', marginTop: '2px' }}>
                   <span className="beer-type-label">
                     {typeKey.charAt(0).toUpperCase() + typeKey.slice(1)}
                   </span>
