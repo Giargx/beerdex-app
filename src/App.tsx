@@ -1637,103 +1637,130 @@ export default function App() {
   };
 
   const handleDeletePost = (postId: string, postUser: string, brand: string, variant: string) => {
-    const isUserAdmin = isAdminUser;
-    const isDeletingOtherUser = Boolean(postUser && postUser.toLowerCase() !== currentUserNick.toLowerCase());
+    const uniqueId = `${brand}-${variant}`;
+    const postRef = ref(db, `social_timeline/${postId}`);
 
-    showConfirm(
-      isUserAdmin && isDeletingOtherUser
-        ? `Vuoi davvero eliminare come ADMIN il post di @${postUser} (${brand} - ${variant})?`
-        : `Vuoi davvero eliminare lo sblocco di ${brand} - ${variant}?`,
-      'Conferma Eliminazione',
-      async () => {
-        try {
-          const uniqueId = `${brand}-${variant}`;
-          const postRef = ref(db, `social_timeline/${postId}`);
-          const postSnap = await get(postRef);
+    get(postRef).then((postSnap) => {
+      let isCurrentUserParticipant = false;
+      let participants: string[] = [];
 
-          if (isUserAdmin && isDeletingOtherUser) {
-            // ADMIN DELETION OF ANOTHER USER'S POST
-            if (postSnap.exists()) {
-              const postVal = postSnap.val();
-              const participants: string[] = Array.from(
-                new Set([
-                  postVal.user,
-                  ...(Array.isArray(postVal.taggedFriends) ? postVal.taggedFriends.filter(Boolean) : []),
-                  ...(postVal.taggedFriend ? postVal.taggedFriend.split(',').map((s: string) => s.trim()).filter(Boolean) : []),
-                ])
+      if (postSnap.exists()) {
+        const postVal = postSnap.val();
+        participants = Array.from(
+          new Set([
+            postVal.user,
+            ...(Array.isArray(postVal.taggedFriends) ? postVal.taggedFriends.filter(Boolean) : []),
+            ...(postVal.taggedFriend ? postVal.taggedFriend.split(',').map((s: string) => s.trim()).filter(Boolean) : []),
+          ])
+        );
+
+        isCurrentUserParticipant = participants.some(
+          (p) => p.toLowerCase() === currentUserNick.toLowerCase()
+        );
+      }
+
+      // 1. If current user is a participant in the post (even if Admin):
+      // Remove ONLY current user's name and pokedex entry from the shared post.
+      if (isCurrentUserParticipant) {
+        showConfirm(
+          `Vuoi davvero rimuovere la tua partecipazione a questo post (${brand} - ${variant})?`,
+          'Rimuovi dal tuo Profilo',
+          async () => {
+            try {
+              // Remove currentUserNick's pokedex entry & rating
+              await remove(ref(db, `pokedex_profiles/${currentUserNick}/${uniqueId}`));
+              await remove(ref(db, `social_timeline/${postId}/ratings/${currentUserNick}`));
+
+              const remainingParticipants = participants.filter(
+                (p) => p.toLowerCase() !== currentUserNick.toLowerCase()
               );
 
-              // Remove pokedex entry for all participants of this post
-              for (const pNick of participants) {
-                await remove(ref(db, `pokedex_profiles/${pNick}/${uniqueId}`));
-                await recalculateTotalScore(pNick);
+              if (remainingParticipants.length > 0) {
+                // Post still has other participants! Update post for remaining participants
+                const newAuthor = remainingParticipants[0];
+                const newTagged = remainingParticipants.slice(1);
+
+                await update(postRef, {
+                  user: newAuthor,
+                  taggedFriends: newTagged,
+                  taggedFriend: newTagged.join(', '),
+                  isShared: newTagged.length > 0,
+                });
+
+                await recalculateTotalScore(currentUserNick);
+                showAlert('Post rimosso dal tuo profilo. La bevuta rimane visibile per gli altri partecipanti.');
+              } else {
+                // Last participant deleted the post -> delete entire post from timeline
+                await remove(postRef);
+                await remove(ref(db, `flagged_posts/${postId}`));
+                await recalculateTotalScore(currentUserNick);
+                showAlert('Post rimosso con successo.');
               }
-            } else if (postUser) {
-              await remove(ref(db, `pokedex_profiles/${postUser}/${uniqueId}`));
-              await recalculateTotalScore(postUser);
+            } catch (err: any) {
+              showAlert(err.message, 'Errore');
             }
-
-            // Remove post from timeline & flagged posts
-            await remove(postRef);
-            await remove(ref(db, `flagged_posts/${postId}`));
-
-            showAlert(`Post di @${postUser} eliminato con successo dall'amministratore.`, 'Post Eliminato');
-            return;
           }
+        );
+        return;
+      }
 
-          // REGULAR USER DELETION (or admin deleting their own post)
-          const targetUser = currentUserNick;
-          if (postSnap.exists()) {
-            const postVal = postSnap.val();
-            // Get all participants
-            const participants: string[] = Array.from(
-              new Set([
-                postVal.user,
-                ...(Array.isArray(postVal.taggedFriends) ? postVal.taggedFriends.filter(Boolean) : []),
-                ...(postVal.taggedFriend ? postVal.taggedFriend.split(',').map((s: string) => s.trim()).filter(Boolean) : []),
-              ])
-            );
+      // 2. If current user is NOT a participant and is an Admin:
+      // Perform full Admin deletion of someone else's post.
+      if (isAdminUser) {
+        const targetPostUser = postUser || (postSnap.exists() ? postSnap.val().user : 'utente');
+        showConfirm(
+          `Vuoi davvero eliminare come ADMIN il post di @${targetPostUser} (${brand} - ${variant})?`,
+          'Eliminazione Admin',
+          async () => {
+            try {
+              if (postSnap.exists()) {
+                const postVal = postSnap.val();
+                const allParts: string[] = Array.from(
+                  new Set([
+                    postVal.user,
+                    ...(Array.isArray(postVal.taggedFriends) ? postVal.taggedFriends.filter(Boolean) : []),
+                    ...(postVal.taggedFriend ? postVal.taggedFriend.split(',').map((s: string) => s.trim()).filter(Boolean) : []),
+                  ])
+                );
 
-            // 1. Remove targetUser's pokedex entry & rating
-            await remove(ref(db, `pokedex_profiles/${targetUser}/${uniqueId}`));
-            await remove(ref(db, `social_timeline/${postId}/ratings/${targetUser}`));
+                // Remove pokedex entries for all participants of this post
+                for (const pNick of allParts) {
+                  await remove(ref(db, `pokedex_profiles/${pNick}/${uniqueId}`));
+                  await recalculateTotalScore(pNick);
+                }
+              } else if (targetPostUser) {
+                await remove(ref(db, `pokedex_profiles/${targetPostUser}/${uniqueId}`));
+                await recalculateTotalScore(targetPostUser);
+              }
 
-            const remainingParticipants = participants.filter(
-              (p) => p.toLowerCase() !== targetUser.toLowerCase()
-            );
-
-            if (remainingParticipants.length > 0) {
-              // Post still has other participants! Update post for remaining participants
-              const newAuthor = remainingParticipants[0];
-              const newTagged = remainingParticipants.slice(1);
-
-              await update(postRef, {
-                user: newAuthor,
-                taggedFriends: newTagged,
-                taggedFriend: newTagged.join(', '),
-                isShared: newTagged.length > 0,
-              });
-
-              await recalculateTotalScore(targetUser);
-              showAlert('Post rimosso dal tuo profilo. La bevuta rimane visibile per gli altri partecipanti.');
-            } else {
-              // Last participant deleted the post -> delete entire post from timeline
+              // Remove post from timeline & flagged posts
               await remove(postRef);
               await remove(ref(db, `flagged_posts/${postId}`));
-              await recalculateTotalScore(targetUser);
-              showAlert('Post rimosso con successo.');
+
+              showAlert(`Post di @${targetPostUser} eliminato con successo dall'amministratore.`, 'Post Eliminato');
+            } catch (err: any) {
+              showAlert(err.message, 'Errore');
             }
-          } else {
-            // Post fallback
-            await remove(ref(db, `pokedex_profiles/${targetUser}/${uniqueId}`));
-            await recalculateTotalScore(targetUser);
-            showAlert('Post rimosso dal tuo profilo.');
           }
-        } catch (err: any) {
-          showAlert(err.message, 'Errore');
-        }
+        );
+        return;
       }
-    );
+
+      // 3. Fallback for regular non-participant user
+      showConfirm(
+        `Vuoi davvero eliminare lo sblocco di ${brand} - ${variant}?`,
+        'Conferma Eliminazione',
+        async () => {
+          try {
+            await remove(ref(db, `pokedex_profiles/${currentUserNick}/${uniqueId}`));
+            await recalculateTotalScore(currentUserNick);
+            showAlert('Post rimosso dal tuo profilo.');
+          } catch (err: any) {
+            showAlert(err.message, 'Errore');
+          }
+        }
+      );
+    });
   };
 
   // Flag post as fake
