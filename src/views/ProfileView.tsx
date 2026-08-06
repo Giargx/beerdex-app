@@ -422,7 +422,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
               onClick={onOpenAdminProposals}
               style={{
                 width: '100%',
-                background: 'linear-gradient(135deg, #0F172A 0%, #1E293B 100%)',
+                background: 'linear-gradient(135deg, #F59E0B 0%, #D97706 100%)',
                 color: 'white',
                 border: 'none',
                 padding: '12px 16px',
@@ -1117,7 +1117,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
           {/* Overview Banner */}
           <div
             style={{
-              background: 'linear-gradient(135deg, #1E293B 0%, #0F172A 100%)',
+              background: 'linear-gradient(135deg, #F59E0B 0%, #D97706 100%)',
               borderRadius: '20px',
               padding: '20px',
               color: 'white',
