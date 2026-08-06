@@ -1,0 +1,44 @@
+{
+  "rules": {
+    ".read": "auth != null",
+    ".write": "auth != null",
+    "usernames_emails": {
+      ".read": "auth != null",
+      "$nickname": {
+        ".write": "auth != null"
+      }
+    },
+    "users_directory": {
+      ".read": "auth != null",
+      "$uid": {
+        ".write": "auth != null && auth.uid === $uid"
+      }
+    },
+    "pokedex_profiles": {
+      ".read": "auth != null",
+      "$username": {
+        ".write": "auth != null"
+      }
+    },
+    "leaderboard_scores": {
+      ".read": "auth != null",
+      ".write": "auth != null"
+    },
+    "social_timeline": {
+      ".read": "auth != null",
+      ".write": "auth != null"
+    },
+    "pub_stories": {
+      ".read": "auth != null",
+      ".write": "auth != null"
+    },
+    "users_friends": {
+      ".read": "auth != null",
+      ".write": "auth != null"
+    },
+    "user_privacy": {
+      ".read": "auth != null",
+      ".write": "auth != null"
+    }
+  }
+}
