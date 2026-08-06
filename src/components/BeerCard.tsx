@@ -131,13 +131,10 @@ export const BeerCard: React.FC<BeerCardProps> = ({
 
             return (
               <div key={uniqueId} className={`variant-item variant-type-${typeKey}`} onClick={(e) => e.stopPropagation()}>
-                {/* Row 1: Left = Variant Name + Points, Right = Unlock Button / Actions */}
+                {/* Row 1: Left = Variant Name, Right = Unlock Button / Actions */}
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', gap: '10px' }}>
-                  <div style={{ fontWeight: 800, fontSize: '14px', color: '#0F172A', lineHeight: '1.2' }}>
-                    {variant}{' '}
-                    <span style={{ fontSize: '11px', color: 'var(--text-muted)', fontWeight: 600 }}>
-                      ({specificPts} pt)
-                    </span>
+                  <div style={{ fontWeight: 800, fontSize: '15px', color: '#0F172A', lineHeight: '1.2' }}>
+                    {variant}
                   </div>
 
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
@@ -202,8 +199,11 @@ export const BeerCard: React.FC<BeerCardProps> = ({
                   </div>
                 </div>
 
-                {/* Row 2: Left = Beer Style Type */}
-                <div style={{ display: 'flex', alignItems: 'center', marginTop: '4px' }}>
+                {/* Row 2: Left = Points + Beer Style Type */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '2px' }}>
+                  <span style={{ fontSize: '11px', color: 'var(--text-muted)', fontWeight: 700 }}>
+                    ({specificPts} pt)
+                  </span>
                   <span className="beer-type-label">
                     {typeKey.charAt(0).toUpperCase() + typeKey.slice(1)}
                   </span>
