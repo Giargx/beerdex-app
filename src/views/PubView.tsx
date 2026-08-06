@@ -7,7 +7,6 @@ import { getBasePoints, formatBeerTitle } from '../beers';
 import { StarRating } from '../components/StarRating';
 import { BrindisiSummary } from '../components/BrindisiSummary';
 import { ReportPostModal } from '../components/ReportPostModal';
-import { StoryViewerModal } from '../components/StoryViewerModal';
 import type { PokedexEntry } from '../components/TrophyGrid';
 
 interface Post {
@@ -75,7 +74,6 @@ export const PubView: React.FC<PubViewProps> = ({
   // Modals & Interactive States
   const [selectedReportPost, setSelectedReportPost] = useState<Post | null>(null);
   const [selectedParticipantsPost, setSelectedParticipantsPost] = useState<Post | null>(null);
-  const [activeStoryViewerIndex, setActiveStoryViewerIndex] = useState<number | null>(null);
   const [savedPostIds, setSavedPostIds] = useState<string[]>(() => {
     try {
       const saved = localStorage.getItem('beerdex_saved_posts');
@@ -234,12 +232,7 @@ export const PubView: React.FC<PubViewProps> = ({
   const handleUserAvatarClick = (username: string) => {
     const opened = onOpenUserStory ? onOpenUserStory(username) : false;
     if (!opened) {
-      const storyIndex = storyPosts.findIndex((s) => s.user && s.user.toLowerCase() === username.toLowerCase());
-      if (storyIndex !== -1) {
-        setActiveStoryViewerIndex(storyIndex);
-      } else {
-        onOpenPublicProfile(username);
-      }
+      onOpenPublicProfile(username);
     }
   };
 
@@ -364,9 +357,7 @@ export const PubView: React.FC<PubViewProps> = ({
                   e.stopPropagation();
                   const opened = onOpenUserStory ? onOpenUserStory(currentUserNick) : false;
                   if (!opened) {
-                    if (hasMyStory && myStoryIdx !== -1) {
-                      setActiveStoryViewerIndex(myStoryIdx);
-                    } else if (onOpenStoryUpload) {
+                    if (onOpenStoryUpload) {
                       onOpenStoryUpload();
                     } else if (onOpenScanner) {
                       onOpenScanner();
@@ -480,7 +471,7 @@ export const PubView: React.FC<PubViewProps> = ({
               }
             });
 
-            return Array.from(userStoryMap.values()).map(({ user, firstIndex }) => {
+            return Array.from(userStoryMap.values()).map(({ user }) => {
               const uKey = user.toLowerCase();
               const av = globalAvatars[user] || globalAvatars[uKey];
               const disp = globalDisplayNames?.[user] || globalDisplayNames?.[uKey] || user;
@@ -490,8 +481,6 @@ export const PubView: React.FC<PubViewProps> = ({
                   onClick={() => {
                     if (onOpenUserStory) {
                       onOpenUserStory(user);
-                    } else {
-                      setActiveStoryViewerIndex(firstIndex);
                     }
                   }}
                   style={{
@@ -1395,30 +1384,7 @@ export const PubView: React.FC<PubViewProps> = ({
         }}
       />
 
-      {/* 24h Instagram-style Fullscreen Story Viewer */}
-      {activeStoryViewerIndex !== null && (
-        <StoryViewerModal
-          isOpen={activeStoryViewerIndex !== null}
-          stories={storyPosts}
-          initialIndex={activeStoryViewerIndex}
-          currentUserNick={currentUserNick}
-          globalAvatars={globalAvatars}
-          globalDisplayNames={globalDisplayNames}
-          allPokedexProfiles={allPokedexProfiles}
-          onClose={() => setActiveStoryViewerIndex(null)}
-          onToggleLike={onToggleLike}
-          onOpenPublicProfile={onOpenPublicProfile}
-          onDeleteStory={(postId) => {
-            const targetStory = storyPosts.find((s) => s.postId === postId);
-            onDeletePost(
-              postId,
-              targetStory?.user || currentUserNick,
-              targetStory?.brand || 'Storia del Pub',
-              targetStory?.variant || 'Foto al volo'
-            );
-          }}
-        />
-      )}
+
 
       {/* Participants Sheet / Tendina Modal */}
       {selectedParticipantsPost && (

@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { POPULAR_MUSIC_TRACKS } from './StoryEditorModal';
 
 export interface StoryPost {
   postId: string;
@@ -72,7 +73,10 @@ export const StoryViewerModal: React.FC<StoryViewerModalProps> = ({
   // Handle Background Music Playback
   useEffect(() => {
     if (!isOpen || stories.length === 0) {
-      if (audioRef.current) audioRef.current.pause();
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current = null;
+      }
       return;
     }
 
@@ -82,18 +86,38 @@ export const StoryViewerModal: React.FC<StoryViewerModalProps> = ({
       audioRef.current = null;
     }
 
-    if (story && story.musicAudioUrl) {
-      audioRef.current = new Audio(story.musicAudioUrl);
-      audioRef.current.volume = 0.8;
-      audioRef.current.play().catch(() => {});
+    let audioUrl = story?.musicAudioUrl;
+    if (!audioUrl && story?.musicTrackId) {
+      const foundTrack = POPULAR_MUSIC_TRACKS.find((t) => t.id === story.musicTrackId);
+      if (foundTrack) audioUrl = foundTrack.audioUrl;
+    }
+
+    if (story && audioUrl) {
+      const audio = new Audio(audioUrl);
+      audio.volume = 1.0;
+      audioRef.current = audio;
+
+      const playPromise = audio.play();
+      if (playPromise !== undefined) {
+        playPromise.catch(() => {
+          // Autoplay deferred until first user touch
+        });
+      }
     }
 
     return () => {
       if (audioRef.current) {
         audioRef.current.pause();
+        audioRef.current = null;
       }
     };
   }, [currentIndex, isOpen, stories]);
+
+  const tryPlayAudio = () => {
+    if (audioRef.current && audioRef.current.paused) {
+      audioRef.current.play().catch(() => {});
+    }
+  };
 
   useEffect(() => {
     if (!isOpen || stories.length === 0 || isPaused || isFlipping) return;
@@ -193,133 +217,214 @@ export const StoryViewerModal: React.FC<StoryViewerModalProps> = ({
   };
 
   return (
-    <div
-      style={{
-        position: 'fixed',
-        top: 0,
-        left: 0,
-        width: '100vw',
-        height: '100vh',
-        background: 'rgba(0, 0, 0, 0.95)',
-        zIndex: 999999,
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        userSelect: 'none',
-        perspective: '1000px',
-      }}
-      onMouseDown={() => setIsPaused(true)}
-      onMouseUp={() => setIsPaused(false)}
-      onTouchStart={() => setIsPaused(true)}
-      onTouchEnd={() => setIsPaused(false)}
-    >
+    <>
+      <style>{`
+        @keyframes storyMusicMarquee {
+          0% { transform: translateX(100%); }
+          100% { transform: translateX(-100%); }
+        }
+      `}</style>
       <div
         style={{
-          position: 'relative',
-          width: '100%',
-          maxWidth: '440px',
-          height: '100%',
-          maxHeight: '840px',
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          width: '100vw',
+          height: '100vh',
+          background: 'rgba(0, 0, 0, 0.95)',
+          zIndex: 999999,
           display: 'flex',
           flexDirection: 'column',
-          justifyContent: 'space-between',
-          padding: '16px',
-          boxSizing: 'border-box',
-          transformStyle: 'preserve-3d',
-          transition: 'transform 0.4s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease',
-          transform: isFlipping ? 'rotateY(90deg) scale(0.88)' : 'rotateY(0deg) scale(1)',
-          opacity: isFlipping ? 0.2 : 1,
+          alignItems: 'center',
+          justifyContent: 'center',
+          userSelect: 'none',
+          WebkitUserSelect: 'none',
+          WebkitTapHighlightColor: 'transparent',
+          outline: 'none',
+          perspective: '1000px',
         }}
+        onMouseDown={() => {
+          tryPlayAudio();
+          setIsPaused(true);
+        }}
+        onMouseUp={() => setIsPaused(false)}
+        onTouchStart={() => {
+          tryPlayAudio();
+          setIsPaused(true);
+        }}
+        onTouchEnd={() => setIsPaused(false)}
       >
-        {/* Top Progress Bars (Filtered for Current User Stories) */}
-        <div>
-          <div style={{ display: 'flex', gap: '4px', marginBottom: '12px' }}>
-            {currentUserStories.map((s, idx) => {
-              let width = '0%';
-              if (idx < userStoryIndex) width = '100%';
-              else if (idx === userStoryIndex) width = `${progress}%`;
+        <div
+          style={{
+            position: 'relative',
+            width: '100%',
+            maxWidth: '440px',
+            height: '100%',
+            maxHeight: '840px',
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'space-between',
+            padding: '16px',
+            boxSizing: 'border-box',
+            transformStyle: 'preserve-3d',
+            transition: 'transform 0.4s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease',
+            transform: isFlipping ? 'rotateY(90deg) scale(0.88)' : 'rotateY(0deg) scale(1)',
+            opacity: isFlipping ? 0.2 : 1,
+            WebkitTapHighlightColor: 'transparent',
+            userSelect: 'none',
+            WebkitUserSelect: 'none',
+          }}
+        >
+          {/* Top Progress Bars (Filtered for Current User Stories) */}
+          <div>
+            <div style={{ display: 'flex', gap: '4px', marginBottom: '12px' }}>
+              {currentUserStories.map((s, idx) => {
+                let width = '0%';
+                if (idx < userStoryIndex) width = '100%';
+                else if (idx === userStoryIndex) width = `${progress}%`;
 
-              return (
-                <div
-                  key={s.postId}
-                  style={{
-                    flex: 1,
-                    height: '3px',
-                    background: 'rgba(255, 255, 255, 0.3)',
-                    borderRadius: '2px',
-                    overflow: 'hidden',
-                  }}
-                >
+                return (
                   <div
+                    key={s.postId}
                     style={{
-                      height: '100%',
-                      width,
-                      background: '#FFFFFF',
-                      transition: idx === userStoryIndex ? 'width 0.1s linear' : 'none',
+                      flex: 1,
+                      height: '3px',
+                      background: 'rgba(255, 255, 255, 0.3)',
+                      borderRadius: '2px',
+                      overflow: 'hidden',
                     }}
-                  />
-                </div>
-              );
-            })}
-          </div>
+                  >
+                    <div
+                      style={{
+                        height: '100%',
+                        width,
+                        background: '#FFFFFF',
+                        transition: idx === userStoryIndex ? 'width 0.1s linear' : 'none',
+                      }}
+                    />
+                  </div>
+                );
+              })}
+            </div>
 
-          {/* Story Header */}
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <div
-              style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer' }}
-              onClick={() => {
-                onClose();
-                onOpenPublicProfile(currentStory.user);
-              }}
-            >
+            {/* Story Header */}
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
               <div
-                style={{
-                  width: '38px',
-                  height: '38px',
-                  borderRadius: '50%',
-                  padding: '2px',
-                  background: 'linear-gradient(45deg, #F59E0B, #E67E22, #EC4899)',
-                  transform: isFlipping ? 'rotateY(180deg) scale(0.7)' : 'rotateY(0deg) scale(1)',
-                  transition: 'transform 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
+                style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer' }}
+                onClick={() => {
+                  onClose();
+                  onOpenPublicProfile(currentStory.user);
                 }}
               >
-                <div style={{ width: '100%', height: '100%', borderRadius: '50%', overflow: 'hidden', background: '#FFF', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  {avatar ? (
-                    <img src={avatar} alt={displayName} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                  ) : (
-                    <span className="material-symbols-outlined" style={{ fontSize: '20px', color: '#64748B' }}>person</span>
+                <div
+                  style={{
+                    width: '38px',
+                    height: '38px',
+                    borderRadius: '50%',
+                    padding: '2px',
+                    background: 'linear-gradient(45deg, #F59E0B, #E67E22, #EC4899)',
+                    transform: isFlipping ? 'rotateY(180deg) scale(0.7)' : 'rotateY(0deg) scale(1)',
+                    transition: 'transform 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
+                    flexShrink: 0,
+                  }}
+                >
+                  <div style={{ width: '100%', height: '100%', borderRadius: '50%', overflow: 'hidden', background: '#FFF', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    {avatar ? (
+                      <img src={avatar} alt={displayName} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    ) : (
+                      <span className="material-symbols-outlined" style={{ fontSize: '20px', color: '#64748B' }}>person</span>
+                    )}
+                  </div>
+                </div>
+
+                <div>
+                  <div style={{ color: '#FFFFFF', fontSize: '14px', fontWeight: 800 }}>
+                    {displayName}
+                  </div>
+                  <div style={{ color: 'rgba(255, 255, 255, 0.7)', fontSize: '11px', fontWeight: 600 }}>
+                    {timeAgo()}
+                  </div>
+                  {/* Minimal Scrolling Music Ticker in Header */}
+                  {currentStory.musicTitle && (
+                    <div
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '3px',
+                        color: '#FDE047',
+                        fontSize: '10px',
+                        fontWeight: 700,
+                        marginTop: '3px',
+                        maxWidth: '145px',
+                        overflow: 'hidden',
+                        background: 'rgba(0, 0, 0, 0.45)',
+                        padding: '1px 6px',
+                        borderRadius: '8px',
+                        border: '1px solid rgba(253, 224, 71, 0.3)',
+                      }}
+                    >
+                      <span className="material-symbols-outlined" style={{ fontSize: '12px', color: '#FDE047', flexShrink: 0 }}>
+                        music_note
+                      </span>
+                      <div style={{ overflow: 'hidden', whiteSpace: 'nowrap', width: '100%' }}>
+                        <span
+                          style={{
+                            display: 'inline-block',
+                            whiteSpace: 'nowrap',
+                            paddingLeft: '100%',
+                            animation: 'storyMusicMarquee 7s linear infinite',
+                          }}
+                        >
+                          {currentStory.musicTitle}
+                        </span>
+                      </div>
+                    </div>
                   )}
                 </div>
               </div>
 
-              <div>
-                <div style={{ color: '#FFFFFF', fontSize: '14px', fontWeight: 800 }}>
-                  {displayName}
-                </div>
-                <div style={{ color: 'rgba(255, 255, 255, 0.7)', fontSize: '11px', fontWeight: 600 }}>
-                  {timeAgo()}
-                </div>
-              </div>
-            </div>
-
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              {currentStory && (currentStory.user || '').toLowerCase() === (currentUserNick || '').toLowerCase() && (
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setIsPaused(true);
-                    if (window.confirm('Vuoi eliminare definitivamente questa storia?')) {
-                      if (onDeleteStory) {
-                        onDeleteStory(currentStory.postId);
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                {currentStory && (currentStory.user || '').toLowerCase() === (currentUserNick || '').toLowerCase() && (
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setIsPaused(true);
+                      if (window.confirm('Vuoi eliminare definitivamente questa storia?')) {
+                        if (onDeleteStory) {
+                          onDeleteStory(currentStory.postId);
+                        }
                       }
-                    }
-                    setIsPaused(false);
-                  }}
+                      setIsPaused(false);
+                    }}
+                    style={{
+                      background: 'rgba(239, 68, 68, 0.85)',
+                      backdropFilter: 'blur(8px)',
+                      border: '1px solid rgba(255, 255, 255, 0.3)',
+                      color: '#FFFFFF',
+                      borderRadius: '50%',
+                      width: '34px',
+                      height: '34px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      cursor: 'pointer',
+                      boxShadow: '0 4px 12px rgba(239, 68, 68, 0.4)',
+                      WebkitTapHighlightColor: 'transparent',
+                    }}
+                    title="Elimina Storia"
+                  >
+                    <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>
+                      delete
+                    </span>
+                  </button>
+                )}
+
+                <button
+                  onClick={onClose}
                   style={{
-                    background: 'rgba(239, 68, 68, 0.85)',
-                    backdropFilter: 'blur(8px)',
-                    border: '1px solid rgba(255, 255, 255, 0.3)',
+                    background: 'rgba(0, 0, 0, 0.5)',
+                    backdropFilter: 'blur(10px)',
+                    border: '1px solid rgba(255, 255, 255, 0.2)',
                     color: '#FFFFFF',
                     borderRadius: '50%',
                     width: '34px',
@@ -328,140 +433,119 @@ export const StoryViewerModal: React.FC<StoryViewerModalProps> = ({
                     alignItems: 'center',
                     justifyContent: 'center',
                     cursor: 'pointer',
-                    boxShadow: '0 4px 12px rgba(239, 68, 68, 0.4)',
+                    WebkitTapHighlightColor: 'transparent',
                   }}
-                  title="Elimina Storia"
                 >
-                  <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>
-                    delete
+                  <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>
+                    close
                   </span>
                 </button>
-              )}
-
-              <button
-                onClick={onClose}
-                style={{
-                  background: 'rgba(0, 0, 0, 0.5)',
-                  backdropFilter: 'blur(10px)',
-                  border: '1px solid rgba(255, 255, 255, 0.2)',
-                  color: '#FFFFFF',
-                  borderRadius: '50%',
-                  width: '34px',
-                  height: '34px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  cursor: 'pointer',
-                }}
-              >
-                <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>
-                  close
-                </span>
-              </button>
+              </div>
             </div>
           </div>
-        </div>
 
-        {/* Center Story Image & Touch Nav Controls */}
-        <div style={{ position: 'relative', flex: 1, margin: '12px 0 0 0', borderRadius: '20px', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          {/* Left Touch Area */}
-          <div
-            onClick={handlePrev}
-            style={{ position: 'absolute', left: 0, top: 0, width: '35%', height: '100%', zIndex: 10, cursor: 'pointer' }}
-          />
-          {/* Right Touch Area */}
-          <div
-            onClick={handleNext}
-            style={{ position: 'absolute', right: 0, top: 0, width: '65%', height: '100%', zIndex: 10, cursor: 'pointer' }}
-          />
+          {/* Center Story Image & Touch Nav Controls */}
+          <div style={{ position: 'relative', flex: 1, margin: '12px 0 0 0', borderRadius: '20px', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center', WebkitTapHighlightColor: 'transparent' }}>
+            {/* Left Touch Area */}
+            <div
+              onClick={() => {
+                tryPlayAudio();
+                handlePrev();
+              }}
+              style={{
+                position: 'absolute',
+                left: 0,
+                top: 0,
+                width: '35%',
+                height: '100%',
+                zIndex: 10,
+                cursor: 'pointer',
+                WebkitTapHighlightColor: 'transparent',
+                userSelect: 'none',
+                WebkitUserSelect: 'none',
+              }}
+            />
+            {/* Right Touch Area */}
+            <div
+              onClick={() => {
+                tryPlayAudio();
+                handleNext();
+              }}
+              style={{
+                position: 'absolute',
+                right: 0,
+                top: 0,
+                width: '65%',
+                height: '100%',
+                zIndex: 10,
+                cursor: 'pointer',
+                WebkitTapHighlightColor: 'transparent',
+                userSelect: 'none',
+                WebkitUserSelect: 'none',
+              }}
+            />
 
-          {/* Media Content (Photo or Video with Instagram Filter) */}
-          {(() => {
-            const mediaSrc = currentStory.mediaUrl || currentStory.photo;
-            const filterCss = (() => {
-              switch (currentStory.filterId) {
-                case 'sunset': return 'sepia(0.35) contrast(1.15) saturate(1.4) hue-rotate(-10deg)';
-                case 'vintage': return 'sepia(0.5) contrast(1.1) brightness(0.9) saturate(0.85)';
-                case 'cyber': return 'contrast(1.25) saturate(1.8) hue-rotate(180deg)';
-                case 'bw': return 'grayscale(1) contrast(1.2) brightness(0.95)';
-                case 'golden': return 'sepia(0.4) saturate(1.6) contrast(1.1) brightness(1.05)';
-                case 'emerald': return 'contrast(1.15) saturate(1.3) hue-rotate(90deg)';
-                default: return 'none';
-              }
-            })();
+            {/* Media Content (Photo or Video with Instagram Filter) */}
+            {(() => {
+              const mediaSrc = currentStory.mediaUrl || currentStory.photo;
+              const filterCss = (() => {
+                switch (currentStory.filterId) {
+                  case 'sunset': return 'sepia(0.35) contrast(1.15) saturate(1.4) hue-rotate(-10deg)';
+                  case 'vintage': return 'sepia(0.5) contrast(1.1) brightness(0.9) saturate(0.85)';
+                  case 'cyber': return 'contrast(1.25) saturate(1.8) hue-rotate(180deg)';
+                  case 'bw': return 'grayscale(1) contrast(1.2) brightness(0.95)';
+                  case 'golden': return 'sepia(0.4) saturate(1.6) contrast(1.1) brightness(1.05)';
+                  case 'emerald': return 'contrast(1.15) saturate(1.3) hue-rotate(90deg)';
+                  default: return 'none';
+                }
+              })();
 
-            return (
-              <>
-                {currentStory.isVideo ? (
-                  <video
-                    src={mediaSrc}
-                    autoPlay
-                    loop
-                    playsInline
-                    style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '20px', filter: filterCss }}
-                  />
-                ) : (
-                  <img
-                    src={mediaSrc}
-                    alt={currentStory.brand}
-                    style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '20px', filter: filterCss }}
-                  />
-                )}
+              return (
+                <>
+                  {currentStory.isVideo ? (
+                    <video
+                      src={mediaSrc}
+                      autoPlay
+                      loop
+                      playsInline
+                      style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '20px', filter: filterCss }}
+                    />
+                  ) : (
+                    <img
+                      src={mediaSrc}
+                      alt={currentStory.brand}
+                      style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '20px', filter: filterCss }}
+                    />
+                  )}
 
-                {/* Overlay Text Layer */}
-                {currentStory.overlayText && (
-                  <div
-                    style={{
-                      position: 'absolute',
-                      top: '42%',
-                      left: '50%',
-                      transform: 'translate(-50%, -50%)',
-                      maxWidth: '85%',
-                      textAlign: 'center',
-                      padding: currentStory.textStyle === 'badge' ? '8px 16px' : '4px 8px',
-                      borderRadius: currentStory.textStyle === 'badge' ? '14px' : '0',
-                      background: currentStory.textStyle === 'badge' ? 'rgba(0, 0, 0, 0.65)' : 'transparent',
-                      backdropFilter: currentStory.textStyle === 'badge' ? 'blur(8px)' : 'none',
-                      color: currentStory.textColor || '#FFFFFF',
-                      fontSize: '22px',
-                      fontWeight: 900,
-                      textShadow: currentStory.textStyle === 'neon' ? `0 0 12px ${currentStory.textColor}, 0 0 20px ${currentStory.textColor}` : '0 2px 8px rgba(0,0,0,0.8)',
-                      zIndex: 15,
-                      wordBreak: 'break-word',
-                    }}
-                  >
-                    {currentStory.overlayText}
-                  </div>
-                )}
-
-                {/* Music Badge */}
-                {currentStory.musicTitle && (
-                  <div
-                    style={{
-                      position: 'absolute',
-                      top: '14px',
-                      right: '14px',
-                      background: 'rgba(0, 0, 0, 0.65)',
-                      backdropFilter: 'blur(10px)',
-                      color: '#FDE047',
-                      padding: '5px 12px',
-                      borderRadius: '20px',
-                      fontSize: '11px',
-                      fontWeight: 800,
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '5px',
-                      border: '1px solid rgba(253, 224, 71, 0.4)',
-                      zIndex: 15,
-                    }}
-                  >
-                    <span className="material-symbols-outlined" style={{ fontSize: '15px' }}>music_note</span>
-                    <span>{currentStory.musicTitle}</span>
-                  </div>
-                )}
-              </>
-            );
-          })()}
+                  {/* Overlay Text Layer */}
+                  {currentStory.overlayText && (
+                    <div
+                      style={{
+                        position: 'absolute',
+                        top: '42%',
+                        left: '50%',
+                        transform: 'translate(-50%, -50%)',
+                        maxWidth: '85%',
+                        textAlign: 'center',
+                        padding: currentStory.textStyle === 'badge' ? '8px 16px' : '4px 8px',
+                        borderRadius: currentStory.textStyle === 'badge' ? '14px' : '0',
+                        background: currentStory.textStyle === 'badge' ? 'rgba(0, 0, 0, 0.65)' : 'transparent',
+                        backdropFilter: currentStory.textStyle === 'badge' ? 'blur(8px)' : 'none',
+                        color: currentStory.textColor || '#FFFFFF',
+                        fontSize: '22px',
+                        fontWeight: 900,
+                        textShadow: currentStory.textStyle === 'neon' ? `0 0 12px ${currentStory.textColor}, 0 0 20px ${currentStory.textColor}` : '0 2px 8px rgba(0,0,0,0.8)',
+                        zIndex: 15,
+                        wordBreak: 'break-word',
+                      }}
+                    >
+                      {currentStory.overlayText}
+                    </div>
+                  )}
+                </>
+              );
+            })()}
 
           {currentStory.isShiny && (
             <div
@@ -489,5 +573,6 @@ export const StoryViewerModal: React.FC<StoryViewerModalProps> = ({
         </div>
       </div>
     </div>
+    </>
   );
 };
