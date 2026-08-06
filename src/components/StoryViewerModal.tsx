@@ -55,7 +55,6 @@ export const StoryViewerModal: React.FC<StoryViewerModalProps> = ({
   const [isPaused, setIsPaused] = useState<boolean>(false);
   const [isFlipping, setIsFlipping] = useState<boolean>(false);
   const [isMuted, setIsMuted] = useState<boolean>(false);
-  const [isAudioPlaying, setIsAudioPlaying] = useState<boolean>(false);
 
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
@@ -74,35 +73,40 @@ export const StoryViewerModal: React.FC<StoryViewerModalProps> = ({
 
   // Calcola l'URL dell'audio per la storia corrente
   const currentStory = stories[currentIndex];
-  let currentAudioUrl = currentStory?.musicAudioUrl;
-  if (currentAudioUrl && currentAudioUrl.includes('pixabay.com')) {
-    currentAudioUrl = '';
-  }
-  if (!currentAudioUrl && currentStory?.musicTrackId) {
-    const foundTrack = POPULAR_MUSIC_TRACKS.find((t) => t.id === currentStory.musicTrackId);
-    if (foundTrack) currentAudioUrl = foundTrack.audioUrl;
-  }
-  if (!currentAudioUrl && (currentStory?.musicTitle || currentStory?.musicTrackId)) {
-    currentAudioUrl = POPULAR_MUSIC_TRACKS[0]?.audioUrl;
+  let currentAudioUrl = '';
+
+  if (currentStory) {
+    if (currentStory.musicTrackId) {
+      const foundTrack = POPULAR_MUSIC_TRACKS.find((t) => t.id === currentStory.musicTrackId);
+      if (foundTrack) {
+        currentAudioUrl = foundTrack.audioUrl;
+      }
+    }
+
+    if (!currentAudioUrl && currentStory.musicAudioUrl && !currentStory.musicAudioUrl.includes('pixabay.com')) {
+      currentAudioUrl = currentStory.musicAudioUrl;
+    }
+
+    if (!currentAudioUrl && (currentStory.musicTitle || currentStory.musicTrackId || currentStory.musicAudioUrl)) {
+      currentAudioUrl = POPULAR_MUSIC_TRACKS[0]?.audioUrl || '';
+    }
   }
 
   // Gestione Riproduzione Audio
   useEffect(() => {
     if (!isOpen || stories.length === 0 || !currentAudioUrl) {
-      setIsAudioPlaying(false);
+      if (audioRef.current) {
+        audioRef.current.pause();
+      }
       return;
     }
 
     if (audioRef.current) {
       audioRef.current.volume = isMuted ? 0 : 1.0;
-      const playPromise = audioRef.current.play();
-      if (playPromise !== undefined) {
-        playPromise
-          .then(() => setIsAudioPlaying(true))
-          .catch(() => {
-            setIsAudioPlaying(false);
-          });
-      }
+      audioRef.current.currentTime = 0;
+      audioRef.current.play().catch((err) => {
+        console.warn("Autoplay audio in attesa di interazione utente:", err);
+      });
     }
   }, [currentIndex, isOpen, currentAudioUrl, isMuted]);
 
@@ -114,9 +118,7 @@ export const StoryViewerModal: React.FC<StoryViewerModalProps> = ({
 
   const tryPlayAudio = () => {
     if (audioRef.current && !isMuted) {
-      audioRef.current.play().then(() => {
-        setIsAudioPlaying(true);
-      }).catch(() => {});
+      audioRef.current.play().catch(() => {});
     }
   };
 
@@ -235,39 +237,7 @@ export const StoryViewerModal: React.FC<StoryViewerModalProps> = ({
           loop
           preload="auto"
           playsInline
-          onPlay={() => setIsAudioPlaying(true)}
-          onPause={() => setIsAudioPlaying(false)}
         />
-      )}
-
-      {!isAudioPlaying && !isMuted && currentAudioUrl && (
-        <div
-          onClick={(e) => {
-            e.stopPropagation();
-            tryPlayAudio();
-          }}
-          style={{
-            position: 'absolute',
-            top: '80px',
-            left: '50%',
-            transform: 'translateX(-50%)',
-            zIndex: 1000000,
-            background: '#F59E0B',
-            color: '#000000',
-            padding: '8px 16px',
-            borderRadius: '20px',
-            fontSize: '12px',
-            fontWeight: 800,
-            display: 'flex',
-            alignItems: 'center',
-            gap: '6px',
-            boxShadow: '0 4px 15px rgba(245, 158, 11, 0.5)',
-            cursor: 'pointer',
-          }}
-        >
-          <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>volume_up</span>
-          Tocca per ascoltare la musica 🎵
-        </div>
       )}
 
       <div
