@@ -30,6 +30,7 @@ interface PublicProfileViewProps {
   onRemoveFriend?: (name: string) => void;
   onAcceptRequest?: (sender: string) => void;
   onCancelSentRequest?: (target: string) => void;
+  onDeleteUserProfile?: (username: string) => void;
 }
 
 export const PublicProfileView: React.FC<PublicProfileViewProps> = ({
@@ -56,6 +57,7 @@ export const PublicProfileView: React.FC<PublicProfileViewProps> = ({
   onRemoveFriend,
   onAcceptRequest,
   onCancelSentRequest,
+  onDeleteUserProfile,
 }) => {
   const [activeTab, setActiveTab] = useState<'collection' | 'posts' | 'stats' | 'ratings' | 'medals'>('posts');
 
@@ -380,6 +382,38 @@ export const PublicProfileView: React.FC<PublicProfileViewProps> = ({
                 <span>Aggiungi agli Amici</span>
               </button>
             )}
+          </div>
+        )}
+
+        {/* Admin Delete User Profile Banner */}
+        {isAdminUser && username.toLowerCase() !== currentUserNick.toLowerCase() && (
+          <div style={{ marginTop: '12px', marginBottom: '6px', position: 'relative', zIndex: 2 }}>
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                if (window.confirm(`⚠️ ATTENZIONE ADMIN:\n\nSei sicuro di voler eliminare DEFINITIVAMENTE il profilo dell'utente @${username} dal database?\n\nVerranno rimossi in modo permanente tutti i suoi sblocchi, punteggi, dati e foto.`)) {
+                  onDeleteUserProfile?.(username);
+                }
+              }}
+              style={{
+                background: '#FEF2F2',
+                border: '1.5px solid #FCA5A5',
+                color: '#DC2626',
+                padding: '8px 18px',
+                borderRadius: '20px',
+                fontSize: '12px',
+                fontWeight: 800,
+                cursor: 'pointer',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px',
+                boxShadow: '0 2px 8px rgba(220, 38, 38, 0.15)',
+              }}
+            >
+              <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>delete_forever</span>
+              <span>Elimina Profilo dal DB (ADMIN)</span>
+            </button>
           </div>
         )}
         

@@ -26,7 +26,11 @@ interface AdminProposalsModalProps {
   flaggedPosts?: Record<string, any>;
   onRemoveFlaggedPost?: (postId: string, postUser: string, brand: string, variant: string) => void;
   onDismissFlaggedPost?: (postId: string) => void;
-  initialTab?: 'proposals' | 'flagged';
+  initialTab?: 'proposals' | 'flagged' | 'users';
+  onDeleteUserProfile?: (username: string) => void;
+  onOpenPublicProfile?: (username: string) => void;
+  leaderboardScores?: Record<string, number>;
+  allPokedexProfiles?: Record<string, Record<string, any>>;
 }
 
 const ItalianRegions = [
@@ -48,8 +52,13 @@ export const AdminProposalsModal: React.FC<AdminProposalsModalProps> = ({
   onRemoveFlaggedPost,
   onDismissFlaggedPost,
   initialTab = 'proposals',
+  onDeleteUserProfile,
+  onOpenPublicProfile,
+  leaderboardScores = {},
+  allPokedexProfiles = {},
 }) => {
-  const [activeTab, setActiveTab] = useState<'proposals' | 'flagged'>(initialTab);
+  const [activeTab, setActiveTab] = useState<'proposals' | 'flagged' | 'users'>(initialTab);
+  const [userSearchTerm, setUserSearchTerm] = useState('');
   const [showEditMap, setShowEditMap] = useState<Record<string, boolean>>({});
   const [editedDataMap, setEditedDataMap] = useState<Record<string, {
     brand: string;
@@ -171,53 +180,215 @@ export const AdminProposalsModal: React.FC<AdminProposalsModalProps> = ({
         </div>
 
         {/* Tab Navigation */}
-        <div style={{ display: 'flex', gap: '8px', marginBottom: '14px' }}>
+        <div style={{ display: 'flex', gap: '6px', marginBottom: '14px' }}>
           <button
             onClick={() => setActiveTab('proposals')}
             style={{
               flex: 1,
-              padding: '8px 12px',
+              padding: '8px 8px',
               borderRadius: '12px',
               border: activeTab === 'proposals' ? '2px solid var(--primary-dark)' : '1px solid var(--gray)',
               background: activeTab === 'proposals' ? '#FFFBEB' : 'white',
               color: activeTab === 'proposals' ? 'var(--dark)' : 'var(--text-muted)',
               fontWeight: 'bold',
-              fontSize: '13px',
+              fontSize: '12px',
               cursor: 'pointer',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              gap: '6px',
+              gap: '4px',
             }}
           >
-            <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>sports_bar</span>
+            <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>sports_bar</span>
             Proposte ({pendingProposals.length})
           </button>
           <button
             onClick={() => setActiveTab('flagged')}
             style={{
               flex: 1,
-              padding: '8px 12px',
+              padding: '8px 8px',
               borderRadius: '12px',
               border: activeTab === 'flagged' ? '2px solid #EF4444' : '1px solid var(--gray)',
               background: activeTab === 'flagged' ? '#FEF2F2' : 'white',
               color: activeTab === 'flagged' ? '#DC2626' : 'var(--text-muted)',
               fontWeight: 'bold',
-              fontSize: '13px',
+              fontSize: '12px',
               cursor: 'pointer',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              gap: '6px',
+              gap: '4px',
             }}
           >
-            <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>warning</span>
-            Post Segnalati ({flaggedList.length})
+            <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>warning</span>
+            Segnalati ({flaggedList.length})
+          </button>
+          <button
+            onClick={() => setActiveTab('users')}
+            style={{
+              flex: 1,
+              padding: '8px 8px',
+              borderRadius: '12px',
+              border: activeTab === 'users' ? '2px solid #6366F1' : '1px solid var(--gray)',
+              background: activeTab === 'users' ? '#EEF2FF' : 'white',
+              color: activeTab === 'users' ? '#4F46E5' : 'var(--text-muted)',
+              fontWeight: 'bold',
+              fontSize: '12px',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '4px',
+            }}
+          >
+            <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>manage_accounts</span>
+            Utenti
           </button>
         </div>
 
         <div style={{ overflowY: 'auto', flexGrow: 1, paddingRight: '4px' }}>
-          {activeTab === 'flagged' ? (
+          {activeTab === 'users' ? (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              <div style={{ position: 'relative' }}>
+                <input
+                  type="text"
+                  placeholder="Cerca utente per nickname o nome..."
+                  value={userSearchTerm}
+                  onChange={(e) => setUserSearchTerm(e.target.value)}
+                  style={{
+                    width: '100%',
+                    padding: '8px 12px 8px 36px',
+                    borderRadius: '12px',
+                    border: '1px solid var(--gray)',
+                    fontSize: '13px',
+                    boxSizing: 'border-box',
+                  }}
+                />
+                <span className="material-symbols-outlined" style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)', fontSize: '18px' }}>
+                  search
+                </span>
+              </div>
+
+              {(() => {
+                const userNicks = Array.from(
+                  new Set([
+                    ...Object.keys(globalDisplayNames || {}),
+                    ...Object.keys(globalAvatars || {}),
+                    ...Object.keys(allPokedexProfiles || {}),
+                    ...Object.keys(leaderboardScores || {}),
+                  ])
+                ).filter(Boolean);
+
+                const userList = userNicks.map((nick) => ({
+                  nick,
+                  displayName: globalDisplayNames[nick] || nick,
+                  avatar: globalAvatars[nick],
+                  score: leaderboardScores[nick] || 0,
+                  unlockedCount: Object.keys((allPokedexProfiles && allPokedexProfiles[nick]) || {}).length,
+                }));
+
+                const filtered = userList.filter(
+                  (u) =>
+                    u.nick.toLowerCase().includes(userSearchTerm.toLowerCase()) ||
+                    u.displayName.toLowerCase().includes(userSearchTerm.toLowerCase())
+                );
+
+                if (filtered.length === 0) {
+                  return (
+                    <div style={{ textAlign: 'center', padding: '30px 20px', color: 'var(--text-muted)', fontSize: '13px' }}>
+                      Nessun utente trovato.
+                    </div>
+                  );
+                }
+
+                return (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                    {filtered.map((user) => (
+                      <div
+                        key={user.nick}
+                        style={{
+                          background: 'white',
+                          border: '1px solid var(--gray)',
+                          borderRadius: '14px',
+                          padding: '12px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                          gap: '10px',
+                        }}
+                      >
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                          <div style={{ width: '40px', height: '40px', borderRadius: '50%', background: '#E2E8F0', overflow: 'hidden', flexShrink: 0 }}>
+                            {user.avatar ? (
+                              <img src={user.avatar} alt={user.nick} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                            ) : (
+                              <span className="material-symbols-outlined" style={{ fontSize: '26px', color: '#94A3B8', width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>person</span>
+                            )}
+                          </div>
+                          <div style={{ textAlign: 'left' }}>
+                            <div style={{ fontWeight: 'bold', fontSize: '13px', color: 'var(--dark)' }}>{user.displayName}</div>
+                            <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>@{user.nick} • {user.score} pt ({user.unlockedCount} birre)</div>
+                          </div>
+                        </div>
+
+                        <div style={{ display: 'flex', gap: '6px' }}>
+                          {onOpenPublicProfile && (
+                            <button
+                              onClick={() => {
+                                onClose();
+                                onOpenPublicProfile(user.nick);
+                              }}
+                              style={{
+                                border: '1px solid var(--gray)',
+                                background: '#F8FAFC',
+                                borderRadius: '8px',
+                                padding: '6px 8px',
+                                fontSize: '11px',
+                                fontWeight: 'bold',
+                                color: 'var(--dark)',
+                                cursor: 'pointer',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '4px',
+                              }}
+                            >
+                              <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>visibility</span>
+                              Profilo
+                            </button>
+                          )}
+                          {onDeleteUserProfile && (
+                            <button
+                              onClick={() => {
+                                if (window.confirm(`⚠️ ATTENZIONE ADMIN:\n\nSei sicuro di voler eliminare DEFINITIVAMENTE il profilo dell'utente @${user.nick} dal database?\n\nVerranno rimossi in modo permanente tutti i suoi sblocchi, punteggi e dati associati.`)) {
+                                  onDeleteUserProfile(user.nick);
+                                }
+                              }}
+                              style={{
+                                border: '1px solid #FCA5A5',
+                                background: '#FEF2F2',
+                                borderRadius: '8px',
+                                padding: '6px 8px',
+                                fontSize: '11px',
+                                fontWeight: 'bold',
+                                color: '#DC2626',
+                                cursor: 'pointer',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '4px',
+                              }}
+                            >
+                              <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>delete_forever</span>
+                              Elimina
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                );
+              })()}
+            </div>
+          ) : activeTab === 'flagged' ? (
             flaggedList.length === 0 ? (
               <div style={{ textAlign: 'center', padding: '40px 20px', color: 'var(--text-muted)' }}>
                 <span className="material-symbols-outlined" style={{ fontSize: '48px', marginBottom: '10px', color: '#10B981' }}>verified_user</span>

@@ -36,6 +36,7 @@ import type { BeerProposalItem } from './components/AdminProposalsModal';
 import { UnlockRatingModal } from './components/UnlockRatingModal';
 import { PermissionModal, type PermissionType, type PermissionChoice } from './components/PermissionModal';
 import { TagRequestModal, type TagRequestItem } from './components/TagRequestModal';
+import { AppTutorialModal } from './components/AppTutorialModal';
 
 import { FoamBubbles } from './components/FoamBubbles';
 
@@ -120,9 +121,24 @@ export default function App() {
     setProposeModalOpen(true);
   };
   const [adminProposalsModalOpen, setAdminProposalsModalOpen] = useState(false);
-  const [adminModalTab, setAdminModalTab] = useState<'proposals' | 'flagged'>('proposals');
+  const [adminModalTab, setAdminModalTab] = useState<'proposals' | 'flagged' | 'users'>('proposals');
   const [flaggedPosts, setFlaggedPosts] = useState<Record<string, any>>({});
   const [unlockRatingModalState, setUnlockRatingModalState] = useState<{ isOpen: boolean; brand: string; variant: string; photo?: string } | null>(null);
+  const [tutorialOpen, setTutorialOpen] = useState<boolean>(false);
+
+  useEffect(() => {
+    if (currentUser) {
+      const hasSeen = localStorage.getItem('beerdex_tutorial_seen_v1');
+      if (!hasSeen) {
+        setTutorialOpen(true);
+      }
+    }
+  }, [currentUser]);
+
+  const handleCloseTutorial = () => {
+    localStorage.setItem('beerdex_tutorial_seen_v1', 'true');
+    setTutorialOpen(false);
+  };
 
   const allBeersCatalog = mergeBeers(beers, customBeers);
 
@@ -991,6 +1007,48 @@ export default function App() {
         }
       }
     );
+  };
+
+  const handleDeleteUserProfile = async (targetUsername: string) => {
+    if (!isAdminUser || !targetUsername) return;
+    if (targetUsername.toLowerCase() === currentUserNick.toLowerCase()) {
+      showAlert("Non puoi eliminare il tuo stesso profilo amministratore!", "Operazione Non Consentita");
+      return;
+    }
+    try {
+      // 1. Delete user profile nodes in Firebase Realtime DB
+      await remove(ref(db, `users/${targetUsername}`));
+      await remove(ref(db, `pokedex_profiles/${targetUsername}`));
+      await remove(ref(db, `leaderboard_scores/${targetUsername}`));
+      await remove(ref(db, `avatars/${targetUsername}`));
+      await remove(ref(db, `display_names/${targetUsername}`));
+      await remove(ref(db, `privacy_settings/${targetUsername}`));
+      await remove(ref(db, `tag_requests/${targetUsername}`));
+      await remove(ref(db, `user_friends/${targetUsername}`));
+
+      // 2. Remove user posts from social_timeline if any
+      const timelineSnap = await get(ref(db, 'social_timeline'));
+      if (timelineSnap.exists()) {
+        const val = timelineSnap.val();
+        const updates: Record<string, any> = {};
+        for (const key in val) {
+          if (val[key] && val[key].user && val[key].user.toLowerCase() === targetUsername.toLowerCase()) {
+            updates[`social_timeline/${key}`] = null;
+          }
+        }
+        if (Object.keys(updates).length > 0) {
+          await update(ref(db), updates);
+        }
+      }
+
+      showAlert(`Il profilo dell'utente @${targetUsername} è stato definitivamente eliminato dal database.`, 'Profilo Eliminato');
+
+      if (currentPage === 'page-public-profile' && pubProfileUser && pubProfileUser.toLowerCase() === targetUsername.toLowerCase()) {
+        navigateTo('page-home');
+      }
+    } catch (err: any) {
+      showAlert("Errore durante l'eliminazione del profilo: " + err.message, "Errore DB");
+    }
   };
 
   // Recalculate all scores to adapt existing database records across all users
@@ -2729,6 +2787,27 @@ export default function App() {
           <div className="settings-instagram-section">
             <div className="section-title">Preferenze dell'App</div>
 
+            {/* Row Tutorial App */}
+            <div
+              className="settings-row"
+              onClick={() => {
+                setSettingsOpen(false);
+                setTutorialOpen(true);
+              }}
+              style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 0', borderBottom: '1px solid #f1f5f9' }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                <span className="material-symbols-outlined icon" style={{ color: 'var(--primary-dark)' }}>
+                  school
+                </span>
+                <div style={{ textAlign: 'left' }}>
+                  <div className="row-label">Rivedi Tutorial App 🎓</div>
+                  <div className="row-desc">Riapri la guida interattiva per scoprire tutte le funzionalità</div>
+                </div>
+              </div>
+              <span className="material-symbols-outlined chevron">chevron_right</span>
+            </div>
+
             {/* Row Tema */}
             <div className="settings-row-expanded">
               <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
@@ -3149,6 +3228,7 @@ export default function App() {
               onRemoveFriend={handleRemoveFriend}
               onAcceptRequest={handleAcceptRequest}
               onCancelSentRequest={handleCancelSentRequest}
+              onDeleteUserProfile={handleDeleteUserProfile}
             />
           ) : null}
         </div>
@@ -3404,7 +3484,7 @@ export default function App() {
         onSubmitProposal={handleProposeBeerSubmit}
       />
 
-      {/* Admin Proposals & Reports Modal */}
+      {/* Admin Proposals, Reports & User Management Modal */}
       <AdminProposalsModal
         isOpen={adminProposalsModalOpen}
         onClose={() => setAdminProposalsModalOpen(false)}
@@ -3417,6 +3497,20 @@ export default function App() {
         onRemoveFlaggedPost={handleRemoveFlaggedPost}
         onDismissFlaggedPost={handleDismissFlaggedPost}
         initialTab={adminModalTab}
+        onDeleteUserProfile={handleDeleteUserProfile}
+        onOpenPublicProfile={(uname) => {
+          setPubProfileUser(uname);
+          setPubProfileBackPage('page-home');
+          navigateTo('page-public-profile');
+        }}
+        leaderboardScores={globalLeaderboardScores}
+        allPokedexProfiles={allPokedexProfiles}
+      />
+
+      {/* Interactive App Tutorial Modal */}
+      <AppTutorialModal
+        isOpen={tutorialOpen}
+        onClose={handleCloseTutorial}
       />
 
       {/* Unlock Rating Modal */}
