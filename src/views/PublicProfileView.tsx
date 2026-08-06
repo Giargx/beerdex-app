@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { TrophyGrid, getEventMedals } from '../components/TrophyGrid';
 import type { PokedexEntry } from '../components/TrophyGrid';
 import { FoamBubbles } from '../components/FoamBubbles';
-import { beers, getBeerType, formatBeerTitle, isUserParticipantInPost, resolvePokedexEntryBeer } from '../beers';
+import { beers, getBeerType, formatBeerTitle, getUniqueParticipantPosts, resolvePokedexEntryBeer } from '../beers';
 import type { Beer } from '../beers';
 import { StarRating } from '../components/StarRating';
 
@@ -90,7 +90,7 @@ export const PublicProfileView: React.FC<PublicProfileViewProps> = ({
     ? getUserRankTitle(score || 0, Object.keys(safePokedex).length)
     : 'Bevitore';
 
-  const myPosts = safePosts.filter((p) => p && isUserParticipantInPost(p, safeUser));
+  const myPosts = getUniqueParticipantPosts(safePosts, safeUser);
   const totalUnlocked = Object.keys(safePokedex).length;
 
   // Rating Stats Calculation for Public Profile
@@ -815,7 +815,7 @@ export const PublicProfileView: React.FC<PublicProfileViewProps> = ({
         {activeTab === 'posts' && (
           <div style={{ animation: 'fadeIn 0.2s ease-out' }}>
             <h3 style={{ borderBottom: '2px solid var(--gray)', paddingBottom: '8px', margin: '20px 20px 15px 20px', fontSize: '16px', color: 'var(--dark)', display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <span className="material-symbols-outlined">photo_library</span> Foto Caricate ({myPosts.length})
+              <span className="material-symbols-outlined">photo_library</span> I Miei Post ({myPosts.length})
             </h3>
             {myPosts.length === 0 ? (
               <div style={{ textAlign: 'center', padding: '40px 20px', color: 'var(--text-muted)' }}>

@@ -278,6 +278,47 @@ export function isUserParticipantInPost(post: any, username: string): boolean {
   return false;
 }
 
+export function getUniqueParticipantPosts(posts: any[], username: string): any[] {
+  if (!Array.isArray(posts) || !username) return [];
+
+  const userLower = username.toLowerCase();
+
+  // 1. Filter posts where user is author or tagged, AND exclude isStory posts
+  const rawParticipantPosts = posts.filter(
+    (p) => p && !p.isStory && p.brand !== 'Storia del Pub' && isUserParticipantInPost(p, userLower)
+  );
+
+  // 2. Deduplicate posts that belong to the same session or photo
+  const uniquePosts: any[] = [];
+  const seenSessions = new Set<string>();
+
+  rawParticipantPosts.forEach((post) => {
+    // Unique session key based on brand, variant, photo, and time within 3 minutes window
+    const roundedTime = Math.floor((post.time || 0) / (180 * 1000));
+    const participants = [
+      post.user,
+      ...(Array.isArray(post.taggedFriends) ? post.taggedFriends : []),
+      ...(post.taggedFriend && typeof post.taggedFriend === 'string' ? post.taggedFriend.split(',').map((s: string) => s.trim()) : []),
+    ]
+      .filter(Boolean)
+      .map((u: string) => u.toLowerCase())
+      .sort();
+
+    const sessionKey = `${post.brand}::${post.variant}::${roundedTime}::${participants.join('::')}`;
+    const photoKey = post.photo ? `${post.brand}::${post.variant}::${post.photo}` : '';
+
+    if (seenSessions.has(sessionKey) || (photoKey && seenSessions.has(photoKey))) {
+      return; // Skip duplicate post for the same shared drinking session
+    }
+
+    seenSessions.add(sessionKey);
+    if (photoKey) seenSessions.add(photoKey);
+    uniquePosts.push(post);
+  });
+
+  return uniquePosts;
+}
+
 export interface ResolvedPokedexBeer {
   beer: Beer | undefined;
   brand: string;

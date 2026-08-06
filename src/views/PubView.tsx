@@ -1,4 +1,6 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
+import { ref, onValue } from 'firebase/database';
+import { db } from '../firebase';
 import { playClinkSound } from '../utils/audio';
 import { FoamBubbles } from '../components/FoamBubbles';
 import { getBasePoints, formatBeerTitle } from '../beers';
@@ -161,27 +163,52 @@ export const PubView: React.FC<PubViewProps> = ({
     return uniquePosts;
   }, [posts, currentUserNick, myFriendsList, isAdminUser, searchQuery, globalDisplayNames, globalUserPrivacy]);
 
-  // Active 24h Stories
+  // Realtime subscription for Pub Stories
+  const [pubStories, setPubStories] = useState<Record<string, any>>({});
+
+  useEffect(() => {
+    const storiesRef = ref(db, 'pub_stories/main_pub');
+    const unsubscribe = onValue(storiesRef, (snap) => {
+      if (snap.exists()) {
+        setPubStories(snap.val());
+      } else {
+        setPubStories({});
+      }
+    });
+    return () => unsubscribe();
+  }, []);
+
+  // Active 24h Stories from pub_stories node
   const storyPosts = useMemo(() => {
     const twentyFourHoursAgo = Date.now() - 24 * 60 * 60 * 1000;
-    const accessibleAll = posts.filter((p) => {
-      const isMine = p.user === currentUserNick;
-      const isFriend = myFriendsList.includes(p.user);
-      return (isMine || isFriend || isAdminUser) && p.time >= twentyFourHoursAgo;
-    });
-
-    const explicitStories = accessibleAll.filter((p) => p.isStory);
-    const pool = explicitStories.length > 0 ? explicitStories : accessibleAll;
-
-    const userStoryMap = new Map<string, Post>();
-    pool.forEach((p) => {
-      if (!userStoryMap.has(p.user) || p.time > userStoryMap.get(p.user)!.time) {
-        userStoryMap.set(p.user, p);
+    const storiesList: any[] = [];
+    
+    Object.entries(pubStories).forEach(([key, val]) => {
+      if (val && typeof val === 'object' && val.time >= twentyFourHoursAgo) {
+        const isMine = val.user === currentUserNick;
+        const isFriend = Array.isArray(myFriendsList) && myFriendsList.some((f) => f.toLowerCase() === (val.user || '').toLowerCase());
+        if (isMine || isFriend || isAdminUser) {
+          storiesList.push({
+            postId: key,
+            ...val,
+          });
+        }
       }
     });
 
-    return Array.from(userStoryMap.values());
-  }, [posts, currentUserNick, myFriendsList, isAdminUser]);
+    storiesList.sort((a, b) => b.time - a.time);
+    return storiesList;
+  }, [pubStories, currentUserNick, myFriendsList, isAdminUser]);
+
+  // Helper for clicking user avatar: open story if available, else open public profile
+  const handleUserAvatarClick = (username: string) => {
+    const storyIndex = storyPosts.findIndex((s) => s.user && s.user.toLowerCase() === username.toLowerCase());
+    if (storyIndex !== -1) {
+      setActiveStoryViewerIndex(storyIndex);
+    } else {
+      onOpenPublicProfile(username);
+    }
+  };
 
   const triggerCinAnimation = (targetContainer: HTMLElement) => {
     if (!targetContainer) return;
@@ -774,20 +801,25 @@ export const PubView: React.FC<PubViewProps> = ({
                             </div>
                           ) : (
                             /* Single User Avatar */
-                            <div
-                              className="post-avatar clickable-user"
-                              onClick={() => onOpenPublicProfile(post.user)}
-                              style={{
-                                cursor: 'pointer',
-                                width: '42px',
-                                height: '42px',
-                                borderRadius: '50%',
-                                padding: '2px',
-                                background: 'linear-gradient(135deg, #F59E0B 0%, #D97706 100%)',
-                                boxShadow: '0 2px 8px rgba(245, 158, 11, 0.25)',
-                              }}
-                              {...(getAvatarZoomProps ? getAvatarZoomProps(av1) : {})}
-                            >
+                            (() => {
+                              const hasStory = storyPosts.some((s) => s.user && s.user.toLowerCase() === post.user.toLowerCase());
+                              return (
+                                <div
+                                  className="post-avatar clickable-user"
+                                  onClick={() => handleUserAvatarClick(post.user)}
+                                  style={{
+                                    cursor: 'pointer',
+                                    width: '42px',
+                                    height: '42px',
+                                    borderRadius: '50%',
+                                    padding: '2.5px',
+                                    background: hasStory
+                                      ? 'linear-gradient(45deg, #F59E0B, #E67E22, #EC4899)'
+                                      : 'linear-gradient(135deg, #F59E0B 0%, #D97706 100%)',
+                                    boxShadow: hasStory ? '0 4px 12px rgba(236, 72, 153, 0.35)' : '0 2px 8px rgba(245, 158, 11, 0.25)',
+                                  }}
+                                  {...(getAvatarZoomProps ? getAvatarZoomProps(av1) : {})}
+                                >
                               <div
                                 style={{
                                   width: '100%',
@@ -815,7 +847,9 @@ export const PubView: React.FC<PubViewProps> = ({
                                 )}
                               </div>
                             </div>
-                          )}
+                          );
+                        })()
+                      )}
 
                           <div style={{ marginLeft: '4px' }}>
                             {isShared ? (
@@ -878,7 +912,7 @@ export const PubView: React.FC<PubViewProps> = ({
                             ) : (
                               <div
                                 className="post-user clickable-user"
-                                onClick={() => onOpenPublicProfile(user1)}
+                                onClick={() => handleUserAvatarClick(user1)}
                                 style={{ fontSize: '14px', fontWeight: 800, color: '#0F172A', cursor: 'pointer' }}
                               >
                                 {disp1}

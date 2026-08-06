@@ -1578,8 +1578,10 @@ export default function App() {
                   showAlert(safety.reason || "L'immagine contiene contenuti non appropriati.", "Foto Rifiutata");
                   return;
                 }
-                const newStoryRef = push(ref(db, 'social_timeline'));
+                const newStoryRef = push(ref(db, 'pub_stories/main_pub'));
                 await set(newStoryRef, {
+                  postId: newStoryRef.key,
+                  pubId: 'main_pub',
                   user: currentUserNick,
                   brand: 'Storia del Pub',
                   variant: 'Foto al volo',
@@ -1595,8 +1597,10 @@ export default function App() {
                 playPopSound();
               })
               .catch(async () => {
-                const newStoryRef = push(ref(db, 'social_timeline'));
+                const newStoryRef = push(ref(db, 'pub_stories/main_pub'));
                 await set(newStoryRef, {
+                  postId: newStoryRef.key,
+                  pubId: 'main_pub',
                   user: currentUserNick,
                   brand: 'Storia del Pub',
                   variant: 'Foto al volo',
@@ -1632,8 +1636,10 @@ export default function App() {
       const post = globalPosts.find((p) => p.postId === postId);
       if (!post) return;
 
-      const newStoryRef = push(ref(db, 'social_timeline'));
+      const newStoryRef = push(ref(db, 'pub_stories/main_pub'));
       await set(newStoryRef, {
+        postId: newStoryRef.key,
+        pubId: 'main_pub',
         user: currentUserNick,
         brand: post.brand || 'Storia del Pub',
         variant: post.variant || 'Foto al volo',

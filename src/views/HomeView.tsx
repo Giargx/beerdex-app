@@ -11,6 +11,7 @@ interface Post {
   time: number;
   isShiny: boolean;
   isShared: boolean;
+  isStory?: boolean;
   taggedFriend: string | null;
 }
 
@@ -162,7 +163,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
     }
   }, []);
 
-  const myPosts = posts.filter((p) => p.user === currentUserNick);
+  const myPosts = posts.filter((p) => p && p.user === currentUserNick && !p.isStory && p.brand !== 'Storia del Pub');
   const totalUnlockedCount = Object.keys(myPokedex).length > 0
     ? Object.keys(myPokedex).length
     : new Set(myPosts.map(p => p.brand + ' - ' + p.variant)).size;
@@ -452,9 +453,9 @@ export const HomeView: React.FC<HomeViewProps> = ({
   const isFriend = (nick: string) =>
     Array.isArray(myFriendsList) && myFriendsList.some((f) => f.toLowerCase() === nick.toLowerCase());
 
-  // Filter out posts from private profiles for non-friends
+  // Filter out posts from private profiles for non-friends and exclude stories
   const publicAccessiblePosts = posts.filter((p) => {
-    if (!p || !p.user) return false;
+    if (!p || !p.user || p.isStory || p.brand === 'Storia del Pub') return false;
     if (p.user.toLowerCase() === currentUserNick.toLowerCase()) return true;
     if (isPostOwnerPrivate(p.user) && !isFriend(p.user) && !isAdminUser) {
       return false;

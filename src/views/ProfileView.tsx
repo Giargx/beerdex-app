@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { TrophyGrid, getEventMedals } from '../components/TrophyGrid';
 import type { PokedexEntry } from '../components/TrophyGrid';
-import { beers, getBeerType, formatBeerTitle, isUserParticipantInPost, resolvePokedexEntryBeer, type Beer } from '../beers';
+import { beers, getBeerType, formatBeerTitle, getUniqueParticipantPosts, resolvePokedexEntryBeer, type Beer } from '../beers';
 import { StarRating } from '../components/StarRating';
 
 interface ProfileViewProps {
@@ -88,6 +88,8 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
 
   const roleText = isAdminUser ? "ADMIN" : "UTENTE";
   const roleColor = isAdminUser ? "var(--danger)" : "var(--text-muted)";
+
+  const myPosts = getUniqueParticipantPosts(posts, currentUserNick);
 
   // ----------------- CALCULATE STATS -----------------
   const pokedexEntries = Object.values(myPokedex || {}).filter((entry) => entry && typeof entry === 'object');
@@ -350,7 +352,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
           <div style={{ display: 'flex', justifyContent: 'center', gap: '30px', marginTop: '18px', padding: '0 10px' }}>
             <div style={{ textAlign: 'center', flex: '1' }}>
               <div style={{ fontWeight: 900, fontSize: '18px', color: 'var(--dark)' }}>
-                {posts.filter(p => isUserParticipantInPost(p, currentUserNick)).length}
+                {myPosts.length}
               </div>
               <div style={{ fontSize: '10px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: 600 }}>Post</div>
             </div>
@@ -671,7 +673,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
               </span>{' '}
               Medaglie Evento
               <span style={{ fontSize: '11px', color: 'var(--text-muted)', background: '#F1F5F9', padding: '2px 8px', borderRadius: '10px' }}>
-                {getEventMedals(posts.filter(p => isUserParticipantInPost(p, currentUserNick)), catalog).filter((e: any) => e.isUnlocked).length} / {getEventMedals(posts.filter(p => isUserParticipantInPost(p, currentUserNick)), catalog).length}
+                {getEventMedals(myPosts, catalog).filter((e: any) => e.isUnlocked).length} / {getEventMedals(myPosts, catalog).length}
               </span>
               <span
                 className="material-symbols-outlined"
@@ -698,7 +700,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
               onDeleteEntry={onDeleteVariant}
               showDeleteButton={false}
               mode="events"
-              userPosts={posts.filter(p => isUserParticipantInPost(p, currentUserNick))}
+              userPosts={myPosts}
               allBeersCatalog={catalog}
             />
           )}
@@ -794,6 +796,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
               onDeleteEntry={onDeleteVariant}
               showDeleteButton={true}
               mode="variants"
+              userPosts={myPosts}
               allBeersCatalog={catalog}
             />
           )}
@@ -804,12 +807,12 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
       {activeTab === 'posts' && (
         <div style={{ padding: '0 20px', animation: 'fadeIn 0.2s ease-out' }}>
           <h3 style={{ borderBottom: '2px solid var(--gray)', paddingBottom: '8px', margin: '20px 0 15px 0', fontSize: '16px', color: 'var(--dark)', display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <span className="material-symbols-outlined">photo_library</span> Foto Caricate ({posts.filter(p => isUserParticipantInPost(p, currentUserNick)).length})
+            <span className="material-symbols-outlined">photo_library</span> I Miei Post ({myPosts.length})
           </h3>
-          {posts.filter(p => isUserParticipantInPost(p, currentUserNick)).length === 0 ? (
+          {myPosts.length === 0 ? (
             <div style={{ textAlign: 'center', padding: '40px 20px', color: 'var(--text-muted)' }}>
               <span className="material-symbols-outlined" style={{ fontSize: '48px', marginBottom: '10px' }}>photo_camera</span>
-              <p style={{ margin: 0, fontSize: '14px' }}>Non hai ancora caricato nessuna foto.</p>
+              <p style={{ margin: 0, fontSize: '14px' }}>Non hai ancora caricato nessun post.</p>
             </div>
           ) : (
             <div
@@ -820,7 +823,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
                 marginBottom: '20px'
               }}
             >
-              {[...posts.filter(p => isUserParticipantInPost(p, currentUserNick))].reverse().map((post) => (
+              {[...myPosts].reverse().map((post) => (
                 <div
                   key={post.postId}
                     onClick={() => onOpenPostDetail(currentUserNick, post.postId)}
