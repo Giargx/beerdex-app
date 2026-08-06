@@ -81,8 +81,8 @@ export const LeaderboardView: React.FC<LeaderboardViewProps> = ({
     setShowSuggestions(false);
   };
 
-  // Build the list of players to show
-  const players = Object.keys(safeScores)
+  // Build the complete list of players
+  const allPlayers = Object.keys(safeScores)
     .filter((name) => {
       if (!name) return false;
       if (activeTab === 'friends') {
@@ -96,16 +96,20 @@ export const LeaderboardView: React.FC<LeaderboardViewProps> = ({
     }))
     .sort((a, b) => b.score - a.score);
 
+  // Calculate actual rank of current user across ALL players in this view
+  const myRankIndex = allPlayers.findIndex(p => p.name.toLowerCase() === safeUserNick.toLowerCase());
+  const myRank = myRankIndex !== -1 ? myRankIndex + 1 : null;
+  const totalPlayersCount = allPlayers.length;
+  const myScore = safeScores[safeUserNick] || 0;
+
+  // For global leaderboard, display only top 50 players; for friends, show all
+  const players = activeTab === 'global' ? allPlayers.slice(0, 50) : allPlayers;
+
   // Top 3 for Podium graphic
   const top1 = players[0];
   const top2 = players[1];
   const top3 = players[2];
   const remainingPlayers = players.slice(3);
-
-  // User position in current view
-  const myRankIndex = players.findIndex(p => p.name === safeUserNick);
-  const myRank = myRankIndex !== -1 ? myRankIndex + 1 : null;
-  const myScore = safeScores[safeUserNick] || 0;
 
   const getFriendActionHtml = (targetName: string) => {
     if (!targetName || targetName === safeUserNick) return null;
@@ -832,7 +836,7 @@ export const LeaderboardView: React.FC<LeaderboardViewProps> = ({
                 justifyContent: 'center',
                 whiteSpace: 'nowrap'
               }}>
-                #{myRank} / {players.length}
+                #{myRank} / {totalPlayersCount}
               </div>
               <div style={{ textAlign: 'left' }}>
                 <div style={{ fontSize: '11px', color: '#94A3B8', fontWeight: 600 }}>
