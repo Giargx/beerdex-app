@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { TrophyGrid, getEventMedals } from '../components/TrophyGrid';
 import type { PokedexEntry } from '../components/TrophyGrid';
 import { FoamBubbles } from '../components/FoamBubbles';
-import { beers, getBeerType, formatBeerTitle, isUserParticipantInPost } from '../beers';
+import { beers, getBeerType, formatBeerTitle, isUserParticipantInPost, resolvePokedexEntryBeer } from '../beers';
 import type { Beer } from '../beers';
 import { StarRating } from '../components/StarRating';
 
@@ -79,7 +79,7 @@ export const PublicProfileView: React.FC<PublicProfileViewProps> = ({
   const [variantsOpen, setVariantsOpen] = useState<boolean>(false);
   const [selectedStyleFilter, setSelectedStyleFilter] = useState<string | null>(null);
 
-  const safeCatalog = Array.isArray(allBeersCatalog) ? allBeersCatalog : beers;
+  const safeCatalog = Array.isArray(allBeersCatalog) && allBeersCatalog.length > 0 ? allBeersCatalog : beers;
   const safePokedex = pokedex && typeof pokedex === 'object' ? pokedex : {};
   const safePosts = Array.isArray(posts) ? posts : [];
   const safeUser = username || '';
@@ -116,8 +116,7 @@ export const PublicProfileView: React.FC<PublicProfileViewProps> = ({
       totalRatedBeers += 1;
       totalRatingSum += entry.rating;
 
-      const brand = entry.brand || key.split('-')[0];
-      const variant = key.split('-').slice(1).join('-');
+      const { brand, variant } = resolvePokedexEntryBeer(key, entry, safeCatalog);
       const beerType = getBeerType(brand, variant);
 
       if (styleStats[beerType]) {
@@ -154,12 +153,10 @@ export const PublicProfileView: React.FC<PublicProfileViewProps> = ({
 
   const rarityCounts = { comune: 0, media: 0, rara: 0 };
   Object.keys(safePokedex).forEach(key => {
-    const brand = key.split('-')[0];
-    const beer = safeCatalog.find((b: Beer) => b && b.brand === brand);
-    if (beer) {
-      const r = (beer.rarity || 'comune') as 'comune' | 'media' | 'rara';
-      rarityCounts[r] = (rarityCounts[r] || 0) + 1;
-    }
+    if (!safePokedex[key]) return;
+    const entry = safePokedex[key];
+    const { rarity } = resolvePokedexEntryBeer(key, entry, safeCatalog);
+    rarityCounts[rarity] = (rarityCounts[rarity] || 0) + 1;
   });
 
   const countryCounts: Record<string, { unlocked: number, total: number }> = {};
@@ -172,14 +169,13 @@ export const PublicProfileView: React.FC<PublicProfileViewProps> = ({
     countryCounts[c].total += Array.isArray(beer?.variants) ? beer.variants.length : 1;
   });
   Object.keys(safePokedex).forEach(key => {
-    const brand = key.split('-')[0];
-    const beer = safeCatalog.find((b: Beer) => b && b.brand === brand);
-    if (beer) {
-      const c = beer.country || 'Sconosciuta';
-      if (countryCounts[c]) {
-        countryCounts[c].unlocked += 1;
-      }
+    if (!safePokedex[key]) return;
+    const entry = safePokedex[key];
+    const { country } = resolvePokedexEntryBeer(key, entry, safeCatalog);
+    if (!countryCounts[country]) {
+      countryCounts[country] = { unlocked: 0, total: 0 };
     }
+    countryCounts[country].unlocked += 1;
   });
 
   const countryStatsList = Object.entries(countryCounts)
@@ -621,6 +617,7 @@ export const PublicProfileView: React.FC<PublicProfileViewProps> = ({
                 medalSortDir={medalSortDir}
                 showDeleteButton={false}
                 mode="medals"
+                allBeersCatalog={safeCatalog}
               />
             )}
 
@@ -653,7 +650,7 @@ export const PublicProfileView: React.FC<PublicProfileViewProps> = ({
                 </span>{' '}
                 Medaglie Evento
                 <span style={{ fontSize: '11px', color: 'var(--text-muted)', background: '#F1F5F9', padding: '2px 8px', borderRadius: '10px' }}>
-                  {getEventMedals(myPosts).filter((e: any) => e.isUnlocked).length} / {getEventMedals(myPosts).length}
+                  {getEventMedals(myPosts, safeCatalog).filter((e: any) => e.isUnlocked).length} / {getEventMedals(myPosts, safeCatalog).length}
                 </span>
                 <span
                   className="material-symbols-outlined"
@@ -680,6 +677,7 @@ export const PublicProfileView: React.FC<PublicProfileViewProps> = ({
                 showDeleteButton={false}
                 mode="events"
                 userPosts={myPosts}
+                allBeersCatalog={safeCatalog}
               />
             )}
 
@@ -774,6 +772,7 @@ export const PublicProfileView: React.FC<PublicProfileViewProps> = ({
                 showDeleteButton={!!isAdminUser}
                 onDeleteEntry={(brand, variant) => onDeleteVariant?.(brand, variant, username)}
                 mode="variants"
+                allBeersCatalog={safeCatalog}
               />
             )}
           </div>

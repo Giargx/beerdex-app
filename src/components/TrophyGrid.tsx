@@ -1,5 +1,5 @@
 import React from 'react';
-import { beers, getBasePoints, getBeerType } from '../beers';
+import { beers, getBasePoints, getBeerType, formatBeerTitle, type Beer } from '../beers';
 
 export interface PokedexEntry {
   photo: string;
@@ -7,6 +7,7 @@ export interface PokedexEntry {
   isShared: boolean;
   taggedFriend: string | null;
   brand: string;
+  variant?: string;
   rating?: number;
 }
 
@@ -23,7 +24,8 @@ export interface EventMedal {
   endDate?: Date;
 }
 
-export function getEventMedals(userPosts: any[]): EventMedal[] {
+export function getEventMedals(userPosts: any[], catalog: Beer[] = beers): EventMedal[] {
+  const safeCatalog = Array.isArray(catalog) && catalog.length > 0 ? catalog : beers;
   const now = new Date();
   const currentYear = now.getFullYear();
   const medals: EventMedal[] = [];
@@ -80,7 +82,7 @@ export function getEventMedals(userPosts: any[]): EventMedal[] {
     return t >= patrizioStart && t <= patrizioEnd;
   });
   const patrizioCount = patrizioPosts.filter(p => {
-    const beer = beers.find(b => b.brand === p.brand);
+    const beer = safeCatalog.find(b => b.brand === p.brand || formatBeerTitle(b.brand) === formatBeerTitle(p.brand));
     const type = getBeerType(p.brand, p.variant);
     return (beer && (beer.country === "Irlanda" || beer.country === "Scozia")) || type === "scura";
   }).length;
@@ -131,7 +133,7 @@ export function getEventMedals(userPosts: any[]): EventMedal[] {
     return t >= pasquettaStart && t <= pasquettaEnd;
   });
   const pasquettaCount = pasquettaPosts.filter(p => {
-    const beer = beers.find(b => b.brand === p.brand);
+    const beer = safeCatalog.find(b => b.brand === p.brand || formatBeerTitle(b.brand) === formatBeerTitle(p.brand));
     const type = getBeerType(p.brand, p.variant);
     return (beer && beer.country === "Belgio") || type === "bionda";
   }).length;
@@ -201,7 +203,7 @@ export function getEventMedals(userPosts: any[]): EventMedal[] {
     return t >= oktoberfestStart && t <= oktoberfestEnd;
   });
   const oktoberfestCount = oktoberfestPosts.filter(p => {
-    const beer = beers.find(b => b.brand === p.brand);
+    const beer = safeCatalog.find(b => b.brand === p.brand || formatBeerTitle(b.brand) === formatBeerTitle(p.brand));
     return beer && beer.country === "Germania";
   }).length;
   medals.push({
@@ -226,7 +228,7 @@ export function getEventMedals(userPosts: any[]): EventMedal[] {
   });
   const autumnCount = autumnPosts.filter(p => {
     const type = getBeerType(p.brand, p.variant);
-    const beer = beers.find(b => b.brand === p.brand);
+    const beer = safeCatalog.find(b => b.brand === p.brand || formatBeerTitle(b.brand) === formatBeerTitle(p.brand));
     const isGerman = beer && beer.country === "Germania";
     return type === "rossa" || type === "ipa" || isGerman;
   }).length;
@@ -253,7 +255,7 @@ export function getEventMedals(userPosts: any[]): EventMedal[] {
   return medals;
 }
 
-interface TrophyGridProps {
+export interface TrophyGridProps {
   pokedex: Record<string, PokedexEntry>;
   isPub?: boolean;
   variantSortOption: "alpha" | "unlocked" | "rarity" | "nation";
@@ -262,9 +264,9 @@ interface TrophyGridProps {
   medalSortDir: number;
   onDeleteEntry?: (brand: string, variant: string) => void;
   showDeleteButton?: boolean;
-  mode?: 'medals' | 'variants' | 'events';
+  mode?: "medals" | "events" | "variants";
   userPosts?: any[];
-  allBeersCatalog?: any[];
+  allBeersCatalog?: Beer[];
 }
 
 export const TrophyGrid: React.FC<TrophyGridProps> = ({
@@ -284,7 +286,7 @@ export const TrophyGrid: React.FC<TrophyGridProps> = ({
   const [variantsOpen, setVariantsOpen] = React.useState(false);
 
   const rarityMap: Record<string, number> = { comune: 1, media: 2, rara: 3 };
-  const eventMedalsList = getEventMedals(userPosts);
+  const eventMedalsList = getEventMedals(userPosts, allBeersCatalog);
 
   // Calculate unlock count per brand
   const brandUnlockCounts: Record<string, number> = {};
@@ -298,14 +300,28 @@ export const TrophyGrid: React.FC<TrophyGridProps> = ({
     const vars = Array.isArray(beer.variants) && beer.variants.length > 0 ? beer.variants : ['Classica'];
     return vars.map((variant: string) => {
       const uniqueId = `${beer.brand}-${variant}`;
-      const entry = pokedex ? pokedex[uniqueId] : undefined;
+      const formattedB = formatBeerTitle(beer.brand);
+      const formattedV = formatBeerTitle(variant);
+
+      const entry = pokedex
+        ? (pokedex[uniqueId] ||
+           pokedex[`${formattedB}-${formattedV}`] ||
+           Object.values(pokedex).find(
+             (e: any) =>
+               e &&
+               typeof e === 'object' &&
+               ((e.brand === beer.brand || e.brand === formattedB) &&
+                (e.variant === variant || e.variant === formattedV))
+           ))
+        : undefined;
+      
       const isUnlocked = entry !== undefined;
       
       if (isUnlocked) {
         brandUnlockCounts[beer.brand]++;
       }
 
-      const basePts = getBasePoints(beer.brand, variant);
+      const basePts = getBasePoints(beer.brand, variant, allBeersCatalog);
       let finalPts = basePts;
       const muls: string[] = [];
       let isShiny = false;

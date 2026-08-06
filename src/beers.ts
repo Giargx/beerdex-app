@@ -277,3 +277,85 @@ export function isUserParticipantInPost(post: any, username: string): boolean {
 
   return false;
 }
+
+export interface ResolvedPokedexBeer {
+  beer: Beer | undefined;
+  brand: string;
+  variant: string;
+  rarity: 'comune' | 'media' | 'rara';
+  country: string;
+}
+
+export function resolvePokedexEntryBeer(
+  key: string,
+  entry?: any,
+  catalog: Beer[] = beers
+): ResolvedPokedexBeer {
+  const safeCatalog = Array.isArray(catalog) && catalog.length > 0 ? catalog : beers;
+  const entryBrand = entry && typeof entry === 'object' && entry.brand ? entry.brand : undefined;
+  const entryVariant = entry && typeof entry === 'object' && entry.variant ? entry.variant : undefined;
+
+  let foundBeer: Beer | undefined = undefined;
+
+  // 1. Match by entry.brand if present
+  if (entryBrand) {
+    foundBeer = safeCatalog.find(
+      (b) => b && (b.brand === entryBrand || normalizeStr(b.brand) === normalizeStr(entryBrand))
+    );
+  }
+
+  // 2. Match exact key with `${b.brand}-${v}` or formatted titles
+  if (!foundBeer && key) {
+    foundBeer = safeCatalog.find((b) => {
+      if (!b || !b.brand) return false;
+      const vars = Array.isArray(b.variants) && b.variants.length > 0 ? b.variants : ['Classica'];
+      return vars.some(
+        (v) =>
+          `${b.brand}-${v}` === key ||
+          `${formatBeerTitle(b.brand)}-${formatBeerTitle(v)}` === key ||
+          `${normalizeStr(b.brand)}-${normalizeStr(v)}` === normalizeStr(key)
+      );
+    });
+  }
+
+  // 3. Match longest brand prefix in key
+  if (!foundBeer && key) {
+    let longestMatch: Beer | undefined = undefined;
+    safeCatalog.forEach((b) => {
+      if (!b || !b.brand) return;
+      const formattedB = formatBeerTitle(b.brand);
+      if (
+        key.startsWith(`${b.brand}-`) ||
+        key.startsWith(`${formattedB}-`) ||
+        normalizeStr(key).startsWith(`${normalizeStr(b.brand)}-`)
+      ) {
+        if (!longestMatch || b.brand.length > longestMatch.brand.length) {
+          longestMatch = b;
+        }
+      }
+    });
+    foundBeer = longestMatch;
+  }
+
+  const brand = foundBeer?.brand || entryBrand || (key && key.includes('-') ? key.split('-')[0] : key || 'Sconosciuta');
+
+  let variant = entryVariant;
+  if (!variant && key) {
+    if (foundBeer && key.startsWith(`${foundBeer.brand}-`)) {
+      variant = key.slice(foundBeer.brand.length + 1);
+    } else if (foundBeer && key.startsWith(`${formatBeerTitle(foundBeer.brand)}-`)) {
+      variant = key.slice(formatBeerTitle(foundBeer.brand).length + 1);
+    } else if (key.includes('-')) {
+      variant = key.split('-').slice(1).join('-');
+    } else {
+      variant = 'Classica';
+    }
+  }
+  if (!variant) variant = 'Classica';
+
+  const rarity = (foundBeer?.rarity || entry?.rarity || 'comune') as 'comune' | 'media' | 'rara';
+  const country = foundBeer?.country || entry?.country || 'Italia';
+
+  return { beer: foundBeer, brand, variant, rarity, country };
+}
+

@@ -3,7 +3,7 @@ import { onAuthStateChanged, signOut, updatePassword, EmailAuthProvider, reauthe
 import { ref, onValue, set, get, update, push, remove } from 'firebase/database';
 import { auth, db } from './firebase';
 
-import { beers, getBeerPoints, countryCoordinates, normalizeStr, mergeBeers, getCountryFlag, formatBeerTitle } from './beers';
+import { beers, getBeerPoints, countryCoordinates, normalizeStr, mergeBeers, getCountryFlag, formatBeerTitle, resolvePokedexEntryBeer } from './beers';
 import type { Beer } from './beers';
 import { playPopSound } from './utils/audio';
 import { checkImageSafety } from './utils/imageModeration';
@@ -807,19 +807,20 @@ export default function App() {
       const profileData = snap.val();
       for (const uniqueId in profileData) {
         const entry = profileData[uniqueId];
-        const bName = entry.brand || uniqueId.split('-')[0];
-        const vName = uniqueId.substring(bName.length + 1);
+        const { beer, brand, variant } = resolvePokedexEntryBeer(uniqueId, entry, currentCatalog);
         const isShiny = entry.isShiny || false;
         const isShared = entry.isShared || false;
-        totalScore += getBeerPoints(bName, vName, isShiny, isShared, currentCatalog);
+        totalScore += getBeerPoints(brand, variant, isShiny, isShared, currentCatalog);
 
         // Grant +2 Bonus Points for proposed beer if accepted!
         if (entry.proposalBonus || entry.isProposalBonus) {
           totalScore += 2;
         }
 
-        if (brandUnlockCounts[bName] !== undefined) {
-          brandUnlockCounts[bName]++;
+        if (brandUnlockCounts[brand] !== undefined) {
+          brandUnlockCounts[brand]++;
+        } else if (beer && brandUnlockCounts[beer.brand] !== undefined) {
+          brandUnlockCounts[beer.brand]++;
         }
       }
     }
@@ -832,7 +833,7 @@ export default function App() {
     });
 
     // Event Medals Recalculation
-    const eventMedals = getEventMedals(userPosts);
+    const eventMedals = getEventMedals(userPosts, currentCatalog);
     eventMedals.forEach((medal) => {
       if (medal.isUnlocked) {
         totalScore += medal.points;
@@ -3068,6 +3069,7 @@ export default function App() {
                     myPokedex={myPokedex}
                     globalAvatars={globalAvatars}
                     leaderboardScores={globalLeaderboardScores}
+                    allBeersCatalog={allBeersCatalog}
                     onToggleSettings={() => {
                       setNewNickname('');
                       setOldPassword('');
@@ -3123,13 +3125,13 @@ export default function App() {
               getUserRankTitle={getUserRankTitle}
               getAvatarZoomProps={getAvatarZoomProps}
               posts={globalPosts}
+              allBeersCatalog={allBeersCatalog}
               onOpenPostDetail={(uname, pid) => {
                 setDetailViewUser(uname);
                 setDetailViewPostId(pid);
                 setDetailViewBackPage('page-public-profile');
                 navigateTo('page-user-posts-detail');
               }}
-              allBeersCatalog={allBeersCatalog}
               isAdminUser={isAdminUser}
               onDeleteVariant={handleDeleteVariant}
               isPrivate={(() => {

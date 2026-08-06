@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { TrophyGrid, getEventMedals } from '../components/TrophyGrid';
 import type { PokedexEntry } from '../components/TrophyGrid';
-import { beers, getBeerType, formatBeerTitle, isUserParticipantInPost } from '../beers';
+import { beers, getBeerType, formatBeerTitle, isUserParticipantInPost, resolvePokedexEntryBeer, type Beer } from '../beers';
 import { StarRating } from '../components/StarRating';
 
 interface ProfileViewProps {
@@ -17,6 +17,7 @@ interface ProfileViewProps {
   getAvatarZoomProps?: (url: string | undefined) => any;
   posts: any[];
   onOpenPostDetail: (username: string, postId: string) => void;
+  allBeersCatalog?: Beer[];
   onOpenAdminProposals?: () => void;
   pendingProposalsCount?: number;
   onOpenAdminReports?: () => void;
@@ -44,6 +45,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
   getAvatarZoomProps,
   posts = [],
   onOpenPostDetail,
+  allBeersCatalog = beers,
   onOpenAdminProposals,
   pendingProposalsCount = 0,
   onOpenAdminReports,
@@ -57,6 +59,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
   onOpenScanner,
   onOpenStoryUpload,
 }) => {
+  const catalog = (allBeersCatalog && allBeersCatalog.length > 0) ? allBeersCatalog : beers;
   const [activeTab, setActiveTab] = useState<'collection' | 'posts' | 'saved' | 'stats' | 'ratings'>('posts');
   const [savedPostIds] = useState<string[]>(() => {
     try {
@@ -89,7 +92,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
   const totalUnlocked = pokedexEntries.length;
   
   // Total variants in the game
-  const totalVariantsInGame = (beers || []).reduce((acc, b) => acc + (Array.isArray(b?.variants) ? b.variants.length : 1), 0);
+  const totalVariantsInGame = (catalog || []).reduce((acc, b) => acc + (Array.isArray(b?.variants) ? b.variants.length : 1), 0);
   const completionPercentage = totalVariantsInGame > 0 ? Math.round((totalUnlocked / totalVariantsInGame) * 100) : 0;
   
   // Shiny count
@@ -102,17 +105,15 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
   const rarityCounts = { comune: 0, media: 0, rara: 0 };
   Object.keys(myPokedex || {}).forEach(key => {
     if (!myPokedex[key]) return;
-    const brand = key.split('-')[0];
-    const beer = (beers || []).find(b => b.brand === brand);
-    if (beer) {
-      const r = (beer.rarity || 'comune') as 'comune' | 'media' | 'rara';
-      rarityCounts[r] = (rarityCounts[r] || 0) + 1;
-    }
+    const entry = myPokedex[key];
+    const { rarity } = resolvePokedexEntryBeer(key, entry, catalog);
+    rarityCounts[rarity] = (rarityCounts[rarity] || 0) + 1;
   });
 
   // Country completion
   const countryCounts: Record<string, { unlocked: number, total: number }> = {};
-  (beers || []).forEach(beer => {
+  (catalog || []).forEach(beer => {
+    if (!beer) return;
     const c = beer.country || 'Sconosciuta';
     if (!countryCounts[c]) {
       countryCounts[c] = { unlocked: 0, total: 0 };
@@ -121,14 +122,12 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
   });
   Object.keys(myPokedex || {}).forEach(key => {
     if (!myPokedex[key]) return;
-    const brand = key.split('-')[0];
-    const beer = beers.find(b => b.brand === brand);
-    if (beer) {
-      const c = beer.country || 'Sconosciuta';
-      if (countryCounts[c]) {
-        countryCounts[c].unlocked += 1;
-      }
+    const entry = myPokedex[key];
+    const { country } = resolvePokedexEntryBeer(key, entry, catalog);
+    if (!countryCounts[country]) {
+      countryCounts[country] = { unlocked: 0, total: 0 };
     }
+    countryCounts[country].unlocked += 1;
   });
 
   // Convert country counts to list, sort by percentage desc
@@ -166,8 +165,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
       totalRatedBeers += 1;
       totalRatingSum += entry.rating;
 
-      const brand = entry.brand || key.split('-')[0];
-      const variant = key.split('-').slice(1).join('-');
+      const { brand, variant } = resolvePokedexEntryBeer(key, entry, catalog);
       const beerType = getBeerType(brand, variant);
 
       if (styleStats[beerType]) {
@@ -608,6 +606,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
               onDeleteEntry={onDeleteVariant}
               showDeleteButton={true}
               mode="medals"
+              allBeersCatalog={catalog}
             />
           )}
 
@@ -640,7 +639,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
               </span>{' '}
               Medaglie Evento
               <span style={{ fontSize: '11px', color: 'var(--text-muted)', background: '#F1F5F9', padding: '2px 8px', borderRadius: '10px' }}>
-                {getEventMedals(posts.filter(p => isUserParticipantInPost(p, currentUserNick))).filter((e: any) => e.isUnlocked).length} / {getEventMedals(posts.filter(p => isUserParticipantInPost(p, currentUserNick))).length}
+                {getEventMedals(posts.filter(p => isUserParticipantInPost(p, currentUserNick)), catalog).filter((e: any) => e.isUnlocked).length} / {getEventMedals(posts.filter(p => isUserParticipantInPost(p, currentUserNick)), catalog).length}
               </span>
               <span
                 className="material-symbols-outlined"
@@ -668,6 +667,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
               showDeleteButton={false}
               mode="events"
               userPosts={posts.filter(p => isUserParticipantInPost(p, currentUserNick))}
+              allBeersCatalog={catalog}
             />
           )}
 
@@ -762,6 +762,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
               onDeleteEntry={onDeleteVariant}
               showDeleteButton={true}
               mode="variants"
+              allBeersCatalog={catalog}
             />
           )}
         </div>
