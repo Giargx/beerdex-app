@@ -783,54 +783,84 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
                 marginBottom: '20px'
               }}
             >
-              {[...posts.filter(p => isUserParticipantInPost(p, currentUserNick))].reverse().map((post) => (
-                <div
-                  key={post.postId}
-                  onClick={() => onOpenPostDetail(currentUserNick, post.postId)}
-                  style={{
-                    position: 'relative',
-                    aspectRatio: '1/1',
-                    borderRadius: '12px',
-                    overflow: 'hidden',
-                    background: '#f1f5f9',
-                    border: '1px solid var(--gray)',
-                    boxShadow: '0 2px 8px rgba(0,0,0,0.05)',
-                    cursor: 'pointer',
-                  }}
-                >
-                  <img
-                    src={post.photo}
-                    alt={`${post.brand} - ${post.variant}`}
-                    style={{
-                      width: '100%',
-                      height: '100%',
-                      objectFit: 'cover'
-                    }}
-                    onContextMenu={(e) => e.preventDefault()}
-                  />
+              {[...posts.filter(p => isUserParticipantInPost(p, currentUserNick))].reverse().map((post) => {
+                const isPostShared = Boolean(
+                  post.isShared ||
+                  (post.taggedFriend && post.taggedFriend.trim() !== '') ||
+                  (Array.isArray((post as any).taggedFriends) && (post as any).taggedFriends.filter(Boolean).length > 0)
+                );
+
+                return (
                   <div
+                    key={post.postId}
+                    onClick={() => onOpenPostDetail(currentUserNick, post.postId)}
                     style={{
-                      position: 'absolute',
-                      bottom: 0,
-                      left: 0,
-                      width: '100%',
-                      background: 'rgba(0, 0, 0, 0.65)',
-                      padding: '4px 6px',
-                      color: 'white',
-                      boxSizing: 'border-box',
-                      fontSize: '9px',
-                      lineHeight: 1.2,
+                      position: 'relative',
+                      aspectRatio: '1/1',
+                      borderRadius: '12px',
+                      overflow: 'hidden',
+                      background: '#f1f5f9',
+                      border: '1px solid var(--gray)',
+                      boxShadow: '0 2px 8px rgba(0,0,0,0.05)',
+                      cursor: 'pointer',
                     }}
                   >
-                    <div style={{ fontWeight: 'bold', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                      {formatBeerTitle(post.brand)}
-                    </div>
-                    <div style={{ opacity: 0.8, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                      {formatBeerTitle(post.variant)}
+                    {isPostShared && (
+                      <div
+                        style={{
+                          position: 'absolute',
+                          top: '6px',
+                          left: '6px',
+                          background: 'rgba(245, 158, 11, 0.95)',
+                          color: 'white',
+                          borderRadius: '8px',
+                          padding: '2px 6px',
+                          fontSize: '10px',
+                          fontWeight: 800,
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '3px',
+                          boxShadow: '0 2px 6px rgba(0,0,0,0.2)',
+                          zIndex: 2,
+                        }}
+                      >
+                        <span style={{ fontSize: '11px' }}>🍻</span> Condiviso
+                      </div>
+                    )}
+                    <img
+                      src={post.photo}
+                      alt={`${post.brand} - ${post.variant}`}
+                      style={{
+                        width: '100%',
+                        height: '100%',
+                        objectFit: 'cover'
+                      }}
+                      onContextMenu={(e) => e.preventDefault()}
+                    />
+                    <div
+                      style={{
+                        position: 'absolute',
+                        bottom: 0,
+                        left: 0,
+                        width: '100%',
+                        background: 'rgba(0, 0, 0, 0.65)',
+                        padding: '4px 6px',
+                        color: 'white',
+                        boxSizing: 'border-box',
+                        fontSize: '9px',
+                        lineHeight: 1.2,
+                      }}
+                    >
+                      <div style={{ fontWeight: 'bold', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        {formatBeerTitle(post.brand)}
+                      </div>
+                      <div style={{ opacity: 0.8, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        {formatBeerTitle(post.variant)}
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </div>
