@@ -57,11 +57,17 @@ export const PublicProfileView: React.FC<PublicProfileViewProps> = ({
   onAcceptRequest,
   onCancelSentRequest,
 }) => {
-  const [activeTab, setActiveTab] = useState<'collection' | 'posts' | 'stats' | 'ratings'>('posts');
+  const [activeTab, setActiveTab] = useState<'collection' | 'posts' | 'stats' | 'ratings' | 'medals'>('posts');
+
+  const isPrivateProfile = isPrivate && !isFriend && username.toLowerCase() !== currentUserNick.toLowerCase() && !isAdminUser;
 
   useEffect(() => {
-    setActiveTab('posts');
-  }, [username]);
+    if (isPrivateProfile) {
+      setActiveTab('medals');
+    } else {
+      setActiveTab('posts');
+    }
+  }, [username, isPrivateProfile]);
 
   const [variantSort, setVariantSort] = useState<'alpha' | 'unlocked' | 'rarity' | 'nation'>('unlocked');
   const [variantSortDir, setVariantSortDir] = useState<number>(1);
@@ -397,16 +403,16 @@ export const PublicProfileView: React.FC<PublicProfileViewProps> = ({
         </div>
       </header>
 
-      {isPrivate && !isFriend && username.toLowerCase() !== currentUserNick.toLowerCase() && !isAdminUser ? (
-        <div className="page-container" style={{ marginTop: '-40px', paddingTop: '30px' }}>
-          {/* Private Profile Banner */}
+      <div className="page-container" style={{ marginTop: '-40px', paddingTop: '30px' }}>
+        {isPrivateProfile && (
+          /* Private Profile Banner */
           <div
             style={{
               background: 'linear-gradient(135deg, #FFFBEB 0%, #FEF3C7 100%)',
               border: '1px solid #FCD34D',
               borderRadius: '20px',
               padding: '16px 20px',
-              marginBottom: '24px',
+              marginBottom: '20px',
               display: 'flex',
               alignItems: 'center',
               gap: '14px',
@@ -423,52 +429,14 @@ export const PublicProfileView: React.FC<PublicProfileViewProps> = ({
                 Profilo Privato
               </h4>
               <p style={{ margin: 0, fontSize: '12px', color: '#78350F', lineHeight: '1.4' }}>
-                Le foto, le valutazioni e le statistiche di @{username} sono visibili solo agli amici.<br />
-                Le sue medaglie conquistate rimangono visibili a tutti!
+                Le foto e le valutazioni di @{username} sono visibili solo agli amici.<br />
+                Le sue medaglie e le sue statistiche rimangono visibili a tutti!
               </p>
             </div>
           </div>
+        )}
 
-          {/* Medaglie Brand Section */}
-          <div style={{ background: 'var(--white)', borderRadius: '20px', padding: '16px', border: '1px solid var(--gray)', boxShadow: 'var(--card-shadow)', marginBottom: '20px' }}>
-            <h3 style={{ margin: '0 0 12px 0', color: 'var(--dark)', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '16px', borderBottom: '2px solid var(--gray)', paddingBottom: '8px' }}>
-              <span className="material-symbols-outlined" style={{ color: 'var(--gold)' }}>workspace_premium</span>
-              Medaglie Brand
-            </h3>
-            <TrophyGrid
-              pokedex={pokedex}
-              isPub={true}
-              variantSortOption={variantSort}
-              variantSortDir={variantSortDir}
-              medalSortOption={medalSort}
-              medalSortDir={medalSortDir}
-              showDeleteButton={false}
-              mode="medals"
-            />
-          </div>
-
-          {/* Medaglie Evento Section */}
-          <div style={{ background: 'var(--white)', borderRadius: '20px', padding: '16px', border: '1px solid var(--gray)', boxShadow: 'var(--card-shadow)' }}>
-            <h3 style={{ margin: '0 0 12px 0', color: 'var(--dark)', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '16px', borderBottom: '2px solid var(--gray)', paddingBottom: '8px' }}>
-              <span className="material-symbols-outlined" style={{ color: 'var(--primary)' }}>event_note</span>
-              Medaglie Evento
-            </h3>
-            <TrophyGrid
-              pokedex={pokedex}
-              isPub={true}
-              variantSortOption={variantSort}
-              variantSortDir={variantSortDir}
-              medalSortOption={medalSort}
-              medalSortDir={medalSortDir}
-              showDeleteButton={false}
-              mode="events"
-              userPosts={[]}
-            />
-          </div>
-        </div>
-      ) : (
-        <div className="page-container" style={{ marginTop: '-40px', paddingTop: '30px' }}>
-          {/* Tab control bar */}
+        {/* Tab control bar */}
         <div style={{
           display: 'flex',
           marginBottom: '20px',
@@ -479,12 +447,15 @@ export const PublicProfileView: React.FC<PublicProfileViewProps> = ({
           position: 'relative',
           zIndex: 2
         }}>
-          {[
+          {(isPrivateProfile ? [
+            { id: 'medals', label: 'Medaglie', icon: 'workspace_premium' },
+            { id: 'stats', label: 'Statistiche', icon: 'bar_chart' }
+          ] : [
             { id: 'posts', label: 'Post', icon: 'photo_library' },
             { id: 'collection', label: 'Collezione', icon: 'collections_bookmark' },
             { id: 'stats', label: 'Statistiche', icon: 'bar_chart' },
             { id: 'ratings', label: 'Gusti & Voti', icon: 'star' }
-          ].map(tab => (
+          ]).map(tab => (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id as any)}
@@ -506,10 +477,54 @@ export const PublicProfileView: React.FC<PublicProfileViewProps> = ({
                 transition: 'all 0.2s ease',
               }}
             >
-              <span className="material-symbols-outlined" style={{ fontSize: '20px' }} title={tab.label}>{tab.icon}</span>
+              <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>{tab.icon}</span>
+              {isPrivateProfile && (
+                <span style={{ fontSize: '13px', fontWeight: 'bold' }}>{tab.label}</span>
+              )}
             </button>
           ))}
         </div>
+
+        {activeTab === 'medals' && (
+          <div style={{ animation: 'fadeIn 0.2s ease-out' }}>
+            {/* Medaglie Brand Section */}
+            <div style={{ background: 'var(--white)', borderRadius: '20px', padding: '16px', border: '1px solid var(--gray)', boxShadow: 'var(--card-shadow)', marginBottom: '20px' }}>
+              <h3 style={{ margin: '0 0 12px 0', color: 'var(--dark)', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '16px', borderBottom: '2px solid var(--gray)', paddingBottom: '8px' }}>
+                <span className="material-symbols-outlined" style={{ color: 'var(--gold)' }}>workspace_premium</span>
+                Medaglie Brand
+              </h3>
+              <TrophyGrid
+                pokedex={pokedex}
+                isPub={true}
+                variantSortOption={variantSort}
+                variantSortDir={variantSortDir}
+                medalSortOption={medalSort}
+                medalSortDir={medalSortDir}
+                showDeleteButton={false}
+                mode="medals"
+              />
+            </div>
+
+            {/* Medaglie Evento Section */}
+            <div style={{ background: 'var(--white)', borderRadius: '20px', padding: '16px', border: '1px solid var(--gray)', boxShadow: 'var(--card-shadow)' }}>
+              <h3 style={{ margin: '0 0 12px 0', color: 'var(--dark)', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '16px', borderBottom: '2px solid var(--gray)', paddingBottom: '8px' }}>
+                <span className="material-symbols-outlined" style={{ color: 'var(--primary)' }}>event_note</span>
+                Medaglie Evento
+              </h3>
+              <TrophyGrid
+                pokedex={pokedex}
+                isPub={true}
+                variantSortOption={variantSort}
+                variantSortDir={variantSortDir}
+                medalSortOption={medalSort}
+                medalSortDir={medalSortDir}
+                showDeleteButton={false}
+                mode="events"
+                userPosts={[]}
+              />
+            </div>
+          </div>
+        )}
         {activeTab === 'collection' && (
           <div style={{ animation: 'fadeIn 0.2s ease-out' }}>
             {/* Medals sorting controls */}
@@ -1121,7 +1136,6 @@ export const PublicProfileView: React.FC<PublicProfileViewProps> = ({
           </div>
         )}
       </div>
-      )}
 
     </div>
   );
