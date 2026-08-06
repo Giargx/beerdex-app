@@ -281,6 +281,17 @@ export const StoryEditorModal: React.FC<StoryEditorModalProps> = ({
 
   const currentFilterCss = INSTA_FILTERS.find((f) => f.id === selectedFilter)?.cssFilter || 'none';
 
+  const resetEditorState = () => {
+    setCapturedMediaUrl(null);
+    setIsVideo(false);
+    setSelectedFilter('normal');
+    setShowFiltersPicker(false);
+    setOverlayText('');
+    setShowTextInput(false);
+    setSelectedMusic(null);
+    setShowMusicPicker(false);
+  };
+
   const handlePublish = () => {
     if (!capturedMediaUrl) return;
     if (audioPreviewRef.current) {
@@ -298,6 +309,7 @@ export const StoryEditorModal: React.FC<StoryEditorModalProps> = ({
       musicTitle: selectedMusic ? selectedMusic.title : '',
       musicAudioUrl: selectedMusic ? selectedMusic.audioUrl : '',
     });
+    resetEditorState();
   };
 
   if (!isOpen) return null;
@@ -340,6 +352,7 @@ export const StoryEditorModal: React.FC<StoryEditorModalProps> = ({
           onClick={() => {
             stopCamera();
             if (audioPreviewRef.current) audioPreviewRef.current.pause();
+            resetEditorState();
             onClose();
           }}
           style={{

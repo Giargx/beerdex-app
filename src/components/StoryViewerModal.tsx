@@ -151,7 +151,7 @@ export const StoryViewerModal: React.FC<StoryViewerModalProps> = ({
         width: '100vw',
         height: '100vh',
         background: 'rgba(0, 0, 0, 0.95)',
-        zIndex: 26000,
+        zIndex: 999999,
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',

@@ -167,7 +167,7 @@ export const PubView: React.FC<PubViewProps> = ({
   const [pubStories, setPubStories] = useState<Record<string, any>>({});
 
   useEffect(() => {
-    const storiesRef = ref(db, 'pub_stories/main_pub');
+    const storiesRef = ref(db, 'pub_stories');
     const unsubscribe = onValue(storiesRef, (snap) => {
       if (snap.exists()) {
         setPubStories(snap.val());
@@ -184,22 +184,44 @@ export const PubView: React.FC<PubViewProps> = ({
     const storiesList: any[] = [];
     const seenStoryIds = new Set<string>();
 
-    // 1. From Realtime pub_stories node
-    Object.entries(pubStories).forEach(([key, val]) => {
-      if (val && typeof val === 'object' && (val.time || 0) >= twentyFourHoursAgo) {
+    const parseAndAddStory = (key: string, val: any) => {
+      if (!val || typeof val !== 'object') return;
+      const media = val.mediaUrl || val.photo;
+      if (!media) return;
+
+      const storyTime = val.time || val.timestamp || Date.now();
+      if (!seenStoryIds.has(key) && (storyTime >= twentyFourHoursAgo || !val.time)) {
         seenStoryIds.add(key);
         storiesList.push({
           postId: key,
+          brand: 'Storia del Pub',
+          variant: 'Foto al volo',
+          isStory: true,
           ...val,
+          photo: media,
+          mediaUrl: media,
+          time: storyTime,
         });
       }
-    });
+    };
 
-    // 2. From posts array fallback (legacy/timeline stories)
+    if (pubStories && typeof pubStories === 'object') {
+      Object.entries(pubStories).forEach(([key, val]) => {
+        if (val && typeof val === 'object') {
+          if (val.user || val.photo || val.mediaUrl) {
+            parseAndAddStory(key, val);
+          } else {
+            Object.entries(val).forEach(([subKey, subVal]) => {
+              parseAndAddStory(subKey, subVal);
+            });
+          }
+        }
+      });
+    }
+
     (posts || []).forEach((p) => {
-      if (p && (p.isStory || p.brand === 'Storia del Pub') && (p.time || 0) >= twentyFourHoursAgo && !seenStoryIds.has(p.postId)) {
-        seenStoryIds.add(p.postId);
-        storiesList.push(p);
+      if (p && (p.isStory || p.brand === 'Storia del Pub') && (p.photo || (p as any).mediaUrl)) {
+        parseAndAddStory(p.postId, p);
       }
     });
 
