@@ -12,25 +12,65 @@ interface AuthScreenProps {
 
 export const AuthScreen: React.FC<AuthScreenProps> = ({ isOpen, onAuthSuccess, showAlert }) => {
   const [isRegisterMode, setIsRegisterMode] = useState(false);
+  const [isResetMode, setIsResetMode] = useState(false);
+  
   const [loginId, setLoginId] = useState('');
   const [nickname, setNickname] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [resetInput, setResetInput] = useState('');
   
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   if (!isOpen) return null;
 
-  const handleResetPassword = async () => {
-    const userEmail = prompt("Inserisci l'indirizzo Email per ricevere il ripristino del codice di stappo:");
-    if (!userEmail) return;
+  const handleResetPasswordSubmit = async () => {
+    const trimmedInput = resetInput.trim();
+    if (!trimmedInput) {
+      showAlert("Inserisci la tua Email o il tuo Nickname!");
+      return;
+    }
+
+    let targetEmail = trimmedInput.toLowerCase();
+
+    if (!trimmedInput.includes('@')) {
+      if (/[.#$\[\]]/.test(trimmedInput)) {
+        showAlert("Il Nickname inserito contiene caratteri non validi.", "Errore");
+        return;
+      }
+      try {
+        const snap = await get(ref(db, `usernames_emails/${trimmedInput.toLowerCase()}`));
+        const mappedEmail = snap.val();
+        if (mappedEmail) {
+          targetEmail = mappedEmail;
+        } else {
+          showAlert("Nessun account trovato con questo Nickname. Inserisci l'email usata per la registrazione.", "Nickname Non Trovato");
+          return;
+        }
+      } catch (err: any) {
+        showAlert("Errore durante la ricerca del profilo: " + err.message, "Errore DB");
+        return;
+      }
+    }
+
     try {
-      await sendPasswordResetEmail(auth, userEmail.trim());
-      showAlert("Email di ripristino del codice di stappo inviata con successo!", "Controlla l'email");
+      await sendPasswordResetEmail(auth, targetEmail);
+      showAlert(
+        `Email di ripristino del codice di stappo inviata a:\n${targetEmail}\n\nNota: Se non trovi la mail nella posta in arrivo, CONTROLLA LA CARTELLA SPAM / POSTA INDESIDERATA.`,
+        "Controlla l'Email"
+      );
+      setIsResetMode(false);
+      setResetInput('');
     } catch (err: any) {
-      showAlert(err.message, "Errore");
+      let msg = err.message;
+      if (err.code === 'auth/user-not-found') {
+        msg = "Nessun account trovato con questa indirizzo Email.";
+      } else if (err.code === 'auth/invalid-email') {
+        msg = "L'indirizzo Email inserito non è valido.";
+      }
+      showAlert(msg, "Errore Ripristino");
     }
   };
 
@@ -169,95 +209,133 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ isOpen, onAuthSuccess, s
             }}
           />
         </div>
-        <h2 style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
-          <span className="material-symbols-outlined">
-            {isRegisterMode ? 'person_add' : 'login'}
-          </span>
-          {isRegisterMode ? 'Crea Account' : 'Accedi a POP IT'}
-        </h2>
-        <p style={{ color: 'var(--text-muted)', fontSize: '13px', marginBottom: '20px' }}>
-          {isRegisterMode
-            ? "Scegli un codice di stappo sicuro (8 caratteri, 1 Maiuscola, 1 Numero, 1 Speciale tra !?$%&)"
-            : "Inserisci Email o Nickname per accedere"}
-        </p>
 
-        {!isRegisterMode && (
-          <input
-            type="text"
-            placeholder="Email o Nickname"
-            value={loginId}
-            onChange={(e) => setLoginId(e.target.value)}
-          />
-        )}
-
-        {isRegisterMode && (
+        {isResetMode ? (
           <>
+            <h2 style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+              <span className="material-symbols-outlined">lock_reset</span>
+              Ripristino Codice
+            </h2>
+            <p style={{ color: 'var(--text-muted)', fontSize: '13px', marginBottom: '20px' }}>
+              Inserisci l'Email o il Nickname del tuo account. Ti invieremo un link per creare un nuovo codice di stappo.
+            </p>
+
             <input
               type="text"
-              placeholder="Nickname (Es. Marco89)"
-              value={nickname}
-              onChange={(e) => setNickname(e.target.value)}
+              placeholder="Email o Nickname"
+              value={resetInput}
+              onChange={(e) => setResetInput(e.target.value)}
             />
-            <input
-              type="email"
-              placeholder="Indirizzo Email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-            />
+
+            <button className="btn-main" onClick={handleResetPasswordSubmit} style={{ justifyContent: 'center', marginBottom: '12px' }}>
+              Invia Link di Ripristino
+            </button>
+
+            <div style={{ marginTop: '10px', textAlign: 'center' }}>
+              <span
+                className="auth-toggle"
+                onClick={() => {
+                  setIsResetMode(false);
+                  setResetInput('');
+                }}
+              >
+                ← Torna al Login
+              </span>
+            </div>
+          </>
+        ) : (
+          <>
+            <h2 style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+              <span className="material-symbols-outlined">
+                {isRegisterMode ? 'person_add' : 'login'}
+              </span>
+              {isRegisterMode ? 'Crea Account' : 'Accedi a POP IT'}
+            </h2>
+            <p style={{ color: 'var(--text-muted)', fontSize: '13px', marginBottom: '20px' }}>
+              {isRegisterMode
+                ? "Scegli un codice di stappo sicuro (8 caratteri, 1 Maiuscola, 1 Numero, 1 Speciale tra !?$%&)"
+                : "Inserisci Email o Nickname per accedere"}
+            </p>
+
+            {!isRegisterMode && (
+              <input
+                type="text"
+                placeholder="Email o Nickname"
+                value={loginId}
+                onChange={(e) => setLoginId(e.target.value)}
+              />
+            )}
+
+            {isRegisterMode && (
+              <>
+                <input
+                  type="text"
+                  placeholder="Nickname (Es. Marco89)"
+                  value={nickname}
+                  onChange={(e) => setNickname(e.target.value)}
+                />
+                <input
+                  type="email"
+                  placeholder="Indirizzo Email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                />
+              </>
+            )}
+
+            <div className="pwd-container">
+              <input
+                type={showPassword ? 'text' : 'password'}
+                placeholder="Codice di stappo"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+              />
+              <span
+                className="eye-icon material-symbols-outlined"
+                onClick={() => setShowPassword(!showPassword)}
+              >
+                {showPassword ? 'visibility_off' : 'visibility'}
+              </span>
+            </div>
+
+            {isRegisterMode && (
+              <div className="pwd-container">
+                <input
+                  type={showConfirmPassword ? 'text' : 'password'}
+                  placeholder="Conferma codice di stappo"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                />
+                <span
+                  className="eye-icon material-symbols-outlined"
+                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                >
+                  {showConfirmPassword ? 'visibility_off' : 'visibility'}
+                </span>
+              </div>
+            )}
+
+            <button className="btn-main" onClick={handleAuthSubmit} style={{ justifyContent: 'center' }}>
+              {isRegisterMode ? 'Registrati' : 'Entra nel Pub'}
+            </button>
+
+            <div style={{ marginTop: '15px' }}>
+              <span
+                className="auth-toggle"
+                onClick={() => setIsRegisterMode(!isRegisterMode)}
+              >
+                {isRegisterMode ? 'Hai già un account? Accedi' : 'Non hai un account? Registrati'}
+              </span>
+              <span
+                className="auth-toggle"
+                onClick={() => setIsResetMode(true)}
+                style={{ color: 'var(--text-muted)' }}
+              >
+                Codice di stappo dimenticato?
+              </span>
+            </div>
           </>
         )}
-
-        <div className="pwd-container">
-          <input
-            type={showPassword ? 'text' : 'password'}
-            placeholder="Codice di stappo"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-          />
-          <span
-            className="eye-icon material-symbols-outlined"
-            onClick={() => setShowPassword(!showPassword)}
-          >
-            {showPassword ? 'visibility_off' : 'visibility'}
-          </span>
-        </div>
-
-        {isRegisterMode && (
-          <div className="pwd-container">
-            <input
-              type={showConfirmPassword ? 'text' : 'password'}
-              placeholder="Conferma codice di stappo"
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-            />
-            <span
-              className="eye-icon material-symbols-outlined"
-              onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-            >
-              {showConfirmPassword ? 'visibility_off' : 'visibility'}
-            </span>
-          </div>
-        )}
-
-        <button className="btn-main" onClick={handleAuthSubmit} style={{ justifyContent: 'center' }}>
-          {isRegisterMode ? 'Registrati' : 'Entra nel Pub'}
-        </button>
-
-        <div style={{ marginTop: '15px' }}>
-          <span
-            className="auth-toggle"
-            onClick={() => setIsRegisterMode(!isRegisterMode)}
-          >
-            {isRegisterMode ? 'Hai già un account? Accedi' : 'Non hai un account? Registrati'}
-          </span>
-          <span
-            className="auth-toggle"
-            onClick={handleResetPassword}
-            style={{ color: 'var(--text-muted)' }}
-          >
-            Codice di stappo dimenticato?
-          </span>
-        </div>
       </div>
     </div>
   );
