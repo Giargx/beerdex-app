@@ -178,13 +178,16 @@ export const PubView: React.FC<PubViewProps> = ({
     return () => unsubscribe();
   }, []);
 
-  // Active 24h Stories from pub_stories node
+  // Active 24h Stories from pub_stories node and posts fallback
   const storyPosts = useMemo(() => {
     const twentyFourHoursAgo = Date.now() - 24 * 60 * 60 * 1000;
     const storiesList: any[] = [];
-    
+    const seenStoryIds = new Set<string>();
+
+    // 1. From Realtime pub_stories node
     Object.entries(pubStories).forEach(([key, val]) => {
-      if (val && typeof val === 'object' && val.time >= twentyFourHoursAgo) {
+      if (val && typeof val === 'object' && (val.time || 0) >= twentyFourHoursAgo) {
+        seenStoryIds.add(key);
         storiesList.push({
           postId: key,
           ...val,
@@ -192,9 +195,17 @@ export const PubView: React.FC<PubViewProps> = ({
       }
     });
 
-    storiesList.sort((a, b) => b.time - a.time);
+    // 2. From posts array fallback (legacy/timeline stories)
+    (posts || []).forEach((p) => {
+      if (p && (p.isStory || p.brand === 'Storia del Pub') && (p.time || 0) >= twentyFourHoursAgo && !seenStoryIds.has(p.postId)) {
+        seenStoryIds.add(p.postId);
+        storiesList.push(p);
+      }
+    });
+
+    storiesList.sort((a, b) => (b.time || 0) - (a.time || 0));
     return storiesList;
-  }, [pubStories, currentUserNick, myFriendsList, isAdminUser]);
+  }, [pubStories, posts]);
 
   // Helper for clicking user avatar: open story if available, else open public profile
   const handleUserAvatarClick = (username: string) => {

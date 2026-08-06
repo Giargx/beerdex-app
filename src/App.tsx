@@ -1543,6 +1543,7 @@ export default function App() {
     textStyle: string;
     musicTrackId: string;
     musicTitle: string;
+    musicAudioUrl: string;
   }) => {
     setIsStoryEditorOpen(false);
     showAlert("Pubblicazione storia nel Pub in corso...", "Storia 24h", false);
@@ -1564,6 +1565,7 @@ export default function App() {
         textStyle: storyData.textStyle,
         musicTrackId: storyData.musicTrackId,
         musicTitle: storyData.musicTitle,
+        musicAudioUrl: storyData.musicAudioUrl,
         time: Date.now(),
         isShiny: false,
         isShared: false,

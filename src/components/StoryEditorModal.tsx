@@ -11,26 +11,50 @@ export interface StoryFilter {
 export const INSTA_FILTERS: StoryFilter[] = [
   { id: 'normal', name: 'Normale', icon: 'auto_awesome', cssFilter: 'none' },
   { id: 'sunset', name: 'Tramonto', icon: 'wb_twilight', cssFilter: 'sepia(0.35) contrast(1.15) saturate(1.4) hue-rotate(-10deg)' },
-  { id: 'vintage', name: 'Vintage', icon: 'camera_roll', cssFilter: 'sepia(0.5) contrast(1.1) brightness(0.9) saturate(0.85)' },
+  { id: 'vintage', name: 'Vintage 90s', icon: 'camera_roll', cssFilter: 'sepia(0.5) contrast(1.1) brightness(0.9) saturate(0.85)' },
   { id: 'cyber', name: 'Cyber Neon', icon: 'bolt', cssFilter: 'contrast(1.25) saturate(1.8) hue-rotate(180deg)' },
-  { id: 'bw', name: 'B&W Retrò', icon: 'filter_b_and_w', cssFilter: 'grayscale(1) contrast(1.2) brightness(0.95)' },
-  { id: 'golden', name: 'Luce Dorata', icon: 'sports_bar', cssFilter: 'sepia(0.4) saturate(1.6) contrast(1.1) brightness(1.05)' },
-  { id: 'emerald', name: 'Smeraldo', icon: 'eco', cssFilter: 'contrast(1.15) saturate(1.3) hue-rotate(90deg)' },
+  { id: 'bw', name: 'B&W Drama', icon: 'filter_b_and_w', cssFilter: 'grayscale(1) contrast(1.2) brightness(0.95)' },
+  { id: 'golden', name: 'Birra Dorata', icon: 'sports_bar', cssFilter: 'sepia(0.4) saturate(1.6) contrast(1.1) brightness(1.05)' },
+  { id: 'emerald', name: 'Freschezza', icon: 'eco', cssFilter: 'contrast(1.15) saturate(1.3) hue-rotate(90deg)' },
 ];
 
 export interface MusicTrack {
   id: string;
   title: string;
   artist: string;
-  icon: string;
-  url: string;
+  coverUrl: string;
+  audioUrl: string;
 }
 
-export const MUSIC_TRACKS: MusicTrack[] = [
-  { id: 'none', title: 'Nessuna Musica', artist: 'Silenzio', icon: 'music_off', url: '' },
-  { id: 'brindisi', title: 'Festa al Bancone 🍻', artist: 'Pub Vibe', icon: 'sports_bar', url: '/sounds/brindisi.mp3' },
-  { id: 'rock', title: 'Rock in Pub 🎸', artist: 'Live Band', icon: 'music_note', url: '/sounds/stappo.mp3' },
-  { id: 'cheers', title: 'Cin Cin Vibes 🥂', artist: 'Beerdex Beats', icon: 'celebration', url: '/sounds/brindisi.mp4' },
+export const POPULAR_MUSIC_TRACKS: MusicTrack[] = [
+  {
+    id: 'track_1',
+    title: 'Highway to Hell 🎸',
+    artist: 'AC/DC (Pub Rock Hit)',
+    coverUrl: 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=150&auto=format&fit=crop&q=80',
+    audioUrl: 'https://cdn.pixabay.com/download/audio/2022/03/15/audio_c8c8a71b1b.mp3?filename=rock-classic-110241.mp3',
+  },
+  {
+    id: 'track_2',
+    title: 'Festa al Bancone 🍻',
+    artist: 'Oktoberfest Party Vibe',
+    coverUrl: 'https://images.unsplash.com/photo-1538488881523-2390740a6b7e?w=150&auto=format&fit=crop&q=80',
+    audioUrl: 'https://cdn.pixabay.com/download/audio/2022/01/18/audio_d0a13f69d2.mp3?filename=happy-folk-accordion-15967.mp3',
+  },
+  {
+    id: 'track_3',
+    title: 'Summer Chill Sax 🎷',
+    artist: 'Lounge Sunset Vibes',
+    coverUrl: 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=150&auto=format&fit=crop&q=80',
+    audioUrl: 'https://cdn.pixabay.com/download/audio/2022/05/27/audio_1808fbf07a.mp3?filename=jazz-lounge-112194.mp3',
+  },
+  {
+    id: 'track_4',
+    title: 'Deep Night Club 🎧',
+    artist: 'Electronic House Beat',
+    coverUrl: 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=150&auto=format&fit=crop&q=80',
+    audioUrl: 'https://cdn.pixabay.com/download/audio/2022/10/14/audio_9939fd9985.mp3?filename=deep-house-124996.mp3',
+  },
 ];
 
 interface StoryEditorModalProps {
@@ -45,6 +69,7 @@ interface StoryEditorModalProps {
     textStyle: string;
     musicTrackId: string;
     musicTitle: string;
+    musicAudioUrl: string;
   }) => void;
 }
 
@@ -53,45 +78,162 @@ export const StoryEditorModal: React.FC<StoryEditorModalProps> = ({
   onClose,
   onPublishStory,
 }) => {
-  const [mediaUrl, setMediaUrl] = useState<string | null>(null);
+  // Media State
+  const [capturedMediaUrl, setCapturedMediaUrl] = useState<string | null>(null);
   const [isVideo, setIsVideo] = useState<boolean>(false);
+  const [facingMode, setFacingMode] = useState<'user' | 'environment'>('user');
+  const [isCameraActive, setIsCameraActive] = useState<boolean>(false);
+  const [isRecordingVideo, setIsRecordingVideo] = useState<boolean>(false);
+  const [recordingSeconds, setRecordingSeconds] = useState<number>(0);
+
+  // Instagram Story Tools State
   const [selectedFilter, setSelectedFilter] = useState<string>('normal');
+  const [showFiltersPicker, setShowFiltersPicker] = useState<boolean>(false);
+
   const [overlayText, setOverlayText] = useState<string>('');
+  const [showTextInput, setShowTextInput] = useState<boolean>(false);
   const [textColor, setTextColor] = useState<string>('#FFFFFF');
   const [textStyle, setTextStyle] = useState<'badge' | 'plain' | 'neon'>('badge');
-  const [selectedMusic, setSelectedMusic] = useState<string>('none');
-  const [activeTab, setActiveTab] = useState<'filter' | 'text' | 'music'>('filter');
 
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [selectedMusic, setSelectedMusic] = useState<MusicTrack | null>(null);
+  const [showMusicPicker, setShowMusicPicker] = useState<boolean>(false);
+  const [customSearchQuery, setCustomSearchQuery] = useState<string>('');
+  const [customAudioUrl, setCustomAudioUrl] = useState<string>('');
+
+  // Refs
+  const videoRef = useRef<HTMLVideoElement | null>(null);
+  const mediaStreamRef = useRef<MediaStream | null>(null);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const recordedChunksRef = useRef<Blob[]>([]);
+  const recordTimerRef = useRef<any>(null);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
   const audioPreviewRef = useRef<HTMLAudioElement | null>(null);
 
+  // Initialize Live WebRTC Camera Stream
   useEffect(() => {
-    if (!isOpen) {
-      setMediaUrl(null);
-      setIsVideo(false);
-      setSelectedFilter('normal');
-      setOverlayText('');
-      setSelectedMusic('none');
+    if (isOpen && !capturedMediaUrl) {
+      startCamera();
+    } else {
+      stopCamera();
+    }
+    return () => {
+      stopCamera();
       if (audioPreviewRef.current) {
         audioPreviewRef.current.pause();
       }
-    }
-  }, [isOpen]);
+    };
+  }, [isOpen, facingMode, capturedMediaUrl]);
 
-  // Handle Music Audio Preview
-  const handleSelectMusic = (trackId: string) => {
-    setSelectedMusic(trackId);
-    const track = MUSIC_TRACKS.find((t) => t.id === trackId);
-    if (audioPreviewRef.current) {
-      audioPreviewRef.current.pause();
-    }
-    if (track && track.url) {
-      audioPreviewRef.current = new Audio(track.url);
-      audioPreviewRef.current.volume = 0.7;
-      audioPreviewRef.current.play().catch(() => {});
+  const startCamera = async () => {
+    stopCamera();
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode, width: { ideal: 1080 }, height: { ideal: 1920 } },
+        audio: true,
+      });
+      mediaStreamRef.current = stream;
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
+        videoRef.current.play().catch(() => {});
+      }
+      setIsCameraActive(true);
+    } catch (e) {
+      console.warn("Camera fallback to file upload:", e);
+      setIsCameraActive(false);
     }
   };
 
+  const stopCamera = () => {
+    if (mediaStreamRef.current) {
+      mediaStreamRef.current.getTracks().forEach((t) => t.stop());
+      mediaStreamRef.current = null;
+    }
+    setIsCameraActive(false);
+  };
+
+  // Flip Camera Front/Back
+  const toggleCameraFacing = () => {
+    setFacingMode((prev) => (prev === 'user' ? 'environment' : 'user'));
+  };
+
+  // Capture Live Photo Snapshot
+  const captureLivePhoto = () => {
+    playPopSound();
+    if (!videoRef.current) return;
+    const v = videoRef.current;
+    const canvas = document.createElement('canvas');
+    canvas.width = v.videoWidth || 720;
+    canvas.height = v.videoHeight || 1280;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    if (facingMode === 'user') {
+      ctx.translate(canvas.width, 0);
+      ctx.scale(-1, 1);
+    }
+    ctx.drawImage(v, 0, 0, canvas.width, canvas.height);
+    const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
+
+    stopCamera();
+    setCapturedMediaUrl(dataUrl);
+    setIsVideo(false);
+  };
+
+  // Start Live Video Recording
+  const startVideoRecording = () => {
+    if (!mediaStreamRef.current) return;
+    recordedChunksRef.current = [];
+    try {
+      const recorder = new MediaRecorder(mediaStreamRef.current, {
+        mimeType: MediaRecorder.isTypeSupported('video/webm;codecs=vp9')
+          ? 'video/webm;codecs=vp9'
+          : MediaRecorder.isTypeSupported('video/mp4')
+          ? 'video/mp4'
+          : 'video/webm',
+      });
+
+      recorder.ondataavailable = (e) => {
+        if (e.data.size > 0) {
+          recordedChunksRef.current.push(e.data);
+        }
+      };
+
+      recorder.onstop = () => {
+        const blob = new Blob(recordedChunksRef.current, { type: 'video/mp4' });
+        const videoUrl = URL.createObjectURL(blob);
+        stopCamera();
+        setCapturedMediaUrl(videoUrl);
+        setIsVideo(true);
+      };
+
+      recorder.start(100);
+      mediaRecorderRef.current = recorder;
+      setIsRecordingVideo(true);
+      setRecordingSeconds(0);
+
+      recordTimerRef.current = setInterval(() => {
+        setRecordingSeconds((prev) => {
+          if (prev >= 15) {
+            stopVideoRecording();
+            return 15;
+          }
+          return prev + 1;
+        });
+      }, 1000);
+    } catch (e) {
+      console.error("Recording error:", e);
+    }
+  };
+
+  const stopVideoRecording = () => {
+    if (mediaRecorderRef.current && isRecordingVideo) {
+      mediaRecorderRef.current.stop();
+      setIsRecordingVideo(false);
+      if (recordTimerRef.current) clearInterval(recordTimerRef.current);
+    }
+  };
+
+  // Handle Gallery File Select
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -102,31 +244,59 @@ export const StoryEditorModal: React.FC<StoryEditorModalProps> = ({
     const reader = new FileReader();
     reader.onload = (ev) => {
       if (ev.target?.result) {
-        setMediaUrl(ev.target.result as string);
+        stopCamera();
+        setCapturedMediaUrl(ev.target.result as string);
         playPopSound();
       }
     };
     reader.readAsDataURL(file);
   };
 
-  const currentFilterCss = INSTA_FILTERS.find((f) => f.id === selectedFilter)?.cssFilter || 'none';
+  // Preview Music Audio Track
+  const handleSelectMusic = (track: MusicTrack) => {
+    setSelectedMusic(track);
+    setShowMusicPicker(false);
 
-  const handlePublish = () => {
-    if (!mediaUrl) return;
     if (audioPreviewRef.current) {
       audioPreviewRef.current.pause();
     }
-    const musicTrack = MUSIC_TRACKS.find((t) => t.id === selectedMusic);
+    if (track && track.audioUrl) {
+      audioPreviewRef.current = new Audio(track.audioUrl);
+      audioPreviewRef.current.volume = 0.8;
+      audioPreviewRef.current.play().catch(() => {});
+    }
+  };
+
+  const handleCustomAudioUrlAdd = () => {
+    if (!customAudioUrl.trim()) return;
+    const newTrack: MusicTrack = {
+      id: `custom_${Date.now()}`,
+      title: customSearchQuery.trim() || 'Traccia SoundCloud / Audio 🎵',
+      artist: 'Custom Soundtrack',
+      coverUrl: 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=150&auto=format&fit=crop&q=80',
+      audioUrl: customAudioUrl.trim(),
+    };
+    handleSelectMusic(newTrack);
+  };
+
+  const currentFilterCss = INSTA_FILTERS.find((f) => f.id === selectedFilter)?.cssFilter || 'none';
+
+  const handlePublish = () => {
+    if (!capturedMediaUrl) return;
+    if (audioPreviewRef.current) {
+      audioPreviewRef.current.pause();
+    }
     playClinkSound();
     onPublishStory({
-      mediaUrl,
+      mediaUrl: capturedMediaUrl,
       isVideo,
       filterId: selectedFilter,
       overlayText: overlayText.trim(),
       textColor,
       textStyle,
-      musicTrackId: selectedMusic,
-      musicTitle: musicTrack && musicTrack.id !== 'none' ? musicTrack.title : '',
+      musicTrackId: selectedMusic ? selectedMusic.id : '',
+      musicTitle: selectedMusic ? selectedMusic.title : '',
+      musicAudioUrl: selectedMusic ? selectedMusic.audioUrl : '',
     });
   };
 
@@ -138,160 +308,206 @@ export const StoryEditorModal: React.FC<StoryEditorModalProps> = ({
         position: 'fixed',
         top: 0,
         left: 0,
-        right: 0,
-        bottom: 0,
-        backgroundColor: 'rgba(15, 23, 42, 0.96)',
-        backdropFilter: 'blur(16px)',
-        zIndex: 9999,
+        width: '100vw',
+        height: '100vh',
+        backgroundColor: '#000000',
+        zIndex: 999999, // Hides bottom navigation bar and full UI
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
         justifyContent: 'center',
-        padding: '16px',
-        animation: 'fadeIn 0.2s ease-out',
+        overflow: 'hidden',
+        boxSizing: 'border-box',
+        touchAction: 'none',
       }}
     >
-      {/* Header Bar */}
+      {/* 1. TOP INSTAGRAM OVERLAY TOOLBAR */}
       <div
         style={{
-          width: '100%',
-          maxWidth: '480px',
+          position: 'absolute',
+          top: 'env(safe-area-inset-top, 16px)',
+          left: 0,
+          right: 0,
+          padding: '12px 18px',
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center',
-          marginBottom: '12px',
+          zIndex: 100,
+          background: 'linear-gradient(180deg, rgba(0,0,0,0.75) 0%, rgba(0,0,0,0) 100%)',
         }}
       >
         <button
           onClick={() => {
+            stopCamera();
             if (audioPreviewRef.current) audioPreviewRef.current.pause();
             onClose();
           }}
           style={{
-            background: 'rgba(255, 255, 255, 0.15)',
-            border: 'none',
+            background: 'rgba(0, 0, 0, 0.45)',
+            border: '1px solid rgba(255, 255, 255, 0.25)',
             color: '#FFFFFF',
             borderRadius: '50%',
-            width: '40px',
-            height: '40px',
+            width: '42px',
+            height: '42px',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
             cursor: 'pointer',
+            backdropFilter: 'blur(8px)',
           }}
         >
-          <span className="material-symbols-outlined">close</span>
+          <span className="material-symbols-outlined" style={{ fontSize: '24px' }}>close</span>
         </button>
 
-        <div style={{ color: '#FFFFFF', fontWeight: 900, fontSize: '16px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-          <span className="material-symbols-outlined" style={{ color: '#F59E0B' }}>auto_awesome</span>
-          Crea Storia Pub
-        </div>
-
-        {mediaUrl ? (
+        {/* Studio Action Tools Bar (Aa, Filter, Music, Flip) */}
+        <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+          {/* Text Overlay Tool (Aa) */}
           <button
-            onClick={handlePublish}
+            onClick={() => setShowTextInput(!showTextInput)}
             style={{
-              background: 'linear-gradient(135deg, #10B981 0%, #059669 100%)',
-              border: 'none',
+              background: showTextInput ? '#F59E0B' : 'rgba(0, 0, 0, 0.45)',
+              border: '1px solid rgba(255, 255, 255, 0.25)',
               color: '#FFFFFF',
-              padding: '8px 16px',
-              borderRadius: '20px',
-              fontSize: '13px',
-              fontWeight: 800,
-              cursor: 'pointer',
-              boxShadow: '0 4px 14px rgba(16, 185, 129, 0.4)',
-              display: 'inline-flex',
+              borderRadius: '50%',
+              width: '42px',
+              height: '42px',
+              display: 'flex',
               alignItems: 'center',
-              gap: '6px',
+              justifyContent: 'center',
+              cursor: 'pointer',
+              backdropFilter: 'blur(8px)',
+              fontWeight: 900,
+              fontSize: '16px',
             }}
           >
-            <span>Pubblica</span>
-            <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>send</span>
+            Aa
           </button>
-        ) : (
-          <div style={{ width: '40px' }} />
-        )}
+
+          {/* Instagram Filters Tool (✨) */}
+          <button
+            onClick={() => setShowFiltersPicker(!showFiltersPicker)}
+            style={{
+              background: showFiltersPicker ? '#F59E0B' : 'rgba(0, 0, 0, 0.45)',
+              border: '1px solid rgba(255, 255, 255, 0.25)',
+              color: '#FFFFFF',
+              borderRadius: '50%',
+              width: '42px',
+              height: '42px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              cursor: 'pointer',
+              backdropFilter: 'blur(8px)',
+            }}
+          >
+            <span className="material-symbols-outlined" style={{ fontSize: '22px' }}>auto_awesome</span>
+          </button>
+
+          {/* SoundCloud & Music Track Finder (🎵) */}
+          <button
+            onClick={() => setShowMusicPicker(!showMusicPicker)}
+            style={{
+              background: selectedMusic ? '#FDE047' : 'rgba(0, 0, 0, 0.45)',
+              border: '1px solid rgba(255, 255, 255, 0.25)',
+              color: selectedMusic ? '#0F172A' : '#FFFFFF',
+              borderRadius: '50%',
+              width: '42px',
+              height: '42px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              cursor: 'pointer',
+              backdropFilter: 'blur(8px)',
+            }}
+          >
+            <span className="material-symbols-outlined" style={{ fontSize: '22px' }}>music_note</span>
+          </button>
+
+          {/* Flip Camera Facing (Front/Back) */}
+          {!capturedMediaUrl && isCameraActive && (
+            <button
+              onClick={toggleCameraFacing}
+              style={{
+                background: 'rgba(0, 0, 0, 0.45)',
+                border: '1px solid rgba(255, 255, 255, 0.25)',
+                color: '#FFFFFF',
+                borderRadius: '50%',
+                width: '42px',
+                height: '42px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                cursor: 'pointer',
+                backdropFilter: 'blur(8px)',
+              }}
+            >
+              <span className="material-symbols-outlined" style={{ fontSize: '22px' }}>flip_camera_ios</span>
+            </button>
+          )}
+
+          {/* Publish Story Button */}
+          {capturedMediaUrl && (
+            <button
+              onClick={handlePublish}
+              style={{
+                background: 'linear-gradient(135deg, #10B981 0%, #059669 100%)',
+                border: 'none',
+                color: '#FFFFFF',
+                padding: '10px 18px',
+                borderRadius: '24px',
+                fontSize: '14px',
+                fontWeight: 900,
+                cursor: 'pointer',
+                boxShadow: '0 4px 16px rgba(16, 185, 129, 0.5)',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px',
+              }}
+            >
+              <span>Pubblica 🍻</span>
+            </button>
+          )}
+        </div>
       </div>
 
-      {/* Main Canvas / Media Picker Container */}
+      {/* 2. MAIN VIEWFINDER & MEDIA CANVAS */}
       <div
         style={{
-          width: '100%',
-          maxWidth: '480px',
-          height: '58vh',
-          borderRadius: '24px',
-          overflow: 'hidden',
-          background: '#020617',
-          border: '1px solid rgba(255, 255, 255, 0.15)',
-          boxShadow: '0 12px 32px rgba(0, 0, 0, 0.5)',
+          width: '100vw',
+          height: '100vh',
           position: 'relative',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
+          background: '#000000',
         }}
       >
-        {!mediaUrl ? (
-          <div style={{ textAlign: 'center', padding: '24px' }}>
-            <div
-              onClick={() => fileInputRef.current?.click()}
-              style={{
-                width: '84px',
-                height: '84px',
-                borderRadius: '50%',
-                background: 'linear-gradient(135deg, #F59E0B 0%, #D97706 100%)',
-                color: '#FFFFFF',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                margin: '0 auto 16px auto',
-                cursor: 'pointer',
-                boxShadow: '0 8px 24px rgba(245, 158, 11, 0.4)',
-              }}
-            >
-              <span className="material-symbols-outlined" style={{ fontSize: '40px' }}>photo_camera_front</span>
-            </div>
-            <h3 style={{ color: '#FFFFFF', margin: '0 0 8px 0', fontSize: '18px', fontWeight: 800 }}>Scatta Foto o Carica Video</h3>
-            <p style={{ color: '#94A3B8', margin: '0 0 20px 0', fontSize: '13px', lineHeight: '1.5' }}>
-              Condividi momenti al bancone con filtri, testo e musica in tempo reale per 24 ore nel Pub! 🍺
-            </p>
+        {/* LIVE CAMERA VIEW */}
+        {!capturedMediaUrl && (
+          <video
+            ref={videoRef}
+            autoPlay
+            playsInline
+            muted
+            style={{
+              width: '100%',
+              height: '100%',
+              objectFit: 'cover',
+              transform: facingMode === 'user' ? 'scaleX(-1)' : 'none',
+              filter: currentFilterCss,
+              transition: 'filter 0.3s ease',
+            }}
+          />
+        )}
 
-            <button
-              onClick={() => fileInputRef.current?.click()}
-              style={{
-                background: '#FFFFFF',
-                color: '#0F172A',
-                border: 'none',
-                padding: '12px 24px',
-                borderRadius: '24px',
-                fontSize: '14px',
-                fontWeight: 800,
-                cursor: 'pointer',
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '8px',
-                boxShadow: '0 4px 12px rgba(255,255,255,0.2)',
-              }}
-            >
-              <span className="material-symbols-outlined">add_a_photo</span>
-              Scegli Foto o Video
-            </button>
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept="image/*,video/*"
-              onChange={handleFileSelect}
-              style={{ display: 'none' }}
-            />
-          </div>
-        ) : (
+        {/* CAPTURED PHOTO / VIDEO PREVIEW */}
+        {capturedMediaUrl && (
           <>
             {isVideo ? (
               <video
-                src={mediaUrl}
+                src={capturedMediaUrl}
                 autoPlay
                 loop
-                muted
                 playsInline
                 style={{
                   width: '100%',
@@ -303,7 +519,7 @@ export const StoryEditorModal: React.FC<StoryEditorModalProps> = ({
               />
             ) : (
               <img
-                src={mediaUrl}
+                src={capturedMediaUrl}
                 alt="Anteprima storia"
                 style={{
                   width: '100%',
@@ -314,309 +530,485 @@ export const StoryEditorModal: React.FC<StoryEditorModalProps> = ({
                 }}
               />
             )}
+          </>
+        )}
 
-            {/* Overlay Text Layer */}
-            {overlayText && (
-              <div
-                style={{
-                  position: 'absolute',
-                  top: '40%',
-                  left: '50%',
-                  transform: 'translate(-50%, -50%)',
-                  maxWidth: '85%',
-                  textAlign: 'center',
-                  padding: textStyle === 'badge' ? '8px 16px' : '4px 8px',
-                  borderRadius: textStyle === 'badge' ? '14px' : '0',
-                  background: textStyle === 'badge' ? 'rgba(0, 0, 0, 0.65)' : 'transparent',
-                  backdropFilter: textStyle === 'badge' ? 'blur(8px)' : 'none',
-                  color: textColor,
-                  fontSize: '22px',
-                  fontWeight: 900,
-                  textShadow: textStyle === 'neon' ? `0 0 12px ${textColor}, 0 0 20px ${textColor}` : '0 2px 8px rgba(0,0,0,0.8)',
-                  zIndex: 20,
-                  wordBreak: 'break-word',
-                  fontFamily: 'inherit',
-                }}
-              >
-                {overlayText}
-              </div>
-            )}
+        {/* FLOATING TEXT OVERLAY */}
+        {overlayText && (
+          <div
+            style={{
+              position: 'absolute',
+              top: '45%',
+              left: '50%',
+              transform: 'translate(-50%, -50%)',
+              maxWidth: '88%',
+              textAlign: 'center',
+              padding: textStyle === 'badge' ? '10px 20px' : '6px 12px',
+              borderRadius: textStyle === 'badge' ? '16px' : '0',
+              background: textStyle === 'badge' ? 'rgba(0, 0, 0, 0.75)' : 'transparent',
+              backdropFilter: textStyle === 'badge' ? 'blur(10px)' : 'none',
+              color: textColor,
+              fontSize: '26px',
+              fontWeight: 900,
+              textShadow: textStyle === 'neon' ? `0 0 16px ${textColor}, 0 0 28px ${textColor}` : '0 2px 10px rgba(0,0,0,0.9)',
+              zIndex: 80,
+              wordBreak: 'break-word',
+            }}
+          >
+            {overlayText}
+          </div>
+        )}
 
-            {/* Selected Music Badge */}
-            {selectedMusic !== 'none' && (
-              <div
-                style={{
-                  position: 'absolute',
-                  bottom: '16px',
-                  left: '16px',
-                  background: 'rgba(0, 0, 0, 0.65)',
-                  backdropFilter: 'blur(10px)',
-                  color: '#FDE047',
-                  padding: '6px 14px',
-                  borderRadius: '20px',
-                  fontSize: '12px',
-                  fontWeight: 800,
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '6px',
-                  border: '1px solid rgba(253, 224, 71, 0.4)',
-                  zIndex: 20,
-                }}
-              >
-                <span className="material-symbols-outlined" style={{ fontSize: '16px', animation: 'spin 4s linear infinite' }}>music_note</span>
-                <span>{MUSIC_TRACKS.find((m) => m.id === selectedMusic)?.title}</span>
-              </div>
-            )}
-
-            {/* Retake Media Button */}
+        {/* FLOATING MUSIC BADGE OVERLAY */}
+        {selectedMusic && (
+          <div
+            style={{
+              position: 'absolute',
+              top: '80px',
+              left: '20px',
+              background: 'rgba(0, 0, 0, 0.7)',
+              backdropFilter: 'blur(12px)',
+              color: '#FDE047',
+              padding: '6px 16px',
+              borderRadius: '20px',
+              fontSize: '13px',
+              fontWeight: 800,
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              border: '1px solid rgba(253, 224, 71, 0.4)',
+              boxShadow: '0 4px 16px rgba(0,0,0,0.4)',
+              zIndex: 80,
+            }}
+          >
+            <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>music_note</span>
+            <span>{selectedMusic.title} • {selectedMusic.artist}</span>
             <button
               onClick={() => {
-                setMediaUrl(null);
-                if (fileInputRef.current) fileInputRef.current.value = '';
+                setSelectedMusic(null);
+                if (audioPreviewRef.current) audioPreviewRef.current.pause();
               }}
-              title="Cambia Foto/Video"
-              style={{
-                position: 'absolute',
-                top: '12px',
-                right: '12px',
-                background: 'rgba(0, 0, 0, 0.6)',
-                border: '1px solid rgba(255,255,255,0.3)',
-                color: '#FFFFFF',
-                width: '36px',
-                height: '36px',
-                borderRadius: '50%',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                cursor: 'pointer',
-                zIndex: 25,
-              }}
+              style={{ background: 'transparent', border: 'none', color: '#FFF', cursor: 'pointer', display: 'flex' }}
             >
-              <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>refresh</span>
+              <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>close</span>
             </button>
-          </>
+          </div>
+        )}
+
+        {/* RETAKE / CLEAR MEDIA BUTTON */}
+        {capturedMediaUrl && (
+          <button
+            onClick={() => {
+              setCapturedMediaUrl(null);
+              setIsVideo(false);
+              startCamera();
+            }}
+            style={{
+              position: 'absolute',
+              top: '80px',
+              right: '20px',
+              background: 'rgba(0, 0, 0, 0.65)',
+              border: '1px solid rgba(255,255,255,0.3)',
+              color: '#FFFFFF',
+              padding: '8px 14px',
+              borderRadius: '20px',
+              fontSize: '12px',
+              fontWeight: 800,
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              cursor: 'pointer',
+              zIndex: 80,
+            }}
+          >
+            <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>refresh</span>
+            <span>Riscatta</span>
+          </button>
         )}
       </div>
 
-      {/* Editing Toolbar & Tools (Only visible after media is loaded) */}
-      {mediaUrl && (
-        <div style={{ width: '100%', maxWidth: '480px', marginTop: '14px' }}>
-          {/* Studio Navigation Tabs */}
-          <div style={{ display: 'flex', justifyContent: 'center', gap: '8px', marginBottom: '12px' }}>
-            <button
-              onClick={() => setActiveTab('filter')}
-              style={{
-                background: activeTab === 'filter' ? '#F59E0B' : 'rgba(255, 255, 255, 0.1)',
-                color: '#FFFFFF',
-                border: 'none',
-                padding: '6px 14px',
-                borderRadius: '16px',
-                fontSize: '12px',
-                fontWeight: 800,
-                cursor: 'pointer',
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '4px',
-              }}
-            >
-              <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>auto_awesome</span>
-              Filtri ({INSTA_FILTERS.find(f => f.id === selectedFilter)?.name})
-            </button>
+      {/* 3. INSTAGRAM OVERLAY TOOLS MODALS */}
 
-            <button
-              onClick={() => setActiveTab('text')}
-              style={{
-                background: activeTab === 'text' ? '#F59E0B' : 'rgba(255, 255, 255, 0.1)',
-                color: '#FFFFFF',
-                border: 'none',
-                padding: '6px 14px',
-                borderRadius: '16px',
-                fontSize: '12px',
-                fontWeight: 800,
-                cursor: 'pointer',
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '4px',
-              }}
-            >
-              <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>title</span>
-              Testo
-            </button>
+      {/* FILTER CAROUSEL OVERLAY */}
+      {showFiltersPicker && (
+        <div
+          style={{
+            position: 'absolute',
+            bottom: '120px',
+            left: 0,
+            right: 0,
+            zIndex: 150,
+            display: 'flex',
+            gap: '12px',
+            overflowX: 'auto',
+            padding: '12px 20px',
+            touchAction: 'pan-x',
+            background: 'linear-gradient(0deg, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0) 100%)',
+          }}
+        >
+          {INSTA_FILTERS.map((f) => {
+            const isSelected = selectedFilter === f.id;
+            return (
+              <button
+                key={f.id}
+                onClick={() => setSelectedFilter(f.id)}
+                style={{
+                  flexShrink: 0,
+                  background: isSelected ? 'linear-gradient(135deg, #F59E0B, #D97706)' : 'rgba(0, 0, 0, 0.65)',
+                  border: isSelected ? '2.5px solid #FFFFFF' : '1px solid rgba(255,255,255,0.3)',
+                  color: '#FFFFFF',
+                  borderRadius: '20px',
+                  padding: '10px 18px',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  fontSize: '13px',
+                  fontWeight: isSelected ? 900 : 700,
+                  boxShadow: isSelected ? '0 4px 16px rgba(245, 158, 11, 0.5)' : 'none',
+                }}
+              >
+                <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>{f.icon}</span>
+                <span>{f.name}</span>
+              </button>
+            );
+          })}
+        </div>
+      )}
 
-            <button
-              onClick={() => setActiveTab('music')}
-              style={{
-                background: activeTab === 'music' ? '#F59E0B' : 'rgba(255, 255, 255, 0.1)',
-                color: '#FFFFFF',
-                border: 'none',
-                padding: '6px 14px',
-                borderRadius: '16px',
-                fontSize: '12px',
-                fontWeight: 800,
-                cursor: 'pointer',
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '4px',
-              }}
-            >
-              <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>music_note</span>
-              Musica
+      {/* TEXT INPUT OVERLAY */}
+      {showTextInput && (
+        <div
+          style={{
+            position: 'absolute',
+            top: '120px',
+            left: '20px',
+            right: '20px',
+            zIndex: 150,
+            background: 'rgba(15, 23, 42, 0.92)',
+            backdropFilter: 'blur(16px)',
+            borderRadius: '24px',
+            padding: '18px',
+            border: '1px solid rgba(255, 255, 255, 0.2)',
+            boxShadow: '0 12px 32px rgba(0,0,0,0.6)',
+          }}
+        >
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px', color: '#FFF', fontWeight: 800, fontSize: '14px' }}>
+            <span>Aggiungi Didascalia</span>
+            <button onClick={() => setShowTextInput(false)} style={{ background: 'transparent', border: 'none', color: '#FFF', cursor: 'pointer' }}>
+              <span className="material-symbols-outlined">close</span>
+            </button>
+          </div>
+          <input
+            type="text"
+            placeholder="Scrivi sulla storia..."
+            value={overlayText}
+            onChange={(e) => setOverlayText(e.target.value)}
+            autoFocus
+            style={{
+              width: '100%',
+              padding: '12px 16px',
+              borderRadius: '16px',
+              border: '1px solid rgba(255, 255, 255, 0.3)',
+              background: 'rgba(0, 0, 0, 0.5)',
+              color: '#FFFFFF',
+              fontSize: '16px',
+              outline: 'none',
+              boxSizing: 'border-box',
+              marginBottom: '12px',
+              fontFamily: 'inherit',
+            }}
+          />
+
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div style={{ display: 'flex', gap: '8px' }}>
+              {['#FFFFFF', '#FDE047', '#000000', '#EC4899', '#EF4444', '#10B981', '#3B82F6'].map((color) => (
+                <div
+                  key={color}
+                  onClick={() => setTextColor(color)}
+                  style={{
+                    width: '26px',
+                    height: '26px',
+                    borderRadius: '50%',
+                    background: color,
+                    border: textColor === color ? '3px solid #FFFFFF' : '1px solid rgba(255,255,255,0.4)',
+                    cursor: 'pointer',
+                  }}
+                />
+              ))}
+            </div>
+
+            <div style={{ display: 'flex', gap: '6px' }}>
+              <button
+                onClick={() => setTextStyle('badge')}
+                style={{
+                  background: textStyle === 'badge' ? '#F59E0B' : 'rgba(255,255,255,0.15)',
+                  color: '#FFF',
+                  border: 'none',
+                  padding: '6px 12px',
+                  borderRadius: '12px',
+                  fontSize: '12px',
+                  fontWeight: 800,
+                  cursor: 'pointer',
+                }}
+              >
+                Badge
+              </button>
+              <button
+                onClick={() => setTextStyle('neon')}
+                style={{
+                  background: textStyle === 'neon' ? '#EC4899' : 'rgba(255,255,255,0.15)',
+                  color: '#FFF',
+                  border: 'none',
+                  padding: '6px 12px',
+                  borderRadius: '12px',
+                  fontSize: '12px',
+                  fontWeight: 800,
+                  cursor: 'pointer',
+                }}
+              >
+                Neon
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* SOUNDCLOUD & MUSIC SEARCH MODAL */}
+      {showMusicPicker && (
+        <div
+          style={{
+            position: 'absolute',
+            bottom: 0,
+            left: 0,
+            right: 0,
+            maxHeight: '65vh',
+            zIndex: 160,
+            background: 'rgba(15, 23, 42, 0.96)',
+            backdropFilter: 'blur(20px)',
+            borderTopLeftRadius: '28px',
+            borderTopRightRadius: '28px',
+            padding: '20px',
+            borderTop: '1px solid rgba(255,255,255,0.2)',
+            overflowY: 'auto',
+            boxShadow: '0 -10px 40px rgba(0,0,0,0.8)',
+          }}
+        >
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+            <div style={{ color: '#FFFFFF', fontWeight: 900, fontSize: '18px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span className="material-symbols-outlined" style={{ color: '#FDE047' }}>music_note</span>
+              Musica & SoundCloud Vibe
+            </div>
+            <button onClick={() => setShowMusicPicker(false)} style={{ background: 'transparent', border: 'none', color: '#FFF', cursor: 'pointer' }}>
+              <span className="material-symbols-outlined" style={{ fontSize: '24px' }}>close</span>
             </button>
           </div>
 
-          {/* TAB 1: FILTERS CAROUSEL */}
-          {activeTab === 'filter' && (
-            <div
-              style={{
-                display: 'flex',
-                gap: '12px',
-                overflowX: 'auto',
-                padding: '4px 2px 8px 2px',
-                touchAction: 'pan-x',
-              }}
-            >
-              {INSTA_FILTERS.map((f) => {
-                const isSelected = selectedFilter === f.id;
-                return (
-                  <button
-                    key={f.id}
-                    onClick={() => setSelectedFilter(f.id)}
-                    style={{
-                      flexShrink: 0,
-                      background: isSelected ? 'linear-gradient(135deg, #F59E0B, #D97706)' : 'rgba(255, 255, 255, 0.1)',
-                      border: isSelected ? '2px solid #FFFFFF' : '1px solid rgba(255,255,255,0.2)',
-                      color: '#FFFFFF',
-                      borderRadius: '16px',
-                      padding: '8px 14px',
-                      cursor: 'pointer',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '6px',
-                      fontSize: '12px',
-                      fontWeight: isSelected ? 900 : 600,
-                      boxShadow: isSelected ? '0 4px 12px rgba(245, 158, 11, 0.4)' : 'none',
-                      transition: 'all 0.2s ease',
-                    }}
-                  >
-                    <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>{f.icon}</span>
-                    <span>{f.name}</span>
-                  </button>
-                );
-              })}
-            </div>
-          )}
+          {/* Popular Tracks List */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '18px' }}>
+            {POPULAR_MUSIC_TRACKS.map((track) => (
+              <div
+                key={track.id}
+                onClick={() => handleSelectMusic(track)}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '12px',
+                  padding: '10px 14px',
+                  borderRadius: '16px',
+                  background: selectedMusic?.id === track.id ? 'rgba(245, 158, 11, 0.25)' : 'rgba(255, 255, 255, 0.06)',
+                  border: selectedMusic?.id === track.id ? '1.5px solid #F59E0B' : '1px solid rgba(255, 255, 255, 0.1)',
+                  cursor: 'pointer',
+                }}
+              >
+                <img src={track.coverUrl} alt={track.title} style={{ width: '44px', height: '44px', borderRadius: '12px', objectFit: 'cover' }} />
+                <div style={{ flex: 1 }}>
+                  <div style={{ color: '#FFFFFF', fontSize: '14px', fontWeight: 800 }}>{track.title}</div>
+                  <div style={{ color: '#94A3B8', fontSize: '12px', fontWeight: 500 }}>{track.artist}</div>
+                </div>
+                <span className="material-symbols-outlined" style={{ color: '#FDE047', fontSize: '24px' }}>play_circle</span>
+              </div>
+            ))}
+          </div>
 
-          {/* TAB 2: TEXT OVERLAY TOOL */}
-          {activeTab === 'text' && (
-            <div style={{ background: 'rgba(255, 255, 255, 0.08)', borderRadius: '18px', padding: '12px', border: '1px solid rgba(255,255,255,0.15)' }}>
+          {/* Custom SoundCloud / Audio Link Input */}
+          <div style={{ borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: '14px' }}>
+            <div style={{ color: '#94A3B8', fontSize: '12px', fontWeight: 700, marginBottom: '8px', textTransform: 'uppercase' }}>
+              🔗 Inserisci Link Audio SoundCloud / MP3 Personalizzato
+            </div>
+            <input
+              type="text"
+              placeholder="Nome brano / artista..."
+              value={customSearchQuery}
+              onChange={(e) => setCustomSearchQuery(e.target.value)}
+              style={{
+                width: '100%',
+                padding: '10px 14px',
+                borderRadius: '12px',
+                border: '1px solid rgba(255,255,255,0.2)',
+                background: 'rgba(0,0,0,0.4)',
+                color: '#FFF',
+                fontSize: '13px',
+                outline: 'none',
+                marginBottom: '8px',
+                boxSizing: 'border-box',
+              }}
+            />
+            <div style={{ display: 'flex', gap: '8px' }}>
               <input
                 type="text"
-                placeholder="Scrivi una didascalia sulla storia..."
-                value={overlayText}
-                onChange={(e) => setOverlayText(e.target.value)}
+                placeholder="https://... (URL file Audio/SoundCloud MP3)"
+                value={customAudioUrl}
+                onChange={(e) => setCustomAudioUrl(e.target.value)}
                 style={{
-                  width: '100%',
+                  flex: 1,
                   padding: '10px 14px',
                   borderRadius: '12px',
-                  border: '1px solid rgba(255, 255, 255, 0.2)',
-                  background: 'rgba(0, 0, 0, 0.4)',
-                  color: '#FFFFFF',
-                  fontSize: '14px',
+                  border: '1px solid rgba(255,255,255,0.2)',
+                  background: 'rgba(0,0,0,0.4)',
+                  color: '#FFF',
+                  fontSize: '13px',
                   outline: 'none',
                   boxSizing: 'border-box',
-                  marginBottom: '10px',
-                  fontFamily: 'inherit',
                 }}
               />
+              <button
+                onClick={handleCustomAudioUrlAdd}
+                style={{
+                  background: 'linear-gradient(135deg, #F59E0B 0%, #D97706 100%)',
+                  border: 'none',
+                  color: '#FFF',
+                  padding: '0 16px',
+                  borderRadius: '12px',
+                  fontWeight: 800,
+                  fontSize: '13px',
+                  cursor: 'pointer',
+                }}
+              >
+                Aggiungi
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
-              {/* Color & Style Palette */}
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                  {['#FFFFFF', '#FDE047', '#000000', '#EC4899', '#EF4444', '#10B981', '#3B82F6'].map((color) => (
-                    <div
-                      key={color}
-                      onClick={() => setTextColor(color)}
-                      style={{
-                        width: '24px',
-                        height: '24px',
-                        borderRadius: '50%',
-                        background: color,
-                        border: textColor === color ? '2.5px solid #FFFFFF' : '1.5px solid rgba(255,255,255,0.3)',
-                        cursor: 'pointer',
-                        boxShadow: textColor === color ? '0 0 8px rgba(255,255,255,0.8)' : 'none',
-                      }}
-                    />
-                  ))}
-                </div>
+      {/* 4. BOTTOM CAPTURE & GALLERY TOOLBAR */}
+      {!capturedMediaUrl && (
+        <div
+          style={{
+            position: 'absolute',
+            bottom: 'env(safe-area-inset-bottom, 24px)',
+            left: 0,
+            right: 0,
+            padding: '20px',
+            display: 'flex',
+            justifyContent: 'space-around',
+            alignItems: 'center',
+            zIndex: 100,
+            background: 'linear-gradient(0deg, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0) 100%)',
+          }}
+        >
+          {/* Gallery Picker Thumbnail */}
+          <button
+            onClick={() => fileInputRef.current?.click()}
+            style={{
+              background: 'rgba(255, 255, 255, 0.15)',
+              border: '2px solid rgba(255, 255, 255, 0.4)',
+              color: '#FFFFFF',
+              width: '48px',
+              height: '48px',
+              borderRadius: '16px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              cursor: 'pointer',
+              backdropFilter: 'blur(10px)',
+            }}
+            title="Galleria Foto/Video"
+          >
+            <span className="material-symbols-outlined" style={{ fontSize: '26px' }}>photo_library</span>
+          </button>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*,video/*"
+            onChange={handleFileSelect}
+            style={{ display: 'none' }}
+          />
 
-                <div style={{ display: 'flex', gap: '6px' }}>
-                  <button
-                    onClick={() => setTextStyle('badge')}
-                    style={{
-                      background: textStyle === 'badge' ? '#F59E0B' : 'rgba(255,255,255,0.15)',
-                      color: '#FFF',
-                      border: 'none',
-                      padding: '4px 10px',
-                      borderRadius: '10px',
-                      fontSize: '11px',
-                      fontWeight: 800,
-                      cursor: 'pointer',
-                    }}
-                  >
-                    Sfondo
-                  </button>
-                  <button
-                    onClick={() => setTextStyle('neon')}
-                    style={{
-                      background: textStyle === 'neon' ? '#EC4899' : 'rgba(255,255,255,0.15)',
-                      color: '#FFF',
-                      border: 'none',
-                      padding: '4px 10px',
-                      borderRadius: '10px',
-                      fontSize: '11px',
-                      fontWeight: 800,
-                      cursor: 'pointer',
-                    }}
-                  >
-                    Neon
-                  </button>
-                </div>
+          {/* INSTAGRAM LIVE CAPTURE BUTTON (Tap Photo / Hold Video) */}
+          <div style={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <button
+              onClick={() => {
+                if (!isRecordingVideo) {
+                  captureLivePhoto();
+                } else {
+                  stopVideoRecording();
+                }
+              }}
+              onMouseDown={() => {
+                // Hold to record video
+                const timer = setTimeout(() => {
+                  startVideoRecording();
+                }, 400);
+                (window as any)._holdTimer = timer;
+              }}
+              onMouseUp={() => {
+                if ((window as any)._holdTimer) clearTimeout((window as any)._holdTimer);
+                if (isRecordingVideo) {
+                  stopVideoRecording();
+                }
+              }}
+              onTouchStart={() => {
+                const timer = setTimeout(() => {
+                  startVideoRecording();
+                }, 400);
+                (window as any)._holdTimer = timer;
+              }}
+              onTouchEnd={() => {
+                if ((window as any)._holdTimer) clearTimeout((window as any)._holdTimer);
+                if (isRecordingVideo) {
+                  stopVideoRecording();
+                }
+              }}
+              style={{
+                width: '84px',
+                height: '84px',
+                borderRadius: '50%',
+                background: isRecordingVideo
+                  ? 'radial-gradient(circle, #EF4444 60%, #DC2626 100%)'
+                  : 'radial-gradient(circle, #FFFFFF 65%, #E2E8F0 100%)',
+                border: '6px solid rgba(255, 255, 255, 0.45)',
+                boxShadow: isRecordingVideo
+                  ? '0 0 24px rgba(239, 68, 68, 0.8)'
+                  : '0 8px 24px rgba(255, 255, 255, 0.3)',
+                cursor: 'pointer',
+                transition: 'all 0.2s ease',
+              }}
+            />
+            {isRecordingVideo && (
+              <div
+                style={{
+                  position: 'absolute',
+                  top: '-32px',
+                  background: '#EF4444',
+                  color: '#FFF',
+                  padding: '2px 10px',
+                  borderRadius: '12px',
+                  fontSize: '12px',
+                  fontWeight: 900,
+                  animation: 'pulse 1s infinite',
+                }}
+              >
+                REC {recordingSeconds}s
               </div>
-            </div>
-          )}
+            )}
+          </div>
 
-          {/* TAB 3: MUSIC TRACK PICKER */}
-          {activeTab === 'music' && (
-            <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', padding: '4px 2px 8px 2px', touchAction: 'pan-x' }}>
-              {MUSIC_TRACKS.map((t) => {
-                const isSelected = selectedMusic === t.id;
-                return (
-                  <button
-                    key={t.id}
-                    onClick={() => handleSelectMusic(t.id)}
-                    style={{
-                      flexShrink: 0,
-                      background: isSelected ? 'linear-gradient(135deg, #FDE047 0%, #F59E0B 100%)' : 'rgba(255, 255, 255, 0.1)',
-                      border: isSelected ? '2px solid #FFFFFF' : '1px solid rgba(255,255,255,0.2)',
-                      color: isSelected ? '#0F172A' : '#FFFFFF',
-                      borderRadius: '16px',
-                      padding: '8px 14px',
-                      cursor: 'pointer',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '6px',
-                      fontSize: '12px',
-                      fontWeight: isSelected ? 900 : 600,
-                      boxShadow: isSelected ? '0 4px 14px rgba(253, 224, 71, 0.4)' : 'none',
-                    }}
-                  >
-                    <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>{t.icon}</span>
-                    <span>{t.title}</span>
-                  </button>
-                );
-              })}
-            </div>
-          )}
+          {/* Camera Info Indicator */}
+          <div style={{ width: '48px', height: '48px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'rgba(255,255,255,0.6)', fontSize: '11px', fontWeight: 800, textAlign: 'center' }}>
+            LIVE 📸
+          </div>
         </div>
       )}
     </div>

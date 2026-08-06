@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { StarRating } from './StarRating';
 import { getBasePoints, formatBeerTitle } from '../beers';
 
@@ -19,6 +19,7 @@ export interface StoryPost {
   textStyle?: string;
   musicTrackId?: string;
   musicTitle?: string;
+  musicAudioUrl?: string;
   likes?: Record<string, boolean>;
   rating?: number;
 }
@@ -52,10 +53,38 @@ export const StoryViewerModal: React.FC<StoryViewerModalProps> = ({
   const [progress, setProgress] = useState<number>(0);
   const [isPaused, setIsPaused] = useState<boolean>(false);
 
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+
   useEffect(() => {
     setCurrentIndex(initialIndex);
     setProgress(0);
   }, [initialIndex, isOpen]);
+
+  // Handle Background Music Playback
+  useEffect(() => {
+    if (!isOpen || stories.length === 0) {
+      if (audioRef.current) audioRef.current.pause();
+      return;
+    }
+
+    const story = stories[currentIndex];
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current = null;
+    }
+
+    if (story && story.musicAudioUrl) {
+      audioRef.current = new Audio(story.musicAudioUrl);
+      audioRef.current.volume = 0.8;
+      audioRef.current.play().catch(() => {});
+    }
+
+    return () => {
+      if (audioRef.current) {
+        audioRef.current.pause();
+      }
+    };
+  }, [currentIndex, isOpen, stories]);
 
   useEffect(() => {
     if (!isOpen || stories.length === 0 || isPaused) return;
