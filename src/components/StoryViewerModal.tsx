@@ -54,6 +54,7 @@ export const StoryViewerModal: React.FC<StoryViewerModalProps> = ({
   const [progress, setProgress] = useState<number>(0);
   const [isPaused, setIsPaused] = useState<boolean>(false);
   const [isFlipping, setIsFlipping] = useState<boolean>(false);
+  const [isMuted, setIsMuted] = useState<boolean>(false);
 
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
@@ -87,20 +88,29 @@ export const StoryViewerModal: React.FC<StoryViewerModalProps> = ({
     }
 
     let audioUrl = story?.musicAudioUrl;
+    if (audioUrl && audioUrl.includes('pixabay.com')) {
+      audioUrl = ''; // Ripulisci i vecchi link Pixabay bloccati
+    }
+
     if (!audioUrl && story?.musicTrackId) {
       const foundTrack = POPULAR_MUSIC_TRACKS.find((t) => t.id === story.musicTrackId);
       if (foundTrack) audioUrl = foundTrack.audioUrl;
     }
 
+    if (!audioUrl && (story?.musicTitle || story?.musicTrackId)) {
+      audioUrl = POPULAR_MUSIC_TRACKS[0]?.audioUrl;
+    }
+
     if (story && audioUrl) {
       const audio = new Audio(audioUrl);
-      audio.volume = 1.0;
+      audio.volume = isMuted ? 0 : 1.0;
+      audio.loop = true;
       audioRef.current = audio;
 
       const playPromise = audio.play();
       if (playPromise !== undefined) {
         playPromise.catch(() => {
-          // Autoplay deferred until first user touch
+          // Autoplay deferred until user interaction
         });
       }
     }
@@ -111,10 +121,16 @@ export const StoryViewerModal: React.FC<StoryViewerModalProps> = ({
         audioRef.current = null;
       }
     };
-  }, [currentIndex, isOpen, stories]);
+  }, [currentIndex, isOpen, stories, isMuted]);
+
+  useEffect(() => {
+    if (audioRef.current) {
+      audioRef.current.volume = isMuted ? 0 : 1.0;
+    }
+  }, [isMuted]);
 
   const tryPlayAudio = () => {
-    if (audioRef.current && audioRef.current.paused) {
+    if (audioRef.current && audioRef.current.paused && !isMuted) {
       audioRef.current.play().catch(() => {});
     }
   };
@@ -384,6 +400,34 @@ export const StoryViewerModal: React.FC<StoryViewerModalProps> = ({
               </div>
 
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                {(currentStory?.musicTitle || currentStory?.musicAudioUrl || currentStory?.musicTrackId) && (
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setIsMuted(!isMuted);
+                    }}
+                    style={{
+                      background: 'rgba(0, 0, 0, 0.45)',
+                      backdropFilter: 'blur(8px)',
+                      border: '1px solid rgba(255, 255, 255, 0.2)',
+                      color: isMuted ? '#94A3B8' : '#FDE047',
+                      borderRadius: '50%',
+                      width: '34px',
+                      height: '34px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      cursor: 'pointer',
+                      WebkitTapHighlightColor: 'transparent',
+                    }}
+                    title={isMuted ? 'Attiva Audio' : 'Disattiva Audio'}
+                  >
+                    <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>
+                      {isMuted ? 'volume_off' : 'volume_up'}
+                    </span>
+                  </button>
+                )}
+
                 {currentStory && (currentStory.user || '').toLowerCase() === (currentUserNick || '').toLowerCase() && (
                   <button
                     onClick={(e) => {

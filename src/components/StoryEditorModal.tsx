@@ -30,30 +30,30 @@ export const POPULAR_MUSIC_TRACKS: MusicTrack[] = [
   {
     id: 'track_1',
     title: 'Highway to Hell 🎸',
-    artist: 'AC/DC (Pub Rock Hit)',
+    artist: 'Pub Rock Vibe',
     coverUrl: 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=150&auto=format&fit=crop&q=80',
-    audioUrl: 'https://cdn.pixabay.com/download/audio/2022/03/15/audio_c8c8a71b1b.mp3?filename=rock-classic-110241.mp3',
+    audioUrl: 'https://raw.githubusercontent.com/mdn/webaudio-examples/main/audio-basics/out-of-sight.mp3',
   },
   {
     id: 'track_2',
     title: 'Festa al Bancone 🍻',
-    artist: 'Oktoberfest Party Vibe',
+    artist: 'Oktoberfest Party',
     coverUrl: 'https://images.unsplash.com/photo-1538488881523-2390740a6b7e?w=150&auto=format&fit=crop&q=80',
-    audioUrl: 'https://cdn.pixabay.com/download/audio/2022/01/18/audio_d0a13f69d2.mp3?filename=happy-folk-accordion-15967.mp3',
+    audioUrl: 'https://raw.githubusercontent.com/rafaelreis-hotmart/Audio-Sample-files/master/sample.mp3',
   },
   {
     id: 'track_3',
     title: 'Summer Chill Sax 🎷',
     artist: 'Lounge Sunset Vibes',
     coverUrl: 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=150&auto=format&fit=crop&q=80',
-    audioUrl: 'https://cdn.pixabay.com/download/audio/2022/05/27/audio_1808fbf07a.mp3?filename=jazz-lounge-112194.mp3',
+    audioUrl: 'https://raw.githubusercontent.com/mdn/webaudio-examples/main/audio-analyser/viper.mp3',
   },
   {
     id: 'track_4',
     title: 'Deep Night Club 🎧',
     artist: 'Electronic House Beat',
     coverUrl: 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=150&auto=format&fit=crop&q=80',
-    audioUrl: 'https://cdn.pixabay.com/download/audio/2022/10/14/audio_9939fd9985.mp3?filename=deep-house-124996.mp3',
+    audioUrl: 'https://raw.githubusercontent.com/mdn/webaudio-examples/main/spatialisation/media/fight-club.mp3',
   },
 ];
 
