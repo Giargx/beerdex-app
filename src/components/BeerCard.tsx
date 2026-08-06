@@ -200,8 +200,8 @@ export const BeerCard: React.FC<BeerCardProps> = ({
                 </div>
 
                 {/* Row 2: Left = Points */}
-                <div style={{ display: 'flex', alignItems: 'center', marginTop: '2px' }}>
-                  <span style={{ fontSize: '11px', color: 'var(--text-muted)', fontWeight: 700 }}>
+                <div style={{ display: 'flex', alignItems: 'center', marginTop: '0px' }}>
+                  <span style={{ fontSize: '11px', color: 'var(--text-muted)', fontWeight: 700, lineHeight: '1.1' }}>
                     ({specificPts} pt)
                   </span>
                 </div>
