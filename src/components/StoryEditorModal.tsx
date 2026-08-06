@@ -90,6 +90,7 @@ export const StoryEditorModal: React.FC<StoryEditorModalProps> = ({
   const [selectedFilter, setSelectedFilter] = useState<string>('normal');
   const [showFiltersPicker, setShowFiltersPicker] = useState<boolean>(false);
 
+  // Direct In-Canvas Text Editing State (No popup modal)
   const [overlayText, setOverlayText] = useState<string>('');
   const [showTextInput, setShowTextInput] = useState<boolean>(false);
   const [textColor, setTextColor] = useState<string>('#FFFFFF');
@@ -108,6 +109,7 @@ export const StoryEditorModal: React.FC<StoryEditorModalProps> = ({
   const recordTimerRef = useRef<any>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const audioPreviewRef = useRef<HTMLAudioElement | null>(null);
+  const textInputRef = useRef<HTMLTextAreaElement | null>(null);
 
   // Initialize Live WebRTC Camera Stream
   useEffect(() => {
@@ -123,6 +125,13 @@ export const StoryEditorModal: React.FC<StoryEditorModalProps> = ({
       }
     };
   }, [isOpen, facingMode, capturedMediaUrl]);
+
+  // Auto focus text input when text tool is activated
+  useEffect(() => {
+    if (showTextInput && textInputRef.current) {
+      textInputRef.current.focus();
+    }
+  }, [showTextInput]);
 
   const startCamera = async () => {
     stopCamera();
@@ -151,12 +160,10 @@ export const StoryEditorModal: React.FC<StoryEditorModalProps> = ({
     setIsCameraActive(false);
   };
 
-  // Flip Camera Front/Back
   const toggleCameraFacing = () => {
     setFacingMode((prev) => (prev === 'user' ? 'environment' : 'user'));
   };
 
-  // Capture Live Photo Snapshot
   const captureLivePhoto = () => {
     playPopSound();
     if (!videoRef.current) return;
@@ -179,7 +186,6 @@ export const StoryEditorModal: React.FC<StoryEditorModalProps> = ({
     setIsVideo(false);
   };
 
-  // Start Live Video Recording
   const startVideoRecording = () => {
     if (!mediaStreamRef.current) return;
     recordedChunksRef.current = [];
@@ -233,7 +239,6 @@ export const StoryEditorModal: React.FC<StoryEditorModalProps> = ({
     }
   };
 
-  // Handle Gallery File Select
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -252,7 +257,6 @@ export const StoryEditorModal: React.FC<StoryEditorModalProps> = ({
     reader.readAsDataURL(file);
   };
 
-  // Preview Music Audio Track
   const handleSelectMusic = (track: MusicTrack) => {
     setSelectedMusic(track);
     setShowMusicPicker(false);
@@ -323,7 +327,7 @@ export const StoryEditorModal: React.FC<StoryEditorModalProps> = ({
         width: '100vw',
         height: '100vh',
         backgroundColor: '#000000',
-        zIndex: 999999, // Hides bottom navigation bar and full UI
+        zIndex: 999999,
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
@@ -348,6 +352,7 @@ export const StoryEditorModal: React.FC<StoryEditorModalProps> = ({
           background: 'linear-gradient(180deg, rgba(0,0,0,0.75) 0%, rgba(0,0,0,0) 100%)',
         }}
       >
+        {/* Top Left Close X */}
         <button
           onClick={() => {
             stopCamera();
@@ -372,11 +377,42 @@ export const StoryEditorModal: React.FC<StoryEditorModalProps> = ({
           <span className="material-symbols-outlined" style={{ fontSize: '24px' }}>close</span>
         </button>
 
-        {/* Studio Action Tools Bar (Aa, Filter, Music, Flip) */}
+        {/* Studio Tools Bar (Riscatta Icona, Aa, Filter, Music, Flip) */}
         <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+          {/* Tasto Riscatta Icona in Alto a Destra (Solo se c'è foto/video) */}
+          {capturedMediaUrl && (
+            <button
+              onClick={() => {
+                setCapturedMediaUrl(null);
+                setIsVideo(false);
+                startCamera();
+              }}
+              style={{
+                background: 'rgba(0, 0, 0, 0.45)',
+                border: '1px solid rgba(255, 255, 255, 0.25)',
+                color: '#FFFFFF',
+                borderRadius: '50%',
+                width: '42px',
+                height: '42px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                cursor: 'pointer',
+                backdropFilter: 'blur(8px)',
+              }}
+              title="Riscatta foto/video"
+            >
+              <span className="material-symbols-outlined" style={{ fontSize: '22px' }}>refresh</span>
+            </button>
+          )}
+
           {/* Text Overlay Tool (Aa) */}
           <button
-            onClick={() => setShowTextInput(!showTextInput)}
+            onClick={() => {
+              setShowTextInput(!showTextInput);
+              setShowFiltersPicker(false);
+              setShowMusicPicker(false);
+            }}
             style={{
               background: showTextInput ? '#F59E0B' : 'rgba(0, 0, 0, 0.45)',
               border: '1px solid rgba(255, 255, 255, 0.25)',
@@ -398,7 +434,11 @@ export const StoryEditorModal: React.FC<StoryEditorModalProps> = ({
 
           {/* Instagram Filters Tool (✨) */}
           <button
-            onClick={() => setShowFiltersPicker(!showFiltersPicker)}
+            onClick={() => {
+              setShowFiltersPicker(!showFiltersPicker);
+              setShowTextInput(false);
+              setShowMusicPicker(false);
+            }}
             style={{
               background: showFiltersPicker ? '#F59E0B' : 'rgba(0, 0, 0, 0.45)',
               border: '1px solid rgba(255, 255, 255, 0.25)',
@@ -418,7 +458,11 @@ export const StoryEditorModal: React.FC<StoryEditorModalProps> = ({
 
           {/* SoundCloud & Music Track Finder (🎵) */}
           <button
-            onClick={() => setShowMusicPicker(!showMusicPicker)}
+            onClick={() => {
+              setShowMusicPicker(!showMusicPicker);
+              setShowTextInput(false);
+              setShowFiltersPicker(false);
+            }}
             style={{
               background: selectedMusic ? '#FDE047' : 'rgba(0, 0, 0, 0.45)',
               border: '1px solid rgba(255, 255, 255, 0.25)',
@@ -455,29 +499,6 @@ export const StoryEditorModal: React.FC<StoryEditorModalProps> = ({
               }}
             >
               <span className="material-symbols-outlined" style={{ fontSize: '22px' }}>flip_camera_ios</span>
-            </button>
-          )}
-
-          {/* Publish Story Button */}
-          {capturedMediaUrl && (
-            <button
-              onClick={handlePublish}
-              style={{
-                background: 'linear-gradient(135deg, #10B981 0%, #059669 100%)',
-                border: 'none',
-                color: '#FFFFFF',
-                padding: '10px 18px',
-                borderRadius: '24px',
-                fontSize: '14px',
-                fontWeight: 900,
-                cursor: 'pointer',
-                boxShadow: '0 4px 16px rgba(16, 185, 129, 0.5)',
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '6px',
-              }}
-            >
-              <span>Pubblica 🍻</span>
             </button>
           )}
         </div>
@@ -546,17 +567,22 @@ export const StoryEditorModal: React.FC<StoryEditorModalProps> = ({
           </>
         )}
 
-        {/* FLOATING TEXT OVERLAY */}
-        {overlayText && (
-          <div
+        {/* DIRECT IN-CANVAS TEXT EDITING (Nessun pop-up, scrivi direttamente sulla storia!) */}
+        {showTextInput ? (
+          <textarea
+            ref={textInputRef}
+            placeholder="Scrivi sulla storia..."
+            value={overlayText}
+            onChange={(e) => setOverlayText(e.target.value)}
+            rows={2}
             style={{
               position: 'absolute',
-              top: '45%',
+              top: '42%',
               left: '50%',
               transform: 'translate(-50%, -50%)',
-              maxWidth: '88%',
+              width: '88%',
               textAlign: 'center',
-              padding: textStyle === 'badge' ? '10px 20px' : '6px 12px',
+              padding: textStyle === 'badge' ? '12px 20px' : '8px 12px',
               borderRadius: textStyle === 'badge' ? '16px' : '0',
               background: textStyle === 'badge' ? 'rgba(0, 0, 0, 0.75)' : 'transparent',
               backdropFilter: textStyle === 'badge' ? 'blur(10px)' : 'none',
@@ -564,12 +590,42 @@ export const StoryEditorModal: React.FC<StoryEditorModalProps> = ({
               fontSize: '26px',
               fontWeight: 900,
               textShadow: textStyle === 'neon' ? `0 0 16px ${textColor}, 0 0 28px ${textColor}` : '0 2px 10px rgba(0,0,0,0.9)',
-              zIndex: 80,
-              wordBreak: 'break-word',
+              zIndex: 140,
+              border: 'none',
+              outline: 'none',
+              resize: 'none',
+              fontFamily: 'inherit',
+              lineHeight: 1.2,
             }}
-          >
-            {overlayText}
-          </div>
+          />
+        ) : (
+          /* DISPLAY READONLY TEXT OVERLAY WHEN NOT EDITING */
+          overlayText && (
+            <div
+              onClick={() => setShowTextInput(true)}
+              style={{
+                position: 'absolute',
+                top: '42%',
+                left: '50%',
+                transform: 'translate(-50%, -50%)',
+                maxWidth: '88%',
+                textAlign: 'center',
+                padding: textStyle === 'badge' ? '10px 20px' : '6px 12px',
+                borderRadius: textStyle === 'badge' ? '16px' : '0',
+                background: textStyle === 'badge' ? 'rgba(0, 0, 0, 0.75)' : 'transparent',
+                backdropFilter: textStyle === 'badge' ? 'blur(10px)' : 'none',
+                color: textColor,
+                fontSize: '26px',
+                fontWeight: 900,
+                textShadow: textStyle === 'neon' ? `0 0 16px ${textColor}, 0 0 28px ${textColor}` : '0 2px 10px rgba(0,0,0,0.9)',
+                zIndex: 80,
+                wordBreak: 'break-word',
+                cursor: 'pointer',
+              }}
+            >
+              {overlayText}
+            </div>
+          )
         )}
 
         {/* FLOATING MUSIC BADGE OVERLAY */}
@@ -607,40 +663,123 @@ export const StoryEditorModal: React.FC<StoryEditorModalProps> = ({
             </button>
           </div>
         )}
-
-        {/* RETAKE / CLEAR MEDIA BUTTON */}
-        {capturedMediaUrl && (
-          <button
-            onClick={() => {
-              setCapturedMediaUrl(null);
-              setIsVideo(false);
-              startCamera();
-            }}
-            style={{
-              position: 'absolute',
-              top: '80px',
-              right: '20px',
-              background: 'rgba(0, 0, 0, 0.65)',
-              border: '1px solid rgba(255,255,255,0.3)',
-              color: '#FFFFFF',
-              padding: '8px 14px',
-              borderRadius: '20px',
-              fontSize: '12px',
-              fontWeight: 800,
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px',
-              cursor: 'pointer',
-              zIndex: 80,
-            }}
-          >
-            <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>refresh</span>
-            <span>Riscatta</span>
-          </button>
-        )}
       </div>
 
       {/* 3. INSTAGRAM OVERLAY TOOLS MODALS */}
+
+      {/* DIRECT TEXT EDITING TOOLBAR IN BASSO TRASPARENTE */}
+      {showTextInput && (
+        <div
+          style={{
+            position: 'absolute',
+            bottom: '100px',
+            left: '16px',
+            right: '16px',
+            zIndex: 150,
+            background: 'rgba(0, 0, 0, 0.45)',
+            backdropFilter: 'blur(16px)',
+            WebkitBackdropFilter: 'blur(16px)',
+            borderRadius: '24px',
+            padding: '14px 18px',
+            border: '1px solid rgba(255, 255, 255, 0.2)',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '12px',
+            boxShadow: '0 8px 32px rgba(0,0,0,0.5)',
+          }}
+        >
+          {/* Color Palette Row */}
+          <div style={{ display: 'flex', justifyContent: 'center', gap: '10px', alignItems: 'center' }}>
+            {['#FFFFFF', '#FDE047', '#000000', '#EC4899', '#EF4444', '#10B981', '#3B82F6'].map((color) => (
+              <div
+                key={color}
+                onClick={() => setTextColor(color)}
+                style={{
+                  width: '28px',
+                  height: '28px',
+                  borderRadius: '50%',
+                  background: color,
+                  border: textColor === color ? '3px solid #FFFFFF' : '1px solid rgba(255,255,255,0.4)',
+                  boxShadow: textColor === color ? '0 0 10px rgba(255,255,255,0.8)' : 'none',
+                  cursor: 'pointer',
+                  transition: 'all 0.15s ease',
+                }}
+              />
+            ))}
+          </div>
+
+          {/* Style Pills & Done Button */}
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div style={{ display: 'flex', gap: '8px' }}>
+              <button
+                onClick={() => setTextStyle('badge')}
+                style={{
+                  background: textStyle === 'badge' ? '#F59E0B' : 'rgba(255,255,255,0.15)',
+                  color: '#FFF',
+                  border: 'none',
+                  padding: '6px 14px',
+                  borderRadius: '14px',
+                  fontSize: '12px',
+                  fontWeight: 800,
+                  cursor: 'pointer',
+                }}
+              >
+                Badge
+              </button>
+              <button
+                onClick={() => setTextStyle('neon')}
+                style={{
+                  background: textStyle === 'neon' ? '#EC4899' : 'rgba(255,255,255,0.15)',
+                  color: '#FFF',
+                  border: 'none',
+                  padding: '6px 14px',
+                  borderRadius: '14px',
+                  fontSize: '12px',
+                  fontWeight: 800,
+                  cursor: 'pointer',
+                }}
+              >
+                Neon
+              </button>
+              <button
+                onClick={() => setTextStyle('plain')}
+                style={{
+                  background: textStyle === 'plain' ? '#3B82F6' : 'rgba(255,255,255,0.15)',
+                  color: '#FFF',
+                  border: 'none',
+                  padding: '6px 14px',
+                  borderRadius: '14px',
+                  fontSize: '12px',
+                  fontWeight: 800,
+                  cursor: 'pointer',
+                }}
+              >
+                Semplice
+              </button>
+            </div>
+
+            <button
+              onClick={() => setShowTextInput(false)}
+              style={{
+                background: '#10B981',
+                color: '#FFF',
+                border: 'none',
+                padding: '6px 16px',
+                borderRadius: '14px',
+                fontSize: '13px',
+                fontWeight: 900,
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '4px',
+              }}
+            >
+              <span>Fatto</span>
+              <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>check</span>
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* FILTER CAROUSEL OVERLAY */}
       {showFiltersPicker && (
@@ -686,104 +825,6 @@ export const StoryEditorModal: React.FC<StoryEditorModalProps> = ({
               </button>
             );
           })}
-        </div>
-      )}
-
-      {/* TEXT INPUT OVERLAY */}
-      {showTextInput && (
-        <div
-          style={{
-            position: 'absolute',
-            top: '120px',
-            left: '20px',
-            right: '20px',
-            zIndex: 150,
-            background: 'rgba(15, 23, 42, 0.92)',
-            backdropFilter: 'blur(16px)',
-            borderRadius: '24px',
-            padding: '18px',
-            border: '1px solid rgba(255, 255, 255, 0.2)',
-            boxShadow: '0 12px 32px rgba(0,0,0,0.6)',
-          }}
-        >
-          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px', color: '#FFF', fontWeight: 800, fontSize: '14px' }}>
-            <span>Aggiungi Didascalia</span>
-            <button onClick={() => setShowTextInput(false)} style={{ background: 'transparent', border: 'none', color: '#FFF', cursor: 'pointer' }}>
-              <span className="material-symbols-outlined">close</span>
-            </button>
-          </div>
-          <input
-            type="text"
-            placeholder="Scrivi sulla storia..."
-            value={overlayText}
-            onChange={(e) => setOverlayText(e.target.value)}
-            autoFocus
-            style={{
-              width: '100%',
-              padding: '12px 16px',
-              borderRadius: '16px',
-              border: '1px solid rgba(255, 255, 255, 0.3)',
-              background: 'rgba(0, 0, 0, 0.5)',
-              color: '#FFFFFF',
-              fontSize: '16px',
-              outline: 'none',
-              boxSizing: 'border-box',
-              marginBottom: '12px',
-              fontFamily: 'inherit',
-            }}
-          />
-
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <div style={{ display: 'flex', gap: '8px' }}>
-              {['#FFFFFF', '#FDE047', '#000000', '#EC4899', '#EF4444', '#10B981', '#3B82F6'].map((color) => (
-                <div
-                  key={color}
-                  onClick={() => setTextColor(color)}
-                  style={{
-                    width: '26px',
-                    height: '26px',
-                    borderRadius: '50%',
-                    background: color,
-                    border: textColor === color ? '3px solid #FFFFFF' : '1px solid rgba(255,255,255,0.4)',
-                    cursor: 'pointer',
-                  }}
-                />
-              ))}
-            </div>
-
-            <div style={{ display: 'flex', gap: '6px' }}>
-              <button
-                onClick={() => setTextStyle('badge')}
-                style={{
-                  background: textStyle === 'badge' ? '#F59E0B' : 'rgba(255,255,255,0.15)',
-                  color: '#FFF',
-                  border: 'none',
-                  padding: '6px 12px',
-                  borderRadius: '12px',
-                  fontSize: '12px',
-                  fontWeight: 800,
-                  cursor: 'pointer',
-                }}
-              >
-                Badge
-              </button>
-              <button
-                onClick={() => setTextStyle('neon')}
-                style={{
-                  background: textStyle === 'neon' ? '#EC4899' : 'rgba(255,255,255,0.15)',
-                  color: '#FFF',
-                  border: 'none',
-                  padding: '6px 12px',
-                  borderRadius: '12px',
-                  fontSize: '12px',
-                  fontWeight: 800,
-                  cursor: 'pointer',
-                }}
-              >
-                Neon
-              </button>
-            </div>
-          </div>
         </div>
       )}
 
@@ -905,7 +946,7 @@ export const StoryEditorModal: React.FC<StoryEditorModalProps> = ({
         </div>
       )}
 
-      {/* 4. BOTTOM CAPTURE & GALLERY TOOLBAR */}
+      {/* 4. BOTTOM CAPTURE TOOLBAR (quando non c'è ancora una foto/video) */}
       {!capturedMediaUrl && (
         <div
           style={{
@@ -960,7 +1001,6 @@ export const StoryEditorModal: React.FC<StoryEditorModalProps> = ({
                 }
               }}
               onMouseDown={() => {
-                // Hold to record video
                 const timer = setTimeout(() => {
                   startVideoRecording();
                 }, 400);
@@ -1018,11 +1058,40 @@ export const StoryEditorModal: React.FC<StoryEditorModalProps> = ({
             )}
           </div>
 
-          {/* Camera Info Indicator */}
           <div style={{ width: '48px', height: '48px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'rgba(255,255,255,0.6)', fontSize: '11px', fontWeight: 800, textAlign: 'center' }}>
             LIVE 📸
           </div>
         </div>
+      )}
+
+      {/* 5. TASTO PUBBLICA ICONA IN BASSO A DESTRA (Solo se c'è foto/video) */}
+      {capturedMediaUrl && !showTextInput && (
+        <button
+          onClick={handlePublish}
+          style={{
+            position: 'absolute',
+            bottom: 'env(safe-area-inset-bottom, 28px)',
+            right: '20px',
+            width: '58px',
+            height: '58px',
+            borderRadius: '50%',
+            background: 'linear-gradient(135deg, #10B981 0%, #059669 100%)',
+            border: 'none',
+            color: '#FFFFFF',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            boxShadow: '0 8px 24px rgba(16, 185, 129, 0.65)',
+            cursor: 'pointer',
+            zIndex: 180,
+            transition: 'transform 0.15s ease',
+          }}
+          title="Pubblica Storia"
+        >
+          <span className="material-symbols-outlined" style={{ fontSize: '28px', fontWeight: 900 }}>
+            send
+          </span>
+        </button>
       )}
     </div>
   );
