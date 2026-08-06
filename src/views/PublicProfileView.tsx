@@ -31,6 +31,7 @@ interface PublicProfileViewProps {
   onAcceptRequest?: (sender: string) => void;
   onCancelSentRequest?: (target: string) => void;
   onDeleteUserProfile?: (username: string) => void;
+  onChangeUserNicknameByAdmin?: (targetOldNick: string, newNick: string) => void;
   onOpenUserStory?: (username: string) => boolean;
 }
 
@@ -59,6 +60,7 @@ export const PublicProfileView: React.FC<PublicProfileViewProps> = ({
   onAcceptRequest,
   onCancelSentRequest,
   onDeleteUserProfile,
+  onChangeUserNicknameByAdmin,
   onOpenUserStory,
 }) => {
   const [activeTab, setActiveTab] = useState<'collection' | 'posts' | 'stats' | 'ratings' | 'medals'>('posts');
@@ -398,35 +400,69 @@ export const PublicProfileView: React.FC<PublicProfileViewProps> = ({
               </button>
             )}
 
-            {/* Admin Delete User Profile Button */}
+            {/* Admin Actions: Change Nickname + Delete User Profile */}
             {isAdminUser && (
-              <button
-                type="button"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  if (window.confirm(`⚠️ ATTENZIONE ADMIN:\n\nSei sicuro di voler eliminare DEFINITIVAMENTE il profilo dell'utente @${username} dal database?\n\nVerranno rimossi in modo permanente tutti i suoi sblocchi, punteggi, dati e foto.`)) {
-                    onDeleteUserProfile?.(username);
-                  }
-                }}
-                style={{
-                  background: '#FEF2F2',
-                  border: '1px solid #FCA5A5',
-                  color: '#DC2626',
-                  padding: '8px 16px',
-                  borderRadius: '20px',
-                  fontSize: '13px',
-                  fontWeight: 800,
-                  cursor: 'pointer',
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '6px',
-                  boxShadow: '0 2px 8px rgba(220, 38, 38, 0.15)',
-                  transition: 'all 0.2s ease',
-                }}
-              >
-                <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>delete_forever</span>
-                <span>Elimina Profilo (ADMIN)</span>
-              </button>
+              <>
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    const newNick = window.prompt(
+                      `✏️ CAMBIO NICKNAME ADMIN:\n\nInserisci il nuovo Nickname per l'utente @${username}:`,
+                      username
+                    );
+                    if (newNick && newNick.trim() !== '' && newNick.trim().toLowerCase() !== username.toLowerCase()) {
+                      onChangeUserNicknameByAdmin?.(username, newNick.trim());
+                    }
+                  }}
+                  style={{
+                    background: '#FEF3C7',
+                    border: '1px solid #FDE047',
+                    color: '#92400E',
+                    padding: '8px 16px',
+                    borderRadius: '20px',
+                    fontSize: '13px',
+                    fontWeight: 800,
+                    cursor: 'pointer',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    boxShadow: '0 2px 8px rgba(245, 158, 11, 0.2)',
+                    transition: 'all 0.2s ease',
+                  }}
+                >
+                  <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>edit_note</span>
+                  <span>Cambia Nickname (ADMIN)</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    if (window.confirm(`⚠️ ATTENZIONE ADMIN:\n\nSei sicuro di voler eliminare DEFINITIVAMENTE il profilo dell'utente @${username} dal database?\n\nVerranno rimossi in modo permanente tutti i suoi sblocchi, punteggi, dati e foto.`)) {
+                      onDeleteUserProfile?.(username);
+                    }
+                  }}
+                  style={{
+                    background: '#FEF2F2',
+                    border: '1px solid #FCA5A5',
+                    color: '#DC2626',
+                    padding: '8px 16px',
+                    borderRadius: '20px',
+                    fontSize: '13px',
+                    fontWeight: 800,
+                    cursor: 'pointer',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    boxShadow: '0 2px 8px rgba(220, 38, 38, 0.15)',
+                    transition: 'all 0.2s ease',
+                  }}
+                >
+                  <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>delete_forever</span>
+                  <span>Elimina Profilo (ADMIN)</span>
+                </button>
+              </>
             )}
           </div>
         )}

@@ -1219,6 +1219,145 @@ export default function App() {
     }
   };
 
+  const handleAdminChangeUserNickname = async (targetOldNick: string, rawNewNick: string) => {
+    if (!isAdminUser || !targetOldNick) return;
+    const newNick = (rawNewNick || '').trim();
+
+    if (!newNick || newNick.toLowerCase() === targetOldNick.toLowerCase()) {
+      return;
+    }
+
+    if (/[.#$\[\]]/.test(newNick)) {
+      showAlert("Il nickname non può contenere i caratteri speciali . # $ [ ]", "Caratteri Non Validi");
+      return;
+    }
+
+    if (containsProfanity(newNick)) {
+      showAlert("Il nuovo nickname contiene termini non appropriati o non ammessi.", "Nickname Non Valido");
+      return;
+    }
+
+    try {
+      // 1. Verifica che il nuovo nickname sia unico
+      const emailSnap = await get(ref(db, `usernames_emails/${newNick.toLowerCase()}`));
+      if (emailSnap.exists()) {
+        showAlert(`Il nickname @${newNick} è già in uso da un altro utente!`, "Nickname Già In Uso");
+        return;
+      }
+
+      const dirSnap = await get(ref(db, 'users_directory'));
+      let targetUid: string | null = null;
+
+      if (dirSnap.exists()) {
+        const dirData = dirSnap.val();
+        Object.entries(dirData).forEach(([uidKey, nickVal]: [string, any]) => {
+          const formattedNick = (nickVal || '').toString().trim();
+          if (formattedNick.toLowerCase() === targetOldNick.toLowerCase()) {
+            targetUid = uidKey;
+          }
+          if (formattedNick.toLowerCase() === newNick.toLowerCase() && formattedNick.toLowerCase() !== targetOldNick.toLowerCase()) {
+            showAlert(`Il nickname @${newNick} è già in uso da un altro utente!`, "Nickname Già In Uso");
+            throw new Error("NICKNAME_TAKEN");
+          }
+        });
+      }
+
+      const updates: any = {};
+
+      // Migra users_directory
+      if (targetUid) {
+        updates[`users_directory/${targetUid}`] = newNick;
+      }
+
+      // Migra usernames_emails
+      const oldEmailSnap = await get(ref(db, `usernames_emails/${targetOldNick.toLowerCase()}`));
+      const userEmail = oldEmailSnap.exists() ? oldEmailSnap.val() : '';
+      if (userEmail) {
+        updates[`usernames_emails/${newNick.toLowerCase()}`] = userEmail;
+        updates[`usernames_emails/${targetOldNick.toLowerCase()}`] = null;
+      }
+
+      // Migra leaderboard_scores
+      const scoreSnap = await get(ref(db, `leaderboard_scores/${targetOldNick}`));
+      if (scoreSnap.exists()) {
+        updates[`leaderboard_scores/${newNick}`] = scoreSnap.val();
+        updates[`leaderboard_scores/${targetOldNick}`] = null;
+      }
+
+      // Migra pokedex_profiles
+      const pokedexSnap = await get(ref(db, `pokedex_profiles/${targetOldNick}`));
+      if (pokedexSnap.exists()) {
+        updates[`pokedex_profiles/${newNick}`] = pokedexSnap.val();
+        updates[`pokedex_profiles/${targetOldNick}`] = null;
+      }
+
+      // Migra users_avatars
+      const avatarSnap = await get(ref(db, `users_avatars/${targetOldNick}`));
+      if (avatarSnap.exists()) {
+        updates[`users_avatars/${newNick}`] = avatarSnap.val();
+        updates[`users_avatars/${targetOldNick}`] = null;
+      }
+
+      // Migra user_privacy
+      const privacySnap = await get(ref(db, `user_privacy/${targetOldNick}`));
+      if (privacySnap.exists()) {
+        updates[`user_privacy/${newNick}`] = privacySnap.val();
+        updates[`user_privacy/${targetOldNick}`] = null;
+      }
+
+      // Migra users_friends
+      const friendsSnap = await get(ref(db, `users_friends/${targetOldNick}`));
+      if (friendsSnap.exists()) {
+        const friendsData = friendsSnap.val();
+        updates[`users_friends/${newNick}`] = friendsData;
+        updates[`users_friends/${targetOldNick}`] = null;
+
+        Object.keys(friendsData).forEach((friendNick) => {
+          updates[`users_friends/${friendNick}/${newNick}`] = true;
+          updates[`users_friends/${friendNick}/${targetOldNick}`] = null;
+        });
+      }
+
+      // Aggiorna social_timeline per l'utente target
+      const timelineSnap = await get(ref(db, 'social_timeline'));
+      if (timelineSnap.exists()) {
+        timelineSnap.forEach((child) => {
+          const p = child.val();
+          if (p && p.user && p.user.toLowerCase() === targetOldNick.toLowerCase()) {
+            updates[`social_timeline/${child.key}/user`] = newNick;
+          }
+        });
+      }
+
+      // Aggiorna pub_stories per l'utente target
+      const pubStoriesSnap = await get(ref(db, 'pub_stories'));
+      if (pubStoriesSnap.exists()) {
+        pubStoriesSnap.forEach((child) => {
+          const s = child.val();
+          if (s && s.user && s.user.toLowerCase() === targetOldNick.toLowerCase()) {
+            updates[`pub_stories/${child.key}/user`] = newNick;
+          }
+        });
+      }
+
+      // Esegui la migrazione atomica nel Realtime Database
+      await update(ref(db), updates);
+
+      // Aggiorna la vista del profilo pubblico se l'admin stava guardando questo profilo
+      if (pubProfileUser.toLowerCase() === targetOldNick.toLowerCase()) {
+        setPubProfileUser(newNick);
+      }
+
+      triggerStappoAnimation(`NICKNAME @${newNick.toUpperCase()} AGGIORNATO!`, () => {
+        showAlert(`Il nickname dell'utente @${targetOldNick} è stato modificato con successo in @${newNick}!`, "Nickname Aggiornato (ADMIN)");
+      });
+    } catch (e: any) {
+      if (e.message !== "NICKNAME_TAKEN") {
+        showAlert("Errore durante l'aggiornamento del nickname: " + e.message, "Errore Admin");
+      }
+    }
+  };
+
   // Recalculate all scores to adapt existing database records across all users
   const recalculateAllScores = async () => {
     try {
@@ -3496,6 +3635,7 @@ export default function App() {
               onAcceptRequest={handleAcceptRequest}
               onCancelSentRequest={handleCancelSentRequest}
               onDeleteUserProfile={handleDeleteUserProfile}
+              onChangeUserNicknameByAdmin={handleAdminChangeUserNickname}
             />
           ) : null}
         </div>
