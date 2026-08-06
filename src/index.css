@@ -520,20 +520,56 @@ header.hero p {
     display: flex; 
     align-items: center; 
     justify-content: space-between; 
-    margin-bottom: 14px; 
-    padding-bottom: 14px; 
-    border-bottom: 1px solid rgba(226, 232, 240, 0.8); 
+    margin-bottom: 10px; 
+    padding: 12px 14px; 
+    border-radius: 14px;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 8px rgba(15, 23, 42, 0.03);
 }
-.variant-item:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+.variant-item:last-child { margin-bottom: 0; }
 
-.beer-type-dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 6px; vertical-align: middle; }
-.type-bionda { background-color: #FBBF24; box-shadow: 0 0 8px rgba(251,191,36,0.5); }
-.type-rossa { background-color: #EF4444; box-shadow: 0 0 8px rgba(239,68,68,0.5); }
-.type-scura { background-color: #78350F; box-shadow: 0 0 8px rgba(120,53,15,0.5); }
-.type-bianca { background-color: #F8FAFC; border: 1px solid #CBD5E1; box-shadow: 0 0 8px rgba(248,250,252,0.5); }
-.type-ipa { background-color: #10B981; box-shadow: 0 0 8px rgba(16,185,129,0.5); }
+/* Shaded variant backgrounds by beer style type */
+.variant-item.variant-type-bionda {
+    background: linear-gradient(135deg, rgba(254, 243, 199, 0.85) 0%, rgba(253, 230, 138, 0.5) 100%);
+    border: 1px solid rgba(245, 158, 11, 0.4);
+}
+.variant-item.variant-type-bionda .beer-type-label {
+    color: #B45309;
+}
 
-.beer-type-label { font-size: 11px; color: var(--text-muted); font-weight: 700; margin-right: 12px; vertical-align: middle; text-transform: uppercase; }
+.variant-item.variant-type-rossa {
+    background: linear-gradient(135deg, rgba(254, 226, 226, 0.85) 0%, rgba(254, 202, 202, 0.5) 100%);
+    border: 1px solid rgba(239, 68, 68, 0.4);
+}
+.variant-item.variant-type-rossa .beer-type-label {
+    color: #B91C1C;
+}
+
+.variant-item.variant-type-scura {
+    background: linear-gradient(135deg, rgba(245, 230, 211, 0.9) 0%, rgba(222, 194, 160, 0.55) 100%);
+    border: 1px solid rgba(120, 53, 15, 0.4);
+}
+.variant-item.variant-type-scura .beer-type-label {
+    color: #78350F;
+}
+
+.variant-item.variant-type-bianca {
+    background: linear-gradient(135deg, rgba(248, 250, 252, 0.95) 0%, rgba(241, 245, 249, 0.75) 100%);
+    border: 1px solid rgba(203, 213, 225, 0.8);
+}
+.variant-item.variant-type-bianca .beer-type-label {
+    color: #475569;
+}
+
+.variant-item.variant-type-ipa {
+    background: linear-gradient(135deg, rgba(209, 250, 229, 0.85) 0%, rgba(167, 243, 208, 0.5) 100%);
+    border: 1px solid rgba(16, 185, 129, 0.4);
+}
+.variant-item.variant-type-ipa .beer-type-label {
+    color: #047857;
+}
+
+.beer-type-label { font-size: 10px; font-weight: 900; letter-spacing: 0.5px; vertical-align: middle; text-transform: uppercase; }
 
 .photo-btn { 
     background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%); 

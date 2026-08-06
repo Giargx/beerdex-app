@@ -130,16 +130,15 @@ export const BeerCard: React.FC<BeerCardProps> = ({
             const typeKey = getBeerType(beer.brand, variant);
 
             return (
-              <div key={uniqueId} className="variant-item" onClick={(e) => e.stopPropagation()}>
-                <div style={{ flexGrow: 1, display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                  <span style={{ fontWeight: 500, fontSize: '14px' }}>
+              <div key={uniqueId} className={`variant-item variant-type-${typeKey}`} onClick={(e) => e.stopPropagation()}>
+                <div style={{ flexGrow: 1, display: 'flex', flexDirection: 'column', gap: '3px' }}>
+                  <span style={{ fontWeight: 700, fontSize: '14px', color: '#0F172A' }}>
                     {variant}{' '}
                     <span style={{ fontSize: '11px', color: 'var(--text-muted)', fontWeight: 'bold' }}>
                       ({specificPts} pt)
                     </span>
                   </span>
                   <div style={{ display: 'flex', alignItems: 'center', marginTop: '2px' }}>
-                    <span className={`beer-type-dot type-${typeKey}`}></span>
                     <span className="beer-type-label">
                       {typeKey.charAt(0).toUpperCase() + typeKey.slice(1)}
                     </span>
