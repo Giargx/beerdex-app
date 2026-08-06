@@ -27,13 +27,31 @@
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;900&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   </head>
   <body style="margin: 0; background-color: #FFF8F0;">
-    <div id="root">
-      <!-- Fast Preloader for iPhone/iOS PWA launch (Crema Theme) -->
-      <div style="position: fixed; inset: 0; background: #FFF8F0; display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 999999; font-family: 'Outfit', system-ui, sans-serif;">
-        <img src="/pop-it-logo.png" alt="POP IT" style="width: 130px; height: 130px; object-fit: contain; filter: drop-shadow(0 4px 15px rgba(245, 158, 11, 0.3)); animation: pulse 1.5s ease-in-out infinite;" />
-        <div style="margin-top: 18px; color: #D97706; font-weight: 900; font-size: 18px; letter-spacing: 2px; text-transform: uppercase;">POP IT</div>
-      </div>
+    <!-- Splash Screen Preloader nativo con Logo POP IT (Visibile per 2 secondi con dissolvenza morbida) -->
+    <div id="app-splash-screen" style="position: fixed; inset: 0; background: #FFF8F0; display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 9999999; font-family: 'Outfit', system-ui, sans-serif; transition: opacity 0.5s cubic-bezier(0.16, 1, 0.3, 1);">
+      <img src="/pop-it-logo.png" alt="POP IT" style="width: 140px; height: 140px; object-fit: contain; filter: drop-shadow(0 6px 20px rgba(245, 158, 11, 0.35)); animation: pulse 1.6s ease-in-out infinite;" />
+      <div style="margin-top: 18px; color: #D97706; font-weight: 900; font-size: 20px; letter-spacing: 3px; text-transform: uppercase;">POP IT</div>
     </div>
+
+    <div id="root"></div>
+
+    <script>
+      // Garantisce che il logo POP IT rimanga visibile per 2.0 secondi con dissolvenza morbida
+      window.addEventListener('DOMContentLoaded', function() {
+        setTimeout(function() {
+          var splash = document.getElementById('app-splash-screen');
+          if (splash) {
+            splash.style.opacity = '0';
+            splash.style.pointerEvents = 'none';
+            setTimeout(function() {
+              if (splash && splash.parentNode) {
+                splash.parentNode.removeChild(splash);
+              }
+            }, 500);
+          }
+        }, 1800);
+      });
+    </script>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
