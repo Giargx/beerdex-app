@@ -783,16 +783,9 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
                 marginBottom: '20px'
               }}
             >
-              {[...posts.filter(p => isUserParticipantInPost(p, currentUserNick))].reverse().map((post) => {
-                const isPostShared = Boolean(
-                  post.isShared ||
-                  (post.taggedFriend && post.taggedFriend.trim() !== '') ||
-                  (Array.isArray((post as any).taggedFriends) && (post as any).taggedFriends.filter(Boolean).length > 0)
-                );
-
-                return (
-                  <div
-                    key={post.postId}
+              {[...posts.filter(p => isUserParticipantInPost(p, currentUserNick))].reverse().map((post) => (
+                <div
+                  key={post.postId}
                     onClick={() => onOpenPostDetail(currentUserNick, post.postId)}
                     style={{
                       position: 'relative',
@@ -805,28 +798,6 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
                       cursor: 'pointer',
                     }}
                   >
-                    {isPostShared && (
-                      <div
-                        style={{
-                          position: 'absolute',
-                          top: '6px',
-                          left: '6px',
-                          background: 'rgba(245, 158, 11, 0.95)',
-                          color: 'white',
-                          borderRadius: '8px',
-                          padding: '2px 6px',
-                          fontSize: '10px',
-                          fontWeight: 800,
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '3px',
-                          boxShadow: '0 2px 6px rgba(0,0,0,0.2)',
-                          zIndex: 2,
-                        }}
-                      >
-                        <span style={{ fontSize: '11px' }}>🍻</span> Condiviso
-                      </div>
-                    )}
                     <img
                       src={post.photo}
                       alt={`${post.brand} - ${post.variant}`}
@@ -859,8 +830,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
                       </div>
                     </div>
                   </div>
-                );
-              })}
+                ))}
             </div>
           )}
         </div>
