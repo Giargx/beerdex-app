@@ -141,16 +141,16 @@ export const BeerCard: React.FC<BeerCardProps> = ({
 
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
                     {hasPhoto ? (
-                      <div className="unlocked-status" style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+                      <div className="unlocked-status" style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
                         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '2px' }}>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '12px', fontWeight: 800, color: '#10B981' }}>
-                            <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '11px', fontWeight: 800, color: '#10B981', whiteSpace: 'nowrap' }}>
+                            <span className="material-symbols-outlined" style={{ fontSize: '15px' }}>
                               check_circle
                             </span>
                             <span>
                               {entry.isShiny ? (
                                 <span style={{ color: 'var(--primary-dark)', display: 'inline-flex', alignItems: 'center', gap: '2px' }}>
-                                  <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>
+                                  <span className="material-symbols-outlined" style={{ fontSize: '13px' }}>
                                     auto_awesome
                                   </span>
                                   Shiny
@@ -165,27 +165,55 @@ export const BeerCard: React.FC<BeerCardProps> = ({
                             <StarRating
                               rating={entry.rating || 0}
                               onRate={(r) => onRateBeer?.(beer.brand, variant, r)}
-                              size={14}
+                              size={13}
                             />
                           </div>
                         </div>
 
-                        <img
-                          src={entry.photo}
-                          className="thumb-preview"
-                          alt={variant}
-                          onContextMenu={(e) => e.preventDefault()}
-                        />
-                        <button
-                          className="btn-delete"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            onDeleteVariant(beer.brand, variant);
-                          }}
-                          title="Elimina foto"
-                        >
-                          <span className="material-symbols-outlined">delete</span>
-                        </button>
+                        {/* Thumbnail with overlay Trash Icon Badge */}
+                        <div style={{ position: 'relative', width: '42px', height: '42px', flexShrink: 0 }}>
+                          <img
+                            src={entry.photo}
+                            alt={variant}
+                            style={{
+                              width: '100%',
+                              height: '100%',
+                              borderRadius: '10px',
+                              objectFit: 'cover',
+                              border: '2px solid var(--primary)',
+                              boxShadow: '0 2px 6px rgba(0,0,0,0.1)',
+                              display: 'block',
+                            }}
+                            onContextMenu={(e) => e.preventDefault()}
+                          />
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              onDeleteVariant(beer.brand, variant);
+                            }}
+                            style={{
+                              position: 'absolute',
+                              top: '-6px',
+                              right: '-6px',
+                              width: '22px',
+                              height: '22px',
+                              borderRadius: '50%',
+                              background: '#EF4444',
+                              color: '#FFFFFF',
+                              border: '2px solid #FFFFFF',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              cursor: 'pointer',
+                              boxShadow: '0 2px 5px rgba(239,68,68,0.4)',
+                              padding: 0,
+                              zIndex: 2,
+                            }}
+                            title="Elimina sblocco variante"
+                          >
+                            <span className="material-symbols-outlined" style={{ fontSize: '13px', fontWeight: 900 }}>delete</span>
+                          </button>
+                        </div>
                       </div>
                     ) : (
                       <button
