@@ -1503,3 +1503,8 @@ header.hero p {
     text-decoration: none !important;
 }
 
+.pts-tag {
+    white-space: nowrap !important;
+    flex-shrink: 0 !important;
+}
+

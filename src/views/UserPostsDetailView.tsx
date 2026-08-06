@@ -469,22 +469,6 @@ export const UserPostsDetailView: React.FC<UserPostsDetailViewProps> = ({
                       );
                     })()}
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <span
-                        className="pts-tag"
-                        style={{
-                          color: 'white',
-                          fontWeight: 'bold',
-                          fontSize: '11px',
-                          background: '#e67e22',
-                          padding: '2px 6px',
-                          borderRadius: '6px',
-                          display: 'inline-flex',
-                          alignItems: 'center',
-                          boxShadow: '0 1px 3px rgba(0,0,0,0.15)',
-                        }}
-                      >
-                        +{earnedPts} pt
-                      </span>
                       {/* Trash Icon for My Post / Flag Icon for Other User's Post */}
                       {post.user === currentUserNick || isAdminUser ? (
                         <button
@@ -655,6 +639,7 @@ export const UserPostsDetailView: React.FC<UserPostsDetailViewProps> = ({
                     likes={post.likes}
                     currentUserNick={currentUserNick}
                     globalDisplayNames={globalDisplayNames}
+                    globalAvatars={globalAvatars}
                     onOpenPublicProfile={onOpenPublicProfile}
                   />
 
