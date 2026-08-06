@@ -131,33 +131,17 @@ export const BeerCard: React.FC<BeerCardProps> = ({
 
             return (
               <div key={uniqueId} className={`variant-item variant-type-${typeKey}`} onClick={(e) => e.stopPropagation()}>
-                {/* Left Area: Title, Points, Style Badge */}
-                <div style={{ flex: 1, minWidth: 0, paddingRight: '10px', display: 'flex', flexDirection: 'column', gap: '5px' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-                    <span style={{ fontWeight: 800, fontSize: '15px', color: '#0F172A', lineHeight: '1.2' }}>
-                      {variant}
-                    </span>
-                    <span
-                      style={{
-                        fontSize: '11px',
-                        fontWeight: 800,
-                        color: '#D97706',
-                        background: 'rgba(245, 158, 11, 0.15)',
-                        padding: '2px 8px',
-                        borderRadius: '10px',
-                        border: '1px solid rgba(245, 158, 11, 0.3)',
-                        whiteSpace: 'nowrap',
-                        flexShrink: 0,
-                      }}
-                    >
-                      +{specificPts} pt
+                {/* Sinistra: Nome variante sopra, Tipologia sotto */}
+                <div style={{ flex: 1, minWidth: 0, paddingRight: '12px', display: 'flex', flexDirection: 'column', gap: '3px' }}>
+                  <div style={{ fontWeight: 800, fontSize: '14px', color: '#0F172A', lineHeight: '1.2' }}>
+                    {variant}{' '}
+                    <span style={{ fontSize: '11px', color: 'var(--text-muted)', fontWeight: 600 }}>
+                      ({specificPts} pt)
                     </span>
                   </div>
 
-                  <div style={{ display: 'flex', alignItems: 'center' }}>
-                    <span className="beer-type-label">
-                      {typeKey.charAt(0).toUpperCase() + typeKey.slice(1)}
-                    </span>
+                  <div className="beer-type-label">
+                    {typeKey.charAt(0).toUpperCase() + typeKey.slice(1)}
                   </div>
                 </div>
 
