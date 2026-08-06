@@ -128,7 +128,7 @@ export const StoryEditorModal: React.FC<StoryEditorModalProps> = ({
     stopCamera();
     try {
       const stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode, width: { ideal: 1080 }, height: { ideal: 1920 } },
+        video: { facingMode: { ideal: facingMode } },
         audio: true,
       });
       mediaStreamRef.current = stream;

@@ -317,8 +317,9 @@ export const PubView: React.FC<PubViewProps> = ({
         >
           {/* 1st Story Item: My Story / Create Story with Camera Badge */}
           {(() => {
-            const myAvatar = globalAvatars[currentUserNick];
-            const myStoryIdx = storyPosts.findIndex((s) => s.user === currentUserNick);
+            const userLower = (currentUserNick || '').toLowerCase();
+            const myAvatar = globalAvatars[currentUserNick] || globalAvatars[userLower];
+            const myStoryIdx = storyPosts.findIndex((s) => s && s.user && s.user.toLowerCase() === userLower);
             const hasMyStory = myStoryIdx !== -1;
 
             return (
@@ -425,17 +426,28 @@ export const PubView: React.FC<PubViewProps> = ({
             );
           })()}
 
-          {/* Other Friends' Stories */}
-          {storyPosts
-            .filter((s) => s.user !== currentUserNick)
-            .map((story) => {
-              const idx = storyPosts.findIndex((p) => p.postId === story.postId);
-              const av = globalAvatars[story.user];
-              const disp = globalDisplayNames?.[story.user] || story.user;
+          {/* Other Drinkers' Stories */}
+          {(() => {
+            const userLower = (currentUserNick || '').toLowerCase();
+            const userStoryMap = new Map<string, { user: string; firstIndex: number }>();
+
+            storyPosts.forEach((s, idx) => {
+              if (s && s.user && s.user.toLowerCase() !== userLower) {
+                const uKey = s.user.toLowerCase();
+                if (!userStoryMap.has(uKey)) {
+                  userStoryMap.set(uKey, { user: s.user, firstIndex: idx });
+                }
+              }
+            });
+
+            return Array.from(userStoryMap.values()).map(({ user, firstIndex }) => {
+              const uKey = user.toLowerCase();
+              const av = globalAvatars[user] || globalAvatars[uKey];
+              const disp = globalDisplayNames?.[user] || globalDisplayNames?.[uKey] || user;
               return (
                 <div
-                  key={story.postId}
-                  onClick={() => setActiveStoryViewerIndex(idx)}
+                  key={user}
+                  onClick={() => setActiveStoryViewerIndex(firstIndex)}
                   style={{
                     display: 'flex',
                     flexDirection: 'column',
@@ -492,7 +504,8 @@ export const PubView: React.FC<PubViewProps> = ({
                   </span>
                 </div>
               );
-            })}
+            });
+          })()}
         </div>
       </div>
 
