@@ -1,6 +1,4 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { StarRating } from './StarRating';
-import { getBasePoints, formatBeerTitle } from '../beers';
 
 export interface StoryPost {
   postId: string;
@@ -33,8 +31,9 @@ interface StoryViewerModalProps {
   globalDisplayNames?: Record<string, string>;
   allPokedexProfiles?: Record<string, Record<string, any>>;
   onClose: () => void;
-  onToggleLike: (postId: string, element: HTMLElement | null) => void;
+  onToggleLike?: (postId: string, element: HTMLElement | null) => void;
   onOpenPublicProfile: (username: string) => void;
+  onDeleteStory?: (postId: string) => void;
 }
 
 export const StoryViewerModal: React.FC<StoryViewerModalProps> = ({
@@ -44,14 +43,16 @@ export const StoryViewerModal: React.FC<StoryViewerModalProps> = ({
   currentUserNick,
   globalAvatars = {},
   globalDisplayNames = {},
-  allPokedexProfiles = {},
+  allPokedexProfiles: _allPokedexProfiles = {},
   onClose,
-  onToggleLike,
+  onToggleLike: _onToggleLike,
   onOpenPublicProfile,
+  onDeleteStory,
 }) => {
   const [currentIndex, setCurrentIndex] = useState<number>(initialIndex);
   const [progress, setProgress] = useState<number>(0);
   const [isPaused, setIsPaused] = useState<boolean>(false);
+  const [isFlipping, setIsFlipping] = useState<boolean>(false);
 
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
@@ -59,6 +60,14 @@ export const StoryViewerModal: React.FC<StoryViewerModalProps> = ({
     setCurrentIndex(initialIndex);
     setProgress(0);
   }, [initialIndex, isOpen]);
+
+  useEffect(() => {
+    if (stories.length === 0 && isOpen) {
+      onClose();
+    } else if (currentIndex >= stories.length && stories.length > 0) {
+      setCurrentIndex(stories.length - 1);
+    }
+  }, [stories.length, currentIndex, isOpen, onClose]);
 
   // Handle Background Music Playback
   useEffect(() => {
@@ -87,25 +96,40 @@ export const StoryViewerModal: React.FC<StoryViewerModalProps> = ({
   }, [currentIndex, isOpen, stories]);
 
   useEffect(() => {
-    if (!isOpen || stories.length === 0 || isPaused) return;
+    if (!isOpen || stories.length === 0 || isPaused || isFlipping) return;
 
     const interval = setInterval(() => {
       setProgress((prev) => {
         if (prev >= 100) {
           if (currentIndex < stories.length - 1) {
-            setCurrentIndex((idx) => idx + 1);
-            return 0;
+            const currentS = stories[currentIndex];
+            const nextS = stories[currentIndex + 1];
+            const isDifferentUser =
+              nextS && currentS && (nextS.user || '').toLowerCase() !== (currentS.user || '').toLowerCase();
+
+            if (isDifferentUser) {
+              setIsFlipping(true);
+              setTimeout(() => {
+                setCurrentIndex((idx) => idx + 1);
+                setProgress(0);
+                setTimeout(() => setIsFlipping(false), 220);
+              }, 220);
+            } else {
+              setCurrentIndex((idx) => idx + 1);
+              setProgress(0);
+            }
+            return 100;
           } else {
             onClose();
             return 100;
           }
         }
-        return prev + 2; // 50 steps = 2.5 seconds or 5 seconds timer
+        return prev + 2; // 50 steps x 100ms = 5s per story
       });
     }, 100);
 
     return () => clearInterval(interval);
-  }, [isOpen, currentIndex, stories.length, isPaused, onClose]);
+  }, [isOpen, currentIndex, stories, isPaused, isFlipping, onClose]);
 
   if (!isOpen || stories.length === 0) return null;
 
@@ -114,10 +138,12 @@ export const StoryViewerModal: React.FC<StoryViewerModalProps> = ({
 
   const avatar = globalAvatars[currentStory.user];
   const displayName = globalDisplayNames[currentStory.user] || currentStory.user;
-  const isLiked = currentStory.likes && currentStory.likes[currentUserNick];
-  const likesCount = currentStory.likes ? Object.keys(currentStory.likes).length : 0;
-  const isStoryPost = currentStory.isStory || currentStory.brand === 'Storia del Pub';
-  const earnedPts = isStoryPost ? 0 : (currentStory.isShiny ? getBasePoints(currentStory.brand, currentStory.variant) * 2 : getBasePoints(currentStory.brand, currentStory.variant));
+
+  // Stories belonging to the current user in view
+  const currentUserStories = stories.filter(
+    (s) => (s.user || '').toLowerCase() === (currentStory.user || '').toLowerCase()
+  );
+  const userStoryIndex = currentUserStories.findIndex((s) => s.postId === currentStory.postId);
 
   const timeAgo = () => {
     const diff = Math.floor((Date.now() - currentStory.time) / 1000 / 60);
@@ -128,8 +154,20 @@ export const StoryViewerModal: React.FC<StoryViewerModalProps> = ({
 
   const handleNext = () => {
     if (currentIndex < stories.length - 1) {
-      setCurrentIndex(currentIndex + 1);
-      setProgress(0);
+      const nextStory = stories[currentIndex + 1];
+      const isDifferentUser = nextStory && currentStory && (nextStory.user || '').toLowerCase() !== (currentStory.user || '').toLowerCase();
+
+      if (isDifferentUser) {
+        setIsFlipping(true);
+        setTimeout(() => {
+          setCurrentIndex((idx) => idx + 1);
+          setProgress(0);
+          setTimeout(() => setIsFlipping(false), 220);
+        }, 220);
+      } else {
+        setCurrentIndex((idx) => idx + 1);
+        setProgress(0);
+      }
     } else {
       onClose();
     }
@@ -137,8 +175,20 @@ export const StoryViewerModal: React.FC<StoryViewerModalProps> = ({
 
   const handlePrev = () => {
     if (currentIndex > 0) {
-      setCurrentIndex(currentIndex - 1);
-      setProgress(0);
+      const prevStory = stories[currentIndex - 1];
+      const isDifferentUser = prevStory && currentStory && (prevStory.user || '').toLowerCase() !== (currentStory.user || '').toLowerCase();
+
+      if (isDifferentUser) {
+        setIsFlipping(true);
+        setTimeout(() => {
+          setCurrentIndex((idx) => idx - 1);
+          setProgress(0);
+          setTimeout(() => setIsFlipping(false), 220);
+        }, 220);
+      } else {
+        setCurrentIndex((idx) => idx - 1);
+        setProgress(0);
+      }
     }
   };
 
@@ -157,6 +207,7 @@ export const StoryViewerModal: React.FC<StoryViewerModalProps> = ({
         alignItems: 'center',
         justifyContent: 'center',
         userSelect: 'none',
+        perspective: '1000px',
       }}
       onMouseDown={() => setIsPaused(true)}
       onMouseUp={() => setIsPaused(false)}
@@ -175,15 +226,19 @@ export const StoryViewerModal: React.FC<StoryViewerModalProps> = ({
           justifyContent: 'space-between',
           padding: '16px',
           boxSizing: 'border-box',
+          transformStyle: 'preserve-3d',
+          transition: 'transform 0.4s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease',
+          transform: isFlipping ? 'rotateY(90deg) scale(0.88)' : 'rotateY(0deg) scale(1)',
+          opacity: isFlipping ? 0.2 : 1,
         }}
       >
-        {/* Top Progress Bars */}
+        {/* Top Progress Bars (Filtered for Current User Stories) */}
         <div>
           <div style={{ display: 'flex', gap: '4px', marginBottom: '12px' }}>
-            {stories.map((s, idx) => {
+            {currentUserStories.map((s, idx) => {
               let width = '0%';
-              if (idx < currentIndex) width = '100%';
-              else if (idx === currentIndex) width = `${progress}%`;
+              if (idx < userStoryIndex) width = '100%';
+              else if (idx === userStoryIndex) width = `${progress}%`;
 
               return (
                 <div
@@ -201,7 +256,7 @@ export const StoryViewerModal: React.FC<StoryViewerModalProps> = ({
                       height: '100%',
                       width,
                       background: '#FFFFFF',
-                      transition: idx === currentIndex ? 'width 0.1s linear' : 'none',
+                      transition: idx === userStoryIndex ? 'width 0.1s linear' : 'none',
                     }}
                   />
                 </div>
@@ -225,6 +280,8 @@ export const StoryViewerModal: React.FC<StoryViewerModalProps> = ({
                   borderRadius: '50%',
                   padding: '2px',
                   background: 'linear-gradient(45deg, #F59E0B, #E67E22, #EC4899)',
+                  transform: isFlipping ? 'rotateY(180deg) scale(0.7)' : 'rotateY(0deg) scale(1)',
+                  transition: 'transform 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
                 }}
               >
                 <div style={{ width: '100%', height: '100%', borderRadius: '50%', overflow: 'hidden', background: '#FFF', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -246,17 +303,67 @@ export const StoryViewerModal: React.FC<StoryViewerModalProps> = ({
               </div>
             </div>
 
-            <button
-              onClick={onClose}
-              style={{ background: 'transparent', border: 'none', color: '#FFFFFF', cursor: 'pointer' }}
-            >
-              <span className="material-symbols-outlined" style={{ fontSize: '28px' }}>close</span>
-            </button>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              {currentStory && (currentStory.user || '').toLowerCase() === (currentUserNick || '').toLowerCase() && (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setIsPaused(true);
+                    if (window.confirm('Vuoi eliminare definitivamente questa storia?')) {
+                      if (onDeleteStory) {
+                        onDeleteStory(currentStory.postId);
+                      }
+                    }
+                    setIsPaused(false);
+                  }}
+                  style={{
+                    background: 'rgba(239, 68, 68, 0.85)',
+                    backdropFilter: 'blur(8px)',
+                    border: '1px solid rgba(255, 255, 255, 0.3)',
+                    color: '#FFFFFF',
+                    borderRadius: '50%',
+                    width: '34px',
+                    height: '34px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    cursor: 'pointer',
+                    boxShadow: '0 4px 12px rgba(239, 68, 68, 0.4)',
+                  }}
+                  title="Elimina Storia"
+                >
+                  <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>
+                    delete
+                  </span>
+                </button>
+              )}
+
+              <button
+                onClick={onClose}
+                style={{
+                  background: 'rgba(0, 0, 0, 0.5)',
+                  backdropFilter: 'blur(10px)',
+                  border: '1px solid rgba(255, 255, 255, 0.2)',
+                  color: '#FFFFFF',
+                  borderRadius: '50%',
+                  width: '34px',
+                  height: '34px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  cursor: 'pointer',
+                }}
+              >
+                <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>
+                  close
+                </span>
+              </button>
+            </div>
           </div>
         </div>
 
         {/* Center Story Image & Touch Nav Controls */}
-        <div style={{ position: 'relative', flex: 1, margin: '16px 0', borderRadius: '20px', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div style={{ position: 'relative', flex: 1, margin: '12px 0 0 0', borderRadius: '20px', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           {/* Left Touch Area */}
           <div
             onClick={handlePrev}
@@ -379,75 +486,6 @@ export const StoryViewerModal: React.FC<StoryViewerModalProps> = ({
               SHINY!
             </div>
           )}
-        </div>
-
-        {/* Bottom Story Footer Info & Interactive Brindisi */}
-        <div
-          style={{
-            background: 'rgba(255, 255, 255, 0.12)',
-            backdropFilter: 'blur(16px)',
-            borderRadius: '20px',
-            padding: '14px 16px',
-            border: '1px solid rgba(255, 255, 255, 0.2)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            gap: '12px',
-          }}
-        >
-          <div>
-            {currentStory.brand ? (
-              <>
-                <div style={{ color: '#FFFFFF', fontSize: '15px', fontWeight: 800 }}>
-                  🍺 {formatBeerTitle(currentStory.brand || 'Storia del Pub')}
-                </div>
-                <div style={{ color: 'rgba(255, 255, 255, 0.8)', fontSize: '12px', fontWeight: 600 }}>
-                  {isStoryPost ? 'Storia 24h' : formatBeerTitle(currentStory.variant)} • <span style={{ color: '#FDE047' }}>+{earnedPts} pt</span>
-                </div>
-              </>
-            ) : (
-              <div style={{ color: '#FFFFFF', fontSize: '15px', fontWeight: 800 }}>
-                {(currentStory as any).caption || `Storia di ${displayName}`}
-              </div>
-            )}
-            {currentStory.brand && (() => {
-              const authorPokedex = allPokedexProfiles?.[currentStory.user];
-              const effectiveRating =
-                (typeof currentStory.rating === 'number' && currentStory.rating > 0 ? currentStory.rating : 0) ||
-                (authorPokedex?.[`${currentStory.brand}-${currentStory.variant}`]?.rating || 0);
-
-              if (effectiveRating <= 0) return null;
-
-              return (
-                <div style={{ marginTop: '4px' }}>
-                  <StarRating rating={effectiveRating} readOnly size={12} />
-                </div>
-              );
-            })()}
-          </div>
-
-          <button
-            onClick={() => onToggleLike(currentStory.postId, null)}
-            style={{
-              borderRadius: '20px',
-              padding: '10px 18px',
-              fontSize: '13px',
-              fontWeight: 800,
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '6px',
-              border: 'none',
-              background: isLiked ? 'linear-gradient(135deg, #F59E0B, #D97706)' : '#FFFFFF',
-              color: isLiked ? '#FFFFFF' : '#0F172A',
-              boxShadow: '0 4px 14px rgba(0,0,0,0.3)',
-              cursor: 'pointer',
-            }}
-          >
-            <span className="material-symbols-outlined" style={{ fontSize: '20px', color: isLiked ? '#FFFFFF' : '#F59E0B' }}>
-              sports_bar
-            </span>
-            Brindisi ({likesCount})
-          </button>
         </div>
       </div>
     </div>

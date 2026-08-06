@@ -34,6 +34,7 @@ interface HomeViewProps {
   onOpenPublicProfile?: (username: string) => void;
   globalUserPrivacy?: Record<string, boolean>;
   isAdminUser?: boolean;
+  onOpenUserStory?: (username: string) => boolean;
 }
 
 export const HomeView: React.FC<HomeViewProps> = ({
@@ -54,6 +55,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
   onOpenPublicProfile,
   globalUserPrivacy = {},
   isAdminUser = false,
+  onOpenUserStory,
 }) => {
   const [timedEvent, setTimedEvent] = useState<{ name: string; desc: string } | null>(null);
   const [cheersToast, setCheersToast] = useState<string | null>(null);
@@ -658,8 +660,13 @@ export const HomeView: React.FC<HomeViewProps> = ({
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
               <div
-                onClick={() => onNavigate('page-profile')}
-                title="Vai al tuo Profilo"
+                onClick={() => {
+                  const opened = onOpenUserStory ? onOpenUserStory(currentUserNick) : false;
+                  if (!opened) {
+                    onNavigate('page-profile');
+                  }
+                }}
+                title="Vedi le tue storie o vai al tuo Profilo"
                 style={{
                   width: '46px',
                   height: '46px',

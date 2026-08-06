@@ -226,7 +226,7 @@ export const PubView: React.FC<PubViewProps> = ({
       }
     });
 
-    storiesList.sort((a, b) => (b.time || 0) - (a.time || 0));
+    storiesList.sort((a, b) => (a.time || 0) - (b.time || 0));
     return storiesList;
   }, [pubStories, posts]);
 
@@ -487,7 +487,13 @@ export const PubView: React.FC<PubViewProps> = ({
               return (
                 <div
                   key={user}
-                  onClick={() => setActiveStoryViewerIndex(firstIndex)}
+                  onClick={() => {
+                    if (onOpenUserStory) {
+                      onOpenUserStory(user);
+                    } else {
+                      setActiveStoryViewerIndex(firstIndex);
+                    }
+                  }}
                   style={{
                     display: 'flex',
                     flexDirection: 'column',
@@ -1402,6 +1408,15 @@ export const PubView: React.FC<PubViewProps> = ({
           onClose={() => setActiveStoryViewerIndex(null)}
           onToggleLike={onToggleLike}
           onOpenPublicProfile={onOpenPublicProfile}
+          onDeleteStory={(postId) => {
+            const targetStory = storyPosts.find((s) => s.postId === postId);
+            onDeletePost(
+              postId,
+              targetStory?.user || currentUserNick,
+              targetStory?.brand || 'Storia del Pub',
+              targetStory?.variant || 'Foto al volo'
+            );
+          }}
         />
       )}
 

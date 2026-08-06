@@ -143,6 +143,8 @@ export default function App() {
     return () => unsubscribe();
   }, []);
 
+  const [storyViewerQueue, setStoryViewerQueue] = useState<any[]>([]);
+
   const activePubStories = useMemo(() => {
     const storiesList: any[] = [];
     const seenStoryIds = new Set<string>();
@@ -188,25 +190,85 @@ export default function App() {
       }
     });
 
-    storiesList.sort((a, b) => (b.time || 0) - (a.time || 0));
-    return storiesList;
+    // Group stories by user and sort each user's stories ASCENDING (oldest first, newest last)
+    const storiesByUser: Record<string, any[]> = {};
+    storiesList.forEach((s) => {
+      const uKey = (s.user || 'anonimo').toLowerCase();
+      if (!storiesByUser[uKey]) storiesByUser[uKey] = [];
+      storiesByUser[uKey].push(s);
+    });
+
+    Object.keys(storiesByUser).forEach((u) => {
+      storiesByUser[u].sort((a, b) => (a.time || 0) - (b.time || 0));
+    });
+
+    return { storiesByUser, rawList: storiesList };
   }, [pubStories, globalPosts]);
 
   const handleOpenUserStory = (username: string): boolean => {
     const targetLower = (username || '').toLowerCase();
-    let storyIndex = activePubStories.findIndex(
-      (s: any) => s && s.user && (s.user.toLowerCase() === targetLower || s.user === username)
+    
+    // Find matching user key in activePubStories
+    const targetUserKey = Object.keys(activePubStories.storiesByUser).find(
+      (u) => u.toLowerCase() === targetLower
     );
+    let targetStories = targetUserKey ? activePubStories.storiesByUser[targetUserKey] : [];
 
-    if (storyIndex === -1 && targetLower === (currentUserNick || '').toLowerCase() && activePubStories.length > 0) {
-      storyIndex = 0;
+    // Fallback if current user clicked own profile and has stories under different casing or raw list
+    if (targetStories.length === 0 && targetLower === (currentUserNick || '').toLowerCase()) {
+      const myRaw = activePubStories.rawList.filter(
+        (s) => (s.user || '').toLowerCase() === targetLower
+      );
+      if (myRaw.length > 0) {
+        targetStories = myRaw;
+      }
     }
 
-    if (storyIndex !== -1) {
-      setActiveStoryViewerIndex(storyIndex);
+    if (targetStories.length > 0) {
+      // Sort target user's stories ASCENDING (oldest 21h ago first, newest 5m ago last)
+      const sortedTargetStories = [...targetStories].sort((a, b) => (a.time || 0) - (b.time || 0));
+
+      // Get other users who have active stories
+      const otherUserKeys = Object.keys(activePubStories.storiesByUser).filter(
+        (u) => u.toLowerCase() !== targetLower
+      );
+
+      // Sort other users by the timestamp of their earliest story ASCENDING (oldest user story first)
+      otherUserKeys.sort((u1, u2) => {
+        const u1Earliest = activePubStories.storiesByUser[u1][0]?.time || 0;
+        const u2Earliest = activePubStories.storiesByUser[u2][0]?.time || 0;
+        return u1Earliest - u2Earliest;
+      });
+
+      const combinedQueue = [...sortedTargetStories];
+      otherUserKeys.forEach((u) => {
+        const userSortedStories = [...activePubStories.storiesByUser[u]].sort(
+          (a, b) => (a.time || 0) - (b.time || 0)
+        );
+        combinedQueue.push(...userSortedStories);
+      });
+
+      setStoryViewerQueue(combinedQueue);
+      setActiveStoryViewerIndex(0);
       return true;
     }
+
     return false;
+  };
+
+  const handleDeleteStory = async (postId: string) => {
+    try {
+      await remove(ref(db, `pub_stories/main_pub/${postId}`));
+      await remove(ref(db, `pub_stories/${postId}`));
+      await remove(ref(db, `posts/${postId}`));
+
+      setGlobalPosts((prev) => prev.filter((p) => p.postId !== postId));
+      setStoryViewerQueue((prev) => prev.filter((s) => s.postId !== postId));
+
+      playPopSound();
+    } catch (e) {
+      console.error("Error deleting story:", e);
+    }
   };
 
   useEffect(() => {
@@ -3230,6 +3292,7 @@ export default function App() {
                     onOpenPublicProfile={handleOpenPublicProfile}
                     globalUserPrivacy={globalUserPrivacy}
                     isAdminUser={isAdminUser}
+                    onOpenUserStory={handleOpenUserStory}
                   />
                 )}
               </div>
@@ -3726,7 +3789,7 @@ export default function App() {
       {activeStoryViewerIndex !== null && (
         <StoryViewerModal
           isOpen={activeStoryViewerIndex !== null}
-          stories={activePubStories}
+          stories={storyViewerQueue}
           initialIndex={activeStoryViewerIndex}
           currentUserNick={currentUserNick}
           globalAvatars={globalAvatars}
@@ -3735,6 +3798,7 @@ export default function App() {
           onClose={() => setActiveStoryViewerIndex(null)}
           onToggleLike={handleToggleLike}
           onOpenPublicProfile={handleOpenPublicProfile}
+          onDeleteStory={handleDeleteStory}
         />
       )}
     </>
