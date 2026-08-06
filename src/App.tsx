@@ -41,6 +41,7 @@ import { TagRequestModal, type TagRequestItem } from './components/TagRequestMod
 import { AppTutorialModal } from './components/AppTutorialModal';
 
 import { FoamBubbles } from './components/FoamBubbles';
+import { PullToRefreshHandler } from './components/PullToRefreshHandler';
 
 
 
@@ -2453,8 +2454,17 @@ export default function App() {
   const isMainTab = mainTabs.includes(currentPage);
   const activeIndex = mainTabs.indexOf(currentPage) !== -1 ? mainTabs.indexOf(currentPage) : 0;
 
+  const handlePullToRefresh = async () => {
+    try {
+      recalculateAllScores();
+      await new Promise((res) => setTimeout(res, 500));
+    } catch (e) {
+      console.error("Errore durante il refresh:", e);
+    }
+  };
+
   return (
-    <>
+    <PullToRefreshHandler onRefresh={handlePullToRefresh}>
       {/* Age Restriction Gate */}
       <AgeGateModal
         isOpen={ageGateOpen}
@@ -3817,6 +3827,6 @@ export default function App() {
           onDeleteStory={handleDeleteStory}
         />
       )}
-    </>
+    </PullToRefreshHandler>
   );
 }
