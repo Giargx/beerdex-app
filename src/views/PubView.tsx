@@ -223,9 +223,19 @@ export const PubView: React.FC<PubViewProps> = ({
       }
     });
 
-    storiesList.sort((a, b) => (a.time || 0) - (b.time || 0));
-    return storiesList;
-  }, [pubStories, posts]);
+    // PRIVACY FILTER: Solo le storie dell'utente loggato o dei suoi amici!
+    const currentUserLower = (currentUserNick || '').toLowerCase();
+    const friendsSet = new Set((myFriendsList || []).map((f) => (f || '').toLowerCase()));
+
+    const filteredStories = storiesList.filter((s) => {
+      if (!s || !s.user) return false;
+      const uLower = s.user.toLowerCase();
+      return uLower === currentUserLower || friendsSet.has(uLower);
+    });
+
+    filteredStories.sort((a, b) => (a.time || 0) - (b.time || 0));
+    return filteredStories;
+  }, [pubStories, posts, currentUserNick, myFriendsList]);
 
   // Helper for clicking user avatar: open story if available, else open public profile
   const handleUserAvatarClick = (username: string) => {

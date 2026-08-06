@@ -191,9 +191,19 @@ export default function App() {
       }
     });
 
+    // PRIVACY FILTER: Solo le storie dell'utente loggato o dei suoi amici!
+    const currentUserLower = (currentUserNick || '').toLowerCase();
+    const friendsSet = new Set((myFriendsList || []).map((f) => (f || '').toLowerCase()));
+
+    const filteredStories = storiesList.filter((s) => {
+      if (!s || !s.user) return false;
+      const uLower = s.user.toLowerCase();
+      return uLower === currentUserLower || friendsSet.has(uLower);
+    });
+
     // Group stories by user and sort each user's stories ASCENDING (oldest first, newest last)
     const storiesByUser: Record<string, any[]> = {};
-    storiesList.forEach((s) => {
+    filteredStories.forEach((s) => {
       const uKey = (s.user || 'anonimo').toLowerCase();
       if (!storiesByUser[uKey]) storiesByUser[uKey] = [];
       storiesByUser[uKey].push(s);
@@ -203,8 +213,8 @@ export default function App() {
       storiesByUser[u].sort((a, b) => (a.time || 0) - (b.time || 0));
     });
 
-    return { storiesByUser, rawList: storiesList };
-  }, [pubStories, globalPosts]);
+    return { storiesByUser, rawList: filteredStories };
+  }, [pubStories, globalPosts, currentUserNick, myFriendsList]);
 
   const handleOpenUserStory = (username: string): boolean => {
     const targetLower = (username || '').toLowerCase();
