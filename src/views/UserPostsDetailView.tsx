@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { StarRating } from '../components/StarRating';
-import { formatBeerTitle, getBasePoints } from '../beers';
+import { formatBeerTitle, getBasePoints, isUserParticipantInPost } from '../beers';
 import { BrindisiSummary } from '../components/BrindisiSummary';
 import { playClinkSound } from '../utils/audio';
 import { ReportPostModal } from '../components/ReportPostModal';
@@ -69,7 +69,7 @@ export const UserPostsDetailView: React.FC<UserPostsDetailViewProps> = ({
   const safePosts = Array.isArray(posts) ? posts : [];
   const myPosts = username === '__SINGLE_POST__'
     ? safePosts.filter((p) => p && p.postId === initialPostId)
-    : safePosts.filter((p) => p && p.user === username).reverse();
+    : safePosts.filter((p) => p && isUserParticipantInPost(p, username)).reverse();
 
   useEffect(() => {
     if (initialPostId) {

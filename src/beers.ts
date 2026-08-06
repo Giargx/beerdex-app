@@ -252,3 +252,28 @@ export function getBeerPoints(brandName: string, variantName: string, isShiny: b
   if (isShiny) base *= 2;
   return base;
 }
+
+export function isUserParticipantInPost(post: any, username: string): boolean {
+  if (!post || !username) return false;
+  const userLower = username.toLowerCase();
+
+  // Author check
+  if (post.user && post.user.toLowerCase() === userLower) {
+    return true;
+  }
+
+  // taggedFriends array check
+  if (Array.isArray(post.taggedFriends) && post.taggedFriends.some((f: any) => typeof f === 'string' && f.toLowerCase() === userLower)) {
+    return true;
+  }
+
+  // taggedFriend string check (could be single name or comma-separated names)
+  if (post.taggedFriend && typeof post.taggedFriend === 'string') {
+    const friends = post.taggedFriend.split(',').map((s: string) => s.trim().toLowerCase());
+    if (friends.includes(userLower)) {
+      return true;
+    }
+  }
+
+  return false;
+}

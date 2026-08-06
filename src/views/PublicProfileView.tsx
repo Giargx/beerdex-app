@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { TrophyGrid } from '../components/TrophyGrid';
 import type { PokedexEntry } from '../components/TrophyGrid';
 import { FoamBubbles } from '../components/FoamBubbles';
-import { beers, getBeerType, formatBeerTitle } from '../beers';
+import { beers, getBeerType, formatBeerTitle, isUserParticipantInPost } from '../beers';
 import type { Beer } from '../beers';
 import { StarRating } from '../components/StarRating';
 
@@ -87,7 +87,7 @@ export const PublicProfileView: React.FC<PublicProfileViewProps> = ({
     ? getUserRankTitle(score || 0, Object.keys(safePokedex).length)
     : 'Bevitore';
 
-  const myPosts = safePosts.filter((p) => p && p.user === safeUser);
+  const myPosts = safePosts.filter((p) => p && isUserParticipantInPost(p, safeUser));
   const totalUnlocked = Object.keys(safePokedex).length;
 
   // Rating Stats Calculation for Public Profile
