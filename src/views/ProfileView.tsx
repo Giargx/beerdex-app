@@ -1201,33 +1201,10 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
               boxShadow: 'var(--card-shadow)',
             }}
           >
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
-              <h4 style={{ margin: 0, fontSize: '15px', fontWeight: 'bold', color: 'var(--dark)', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <span className="material-symbols-outlined" style={{ color: '#F59E0B' }}>rate_review</span>
-                Valuta le tue Birre Sbloccate
-              </h4>
-              {selectedStyleFilter && (
-                <button
-                  onClick={() => setSelectedStyleFilter(null)}
-                  style={{
-                    background: 'rgba(245, 158, 11, 0.15)',
-                    border: '1px solid rgba(245, 158, 11, 0.4)',
-                    color: 'var(--primary-dark)',
-                    borderRadius: '8px',
-                    padding: '3px 8px',
-                    fontSize: '11px',
-                    fontWeight: 'bold',
-                    cursor: 'pointer',
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: '4px',
-                  }}
-                >
-                  <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>filter_alt_off</span>
-                  Mostra Tutte
-                </button>
-              )}
-            </div>
+            <h4 style={{ margin: '0 0 6px 0', fontSize: '15px', fontWeight: 'bold', color: 'var(--dark)', display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <span className="material-symbols-outlined" style={{ color: '#F59E0B' }}>rate_review</span>
+              Valuta le tue Birre Sbloccate
+            </h4>
             <p style={{ margin: '0 0 16px 0', fontSize: '12px', color: 'var(--text-muted)' }}>
               {selectedStyleFilter ? (
                 <>Mostrando solo le birre appartenenti allo stile <strong>{beerTypeMeta[selectedStyleFilter]?.label}</strong>.</>
