@@ -13,7 +13,6 @@ interface GuidedStep {
   badgeBg: string;
   title: string;
   mascotSpeech: string;
-  highlightText: string;
   targetPosition?: {
     top?: string;
     bottom?: string;
@@ -44,7 +43,6 @@ export const AppTutorialModal: React.FC<AppTutorialModalProps> = ({
       badgeBg: '#F59E0B',
       title: 'Benvenuto su PopIt! 🍺🕶️',
       mascotSpeech: 'Ciao! Sono POP 🍺🕶️, la tua guida personale. Ti mostro le icone principali: la Fotocamera per scansionare i codici a barre, il tasto Amici, la Mappa dei pub ed il Regolamento!',
-      highlightText: 'Pulsanti: Fotocamera, Amici, Mappa e Regolamento',
       targetPosition: { top: '340px', left: '50%', width: '92%', height: '90px', borderRadius: '24px' },
     },
     // ----------------------------------------------------
@@ -57,7 +55,6 @@ export const AppTutorialModal: React.FC<AppTutorialModalProps> = ({
       badgeBg: '#D97706',
       title: 'Eventi Speciali & Spina 🍺',
       mascotSpeech: 'Sempre nella Home trovi il banner dell\'Evento Stagionale attivo (es. Oktoberfest o San Patrizio) e la Spina del Giorno con le birre consigliate!',
-      highlightText: 'Sfide stagionali e birra consigliata del giorno',
       targetPosition: { top: '440px', left: '50%', width: '92%', height: '140px', borderRadius: '24px' },
     },
     // ----------------------------------------------------
@@ -70,7 +67,6 @@ export const AppTutorialModal: React.FC<AppTutorialModalProps> = ({
       badgeBg: '#3B82F6',
       title: 'Cerca & Filtra le Birre 🔍',
       mascotSpeech: 'Siamo in Esplora! In alto puoi digitare la marca della birra che cerchi e filtrarla per Rarità (Comuni, Medie, Rare) o per Nazione!',
-      highlightText: 'Barra di ricerca e filtri per rarità e paese',
       targetPosition: { top: '70px', left: '50%', width: '94%', height: '180px', borderRadius: '20px' },
     },
     // ----------------------------------------------------
@@ -83,7 +79,6 @@ export const AppTutorialModal: React.FC<AppTutorialModalProps> = ({
       badgeBg: '#2563EB',
       title: 'Banner Rarità & Scansione 📸',
       mascotSpeech: 'Toccando un banner di rarità apri la scheda della birra. Premi "Sblocca": prima inquadra il codice a barre (Barcode) sul retro della bottiglia, poi scatta la foto alla tua birra!',
-      highlightText: 'Scheda birra: Scansiona il Barcode e scatta la foto',
       targetPosition: { top: '270px', left: '50%', width: '94%', height: '180px', borderRadius: '20px' },
     },
     // ----------------------------------------------------
@@ -96,7 +91,6 @@ export const AppTutorialModal: React.FC<AppTutorialModalProps> = ({
       badgeBg: '#8B5CF6',
       title: 'Classifica Amici & Globale 🏆',
       mascotSpeech: 'Nelle Classifiche puoi confrontare i tuoi punti XP con i tuoi amici. Nella scheda Globale trovi i Top 5 Bevitori migliori dell\'intera applicazione!',
-      highlightText: 'Classifica dei tuoi Amici e Top 5 Globale',
       targetPosition: { top: '75px', left: '50%', width: '92%', height: '55px', borderRadius: '20px' },
     },
     // ----------------------------------------------------
@@ -109,7 +103,6 @@ export const AppTutorialModal: React.FC<AppTutorialModalProps> = ({
       badgeBg: '#7C3AED',
       title: 'Cerca Utenti per Nickname 🔎',
       mascotSpeech: 'Vuoi cercare un altro bevitore? Usa la barra di ricerca in alto per digitare il nickname univoco di qualsiasi utente e trovarlo al volo!',
-      highlightText: 'Trova qualsiasi bevitore col suo Nickname',
       targetPosition: { top: '140px', left: '50%', width: '92%', height: '50px', borderRadius: '18px' },
     },
     // ----------------------------------------------------
@@ -122,7 +115,6 @@ export const AppTutorialModal: React.FC<AppTutorialModalProps> = ({
       badgeBg: '#EC4899',
       title: 'Le Storie 24h al Bancone 🍻',
       mascotSpeech: 'Siamo al Pub Social! In alto trovi le Storie 24h dei bevitori. Tocca il cerchio profilo di un amico per guardare la sua storia o scattarne una tua!',
-      highlightText: 'Storie 24h dal vivo con filtri e musica',
       targetPosition: { top: '75px', left: '50%', width: '94%', height: '110px', borderRadius: '20px' },
     },
     // ----------------------------------------------------
@@ -135,7 +127,6 @@ export const AppTutorialModal: React.FC<AppTutorialModalProps> = ({
       badgeBg: '#DB2777',
       title: 'Post degli Amici & Salvataggio 📌',
       mascotSpeech: 'Nel feed del Pub vedi i post pubblicati dai tuoi amici. Usa l\'icona del Segnalibro per salvarli tra i tuoi preferiti o l\'icona della Bandierina per segnalarli.',
-      highlightText: 'Salva i post preferiti o segnala contenuti non idonei',
       targetPosition: { top: '200px', left: '50%', width: '94%', height: '220px', borderRadius: '20px' },
     },
     // ----------------------------------------------------
@@ -148,7 +139,6 @@ export const AppTutorialModal: React.FC<AppTutorialModalProps> = ({
       badgeBg: '#EF4444',
       title: 'Impostazioni & Foto Profilo ⚙️',
       mascotSpeech: 'Siamo nel tuo Profilo! In alto a destra c\'è l\'ingranaggio per modificare il tuo nickname (ogni 3 mesi), cambiare la password e riaprire questo tutorial!',
-      highlightText: 'Rotella Impostazioni (⚙️) e cambio foto profilo',
       targetPosition: { top: '20px', right: '20px', width: '44px', height: '44px', borderRadius: '12px' },
     },
     // ----------------------------------------------------
@@ -161,7 +151,6 @@ export const AppTutorialModal: React.FC<AppTutorialModalProps> = ({
       badgeBg: '#DC2626',
       title: 'Le tue Schede Personali 📊',
       mascotSpeech: 'In basso nel profilo trovi 5 schede: "I Miei Post", "Post Salvati", "Medaglie & Trofei", "Statistiche Stili" e "Valutazioni". Esplorale tutte!',
-      highlightText: 'I Miei Post, Salvati, Medaglie, Statistiche e Valutazioni',
       targetPosition: { top: '350px', left: '50%', width: '94%', height: '48px', borderRadius: '12px' },
     },
   ];
@@ -188,40 +177,72 @@ export const AppTutorialModal: React.FC<AppTutorialModalProps> = ({
     }
   }, [currentStep, isOpen]);
 
-  // Dynamically calculate bounding rectangle of the targeted DOM element
+  // Scroll target element into view and update bounding box position continuously
   useEffect(() => {
-    const updateRect = () => {
-      if (isOpen && current && current.targetId) {
-        const el = document.getElementById(current.targetId);
-        if (el) {
-          const rect = el.getBoundingClientRect();
-          if (rect.width > 0 && rect.height > 0) {
-            const padding = 6;
-            setTargetRect({
-              top: Math.max(8, rect.top - padding),
-              left: Math.max(8, rect.left - padding),
-              width: Math.min(window.innerWidth - 16, rect.width + padding * 2),
-              height: rect.height + padding * 2,
-            });
-            return;
-          }
+    if (!isOpen || !current || !current.targetId) {
+      setTargetRect(null);
+      return;
+    }
+
+    let frameId: number;
+    let startTime = Date.now();
+    let hasScrolled = false;
+
+    const measureAndScroll = () => {
+      const el = document.getElementById(current.targetId!);
+      if (el) {
+        // Auto-scroll target element into center view on step change
+        if (!hasScrolled) {
+          hasScrolled = true;
+          try {
+            el.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
+          } catch (e) {}
+        }
+
+        const rect = el.getBoundingClientRect();
+        if (rect.width > 0 && rect.height > 0) {
+          const padding = 6;
+          setTargetRect({
+            top: Math.max(8, rect.top - padding),
+            left: Math.max(8, rect.left - padding),
+            width: Math.min(window.innerWidth - 16, rect.width + padding * 2),
+            height: rect.height + padding * 2,
+          });
         }
       }
-      setTargetRect(null);
+
+      // Continuously measure while tab slide transitions or scroll animations settle (up to 1000ms)
+      if (Date.now() - startTime < 1000) {
+        frameId = requestAnimationFrame(measureAndScroll);
+      }
     };
 
-    updateRect();
-    const t1 = setTimeout(updateRect, 50);
-    const t2 = setTimeout(updateRect, 200);
+    measureAndScroll();
 
-    window.addEventListener('resize', updateRect);
-    window.addEventListener('scroll', updateRect, true);
+    // Re-measure on user scroll or window resize
+    const handleScrollOrResize = () => {
+      const el = document.getElementById(current.targetId!);
+      if (el) {
+        const rect = el.getBoundingClientRect();
+        if (rect.width > 0 && rect.height > 0) {
+          const padding = 6;
+          setTargetRect({
+            top: Math.max(8, rect.top - padding),
+            left: Math.max(8, rect.left - padding),
+            width: Math.min(window.innerWidth - 16, rect.width + padding * 2),
+            height: rect.height + padding * 2,
+          });
+        }
+      }
+    };
+
+    window.addEventListener('resize', handleScrollOrResize);
+    window.addEventListener('scroll', handleScrollOrResize, true);
 
     return () => {
-      clearTimeout(t1);
-      clearTimeout(t2);
-      window.removeEventListener('resize', updateRect);
-      window.removeEventListener('scroll', updateRect, true);
+      cancelAnimationFrame(frameId);
+      window.removeEventListener('resize', handleScrollOrResize);
+      window.removeEventListener('scroll', handleScrollOrResize, true);
     };
   }, [currentStep, isOpen]);
 
@@ -362,8 +383,8 @@ export const AppTutorialModal: React.FC<AppTutorialModalProps> = ({
         <div
           style={{
             position: 'relative',
-            width: '76px',
-            height: '76px',
+            width: '74px',
+            height: '74px',
             background: 'linear-gradient(135deg, #FFFBEB 0%, #FEF3C7 100%)',
             border: '3px solid #F59E0B',
             borderRadius: '50%',
@@ -376,7 +397,7 @@ export const AppTutorialModal: React.FC<AppTutorialModalProps> = ({
           }}
         >
           {/* SVG COOL BEER MUG WITH SUNGLASSES ("POP") */}
-          <svg width="58" height="58" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <svg width="56" height="56" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path d="M72 40 C 88 40, 88 70, 72 70" stroke="#D97706" strokeWidth="8" strokeLinecap="round" fill="none" />
             <rect x="25" y="32" width="48" height="48" rx="10" fill="url(#beerGradPopMain)" stroke="#D97706" strokeWidth="3" />
             <path d="M 20 34 C 20 22, 32 20, 40 24 C 48 18, 60 18, 66 24 C 74 20, 80 26, 78 34 Z" fill="#FFFFFF" stroke="#E2E8F0" strokeWidth="2" />
@@ -397,11 +418,11 @@ export const AppTutorialModal: React.FC<AppTutorialModalProps> = ({
           </svg>
         </div>
 
-        {/* THOUGHT SPEECH BUBBLE WITH FIXED UNIFORM DIMENSIONS */}
+        {/* THOUGHT SPEECH BUBBLE WITH UNIFORM COMPACT DIMENSIONS */}
         <div
           style={{
             flex: 1,
-            height: '215px',
+            height: '190px',
             background: '#FFFFFF',
             borderRadius: '20px',
             borderBottomLeftRadius: '4px',
@@ -459,42 +480,18 @@ export const AppTutorialModal: React.FC<AppTutorialModalProps> = ({
           </div>
 
           {/* SCROLLABLE INNER TEXT AREA (TITLE + SPEECH) */}
-          <div style={{ flex: 1, overflowY: 'auto', margin: '4px 0', paddingRight: '2px' }}>
-            <div style={{ fontSize: '13.5px', fontWeight: 900, color: '#0F172A', lineHeight: '1.25', marginBottom: '3px' }}>
+          <div style={{ flex: 1, overflowY: 'auto', margin: '6px 0', paddingRight: '2px' }}>
+            <div style={{ fontSize: '14px', fontWeight: 900, color: '#0F172A', lineHeight: '1.25', marginBottom: '4px' }}>
               {current.title}
             </div>
 
-            <div style={{ fontSize: '11.5px', color: '#334155', lineHeight: '1.35', fontWeight: 600 }}>
+            <div style={{ fontSize: '12px', color: '#334155', lineHeight: '1.4', fontWeight: 600 }}>
               {current.mascotSpeech}
             </div>
           </div>
 
-          {/* HIGHLIGHT TIP BANNER */}
-          <div
-            style={{
-              background: '#FFFBEB',
-              border: '1px solid #FCD34D',
-              borderRadius: '10px',
-              padding: '3px 8px',
-              fontSize: '10.5px',
-              color: '#B45309',
-              fontWeight: 800,
-              display: 'flex',
-              alignItems: 'center',
-              gap: '4px',
-              flexShrink: 0,
-              marginBottom: '4px',
-              whiteSpace: 'nowrap',
-              overflow: 'hidden',
-              textOverflow: 'ellipsis',
-            }}
-          >
-            <span className="material-symbols-outlined" style={{ fontSize: '14px', flexShrink: 0 }}>lightbulb</span>
-            <span style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>{current.highlightText}</span>
-          </div>
-
           {/* CONTROLS */}
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexShrink: 0 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexShrink: 0, marginTop: '2px' }}>
             <div style={{ fontSize: '10.5px', fontWeight: 800, color: '#64748B' }}>
               {currentStep + 1} di {steps.length}
             </div>
@@ -507,7 +504,7 @@ export const AppTutorialModal: React.FC<AppTutorialModalProps> = ({
                     background: '#F1F5F9',
                     border: '1px solid #CBD5E1',
                     color: '#475569',
-                    padding: '4px 10px',
+                    padding: '5px 11px',
                     borderRadius: '10px',
                     fontSize: '11px',
                     fontWeight: 800,
@@ -524,7 +521,7 @@ export const AppTutorialModal: React.FC<AppTutorialModalProps> = ({
                   background: 'linear-gradient(135deg, #F59E0B 0%, #D97706 100%)',
                   border: 'none',
                   color: '#FFFFFF',
-                  padding: '4px 12px',
+                  padding: '5px 14px',
                   borderRadius: '10px',
                   fontSize: '11px',
                   fontWeight: 900,

@@ -266,9 +266,8 @@ export const LeaderboardView: React.FC<LeaderboardViewProps> = ({
           </button>
         </div>
 
-        {/* SEARCH BAR (GLOBAL MODE) */}
-        {activeTab === 'global' && (
-          <div id="leaderboardSearchBox" style={{ position: 'relative', marginBottom: '20px' }}>
+        {/* SEARCH BAR */}
+        <div id="leaderboardSearchBox" style={{ position: 'relative', marginBottom: '20px' }}>
             <div style={{
               display: 'flex',
               alignItems: 'center',
@@ -397,7 +396,6 @@ export const LeaderboardView: React.FC<LeaderboardViewProps> = ({
               </div>
             )}
           </div>
-        )}
 
         {players.length === 0 ? (
           <div style={{
