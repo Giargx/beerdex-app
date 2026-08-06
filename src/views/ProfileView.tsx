@@ -200,6 +200,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
     <div className="page-container-view" style={{ minHeight: '100%' }}>
       <div className="profile-header-card" style={{ position: 'relative', width: '100%' }}>
         <button
+          id="profileSettingsBtn"
           className="settings-toggle-btn"
           onClick={onToggleSettings}
           style={{
@@ -509,14 +510,17 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
       )}
 
       {/* Main tab control buttons */}
-      <div style={{
-        display: 'flex',
-        margin: '10px 20px 15px 20px',
-        background: 'var(--gray)',
-        borderRadius: '12px',
-        padding: '4px',
-        gap: '4px'
-      }}>
+      <div
+        id="profileTabButtons"
+        style={{
+          display: 'flex',
+          margin: '10px 20px 15px 20px',
+          background: 'var(--gray)',
+          borderRadius: '12px',
+          padding: '4px',
+          gap: '4px'
+        }}
+      >
         {[
           { id: 'posts', label: 'I Miei Post', icon: 'photo_library' },
           { id: 'saved', label: 'Salvati', icon: 'bookmark' },

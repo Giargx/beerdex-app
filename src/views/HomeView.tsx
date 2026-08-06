@@ -768,12 +768,15 @@ export const HomeView: React.FC<HomeViewProps> = ({
 
       <div className="page-container" style={{ paddingTop: 0 }}>
         {/* 4 MAIN ACTION TILES */}
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(4, 1fr)',
-          gap: '10px',
-          marginBottom: '25px'
-        }}>
+        <div
+          id="homeTopActionTiles"
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(4, 1fr)',
+            gap: '10px',
+            marginBottom: '25px'
+          }}
+        >
           <button
             onClick={() => onOpenScanner ? onOpenScanner() : onNavigate('page-explore')}
             style={{

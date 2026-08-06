@@ -125,7 +125,7 @@ export const ExploreView: React.FC<ExploreViewProps> = ({
       </header>
 
       <div className="page-container" style={{ marginTop: '-30px' }}>
-        <div className="controls">
+        <div className="controls" id="exploreSearchHeader">
           <input
             type="text"
             placeholder="Cerca marca della birra..."

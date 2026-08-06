@@ -3017,18 +3017,17 @@ export default function App() {
                 setSettingsOpen(false);
                 setTutorialOpen(true);
               }}
-              style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 0', borderBottom: '1px solid #f1f5f9' }}
             >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                <span className="material-symbols-outlined icon" style={{ color: 'var(--primary-dark)' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flex: 1, minWidth: 0 }}>
+                <span className="material-symbols-outlined icon" style={{ color: 'var(--primary-dark)', flexShrink: 0 }}>
                   school
                 </span>
-                <div style={{ textAlign: 'left' }}>
+                <div style={{ textAlign: 'left', flex: 1, minWidth: 0 }}>
                   <div className="row-label">Rivedi Tutorial App 🎓</div>
                   <div className="row-desc">Riapri la guida interattiva per scoprire tutte le funzionalità</div>
                 </div>
               </div>
-              <span className="material-symbols-outlined chevron">chevron_right</span>
+              <span className="material-symbols-outlined chevron" style={{ flexShrink: 0, marginLeft: '8px' }}>chevron_right</span>
             </div>
 
             {/* Row Tema */}

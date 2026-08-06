@@ -8,12 +8,13 @@ interface AppTutorialModalProps {
 
 interface GuidedStep {
   pageName: string;
+  targetId?: string;
   badge: string;
   badgeBg: string;
   title: string;
   mascotSpeech: string;
   highlightText: string;
-  targetPosition: {
+  targetPosition?: {
     top?: string;
     bottom?: string;
     left?: string;
@@ -30,85 +31,93 @@ export const AppTutorialModal: React.FC<AppTutorialModalProps> = ({
   onNavigate,
 }) => {
   const [currentStep, setCurrentStep] = useState(0);
+  const [targetRect, setTargetRect] = useState<{ top: number; left: number; width: number; height: number } | null>(null);
 
   const steps: GuidedStep[] = [
     // ----------------------------------------------------
-    // PASSO 1: HOME - PULSANTI IN ALTO
+    // PASSO 1: HOME - PULSANTI AZIONE IN ALTO
     // ----------------------------------------------------
     {
       pageName: 'page-home',
-      badge: 'FASE 1 DI 5 • HOME • ICONE IN ALTO',
+      targetId: 'homeTopActionTiles',
+      badge: 'FASE 1 DI 5 • HOME • AZIONI PRINCIPALI',
       badgeBg: '#F59E0B',
       title: 'Benvenuto su PopIt! 🍺🕶️',
-      mascotSpeech: 'Ciao! Sono POP 🍺🕶️, la tua guida personale. Ti mostro le icone in alto: la Fotocamera per scansionare i codici a barre, il tasto Amici, la Mappa dei pub ed il Regolamento!',
+      mascotSpeech: 'Ciao! Sono POP 🍺🕶️, la tua guida personale. Ti mostro le icone principali: la Fotocamera per scansionare i codici a barre, il tasto Amici, la Mappa dei pub ed il Regolamento!',
       highlightText: 'Pulsanti: Fotocamera, Amici, Mappa e Regolamento',
-      targetPosition: { top: '15px', right: '15px', width: '220px', height: '48px', borderRadius: '24px' },
+      targetPosition: { top: '340px', left: '50%', width: '92%', height: '90px', borderRadius: '24px' },
     },
     // ----------------------------------------------------
     // PASSO 1B: HOME - EVENTO SPECIALE & SPINA DEL GIORNO
     // ----------------------------------------------------
     {
       pageName: 'page-home',
+      targetId: 'dashEventBox',
       badge: 'FASE 1 DI 5 • HOME • EVENTI & CONSIGLI',
       badgeBg: '#D97706',
       title: 'Eventi Speciali & Spina 🍺',
       mascotSpeech: 'Sempre nella Home trovi il banner dell\'Evento Stagionale attivo (es. Oktoberfest o San Patrizio) e la Spina del Giorno con le birre consigliate!',
       highlightText: 'Sfide stagionali e birra consigliata del giorno',
-      targetPosition: { top: '220px', left: '50%', width: '92%', height: '140px', borderRadius: '20px' },
+      targetPosition: { top: '440px', left: '50%', width: '92%', height: '140px', borderRadius: '24px' },
     },
     // ----------------------------------------------------
     // PASSO 2A: ESPLORA - RICERCA E FILTRI
     // ----------------------------------------------------
     {
       pageName: 'page-explore',
+      targetId: 'exploreSearchHeader',
       badge: 'FASE 2 DI 5 • ESPLORA • RICERCA & FILTRI',
       badgeBg: '#3B82F6',
       title: 'Cerca & Filtra le Birre 🔍',
       mascotSpeech: 'Siamo in Esplora! In alto puoi digitare la marca della birra che cerchi e filtrarla per Rarità (Comuni, Medie, Rare) o per Nazione!',
       highlightText: 'Barra di ricerca e filtri per rarità e paese',
-      targetPosition: { top: '70px', left: '50%', width: '94%', height: '110px', borderRadius: '20px' },
+      targetPosition: { top: '70px', left: '50%', width: '94%', height: '180px', borderRadius: '20px' },
     },
     // ----------------------------------------------------
     // PASSO 2B: ESPLORA - BANNER RARITÀ & PROCEDURA SBLOCCO
     // ----------------------------------------------------
     {
       pageName: 'page-explore',
+      targetId: 'beerList',
       badge: 'FASE 2 DI 5 • ESPLORA • SBLOCCO CON BARCODE',
       badgeBg: '#2563EB',
       title: 'Banner Rarità & Scansione 📸',
       mascotSpeech: 'Toccando un banner di rarità apri la scheda della birra. Premi "Sblocca": prima inquadra il codice a barre (Barcode) sul retro della bottiglia, poi scatta la foto alla tua birra!',
       highlightText: 'Scheda birra: Scansiona il Barcode e scatta la foto',
-      targetPosition: { top: '190px', left: '50%', width: '94%', height: '150px', borderRadius: '20px' },
+      targetPosition: { top: '270px', left: '50%', width: '94%', height: '180px', borderRadius: '20px' },
     },
     // ----------------------------------------------------
     // PASSO 3A: CLASSIFICHE - AMICI E GLOBALE (TOP 5)
     // ----------------------------------------------------
     {
       pageName: 'page-leaderboard',
+      targetId: 'leaderboardTabs',
       badge: 'FASE 3 DI 5 • CLASSIFICHE • AMICI E TOP 5',
       badgeBg: '#8B5CF6',
       title: 'Classifica Amici & Globale 🏆',
       mascotSpeech: 'Nelle Classifiche puoi confrontare i tuoi punti XP con i tuoi amici. Nella scheda Globale trovi i Top 5 Bevitori migliori dell\'intera applicazione!',
       highlightText: 'Classifica dei tuoi Amici e Top 5 Globale',
-      targetPosition: { top: '75px', left: '50%', width: '92%', height: '130px', borderRadius: '20px' },
+      targetPosition: { top: '75px', left: '50%', width: '92%', height: '55px', borderRadius: '20px' },
     },
     // ----------------------------------------------------
     // PASSO 3B: CLASSIFICHE - RICERCA UTENTI PER NICKNAME
     // ----------------------------------------------------
     {
       pageName: 'page-leaderboard',
+      targetId: 'leaderboardSearchBox',
       badge: 'FASE 3 DI 5 • CLASSIFICHE • CERCA UTENTI',
       badgeBg: '#7C3AED',
       title: 'Cerca Utenti per Nickname 🔎',
       mascotSpeech: 'Vuoi cercare un altro bevitore? Usa la barra di ricerca in alto per digitare il nickname univoco di qualsiasi utente e trovarlo al volo!',
       highlightText: 'Trova qualsiasi bevitore col suo Nickname',
-      targetPosition: { top: '210px', left: '50%', width: '92%', height: '60px', borderRadius: '16px' },
+      targetPosition: { top: '140px', left: '50%', width: '92%', height: '50px', borderRadius: '18px' },
     },
     // ----------------------------------------------------
     // PASSO 4A: PUB - STORIE 24H AL BANCONE
     // ----------------------------------------------------
     {
       pageName: 'page-social',
+      targetId: 'pubStoriesSection',
       badge: 'FASE 4 DI 5 • IL PUB • STORIE 24H',
       badgeBg: '#EC4899',
       title: 'Le Storie 24h al Bancone 🍻',
@@ -121,36 +130,39 @@ export const AppTutorialModal: React.FC<AppTutorialModalProps> = ({
     // ----------------------------------------------------
     {
       pageName: 'page-social',
+      targetId: 'pubPostsFeed',
       badge: 'FASE 4 DI 5 • IL PUB • POST & SEGNALIBRO',
       badgeBg: '#DB2777',
       title: 'Post degli Amici & Salvataggio 📌',
       mascotSpeech: 'Nel feed del Pub vedi i post pubblicati dai tuoi amici. Usa l\'icona del Segnalibro per salvarli tra i tuoi preferiti o l\'icona della Bandierina per segnalarli.',
       highlightText: 'Salva i post preferiti o segnala contenuti non idonei',
-      targetPosition: { top: '200px', left: '50%', width: '94%', height: '160px', borderRadius: '20px' },
+      targetPosition: { top: '200px', left: '50%', width: '94%', height: '220px', borderRadius: '20px' },
     },
     // ----------------------------------------------------
     // PASSO 5A: PROFILO - IMPOSTAZIONI & FOTO PROFILO
     // ----------------------------------------------------
     {
       pageName: 'page-profile',
+      targetId: 'profileSettingsBtn',
       badge: 'FASE 5 DI 5 • PROFILO • IMPOSTAZIONI & AVATAR',
       badgeBg: '#EF4444',
       title: 'Impostazioni & Foto Profilo ⚙️',
       mascotSpeech: 'Siamo nel tuo Profilo! In alto a destra c\'è l\'ingranaggio per modificare il tuo nickname (ogni 3 mesi), cambiare la password e riaprire questo tutorial!',
       highlightText: 'Rotella Impostazioni (⚙️) e cambio foto profilo',
-      targetPosition: { top: '15px', right: '15px', width: '50px', height: '50px', borderRadius: '16px' },
+      targetPosition: { top: '20px', right: '20px', width: '44px', height: '44px', borderRadius: '12px' },
     },
     // ----------------------------------------------------
     // PASSO 5B: PROFILO - LE SCHEDE IN BASSO
     // ----------------------------------------------------
     {
       pageName: 'page-profile',
+      targetId: 'profileTabButtons',
       badge: 'FASE 5 DI 5 • PROFILO • LE SCHEDE PERSONALI',
       badgeBg: '#DC2626',
       title: 'Le tue Schede Personali 📊',
       mascotSpeech: 'In basso nel profilo trovi 5 schede: "I Miei Post", "Post Salvati", "Medaglie & Trofei", "Statistiche Stili" e "Valutazioni". Esplorale tutte!',
       highlightText: 'I Miei Post, Salvati, Medaglie, Statistiche e Valutazioni',
-      targetPosition: { top: '240px', left: '50%', width: '94%', height: '150px', borderRadius: '20px' },
+      targetPosition: { top: '350px', left: '50%', width: '94%', height: '48px', borderRadius: '12px' },
     },
   ];
 
@@ -174,6 +186,43 @@ export const AppTutorialModal: React.FC<AppTutorialModalProps> = ({
     if (isOpen && current && onNavigate) {
       onNavigate(current.pageName);
     }
+  }, [currentStep, isOpen]);
+
+  // Dynamically calculate bounding rectangle of the targeted DOM element
+  useEffect(() => {
+    const updateRect = () => {
+      if (isOpen && current && current.targetId) {
+        const el = document.getElementById(current.targetId);
+        if (el) {
+          const rect = el.getBoundingClientRect();
+          if (rect.width > 0 && rect.height > 0) {
+            const padding = 6;
+            setTargetRect({
+              top: Math.max(8, rect.top - padding),
+              left: Math.max(8, rect.left - padding),
+              width: Math.min(window.innerWidth - 16, rect.width + padding * 2),
+              height: rect.height + padding * 2,
+            });
+            return;
+          }
+        }
+      }
+      setTargetRect(null);
+    };
+
+    updateRect();
+    const t1 = setTimeout(updateRect, 50);
+    const t2 = setTimeout(updateRect, 200);
+
+    window.addEventListener('resize', updateRect);
+    window.addEventListener('scroll', updateRect, true);
+
+    return () => {
+      clearTimeout(t1);
+      clearTimeout(t2);
+      window.removeEventListener('resize', updateRect);
+      window.removeEventListener('scroll', updateRect, true);
+    };
   }, [currentStep, isOpen]);
 
   if (!isOpen) return null;
@@ -205,21 +254,57 @@ export const AppTutorialModal: React.FC<AppTutorialModalProps> = ({
         boxSizing: 'border-box',
       }}
     >
-      {/* SOFT BACKDROP (NO HEAVY BLUR - LIVE APP IS CLEARLY VISIBLE BEHIND) */}
+      {/* SOFT BACKDROP */}
       <div
         style={{
           position: 'absolute',
           inset: 0,
-          background: 'rgba(15, 23, 42, 0.25)',
+          background: 'rgba(15, 23, 42, 0.28)',
           pointerEvents: 'auto',
         }}
       />
 
-      {/* CLASH OF CLANS TARGETING CIRCLE (CERCHIO ROSSO EVIDENZIATORE SUL DETTAGLIO) */}
-      {current.targetPosition && (
+      {/* DYNAMIC OR FALLBACK RED TARGETING HIGHLIGHTER */}
+      {targetRect ? (
         <div
           style={{
-            position: 'absolute',
+            position: 'fixed',
+            top: targetRect.top + 'px',
+            left: targetRect.left + 'px',
+            width: targetRect.width + 'px',
+            height: targetRect.height + 'px',
+            borderRadius: current.targetPosition?.borderRadius || '20px',
+            border: '3.5px solid #EF4444',
+            boxShadow: '0 0 20px #EF4444, 0 0 30px rgba(239, 68, 68, 0.4) inset',
+            animation: 'pulse 1.2s infinite ease-in-out',
+            pointerEvents: 'auto',
+            zIndex: 100000,
+            cursor: 'pointer',
+            boxSizing: 'border-box',
+          }}
+          onClick={handleNext}
+        >
+          <div
+            style={{
+              position: 'absolute',
+              top: targetRect.top < 60 ? 'auto' : '-28px',
+              bottom: targetRect.top < 60 ? '-28px' : 'auto',
+              left: '50%',
+              transform: 'translateX(-50%)',
+              color: '#EF4444',
+              animation: 'bounce 1s infinite',
+              filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.7))',
+            }}
+          >
+            <span className="material-symbols-outlined" style={{ fontSize: '28px', fontWeight: 900 }}>
+              {targetRect.top < 60 ? 'arrow_upward' : 'arrow_downward'}
+            </span>
+          </div>
+        </div>
+      ) : current.targetPosition ? (
+        <div
+          style={{
+            position: 'fixed',
             top: current.targetPosition.top || 'auto',
             bottom: current.targetPosition.bottom || 'auto',
             left: current.targetPosition.left || 'auto',
@@ -234,10 +319,10 @@ export const AppTutorialModal: React.FC<AppTutorialModalProps> = ({
             pointerEvents: 'auto',
             zIndex: 100000,
             cursor: 'pointer',
+            boxSizing: 'border-box',
           }}
           onClick={handleNext}
         >
-          {/* Target Arrow Indicator */}
           <div
             style={{
               position: 'absolute',
@@ -254,20 +339,22 @@ export const AppTutorialModal: React.FC<AppTutorialModalProps> = ({
             </span>
           </div>
         </div>
-      )}
+      ) : null}
 
-      {/* CLASH OF CLANS MASCOT POP IN BASSO A SINISTRA CON NUVOLETTA COMPATTA */}
+      {/* MASCOT & SPEECH BUBBLE CARD WITH FIXED UNIFORM DIMENSIONS */}
       <div
         style={{
-          position: 'absolute',
+          position: 'fixed',
           bottom: '16px',
-          left: '12px',
-          right: '12px',
+          left: '50%',
+          transform: 'translateX(-50%)',
+          width: 'calc(100% - 24px)',
+          maxWidth: '480px',
           zIndex: 100005,
           pointerEvents: 'auto',
           display: 'flex',
-          alignItems: 'flex-end',
-          gap: '10px',
+          alignItems: 'center',
+          gap: '12px',
           boxSizing: 'border-box',
         }}
       >
@@ -275,8 +362,8 @@ export const AppTutorialModal: React.FC<AppTutorialModalProps> = ({
         <div
           style={{
             position: 'relative',
-            width: '80px',
-            height: '80px',
+            width: '76px',
+            height: '76px',
             background: 'linear-gradient(135deg, #FFFBEB 0%, #FEF3C7 100%)',
             border: '3px solid #F59E0B',
             borderRadius: '50%',
@@ -289,7 +376,7 @@ export const AppTutorialModal: React.FC<AppTutorialModalProps> = ({
           }}
         >
           {/* SVG COOL BEER MUG WITH SUNGLASSES ("POP") */}
-          <svg width="62" height="62" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <svg width="58" height="58" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path d="M72 40 C 88 40, 88 70, 72 70" stroke="#D97706" strokeWidth="8" strokeLinecap="round" fill="none" />
             <rect x="25" y="32" width="48" height="48" rx="10" fill="url(#beerGradPopMain)" stroke="#D97706" strokeWidth="3" />
             <path d="M 20 34 C 20 22, 32 20, 40 24 C 48 18, 60 18, 66 24 C 74 20, 80 26, 78 34 Z" fill="#FFFFFF" stroke="#E2E8F0" strokeWidth="2" />
@@ -310,10 +397,11 @@ export const AppTutorialModal: React.FC<AppTutorialModalProps> = ({
           </svg>
         </div>
 
-        {/* THOUGHT SPEECH BUBBLE COMPATTA (NON ESCE DALLO SCHERMO) */}
+        {/* THOUGHT SPEECH BUBBLE WITH FIXED UNIFORM DIMENSIONS */}
         <div
           style={{
             flex: 1,
+            height: '215px',
             background: '#FFFFFF',
             borderRadius: '20px',
             borderBottomLeftRadius: '4px',
@@ -322,16 +410,16 @@ export const AppTutorialModal: React.FC<AppTutorialModalProps> = ({
             position: 'relative',
             display: 'flex',
             flexDirection: 'column',
-            gap: '6px',
-            maxHeight: '220px',
+            justifyContent: 'space-between',
             boxSizing: 'border-box',
+            overflow: 'hidden',
           }}
         >
           {/* Speech Bubble Tail */}
           <div
             style={{
               position: 'absolute',
-              bottom: '14px',
+              bottom: '18px',
               left: '-10px',
               width: 0,
               height: 0,
@@ -343,15 +431,19 @@ export const AppTutorialModal: React.FC<AppTutorialModalProps> = ({
           />
 
           {/* BADGE & SKIP BUTTON */}
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexShrink: 0 }}>
             <span
               style={{
                 background: current.badgeBg,
                 color: '#FFF',
                 fontSize: '9.5px',
                 fontWeight: 900,
-                padding: '2px 8px',
+                padding: '3px 8px',
                 borderRadius: '10px',
+                whiteSpace: 'nowrap',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                maxWidth: '85%',
               }}
             >
               {current.badge}
@@ -366,37 +458,43 @@ export const AppTutorialModal: React.FC<AppTutorialModalProps> = ({
             </button>
           </div>
 
-          {/* TITLE */}
-          <div style={{ fontSize: '14px', fontWeight: 900, color: '#0F172A', lineHeight: '1.2' }}>
-            {current.title}
+          {/* SCROLLABLE INNER TEXT AREA (TITLE + SPEECH) */}
+          <div style={{ flex: 1, overflowY: 'auto', margin: '4px 0', paddingRight: '2px' }}>
+            <div style={{ fontSize: '13.5px', fontWeight: 900, color: '#0F172A', lineHeight: '1.25', marginBottom: '3px' }}>
+              {current.title}
+            </div>
+
+            <div style={{ fontSize: '11.5px', color: '#334155', lineHeight: '1.35', fontWeight: 600 }}>
+              {current.mascotSpeech}
+            </div>
           </div>
 
-          {/* MASCOT SPEECH */}
-          <div style={{ fontSize: '12px', color: '#334155', lineHeight: '1.35', fontWeight: 600 }}>
-            {current.mascotSpeech}
-          </div>
-
-          {/* HIGHLIGHT */}
+          {/* HIGHLIGHT TIP BANNER */}
           <div
             style={{
               background: '#FFFBEB',
               border: '1px solid #FCD34D',
               borderRadius: '10px',
-              padding: '4px 8px',
-              fontSize: '11px',
+              padding: '3px 8px',
+              fontSize: '10.5px',
               color: '#B45309',
               fontWeight: 800,
               display: 'flex',
               alignItems: 'center',
               gap: '4px',
+              flexShrink: 0,
+              marginBottom: '4px',
+              whiteSpace: 'nowrap',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
             }}
           >
-            <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>lightbulb</span>
-            <span>{current.highlightText}</span>
+            <span className="material-symbols-outlined" style={{ fontSize: '14px', flexShrink: 0 }}>lightbulb</span>
+            <span style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>{current.highlightText}</span>
           </div>
 
           {/* CONTROLS */}
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '2px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexShrink: 0 }}>
             <div style={{ fontSize: '10.5px', fontWeight: 800, color: '#64748B' }}>
               {currentStep + 1} di {steps.length}
             </div>
@@ -409,7 +507,7 @@ export const AppTutorialModal: React.FC<AppTutorialModalProps> = ({
                     background: '#F1F5F9',
                     border: '1px solid #CBD5E1',
                     color: '#475569',
-                    padding: '5px 10px',
+                    padding: '4px 10px',
                     borderRadius: '10px',
                     fontSize: '11px',
                     fontWeight: 800,
@@ -426,7 +524,7 @@ export const AppTutorialModal: React.FC<AppTutorialModalProps> = ({
                   background: 'linear-gradient(135deg, #F59E0B 0%, #D97706 100%)',
                   border: 'none',
                   color: '#FFFFFF',
-                  padding: '5px 12px',
+                  padding: '4px 12px',
                   borderRadius: '10px',
                   fontSize: '11px',
                   fontWeight: 900,

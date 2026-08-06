@@ -319,7 +319,7 @@ export const PubView: React.FC<PubViewProps> = ({
       </header>
 
       {/* 24h Instagram-style Stories Carousel Bar */}
-      <div style={{ maxWidth: '640px', margin: '16px auto 0 auto', padding: '0 16px' }}>
+      <div id="pubStoriesSection" style={{ maxWidth: '640px', margin: '16px auto 0 auto', padding: '0 16px' }}>
         <div style={{ fontSize: '12px', fontWeight: 800, color: '#64748B', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '4px' }}>
           <span className="material-symbols-outlined" style={{ fontSize: '16px', color: '#F59E0B' }}>auto_awesome</span>
           STORIE DEL PUB
@@ -606,7 +606,7 @@ export const PubView: React.FC<PubViewProps> = ({
       </div>
 
       {/* Main Feed Container */}
-      <div className="social-page-container" style={{ maxWidth: '640px', margin: '16px auto 0 auto' }}>
+      <div id="pubPostsFeed" className="social-page-container" style={{ maxWidth: '640px', margin: '16px auto 0 auto' }}>
         <div className="social-feed">
           {visiblePosts.length === 0 ? (
             <div

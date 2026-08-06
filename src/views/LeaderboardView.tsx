@@ -206,15 +206,18 @@ export const LeaderboardView: React.FC<LeaderboardViewProps> = ({
 
       <div className="page-container" style={{ paddingTop: 0 }}>
         {/* SEGMENTED TAB SWITCHER */}
-        <div style={{
-          display: 'flex',
-          background: '#FFFFFF',
-          borderRadius: '20px',
-          padding: '5px',
-          marginBottom: '20px',
-          border: '1px solid rgba(226, 232, 240, 0.8)',
-          boxShadow: '0 4px 15px rgba(15, 23, 42, 0.03)'
-        }}>
+        <div
+          id="leaderboardTabs"
+          style={{
+            display: 'flex',
+            background: '#FFFFFF',
+            borderRadius: '20px',
+            padding: '5px',
+            marginBottom: '20px',
+            border: '1px solid rgba(226, 232, 240, 0.8)',
+            boxShadow: '0 4px 15px rgba(15, 23, 42, 0.03)'
+          }}
+        >
           <button
             onClick={() => setActiveTab('friends')}
             style={{
@@ -265,7 +268,7 @@ export const LeaderboardView: React.FC<LeaderboardViewProps> = ({
 
         {/* SEARCH BAR (GLOBAL MODE) */}
         {activeTab === 'global' && (
-          <div style={{ position: 'relative', marginBottom: '20px' }}>
+          <div id="leaderboardSearchBox" style={{ position: 'relative', marginBottom: '20px' }}>
             <div style={{
               display: 'flex',
               alignItems: 'center',
