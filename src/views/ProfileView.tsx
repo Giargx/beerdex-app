@@ -30,6 +30,7 @@ interface ProfileViewProps {
   onChangeAvatar?: () => void;
   onOpenScanner?: () => void;
   onOpenStoryUpload?: () => void;
+  onOpenAdminUsers?: () => void;
 }
 
 export const ProfileView: React.FC<ProfileViewProps> = ({
@@ -50,6 +51,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
   pendingProposalsCount = 0,
   onOpenAdminReports,
   flaggedPostsCount = 0,
+  onOpenAdminUsers,
   onRateBeer,
   myReceivedRequests: _myReceivedRequests = [],
   onNavigateToFriends: _onNavigateToFriends,
@@ -367,7 +369,36 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
 
 
       {isAdminUser && (
-        <div style={{ padding: '0 20px', marginTop: '12px', marginBottom: '8px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+        <div style={{ padding: '0 20px', marginTop: '14px', marginBottom: '8px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+          <div style={{ fontSize: '11px', fontWeight: 800, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '2px' }}>
+            🛡️ Strumenti Amministratore
+          </div>
+
+          {onOpenAdminUsers && (
+            <button
+              onClick={onOpenAdminUsers}
+              style={{
+                width: '100%',
+                background: 'linear-gradient(135deg, #4338CA 0%, #3730A3 100%)',
+                color: 'white',
+                border: 'none',
+                padding: '12px 16px',
+                borderRadius: '16px',
+                fontWeight: 'bold',
+                fontSize: '14px',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '8px',
+                boxShadow: '0 4px 12px rgba(67, 56, 202, 0.25)'
+              }}
+            >
+              <span className="material-symbols-outlined" style={{ color: '#A5B4FC' }}>manage_accounts</span>
+              <span>Gestione & Eliminazione Utenti</span>
+            </button>
+          )}
+
           {onOpenAdminProposals && (
             <button
               onClick={onOpenAdminProposals}
@@ -388,8 +419,8 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
                 boxShadow: '0 4px 12px rgba(15,23,42,0.15)'
               }}
             >
-              <span className="material-symbols-outlined" style={{ color: 'var(--primary)' }}>admin_panel_settings</span>
-              <span>Gestisci Proposte Birre</span>
+              <span className="material-symbols-outlined" style={{ color: 'var(--primary)' }}>sports_bar</span>
+              <span>Proposte Birre</span>
               {pendingProposalsCount > 0 && (
                 <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', marginLeft: '4px' }}>
                   <span
@@ -437,7 +468,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
               }}
             >
               <span className="material-symbols-outlined" style={{ color: '#FBBF24' }}>report_problem</span>
-              <span>Gestisci Segnalazioni Post</span>
+              <span>Segnalazioni Post</span>
               {flaggedPostsCount > 0 && (
                 <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', marginLeft: '4px' }}>
                   <span

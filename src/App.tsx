@@ -3176,6 +3176,10 @@ export default function App() {
                       setAdminProposalsModalOpen(true);
                     }}
                     flaggedPostsCount={Object.keys(flaggedPosts || {}).length}
+                    onOpenAdminUsers={() => {
+                      setAdminModalTab('users');
+                      setAdminProposalsModalOpen(true);
+                    }}
                     onRateBeer={handleRateBeer}
                     myReceivedRequests={myReceivedRequests}
                     onNavigateToFriends={() => navigateTo('page-friends')}
