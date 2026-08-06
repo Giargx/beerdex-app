@@ -77,6 +77,7 @@ export const PublicProfileView: React.FC<PublicProfileViewProps> = ({
   const [medalsOpen, setMedalsOpen] = useState<boolean>(false);
   const [eventsOpen, setEventsOpen] = useState<boolean>(false);
   const [variantsOpen, setVariantsOpen] = useState<boolean>(false);
+  const [selectedStyleFilter, setSelectedStyleFilter] = useState<string | null>(null);
 
   const safeCatalog = Array.isArray(allBeersCatalog) ? allBeersCatalog : beers;
   const safePokedex = pokedex && typeof pokedex === 'object' ? pokedex : {};
@@ -1026,18 +1027,40 @@ export const PublicProfileView: React.FC<PublicProfileViewProps> = ({
                 Media Voti per Stile di Birra
               </h4>
 
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                 {Object.entries(beerTypeMeta).map(([typeKey, meta]) => {
                   const stat = styleStats[typeKey];
                   const pct = stat.average > 0 ? (stat.average / 5) * 100 : 0;
+                  const isSelected = selectedStyleFilter === typeKey;
+
                   return (
-                    <div key={typeKey}>
+                    <div
+                      key={typeKey}
+                      onClick={() => setSelectedStyleFilter(isSelected ? null : typeKey)}
+                      style={{
+                        padding: '8px 10px',
+                        borderRadius: '12px',
+                        background: isSelected ? 'rgba(245, 158, 11, 0.12)' : 'transparent',
+                        border: isSelected ? '1.5px solid var(--primary)' : '1px solid transparent',
+                        cursor: 'pointer',
+                        transition: 'all 0.2s ease',
+                      }}
+                      title={isSelected ? 'Clicca per mostrare tutti gli stili' : `Filtra per ${meta.label}`}
+                    >
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', fontWeight: 'bold', color: 'var(--dark)' }}>
                           <span className="material-symbols-outlined" style={{ color: meta.color, fontSize: '18px' }}>
                             {meta.icon}
                           </span>
                           {meta.label}
+                          {isSelected && (
+                            <span
+                              className="material-symbols-outlined"
+                              style={{ fontSize: '16px', color: 'var(--primary-dark)', marginLeft: '2px' }}
+                            >
+                              check_circle
+                            </span>
+                          )}
                         </div>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                           <StarRating rating={stat.average} readOnly size={14} />
@@ -1075,20 +1098,74 @@ export const PublicProfileView: React.FC<PublicProfileViewProps> = ({
                 boxShadow: 'var(--card-shadow)',
               }}
             >
-              <h4 style={{ margin: '0 0 12px 0', fontSize: '15px', fontWeight: 'bold', color: 'var(--dark)', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <span className="material-symbols-outlined" style={{ color: '#F59E0B' }}>rate_review</span>
-                Birre Recensite ({totalRatedBeers})
-              </h4>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                <h4 style={{ margin: 0, fontSize: '15px', fontWeight: 'bold', color: 'var(--dark)', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <span className="material-symbols-outlined" style={{ color: '#F59E0B' }}>rate_review</span>
+                  Birre Recensite ({totalRatedBeers})
+                </h4>
+                {selectedStyleFilter && (
+                  <button
+                    onClick={() => setSelectedStyleFilter(null)}
+                    style={{
+                      background: 'rgba(245, 158, 11, 0.15)',
+                      border: '1px solid rgba(245, 158, 11, 0.4)',
+                      color: 'var(--primary-dark)',
+                      borderRadius: '8px',
+                      padding: '3px 8px',
+                      fontSize: '11px',
+                      fontWeight: 'bold',
+                      cursor: 'pointer',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '4px',
+                    }}
+                  >
+                    <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>filter_alt_off</span>
+                    Mostra Tutte
+                  </button>
+                )}
+              </div>
 
-              {totalRatedBeers === 0 ? (
-                <p style={{ textAlign: 'center', color: 'var(--text-muted)', fontSize: '13px', padding: '20px 0' }}>
-                  @{username} non ha ancora recensito nessuna birra.
-                </p>
-              ) : (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                  {Object.entries(pokedex || {})
-                    .filter(([_, entry]) => entry.rating && entry.rating > 0)
-                    .map(([key, entry]) => {
+              {(() => {
+                if (totalRatedBeers === 0) {
+                  return (
+                    <p style={{ textAlign: 'center', color: 'var(--text-muted)', fontSize: '13px', padding: '20px 0' }}>
+                      @{username} non ha ancora recensito nessuna birra.
+                    </p>
+                  );
+                }
+
+                const filteredEntries = Object.entries(pokedex || {}).filter(([key, entry]) => {
+                  if (!entry.rating || entry.rating <= 0) return false;
+                  if (selectedStyleFilter) {
+                    const brand = entry.brand || key.split('-')[0];
+                    const variant = key.split('-').slice(1).join('-');
+                    const beerType = getBeerType(brand, variant);
+                    if (beerType !== selectedStyleFilter) return false;
+                  }
+                  return true;
+                });
+
+                if (filteredEntries.length === 0) {
+                  return (
+                    <div style={{ textAlign: 'center', color: 'var(--text-muted)', fontSize: '13px', padding: '20px 0' }}>
+                      <p style={{ margin: '0 0 8px 0' }}>
+                        Nessuna birra recensita da @{username} per lo stile {beerTypeMeta[selectedStyleFilter!]?.label}.
+                      </p>
+                      <button
+                        className="btn-main"
+                        onClick={() => setSelectedStyleFilter(null)}
+                        style={{ display: 'inline-flex', width: 'auto', padding: '6px 12px', fontSize: '12px', margin: '0 auto' }}
+                      >
+                        Mostra tutte le recensioni
+                      </button>
+                    </div>
+                  );
+                }
+
+                return (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                    {filteredEntries.map(([key, entry]) => {
                       const brand = entry.brand || key.split('-')[0];
                       const variant = key.split('-').slice(1).join('-');
                       return (
@@ -1130,13 +1207,13 @@ export const PublicProfileView: React.FC<PublicProfileViewProps> = ({
                         </div>
                       );
                     })}
-                </div>
-              )}
+                  </div>
+                );
+              })()}
             </div>
           </div>
         )}
       </div>
-
     </div>
   );
 };

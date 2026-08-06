@@ -75,6 +75,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
   const [medalsOpen, setMedalsOpen] = useState<boolean>(false);
   const [eventsOpen, setEventsOpen] = useState<boolean>(false);
   const [variantsOpen, setVariantsOpen] = useState<boolean>(false);
+  const [selectedStyleFilter, setSelectedStyleFilter] = useState<string | null>(null);
 
   const score = (leaderboardScores && leaderboardScores[currentUserNick]) || 0;
   const rankTitle = typeof getUserRankTitle === 'function' ? getUserRankTitle(score, Object.keys(myPokedex || {}).length) : '';
@@ -1129,18 +1130,40 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
               Media Voti per Stile di Birra
             </h4>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
               {Object.entries(beerTypeMeta).map(([typeKey, meta]) => {
                 const stat = styleStats[typeKey];
                 const pct = stat.average > 0 ? (stat.average / 5) * 100 : 0;
+                const isSelected = selectedStyleFilter === typeKey;
+
                 return (
-                  <div key={typeKey}>
+                  <div
+                    key={typeKey}
+                    onClick={() => setSelectedStyleFilter(isSelected ? null : typeKey)}
+                    style={{
+                      padding: '8px 10px',
+                      borderRadius: '12px',
+                      background: isSelected ? 'rgba(245, 158, 11, 0.12)' : 'transparent',
+                      border: isSelected ? '1.5px solid var(--primary)' : '1px solid transparent',
+                      cursor: 'pointer',
+                      transition: 'all 0.2s ease',
+                    }}
+                    title={isSelected ? 'Clicca per mostrare tutti gli stili' : `Filtra per ${meta.label}`}
+                  >
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', fontWeight: 'bold', color: 'var(--dark)' }}>
                         <span className="material-symbols-outlined" style={{ color: meta.color, fontSize: '18px' }}>
                           {meta.icon}
                         </span>
                         {meta.label}
+                        {isSelected && (
+                          <span
+                            className="material-symbols-outlined"
+                            style={{ fontSize: '16px', color: 'var(--primary-dark)', marginLeft: '2px' }}
+                          >
+                            check_circle
+                          </span>
+                        )}
                       </div>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                         <StarRating rating={stat.average} readOnly size={14} />
@@ -1178,12 +1201,39 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
               boxShadow: 'var(--card-shadow)',
             }}
           >
-            <h4 style={{ margin: '0 0 6px 0', fontSize: '15px', fontWeight: 'bold', color: 'var(--dark)', display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <span className="material-symbols-outlined" style={{ color: '#F59E0B' }}>rate_review</span>
-              Valuta le tue Birre Sbloccate
-            </h4>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+              <h4 style={{ margin: 0, fontSize: '15px', fontWeight: 'bold', color: 'var(--dark)', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <span className="material-symbols-outlined" style={{ color: '#F59E0B' }}>rate_review</span>
+                Valuta le tue Birre Sbloccate
+              </h4>
+              {selectedStyleFilter && (
+                <button
+                  onClick={() => setSelectedStyleFilter(null)}
+                  style={{
+                    background: 'rgba(245, 158, 11, 0.15)',
+                    border: '1px solid rgba(245, 158, 11, 0.4)',
+                    color: 'var(--primary-dark)',
+                    borderRadius: '8px',
+                    padding: '3px 8px',
+                    fontSize: '11px',
+                    fontWeight: 'bold',
+                    cursor: 'pointer',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '4px',
+                  }}
+                >
+                  <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>filter_alt_off</span>
+                  Mostra Tutte
+                </button>
+              )}
+            </div>
             <p style={{ margin: '0 0 16px 0', fontSize: '12px', color: 'var(--text-muted)' }}>
-              Puoi assegnare o cambiare il tuo voto da 1 a 5 stelle in qualsiasi momento dopo averla bevuta.
+              {selectedStyleFilter ? (
+                <>Mostrando solo le birre appartenenti allo stile <strong>{beerTypeMeta[selectedStyleFilter]?.label}</strong>.</>
+              ) : (
+                <>Puoi assegnare o cambiare il tuo voto da 1 a 5 stelle in qualsiasi momento dopo averla bevuta.</>
+              )}
             </p>
 
             {(() => {
@@ -1194,6 +1244,11 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
                 const b = ((entry as any).brand || key.split('-')[0] || '').trim();
                 const v = ((entry as any).variant || key.split('-').slice(1).join('-') || '').trim();
                 if (!b || !v) return;
+
+                if (selectedStyleFilter) {
+                  const beerType = getBeerType(b, v);
+                  if (beerType !== selectedStyleFilter) return;
+                }
 
                 const normKey = `${b.toLowerCase()}-${v.toLowerCase()}`;
                 const existing = deduplicatedMap.get(normKey);
@@ -1219,9 +1274,22 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
 
               if (list.length === 0) {
                 return (
-                  <p style={{ textAlign: 'center', color: 'var(--text-muted)', fontSize: '13px', padding: '20px 0' }}>
-                    Non hai ancora sbloccato nessuna birra da valutare.
-                  </p>
+                  <div style={{ textAlign: 'center', color: 'var(--text-muted)', fontSize: '13px', padding: '20px 0' }}>
+                    <p style={{ margin: '0 0 8px 0' }}>
+                      {selectedStyleFilter
+                        ? `Nessuna birra sbloccata appartenente allo stile ${beerTypeMeta[selectedStyleFilter]?.label}.`
+                        : 'Non hai ancora sbloccato nessuna birra da valutare.'}
+                    </p>
+                    {selectedStyleFilter && (
+                      <button
+                        className="btn-main"
+                        onClick={() => setSelectedStyleFilter(null)}
+                        style={{ display: 'inline-flex', width: 'auto', padding: '6px 12px', fontSize: '12px', margin: '0 auto' }}
+                      >
+                        Mostra tutte le birre
+                      </button>
+                    )}
+                  </div>
                 );
               }
 
