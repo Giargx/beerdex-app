@@ -11,6 +11,14 @@ export interface StoryPost {
   time: number;
   isShiny: boolean;
   isStory?: boolean;
+  isVideo?: boolean;
+  mediaUrl?: string;
+  filterId?: string;
+  overlayText?: string;
+  textColor?: string;
+  textStyle?: string;
+  musicTrackId?: string;
+  musicTitle?: string;
   likes?: Record<string, boolean>;
   rating?: number;
 }
@@ -231,11 +239,93 @@ export const StoryViewerModal: React.FC<StoryViewerModalProps> = ({
             style={{ position: 'absolute', right: 0, top: 0, width: '65%', height: '100%', zIndex: 10, cursor: 'pointer' }}
           />
 
-          <img
-            src={currentStory.photo}
-            alt={currentStory.brand}
-            style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '20px' }}
-          />
+          {/* Media Content (Photo or Video with Instagram Filter) */}
+          {(() => {
+            const mediaSrc = currentStory.mediaUrl || currentStory.photo;
+            const filterCss = (() => {
+              switch (currentStory.filterId) {
+                case 'sunset': return 'sepia(0.35) contrast(1.15) saturate(1.4) hue-rotate(-10deg)';
+                case 'vintage': return 'sepia(0.5) contrast(1.1) brightness(0.9) saturate(0.85)';
+                case 'cyber': return 'contrast(1.25) saturate(1.8) hue-rotate(180deg)';
+                case 'bw': return 'grayscale(1) contrast(1.2) brightness(0.95)';
+                case 'golden': return 'sepia(0.4) saturate(1.6) contrast(1.1) brightness(1.05)';
+                case 'emerald': return 'contrast(1.15) saturate(1.3) hue-rotate(90deg)';
+                default: return 'none';
+              }
+            })();
+
+            return (
+              <>
+                {currentStory.isVideo ? (
+                  <video
+                    src={mediaSrc}
+                    autoPlay
+                    loop
+                    playsInline
+                    style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '20px', filter: filterCss }}
+                  />
+                ) : (
+                  <img
+                    src={mediaSrc}
+                    alt={currentStory.brand}
+                    style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '20px', filter: filterCss }}
+                  />
+                )}
+
+                {/* Overlay Text Layer */}
+                {currentStory.overlayText && (
+                  <div
+                    style={{
+                      position: 'absolute',
+                      top: '42%',
+                      left: '50%',
+                      transform: 'translate(-50%, -50%)',
+                      maxWidth: '85%',
+                      textAlign: 'center',
+                      padding: currentStory.textStyle === 'badge' ? '8px 16px' : '4px 8px',
+                      borderRadius: currentStory.textStyle === 'badge' ? '14px' : '0',
+                      background: currentStory.textStyle === 'badge' ? 'rgba(0, 0, 0, 0.65)' : 'transparent',
+                      backdropFilter: currentStory.textStyle === 'badge' ? 'blur(8px)' : 'none',
+                      color: currentStory.textColor || '#FFFFFF',
+                      fontSize: '22px',
+                      fontWeight: 900,
+                      textShadow: currentStory.textStyle === 'neon' ? `0 0 12px ${currentStory.textColor}, 0 0 20px ${currentStory.textColor}` : '0 2px 8px rgba(0,0,0,0.8)',
+                      zIndex: 15,
+                      wordBreak: 'break-word',
+                    }}
+                  >
+                    {currentStory.overlayText}
+                  </div>
+                )}
+
+                {/* Music Badge */}
+                {currentStory.musicTitle && (
+                  <div
+                    style={{
+                      position: 'absolute',
+                      top: '14px',
+                      right: '14px',
+                      background: 'rgba(0, 0, 0, 0.65)',
+                      backdropFilter: 'blur(10px)',
+                      color: '#FDE047',
+                      padding: '5px 12px',
+                      borderRadius: '20px',
+                      fontSize: '11px',
+                      fontWeight: 800,
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '5px',
+                      border: '1px solid rgba(253, 224, 71, 0.4)',
+                      zIndex: 15,
+                    }}
+                  >
+                    <span className="material-symbols-outlined" style={{ fontSize: '15px' }}>music_note</span>
+                    <span>{currentStory.musicTitle}</span>
+                  </div>
+                )}
+              </>
+            );
+          })()}
 
           {currentStory.isShiny && (
             <div
@@ -253,6 +343,7 @@ export const StoryViewerModal: React.FC<StoryViewerModalProps> = ({
                 display: 'flex',
                 alignItems: 'center',
                 gap: '4px',
+                zIndex: 15,
               }}
             >
               <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>auto_awesome</span>

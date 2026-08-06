@@ -27,6 +27,7 @@ import { StappoOverlay } from './components/StappoOverlay';
 import { AgeGateModal } from './components/AgeGateModal';
 import { AuthScreen } from './components/AuthScreen';
 import { ScannerModal } from './components/ScannerModal';
+import { StoryEditorModal } from './components/StoryEditorModal';
 import { CropModal } from './components/CropModal';
 import { MapContainer } from './components/MapContainer';
 import { ProposeBeerModal } from './components/ProposeBeerModal';
@@ -125,6 +126,7 @@ export default function App() {
   const [flaggedPosts, setFlaggedPosts] = useState<Record<string, any>>({});
   const [unlockRatingModalState, setUnlockRatingModalState] = useState<{ isOpen: boolean; brand: string; variant: string; photo?: string } | null>(null);
   const [tutorialOpen, setTutorialOpen] = useState<boolean>(false);
+  const [isStoryEditorOpen, setIsStoryEditorOpen] = useState<boolean>(false);
 
   useEffect(() => {
     if (currentUser) {
@@ -1527,9 +1529,54 @@ export default function App() {
     }
   };
 
-  // 24h Story Creation & Share Handlers (No Barcode Required, 0 Points)
+  // 24h Instagram-style Story Studio Creation
   const handleOpenStoryUpload = () => {
-    setStoryCaptureOpen(true);
+    setIsStoryEditorOpen(true);
+  };
+
+  const handlePublishStory = async (storyData: {
+    mediaUrl: string;
+    isVideo: boolean;
+    filterId: string;
+    overlayText: string;
+    textColor: string;
+    textStyle: string;
+    musicTrackId: string;
+    musicTitle: string;
+  }) => {
+    setIsStoryEditorOpen(false);
+    showAlert("Pubblicazione storia nel Pub in corso...", "Storia 24h", false);
+
+    try {
+      const newStoryRef = push(ref(db, 'pub_stories/main_pub'));
+      await set(newStoryRef, {
+        postId: newStoryRef.key,
+        pubId: 'main_pub',
+        user: currentUserNick,
+        brand: 'Storia del Pub',
+        variant: storyData.isVideo ? 'Video al volo' : 'Foto al volo',
+        photo: storyData.mediaUrl,
+        mediaUrl: storyData.mediaUrl,
+        isVideo: storyData.isVideo,
+        filterId: storyData.filterId,
+        overlayText: storyData.overlayText,
+        textColor: storyData.textColor,
+        textStyle: storyData.textStyle,
+        musicTrackId: storyData.musicTrackId,
+        musicTitle: storyData.musicTitle,
+        time: Date.now(),
+        isShiny: false,
+        isShared: false,
+        isStory: true,
+        likes: {},
+      });
+      hideAlert();
+      showAlert("Storia pubblicata con successo nel Pub! Visibile per 24 ore 🍺", "Storia Pubblicata");
+      playPopSound();
+    } catch (e: any) {
+      hideAlert();
+      showAlert("Errore durante la pubblicazione della storia: " + e.message, "Errore");
+    }
   };
 
   const handleStoryPhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -3555,6 +3602,13 @@ export default function App() {
         myPokedex={myPokedex}
         globalDisplayNames={globalDisplayNames}
         globalAvatars={globalAvatars}
+      />
+
+      {/* Instagram-style 24h Story Studio Modal */}
+      <StoryEditorModal
+        isOpen={isStoryEditorOpen}
+        onClose={() => setIsStoryEditorOpen(false)}
+        onPublishStory={handlePublishStory}
       />
     </>
   );

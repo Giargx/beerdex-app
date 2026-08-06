@@ -185,14 +185,10 @@ export const PubView: React.FC<PubViewProps> = ({
     
     Object.entries(pubStories).forEach(([key, val]) => {
       if (val && typeof val === 'object' && val.time >= twentyFourHoursAgo) {
-        const isMine = val.user === currentUserNick;
-        const isFriend = Array.isArray(myFriendsList) && myFriendsList.some((f) => f.toLowerCase() === (val.user || '').toLowerCase());
-        if (isMine || isFriend || isAdminUser) {
-          storiesList.push({
-            postId: key,
-            ...val,
-          });
-        }
+        storiesList.push({
+          postId: key,
+          ...val,
+        });
       }
     });
 
