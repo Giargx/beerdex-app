@@ -7,6 +7,7 @@ import { StarRating } from './StarRating';
 interface BeerCardProps {
   beer: Beer;
   myPokedex: Record<string, PokedexEntry>;
+  globalAverageRatings?: Record<string, { average: number; count: number }>;
   expanded: boolean;
   onToggle: () => void;
   onInitUnlock: (brand: string, variant: string) => void;
@@ -20,6 +21,7 @@ interface BeerCardProps {
 export const BeerCard: React.FC<BeerCardProps> = ({
   beer,
   myPokedex,
+  globalAverageRatings,
   expanded,
   onToggle,
   onInitUnlock,
@@ -199,19 +201,70 @@ export const BeerCard: React.FC<BeerCardProps> = ({
                   </div>
                 </div>
 
-                {/* Row 2: Left = Points */}
-                <div style={{ display: 'flex', alignItems: 'center', marginTop: '0px' }}>
+                {/* Row 2: Left = Points & Beer Style */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '2px', flexWrap: 'wrap' }}>
                   <span style={{ fontSize: '11px', color: 'var(--text-muted)', fontWeight: 700, lineHeight: '1.1' }}>
                     ({specificPts} pt)
                   </span>
-                </div>
-
-                {/* Row 3: Left = Beer Style Type */}
-                <div style={{ display: 'flex', alignItems: 'center', marginTop: '2px' }}>
                   <span className="beer-type-label">
                     {typeKey.charAt(0).toUpperCase() + typeKey.slice(1)}
                   </span>
                 </div>
+
+                {/* Row 3: Global Average Rating (Calcolata da TUTTI gli utenti dell'app) */}
+                {(() => {
+                  const key = `${beer.brand}-${variant}`.trim().toLowerCase();
+                  const globalStats = globalAverageRatings?.[key];
+                  return (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '6px', flexWrap: 'wrap' }}>
+                      {globalStats && globalStats.count > 0 ? (
+                        <div
+                          style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '4px',
+                            background: 'rgba(255, 179, 0, 0.12)',
+                            border: '1px solid rgba(245, 158, 11, 0.35)',
+                            padding: '3px 9px',
+                            borderRadius: '12px',
+                            fontSize: '11px',
+                            fontWeight: 800,
+                            color: '#D97706',
+                          }}
+                          title={`Valutazione media: ${globalStats.average} / 5 calcolata su ${globalStats.count} ${globalStats.count === 1 ? 'voto' : 'voti'} della community`}
+                        >
+                          <span className="material-symbols-outlined" style={{ fontSize: '14px', color: '#F59E0B', fontVariationSettings: "'FILL' 1" }}>
+                            star
+                          </span>
+                          <span>{globalStats.average.toFixed(1)}</span>
+                          <span style={{ fontSize: '10px', color: '#64748B', fontWeight: 600 }}>
+                            ({globalStats.count} {globalStats.count === 1 ? 'valutazione' : 'valutazioni'})
+                          </span>
+                        </div>
+                      ) : (
+                        <div
+                          style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '4px',
+                            background: '#F8FAFC',
+                            border: '1px solid #E2E8F0',
+                            padding: '2px 8px',
+                            borderRadius: '12px',
+                            fontSize: '10px',
+                            fontWeight: 600,
+                            color: '#94A3B8',
+                          }}
+                        >
+                          <span className="material-symbols-outlined" style={{ fontSize: '12px', color: '#CBD5E1' }}>
+                            star
+                          </span>
+                          <span>Non ancora valutata</span>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })()}
               </div>
             );
           })}

@@ -3521,6 +3521,8 @@ export default function App() {
                 {currentUser && (
                   <ExploreView
                     myPokedex={myPokedex}
+                    allPokedexProfiles={allPokedexProfiles}
+                    globalPosts={globalPosts}
                     allBeersCatalog={allBeersCatalog}
                     onInitUnlock={handleInitUnlock}
                     onDeleteVariant={handleDeleteVariant}

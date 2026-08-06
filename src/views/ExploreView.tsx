@@ -7,6 +7,8 @@ import { FoamBubbles } from '../components/FoamBubbles';
 
 interface ExploreViewProps {
   myPokedex: Record<string, PokedexEntry>;
+  allPokedexProfiles?: Record<string, Record<string, PokedexEntry>>;
+  globalPosts?: any[];
   onInitUnlock: (brand: string, variant: string) => void;
   onDeleteVariant: (brand: string, variant: string) => void;
   onOpenProposeModal: (searchTerm: string) => void;
@@ -19,6 +21,8 @@ interface ExploreViewProps {
 
 export const ExploreView: React.FC<ExploreViewProps> = ({
   myPokedex,
+  allPokedexProfiles = {},
+  globalPosts = [],
   onInitUnlock,
   onDeleteVariant,
   onOpenProposeModal,
@@ -116,12 +120,55 @@ export const ExploreView: React.FC<ExploreViewProps> = ({
     return res * sortDir;
   });
 
+  // Calcolo delle valutazioni medie globali per ogni variante di birra da TUTTI gli utenti dell'app
+  const globalAverageRatings = React.useMemo(() => {
+    const ratingsMap: Record<string, number[]> = {};
+
+    if (allPokedexProfiles && typeof allPokedexProfiles === 'object') {
+      Object.values(allPokedexProfiles).forEach((userDex) => {
+        if (userDex && typeof userDex === 'object') {
+          Object.entries(userDex).forEach(([beerKey, entry]: [string, any]) => {
+            if (entry && typeof entry.rating === 'number' && entry.rating > 0) {
+              const key = beerKey.trim().toLowerCase();
+              if (!ratingsMap[key]) {
+                ratingsMap[key] = [];
+              }
+              ratingsMap[key].push(entry.rating);
+            }
+          });
+        }
+      });
+    }
+
+    if (Array.isArray(globalPosts)) {
+      globalPosts.forEach((post) => {
+        if (post && post.brand && post.variant && typeof post.rating === 'number' && post.rating > 0) {
+          const key = `${post.brand}-${post.variant}`.trim().toLowerCase();
+          if (!ratingsMap[key]) {
+            ratingsMap[key] = [];
+          }
+        }
+      });
+    }
+
+    const resultMap: Record<string, { average: number; count: number }> = {};
+    Object.entries(ratingsMap).forEach(([key, votes]) => {
+      if (votes.length > 0) {
+        const sum = votes.reduce((acc, r) => acc + r, 0);
+        const avg = parseFloat((sum / votes.length).toFixed(1));
+        resultMap[key] = { average: avg, count: votes.length };
+      }
+    });
+
+    return resultMap;
+  }, [allPokedexProfiles, globalPosts]);
+
   return (
-    <div className="page-container-view">
-      <header className="hero">
+    <div className="page-container-view" style={{ overflowX: 'hidden' }}>
+      <header className="hero" style={{ overflow: 'hidden' }}>
         <FoamBubbles />
-        <h1 style={{ position: 'relative', zIndex: 2 }}>Esplora Birre</h1>
-        <p style={{ position: 'relative', zIndex: 2 }}>Cerca, scopri e scatta per catturare nuove birre.</p>
+        <h1 style={{ position: 'relative', zIndex: 2 }}>Esplora Catalogo Birre 🍺</h1>
+        <p style={{ position: 'relative', zIndex: 2 }}>Scopri tutte le birre disponibili nel beerdex, filtra per paese o ricerca la tua preferita.</p>
       </header>
 
       <div className="page-container" style={{ marginTop: '-30px' }}>
@@ -286,6 +333,7 @@ export const ExploreView: React.FC<ExploreViewProps> = ({
                       <BeerCard
                         beer={beer}
                         myPokedex={myPokedex}
+                        globalAverageRatings={globalAverageRatings}
                         expanded={isExpanded}
                         onToggle={() => toggleCard(beer.brand)}
                         onInitUnlock={onInitUnlock}
