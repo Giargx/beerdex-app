@@ -131,8 +131,8 @@ export const BeerCard: React.FC<BeerCardProps> = ({
 
             return (
               <div key={uniqueId} className={`variant-item variant-type-${typeKey}`} onClick={(e) => e.stopPropagation()}>
-                {/* Sinistra: Nome variante sopra, Tipologia sotto */}
-                <div style={{ flex: 1, minWidth: 0, paddingRight: '12px', display: 'flex', flexDirection: 'column', gap: '3px' }}>
+                {/* Row 1: Left = Variant Name + Points, Right = Unlock Button / Actions */}
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', gap: '10px' }}>
                   <div style={{ fontWeight: 800, fontSize: '14px', color: '#0F172A', lineHeight: '1.2' }}>
                     {variant}{' '}
                     <span style={{ fontSize: '11px', color: 'var(--text-muted)', fontWeight: 600 }}>
@@ -140,71 +140,73 @@ export const BeerCard: React.FC<BeerCardProps> = ({
                     </span>
                   </div>
 
-                  <div className="beer-type-label">
-                    {typeKey.charAt(0).toUpperCase() + typeKey.slice(1)}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
+                    {hasPhoto ? (
+                      <div className="unlocked-status" style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '2px' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '12px', fontWeight: 800, color: '#10B981' }}>
+                            <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>
+                              check_circle
+                            </span>
+                            <span>
+                              {entry.isShiny ? (
+                                <span style={{ color: 'var(--primary-dark)', display: 'inline-flex', alignItems: 'center', gap: '2px' }}>
+                                  <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>
+                                    auto_awesome
+                                  </span>
+                                  Shiny
+                                </span>
+                              ) : (
+                                'Sbloccato'
+                              )}
+                            </span>
+                          </div>
+
+                          <div onClick={(e) => e.stopPropagation()}>
+                            <StarRating
+                              rating={entry.rating || 0}
+                              onRate={(r) => onRateBeer?.(beer.brand, variant, r)}
+                              size={14}
+                            />
+                          </div>
+                        </div>
+
+                        <img
+                          src={entry.photo}
+                          className="thumb-preview"
+                          alt={variant}
+                          onContextMenu={(e) => e.preventDefault()}
+                        />
+                        <button
+                          className="btn-delete"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onDeleteVariant(beer.brand, variant);
+                          }}
+                          title="Elimina foto"
+                        >
+                          <span className="material-symbols-outlined">delete</span>
+                        </button>
+                      </div>
+                    ) : (
+                      <button
+                        className="photo-btn"
+                        onClick={() => onInitUnlock(beer.brand, variant)}
+                      >
+                        <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>
+                          photo_camera
+                        </span>{' '}
+                        Sblocca
+                      </button>
+                    )}
                   </div>
                 </div>
 
-                {/* Right Area: Unlock Button or Status Details */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
-                  {hasPhoto ? (
-                    <div className="unlocked-status" style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
-                      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '3px' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '12px', fontWeight: 800, color: '#10B981' }}>
-                          <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>
-                            check_circle
-                          </span>
-                          <span>
-                            {entry.isShiny ? (
-                              <span style={{ color: 'var(--primary-dark)', display: 'inline-flex', alignItems: 'center', gap: '2px' }}>
-                                <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>
-                                  auto_awesome
-                                </span>
-                                Shiny
-                              </span>
-                            ) : (
-                              'Sbloccato'
-                            )}
-                          </span>
-                        </div>
-
-                        <div onClick={(e) => e.stopPropagation()}>
-                          <StarRating
-                            rating={entry.rating || 0}
-                            onRate={(r) => onRateBeer?.(beer.brand, variant, r)}
-                            size={14}
-                          />
-                        </div>
-                      </div>
-
-                      <img
-                        src={entry.photo}
-                        className="thumb-preview"
-                        alt={variant}
-                        onContextMenu={(e) => e.preventDefault()}
-                      />
-                      <button
-                        className="btn-delete"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          onDeleteVariant(beer.brand, variant);
-                        }}
-                        title="Elimina foto"
-                      >
-                        <span className="material-symbols-outlined">delete</span>
-                      </button>
-                    </div>
-                  ) : (
-                    <button
-                      className="photo-btn"
-                      onClick={() => onInitUnlock(beer.brand, variant)}
-                    >
-                      <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>
-                        photo_camera
-                      </span>{' '}
-                      Sblocca
-                    </button>
-                  )}
+                {/* Row 2: Left = Beer Style Type */}
+                <div style={{ display: 'flex', alignItems: 'center', marginTop: '4px' }}>
+                  <span className="beer-type-label">
+                    {typeKey.charAt(0).toUpperCase() + typeKey.slice(1)}
+                  </span>
                 </div>
               </div>
             );
