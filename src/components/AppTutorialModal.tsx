@@ -32,85 +32,134 @@ export const AppTutorialModal: React.FC<AppTutorialModalProps> = ({
   const [currentStep, setCurrentStep] = useState(0);
 
   const steps: GuidedStep[] = [
+    // ----------------------------------------------------
+    // PASSO 1: HOME - PULSANTI IN ALTO
+    // ----------------------------------------------------
     {
       pageName: 'page-home',
-      badge: 'PASSO 1 DI 8 • HOME & PROFILO RAPIDO',
+      badge: 'FASE 1 DI 5 • HOME • ICONE IN ALTO',
       badgeBg: '#F59E0B',
-      title: 'Ciao! Sono POP 🍺🕶️',
-      mascotSpeech: 'Benvenuto in POP IT! Sono POP, la tua guida personale. In alto a sinistra trovi il tuo avatar con il tuo livello e la fiammella streak!',
-      highlightText: 'Livello bevitore & streak giornaliera',
-      targetPosition: { top: '15px', left: '15px', width: '190px', height: '60px', borderRadius: '20px' },
+      title: 'Benvenuto su PopIt! 🍺🕶️',
+      mascotSpeech: 'Ciao! Sono POP 🍺🕶️, la tua guida personale. Ti mostro le icone in alto: la Fotocamera per scansionare i codici a barre, il tasto Amici, la Mappa dei pub ed il Regolamento!',
+      highlightText: 'Pulsanti: Fotocamera, Amici, Mappa e Regolamento',
+      targetPosition: { top: '15px', right: '15px', width: '220px', height: '48px', borderRadius: '24px' },
     },
+    // ----------------------------------------------------
+    // PASSO 1B: HOME - EVENTO SPECIALE & SPINA DEL GIORNO
+    // ----------------------------------------------------
     {
       pageName: 'page-home',
-      badge: 'PASSO 2 DI 8 • FEED SOCIAL & CIN CIN',
-      badgeBg: '#E67E22',
-      title: 'Feed & Brindisi "Cin Cin" 🍻',
-      mascotSpeech: 'Scorrendo la Home vedi i sblocchi dei tuoi amici in tempo reale. Tocca il tasto "Cin Cin" per inviare un brindisi sonoro!',
-      highlightText: 'Tasto Cin Cin per festeggiare le bevute',
-      targetPosition: { top: '380px', left: '50%', width: '92%', height: '110px', borderRadius: '20px' },
+      badge: 'FASE 1 DI 5 • HOME • EVENTI & CONSIGLI',
+      badgeBg: '#D97706',
+      title: 'Eventi Speciali & Spina 🍺',
+      mascotSpeech: 'Sempre nella Home trovi il banner dell\'Evento Stagionale attivo (es. Oktoberfest o San Patrizio) e la Spina del Giorno con le birre consigliate!',
+      highlightText: 'Sfide stagionali e birra consigliata del giorno',
+      targetPosition: { top: '220px', left: '50%', width: '92%', height: '140px', borderRadius: '20px' },
     },
+    // ----------------------------------------------------
+    // PASSO 2A: ESPLORA - RICERCA E FILTRI
+    // ----------------------------------------------------
     {
       pageName: 'page-explore',
-      badge: 'PASSO 3 DI 8 • COLLEZIONE & POKÉDEX',
+      badge: 'FASE 2 DI 5 • ESPLORA • RICERCA & FILTRI',
       badgeBg: '#3B82F6',
-      title: 'La Collezione Birre 📚',
-      mascotSpeech: 'Siamo nella sezione Esplora/Collezione! Qui vedi tutte le birre Comuni, Medie e Rare. Le varianti Shiny luccicanti valgono doppio!',
-      highlightText: 'Filtra per rarità e colleziona le Shiny',
-      targetPosition: { top: '70px', left: '50%', width: '94%', height: '160px', borderRadius: '20px' },
+      title: 'Cerca & Filtra le Birre 🔍',
+      mascotSpeech: 'Siamo in Esplora! In alto puoi digitare la marca della birra che cerchi e filtrarla per Rarità (Comuni, Medie, Rare) o per Nazione!',
+      highlightText: 'Barra di ricerca e filtri per rarità e paese',
+      targetPosition: { top: '70px', left: '50%', width: '94%', height: '110px', borderRadius: '20px' },
     },
+    // ----------------------------------------------------
+    // PASSO 2B: ESPLORA - BANNER RARITÀ & PROCEDURA SBLOCCO
+    // ----------------------------------------------------
     {
-      pageName: 'page-home',
-      badge: 'PASSO 4 DI 8 • SCANNER BARCODE',
-      badgeBg: '#10B981',
-      title: 'Scansiona & Stappa 📸',
-      mascotSpeech: 'Quando hai una bottiglia in mano, usa la fotocamera per inquadrare il codice a barre sul retro e sbloccare la birra al volo!',
-      highlightText: 'Scansione codice a barre istantanea',
-      targetPosition: { top: '15px', right: '15px', width: '48px', height: '48px', borderRadius: '50%' },
+      pageName: 'page-explore',
+      badge: 'FASE 2 DI 5 • ESPLORA • SBLOCCO CON BARCODE',
+      badgeBg: '#2563EB',
+      title: 'Banner Rarità & Scansione 📸',
+      mascotSpeech: 'Toccando un banner di rarità apri la scheda della birra. Premi "Sblocca": prima inquadra il codice a barre (Barcode) sul retro della bottiglia, poi scatta la foto alla tua birra!',
+      highlightText: 'Scheda birra: Scansiona il Barcode e scatta la foto',
+      targetPosition: { top: '190px', left: '50%', width: '94%', height: '150px', borderRadius: '20px' },
     },
+    // ----------------------------------------------------
+    // PASSO 3A: CLASSIFICHE - AMICI E GLOBALE (TOP 5)
+    // ----------------------------------------------------
     {
       pageName: 'page-leaderboard',
-      badge: 'PASSO 5 DI 8 • CLASSIFICA GLOBAL',
+      badge: 'FASE 3 DI 5 • CLASSIFICHE • AMICI E TOP 5',
       badgeBg: '#8B5CF6',
-      title: 'Classifica & Medaglie 🏆',
-      mascotSpeech: 'Qui vedi chi ha collezionato più birre! Confronta i tuoi XP con gli amici e scala la vetta della classifica globale!',
-      highlightText: 'Classifica XP amici e bevitori globali',
-      targetPosition: { top: '80px', left: '50%', width: '92%', height: '140px', borderRadius: '20px' },
+      title: 'Classifica Amici & Globale 🏆',
+      mascotSpeech: 'Nelle Classifiche puoi confrontare i tuoi punti XP con i tuoi amici. Nella scheda Globale trovi i Top 5 Bevitori migliori dell\'intera applicazione!',
+      highlightText: 'Classifica dei tuoi Amici e Top 5 Globale',
+      targetPosition: { top: '75px', left: '50%', width: '92%', height: '130px', borderRadius: '20px' },
     },
+    // ----------------------------------------------------
+    // PASSO 3B: CLASSIFICHE - RICERCA UTENTI PER NICKNAME
+    // ----------------------------------------------------
+    {
+      pageName: 'page-leaderboard',
+      badge: 'FASE 3 DI 5 • CLASSIFICHE • CERCA UTENTI',
+      badgeBg: '#7C3AED',
+      title: 'Cerca Utenti per Nickname 🔎',
+      mascotSpeech: 'Vuoi cercare un altro bevitore? Usa la barra di ricerca in alto per digitare il nickname univoco di qualsiasi utente e trovarlo al volo!',
+      highlightText: 'Trova qualsiasi bevitore col suo Nickname',
+      targetPosition: { top: '210px', left: '50%', width: '92%', height: '60px', borderRadius: '16px' },
+    },
+    // ----------------------------------------------------
+    // PASSO 4A: PUB - STORIE 24H AL BANCONE
+    // ----------------------------------------------------
     {
       pageName: 'page-social',
-      badge: 'PASSO 6 DI 8 • IL PUB & STORIE 24H',
+      badge: 'FASE 4 DI 5 • IL PUB • STORIE 24H',
       badgeBg: '#EC4899',
-      title: 'Il Bancone del Pub & Storie 🍻',
-      mascotSpeech: 'Siamo al Pub! Guarda gli avatar in alto: cliccaci sopra per guardare le Storie 24h dei bevitori al bancone o scattarne una tua!',
-      highlightText: 'Storie dal vivo 24h con filtri e musica',
-      targetPosition: { top: '80px', left: '50%', width: '94%', height: '115px', borderRadius: '20px' },
+      title: 'Le Storie 24h al Bancone 🍻',
+      mascotSpeech: 'Siamo al Pub Social! In alto trovi le Storie 24h dei bevitori. Tocca il cerchio profilo di un amico per guardare la sua storia o scattarne una tua!',
+      highlightText: 'Storie 24h dal vivo con filtri e musica',
+      targetPosition: { top: '75px', left: '50%', width: '94%', height: '110px', borderRadius: '20px' },
     },
+    // ----------------------------------------------------
+    // PASSO 4B: PUB - FEED POST, SALVATAGGIO & SEGNALAZIONE
+    // ----------------------------------------------------
     {
-      pageName: 'page-explore',
-      badge: 'PASSO 7 DI 8 • TENDENZE & STAGIONE',
-      badgeBg: '#14B8A6',
-      title: 'Consigli Stagionali & Tendenze 💡',
-      mascotSpeech: 'In Esplora trovi i consigli sulle birre di stagione e le marche più popolari secondo la community!',
-      highlightText: 'Suggerimenti stagionali e stili popolari',
-      targetPosition: { top: '240px', left: '50%', width: '92%', height: '150px', borderRadius: '20px' },
+      pageName: 'page-social',
+      badge: 'FASE 4 DI 5 • IL PUB • POST & SEGNALIBRO',
+      badgeBg: '#DB2777',
+      title: 'Post degli Amici & Salvataggio 📌',
+      mascotSpeech: 'Nel feed del Pub vedi i post pubblicati dai tuoi amici. Usa l\'icona del Segnalibro per salvarli tra i tuoi preferiti o l\'icona della Bandierina per segnalarli.',
+      highlightText: 'Salva i post preferiti o segnala contenuti non idonei',
+      targetPosition: { top: '200px', left: '50%', width: '94%', height: '160px', borderRadius: '20px' },
     },
+    // ----------------------------------------------------
+    // PASSO 5A: PROFILO - IMPOSTAZIONI & FOTO PROFILO
+    // ----------------------------------------------------
     {
       pageName: 'page-profile',
-      badge: 'PASSO 8 DI 8 • PROFILO & BACHECA',
+      badge: 'FASE 5 DI 5 • PROFILO • IMPOSTAZIONI & AVATAR',
       badgeBg: '#EF4444',
-      title: 'Il tuo Profilo & Impostazioni ⚙️',
-      mascotSpeech: 'Finito! Nel tuo Profilo vedi tutti i tuoi post, trofei sbloccati e le Impostazioni dove puoi riaprire questo tutorial. Inizia a stappare!',
-      highlightText: 'Bacheca post, trofei e riapertura tutorial',
-      targetPosition: { top: '70px', left: '50%', width: '92%', height: '160px', borderRadius: '20px' },
+      title: 'Impostazioni & Foto Profilo ⚙️',
+      mascotSpeech: 'Siamo nel tuo Profilo! In alto a destra c\'è l\'ingranaggio per modificare il tuo nickname (ogni 3 mesi), cambiare la password e riaprire questo tutorial!',
+      highlightText: 'Rotella Impostazioni (⚙️) e cambio foto profilo',
+      targetPosition: { top: '15px', right: '15px', width: '50px', height: '50px', borderRadius: '16px' },
+    },
+    // ----------------------------------------------------
+    // PASSO 5B: PROFILO - LE SCHEDE IN BASSO
+    // ----------------------------------------------------
+    {
+      pageName: 'page-profile',
+      badge: 'FASE 5 DI 5 • PROFILO • LE SCHEDE PERSONALI',
+      badgeBg: '#DC2626',
+      title: 'Le tue Schede Personali 📊',
+      mascotSpeech: 'In basso nel profilo trovi 5 schede: "I Miei Post", "Post Salvati", "Medaglie & Trofei", "Statistiche Stili" e "Valutazioni". Esplorale tutte!',
+      highlightText: 'I Miei Post, Salvati, Medaglie, Statistiche e Valutazioni',
+      targetPosition: { top: '240px', left: '50%', width: '94%', height: '150px', borderRadius: '20px' },
     },
   ];
 
   const current = steps[currentStep];
 
-  // Lock body scrolling when tutorial is open
+  // ALWAYS reset tutorial step to 0 when opening or restarting
   useEffect(() => {
     if (isOpen) {
+      setCurrentStep(0);
       document.body.style.overflow = 'hidden';
     } else {
       document.body.style.overflow = '';
@@ -242,7 +291,7 @@ export const AppTutorialModal: React.FC<AppTutorialModalProps> = ({
           {/* SVG COOL BEER MUG WITH SUNGLASSES ("POP") */}
           <svg width="62" height="62" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path d="M72 40 C 88 40, 88 70, 72 70" stroke="#D97706" strokeWidth="8" strokeLinecap="round" fill="none" />
-            <rect x="25" y="32" width="48" height="48" rx="10" fill="url(#beerGradPop)" stroke="#D97706" strokeWidth="3" />
+            <rect x="25" y="32" width="48" height="48" rx="10" fill="url(#beerGradPopMain)" stroke="#D97706" strokeWidth="3" />
             <path d="M 20 34 C 20 22, 32 20, 40 24 C 48 18, 60 18, 66 24 C 74 20, 80 26, 78 34 Z" fill="#FFFFFF" stroke="#E2E8F0" strokeWidth="2" />
             <path d="M 30 46 L 47 46 L 47 55 L 34 55 Z" fill="#0F172A" />
             <path d="M 53 46 L 70 46 L 66 55 L 53 55 Z" fill="#0F172A" />
@@ -253,7 +302,7 @@ export const AppTutorialModal: React.FC<AppTutorialModalProps> = ({
             <circle cx="32" cy="62" r="3" fill="#F43F5E" opacity="0.6" />
             <circle cx="68" cy="62" r="3" fill="#F43F5E" opacity="0.6" />
             <defs>
-              <linearGradient id="beerGradPop" x1="25" y1="32" x2="25" y2="80" gradientUnits="userSpaceOnUse">
+              <linearGradient id="beerGradPopMain" x1="25" y1="32" x2="25" y2="80" gradientUnits="userSpaceOnUse">
                 <stop stopColor="#F59E0B" />
                 <stop offset="1" stopColor="#D97706" />
               </linearGradient>
