@@ -476,9 +476,7 @@ export const UserPostsDetailView: React.FC<UserPostsDetailViewProps> = ({
                           onClick={(e) => {
                             e.stopPropagation();
                             e.preventDefault();
-                            if (window.confirm('Sei sicuro di voler eliminare questo post?')) {
-                              if (onDeletePost) onDeletePost(post.postId, post.user, post.brand, post.variant);
-                            }
+                            if (onDeletePost) onDeletePost(post.postId, post.user, post.brand, post.variant);
                           }}
                           title="Elimina Post"
                           style={{

@@ -900,9 +900,7 @@ export const PubView: React.FC<PubViewProps> = ({
                         onClick={(e) => {
                           e.stopPropagation();
                           e.preventDefault();
-                          if (window.confirm('Sei sicuro di voler eliminare questo post?')) {
-                            onDeletePost(post.postId, post.user, post.brand, post.variant);
-                          }
+                          onDeletePost(post.postId, post.user, post.brand, post.variant);
                         }}
                         title="Elimina Post"
                         style={{

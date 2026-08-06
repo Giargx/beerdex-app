@@ -1636,19 +1636,53 @@ export default function App() {
     );
   };
 
-  const handleDeletePost = (postId: string, _postUser: string, brand: string, variant: string) => {
-    const targetUser = currentUserNick;
+  const handleDeletePost = (postId: string, postUser: string, brand: string, variant: string) => {
+    const isUserAdmin = isAdminUser;
+    const isDeletingOtherUser = Boolean(postUser && postUser.toLowerCase() !== currentUserNick.toLowerCase());
+
     showConfirm(
-      `Vuoi davvero eliminare lo sblocco di ${brand} - ${variant}?`,
+      isUserAdmin && isDeletingOtherUser
+        ? `Vuoi davvero eliminare come ADMIN il post di @${postUser} (${brand} - ${variant})?`
+        : `Vuoi davvero eliminare lo sblocco di ${brand} - ${variant}?`,
       'Conferma Eliminazione',
       async () => {
         try {
           const uniqueId = `${brand}-${variant}`;
-
-          // Fetch current post data from Firebase
           const postRef = ref(db, `social_timeline/${postId}`);
           const postSnap = await get(postRef);
 
+          if (isUserAdmin && isDeletingOtherUser) {
+            // ADMIN DELETION OF ANOTHER USER'S POST
+            if (postSnap.exists()) {
+              const postVal = postSnap.val();
+              const participants: string[] = Array.from(
+                new Set([
+                  postVal.user,
+                  ...(Array.isArray(postVal.taggedFriends) ? postVal.taggedFriends.filter(Boolean) : []),
+                  ...(postVal.taggedFriend ? postVal.taggedFriend.split(',').map((s: string) => s.trim()).filter(Boolean) : []),
+                ])
+              );
+
+              // Remove pokedex entry for all participants of this post
+              for (const pNick of participants) {
+                await remove(ref(db, `pokedex_profiles/${pNick}/${uniqueId}`));
+                await recalculateTotalScore(pNick);
+              }
+            } else if (postUser) {
+              await remove(ref(db, `pokedex_profiles/${postUser}/${uniqueId}`));
+              await recalculateTotalScore(postUser);
+            }
+
+            // Remove post from timeline & flagged posts
+            await remove(postRef);
+            await remove(ref(db, `flagged_posts/${postId}`));
+
+            showAlert(`Post di @${postUser} eliminato con successo dall'amministratore.`, 'Post Eliminato');
+            return;
+          }
+
+          // REGULAR USER DELETION (or admin deleting their own post)
+          const targetUser = currentUserNick;
           if (postSnap.exists()) {
             const postVal = postSnap.val();
             // Get all participants
@@ -1685,6 +1719,7 @@ export default function App() {
             } else {
               // Last participant deleted the post -> delete entire post from timeline
               await remove(postRef);
+              await remove(ref(db, `flagged_posts/${postId}`));
               await recalculateTotalScore(targetUser);
               showAlert('Post rimosso con successo.');
             }
