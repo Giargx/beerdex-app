@@ -87,23 +87,6 @@ export const ExploreView: React.FC<ExploreViewProps> = ({
     ).sort((a, b) => a.localeCompare(b));
   }, [safeCatalog]);
 
-  // Principali Nazioni per le Quick Filter Chips
-  const popularCountries = [
-    { label: 'Tutte', flag: '🌍' },
-    { label: 'Italia', flag: '🇮🇹' },
-    { label: 'Germania', flag: '🇩🇪' },
-    { label: 'Belgio', flag: '🇧🇪' },
-    { label: 'Paesi Bassi', flag: '🇳🇱' },
-    { label: 'Repubblica Ceca', flag: '🇨🇿' },
-    { label: 'Stati Uniti', flag: '🇺🇸' },
-    { label: 'Irlanda', flag: '🇮🇪' },
-    { label: 'Messico', flag: '🇲🇽' },
-    { label: 'Danimarca', flag: '🇩🇰' },
-    { label: 'Spagna', flag: '🇪🇸' },
-    { label: 'Francia', flag: '🇫🇷' },
-    { label: 'Scozia', flag: '🏴󠁧󠁢󠁳󠁣󠁴󠁿' },
-  ];
-
   // Filter and sort beers list
   const normalizedSearch = normalizeStr(searchTerm).trim();
   const filteredBeers = useMemo(() => {
@@ -263,54 +246,47 @@ export const ExploreView: React.FC<ExploreViewProps> = ({
             )}
           </div>
 
-          {/* Quick Country Filter Chips (Horizontal Scroll) */}
+          {/* Country Dropdown Filter */}
           <div style={{ marginBottom: '12px' }}>
-            <div style={{ fontSize: '11px', fontWeight: 800, color: '#64748B', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-              Nazione
+            <div style={{ fontSize: '11px', fontWeight: 800, color: '#64748B', marginBottom: '6px', textTransform: 'uppercase' }}>
+              Filtra per Nazione
             </div>
-            <div
+            <select
+              value={countryFilter}
+              onChange={(e) => {
+                const val = e.target.value;
+                setCountryFilter(val);
+                if (val !== 'Italia') {
+                  setRegionFilter('Tutte');
+                }
+              }}
               style={{
-                display: 'flex',
-                gap: '8px',
-                overflowX: 'auto',
-                paddingBottom: '4px',
-                touchAction: 'pan-x',
-                overscrollBehaviorX: 'contain',
+                width: '100%',
+                padding: '10px 12px',
+                borderRadius: '12px',
+                border: '1.5px solid #E2E8F0',
+                background: '#F8FAFC',
+                fontSize: '13px',
+                fontWeight: 700,
+                color: '#0F172A',
+                outline: 'none',
               }}
             >
-              {popularCountries.map((c) => {
-                const isSelected = countryFilter === c.label;
-                return (
-                  <button
-                    key={c.label}
-                    onClick={() => {
-                      setCountryFilter(c.label);
-                      if (c.label !== 'Italia') setRegionFilter('Tutte');
-                    }}
-                    style={{
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: '5px',
-                      padding: '7px 13px',
-                      borderRadius: '20px',
-                      fontSize: '12px',
-                      fontWeight: 700,
-                      whiteSpace: 'nowrap',
-                      border: isSelected ? '1.5px solid #F59E0B' : '1px solid #E2E8F0',
-                      background: isSelected ? 'linear-gradient(135deg, #F59E0B 0%, #D97706 100%)' : '#F8FAFC',
-                      color: isSelected ? '#FFFFFF' : '#334155',
-                      cursor: 'pointer',
-                      boxShadow: isSelected ? '0 3px 10px rgba(245, 158, 11, 0.35)' : 'none',
-                      transition: 'all 0.2s ease',
-                      flexShrink: 0,
-                    }}
-                  >
-                    <span>{c.flag}</span>
-                    <span>{c.label}</span>
-                  </button>
-                );
-              })}
-            </div>
+              <option value="Tutte">Tutte le Nazioni</option>
+              <option value="Italia">🇮🇹 Italia</option>
+              <option value="Germania">🇩🇪 Germania</option>
+              <option value="Belgio">🇧🇪 Belgio</option>
+              <option value="Paesi Bassi">🇳🇱 Paesi Bassi</option>
+              <option value="Repubblica Ceca">🇨🇿 Repubblica Ceca</option>
+              <option value="Danimarca">🇩🇰 Danimarca</option>
+              <option value="Spagna">🇪🇸 Spagna</option>
+              <option value="Francia">🇫🇷 Francia</option>
+              <option value="Irlanda">🇮🇪 Irlanda</option>
+              <option value="Scozia">🏴󠁧󠁢󠁳󠁣󠁴󠁿 Scozia</option>
+              <option value="Portogallo">🇵🇹 Portogallo</option>
+              <option value="Messico">🇲🇽 Messico</option>
+              <option value="Stati Uniti">🇺🇸 Stati Uniti</option>
+            </select>
           </div>
 
           {/* Italian Region Sub-Filter */}
