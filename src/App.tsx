@@ -3591,10 +3591,11 @@ export default function App() {
         allPokedexProfiles={allPokedexProfiles}
       />
 
-      {/* Interactive App Tutorial Modal */}
+      {/* Clash of Clans Style Live App Tutorial */}
       <AppTutorialModal
         isOpen={tutorialOpen}
         onClose={handleCloseTutorial}
+        onNavigate={(page) => navigateTo(page)}
       />
 
       {/* Unlock Rating Modal */}
