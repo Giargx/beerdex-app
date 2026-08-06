@@ -76,10 +76,6 @@ export const ExploreView: React.FC<ExploreViewProps> = ({
 
   const safeCatalog = Array.isArray(allBeersCatalog) ? allBeersCatalog : beers;
 
-  // Statistiche rapide per la header card
-  const totalCatalogBrands = safeCatalog.length;
-  const unlockedVariantsCount = Object.keys(myPokedex || {}).length;
-
   // Extract unique regions for Italian beers
   const ItalianRegions = useMemo(() => {
     return Array.from(
@@ -195,82 +191,10 @@ export const ExploreView: React.FC<ExploreViewProps> = ({
   return (
     <div className="page-container-view" style={{ overflowX: 'hidden', paddingBottom: '90px' }}>
       {/* 🌟 Modern Hero Banner with Glassmorphism Stats */}
-      <header
-        className="hero"
-        style={{
-          position: 'relative',
-          overflow: 'hidden',
-          padding: '24px 16px 40px 16px',
-          background: 'linear-gradient(135deg, #0F172A 0%, #1E293B 100%)',
-          color: '#FFFFFF',
-          borderBottomLeftRadius: '24px',
-          borderBottomRightRadius: '24px',
-          boxShadow: '0 8px 24px rgba(0,0,0,0.2)',
-        }}
-      >
+      <header className="hero">
         <FoamBubbles />
-        <div style={{ position: 'relative', zIndex: 2, maxWidth: '600px', margin: '0 auto', textAlign: 'center' }}>
-          <div
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '6px',
-              background: 'rgba(245, 158, 11, 0.15)',
-              border: '1px solid rgba(245, 158, 11, 0.3)',
-              padding: '4px 12px',
-              borderRadius: '20px',
-              fontSize: '11px',
-              fontWeight: 800,
-              color: '#FDE047',
-              marginBottom: '10px',
-              letterSpacing: '0.5px',
-            }}
-          >
-            <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>sports_bar</span>
-            BEERDEX EXPLORER
-          </div>
-
-          <h1 style={{ margin: '0 0 6px 0', fontSize: '24px', fontWeight: 900, color: '#FFFFFF' }}>
-            Esplora il Catalogo Birre 🍺
-          </h1>
-          <p style={{ margin: '0 0 18px 0', fontSize: '13px', color: '#94A3B8', fontWeight: 500 }}>
-            Scopri nuove marche, consulta le recensioni della community e sblocca la tua collezione.
-          </p>
-
-          {/* Quick Glassmorphic Stats Bar */}
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-around',
-              background: 'rgba(255, 255, 255, 0.06)',
-              backdropFilter: 'blur(12px)',
-              WebkitBackdropFilter: 'blur(12px)',
-              border: '1px solid rgba(255, 255, 255, 0.12)',
-              borderRadius: '16px',
-              padding: '10px 12px',
-            }}
-          >
-            <div style={{ textAlign: 'center' }}>
-              <div style={{ fontSize: '16px', fontWeight: 900, color: '#F59E0B' }}>{totalCatalogBrands}</div>
-              <div style={{ fontSize: '10px', color: '#CBD5E1', fontWeight: 700, textTransform: 'uppercase' }}>Marche</div>
-            </div>
-
-            <div style={{ width: '1px', height: '24px', background: 'rgba(255, 255, 255, 0.15)' }} />
-
-            <div style={{ textAlign: 'center' }}>
-              <div style={{ fontSize: '16px', fontWeight: 900, color: '#10B981' }}>{unlockedVariantsCount}</div>
-              <div style={{ fontSize: '10px', color: '#CBD5E1', fontWeight: 700, textTransform: 'uppercase' }}>Sbloccate</div>
-            </div>
-
-            <div style={{ width: '1px', height: '24px', background: 'rgba(255, 255, 255, 0.15)' }} />
-
-            <div style={{ textAlign: 'center' }}>
-              <div style={{ fontSize: '16px', fontWeight: 900, color: '#FDE047' }}>{Object.keys(globalAverageRatings).length}</div>
-              <div style={{ fontSize: '10px', color: '#CBD5E1', fontWeight: 700, textTransform: 'uppercase' }}>Recensite</div>
-            </div>
-          </div>
-        </div>
+        <h1 style={{ position: 'relative', zIndex: 2 }}>Esplora Catalogo Birre 🍺</h1>
+        <p style={{ position: 'relative', zIndex: 2 }}>Scopri tutte le birre disponibili nel beerdex, filtra per paese o ricerca la tua preferita.</p>
       </header>
 
       <div className="page-container" style={{ marginTop: '-20px', padding: '0 12px' }}>
