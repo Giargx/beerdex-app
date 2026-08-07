@@ -6,6 +6,7 @@ import { containsProfanity } from '../utils/textFilter';
 export interface BeerProposalData {
   brand: string;
   variant: string;
+  beerType: "bionda" | "rossa" | "scura" | "bianca" | "ipa";
   country: string;
   regione?: string;
   rarity: "comune" | "media" | "rara";
@@ -36,6 +37,7 @@ export const ProposeBeerModal: React.FC<ProposeBeerModalProps> = ({
 }) => {
   const [brand, setBrand] = useState(initialBrandSearch);
   const [variant, setVariant] = useState(initialVariantPrefill);
+  const [beerType, setBeerType] = useState<"bionda" | "rossa" | "scura" | "bianca" | "ipa" | "">('');
   const [country, setCountry] = useState('');
   const [regione, setRegione] = useState('Tutte');
   const [desc, setDesc] = useState(initialDescPrefill);
@@ -52,7 +54,9 @@ export const ProposeBeerModal: React.FC<ProposeBeerModalProps> = ({
     if (isOpen) {
       const searchBrand = (initialBrandSearch || '').trim();
       setBrand(searchBrand);
-      setVariant(initialVariantPrefill || '');
+      const vPrefill = initialVariantPrefill || '';
+      setVariant(vPrefill);
+      setBeerType('');
       setPhotoBase64('');
       setErrorMessage('');
 
@@ -133,8 +137,13 @@ export const ProposeBeerModal: React.FC<ProposeBeerModalProps> = ({
       return;
     }
 
-    if (existingBeer && !variant.trim()) {
-      setErrorMessage('Inserisci la variante o lo stile per questa marca.');
+    if (!variant.trim()) {
+      setErrorMessage('Inserisci il nome della variante.');
+      return;
+    }
+
+    if (!beerType) {
+      setErrorMessage('Seleziona la tipologia di birra (Bionda, Rossa, Scura, Bianca o IPA).');
       return;
     }
 
@@ -143,7 +152,7 @@ export const ProposeBeerModal: React.FC<ProposeBeerModalProps> = ({
       return;
     }
 
-    const effectiveVariant = variant.trim() ? variant.trim() : 'Classica';
+    const effectiveVariant = variant.trim();
     const effectiveCountry = country.trim() ? formatBeerTitle(country.trim()) : 'Non specificata';
 
     if (!photoBase64) {
@@ -172,6 +181,7 @@ export const ProposeBeerModal: React.FC<ProposeBeerModalProps> = ({
     onSubmitProposal({
       brand: formattedBrand,
       variant: formattedVariant,
+      beerType: beerType as "bionda" | "rossa" | "scura" | "bianca" | "ipa",
       country: effectiveCountry,
       regione: effectiveCountry.toLowerCase() === 'italia' && regione !== 'Tutte' ? regione : undefined,
       rarity: 'comune', // Impostata dagli Admin in fase di accettazione
@@ -244,17 +254,52 @@ export const ProposeBeerModal: React.FC<ProposeBeerModalProps> = ({
             />
           </div>
 
-          <div style={{ marginBottom: '12px' }}>
-            <label style={{ fontSize: '12px', fontWeight: 'bold', color: 'var(--dark)', display: 'block', marginBottom: '4px' }}>
-              Variante / Stile {existingBeer ? '*' : <span style={{ fontWeight: 'normal', color: 'var(--text-muted)' }}>(opzionale)</span>}
-            </label>
-            <input
-              type="text"
-              placeholder="IPA, Weiss, Non Filtrata..."
-              value={variant}
-              onChange={(e) => setVariant(e.target.value)}
-              style={{ width: '100%', boxSizing: 'border-box', margin: 0, padding: '12px' }}
-            />
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '12px' }}>
+            <div>
+              <label style={{ fontSize: '12px', fontWeight: 'bold', color: 'var(--dark)', display: 'block', marginBottom: '4px' }}>
+                Nome Variante *
+              </label>
+              <input
+                type="text"
+                placeholder="Non Filtrata, Weiss, Extra..."
+                value={variant}
+                onChange={(e) => setVariant(e.target.value)}
+                style={{ width: '100%', boxSizing: 'border-box', margin: 0, padding: '12px', borderRadius: '12px', border: '1px solid var(--gray)' }}
+              />
+            </div>
+
+            <div>
+              <label style={{ fontSize: '12px', fontWeight: 'bold', color: 'var(--dark)', display: 'block', marginBottom: '4px' }}>
+                Tipologia *
+              </label>
+              <select
+                value={beerType}
+                onChange={(e) => setBeerType(e.target.value as any)}
+                style={{
+                  width: '100%',
+                  padding: '12px',
+                  borderRadius: '12px',
+                  border: '1px solid var(--gray)',
+                  background: 'white',
+                  boxSizing: 'border-box',
+                  margin: 0,
+                  appearance: 'none',
+                  WebkitAppearance: 'none',
+                  MozAppearance: 'none',
+                  cursor: 'pointer',
+                  fontSize: '13px',
+                  fontWeight: 600,
+                  color: beerType ? 'var(--dark)' : 'var(--text-muted)',
+                }}
+              >
+                <option value="">Seleziona...</option>
+                <option value="bionda">🍺 Bionda</option>
+                <option value="rossa">🔴 Rossa</option>
+                <option value="scura">🌑 Scura</option>
+                <option value="bianca">⚪ Bianca</option>
+                <option value="ipa">🌿 IPA</option>
+              </select>
+            </div>
           </div>
 
           <div style={{ display: 'grid', gridTemplateColumns: country.trim().toLowerCase() === 'italia' ? '1fr 1fr' : '1fr', gap: '10px', marginBottom: '12px' }}>

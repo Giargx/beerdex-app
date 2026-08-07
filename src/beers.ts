@@ -7,6 +7,8 @@ export interface Beer {
   variants: string[];
   barcodes?: string[];
   regione?: string;
+  beerType?: "bionda" | "rossa" | "scura" | "bianca" | "ipa";
+  variantTypes?: Record<string, "bionda" | "rossa" | "scura" | "bianca" | "ipa">;
 }
 
 export const beers: Beer[] = [
@@ -113,7 +115,18 @@ export function normalizeStr(str?: string | null): string {
   return str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
 }
 
-export function getBeerType(_brandName: string, variantName: string): "rossa" | "scura" | "bianca" | "ipa" | "bionda" {
+export function getBeerType(brandName: string, variantName: string, allBeersCatalog?: Beer[]): "rossa" | "scura" | "bianca" | "ipa" | "bionda" {
+  if (allBeersCatalog && Array.isArray(allBeersCatalog)) {
+    const beer = allBeersCatalog.find(b => b && b.brand && b.brand.toLowerCase() === (brandName || '').toLowerCase());
+    if (beer) {
+      if (beer.variantTypes && beer.variantTypes[variantName]) {
+        return beer.variantTypes[variantName];
+      }
+      if (beer.beerType) {
+        return beer.beerType;
+      }
+    }
+  }
   if (!variantName || typeof variantName !== 'string') return "bionda";
   const vLower = variantName.toLowerCase();
   if (vLower.includes("rossa") || vLower.includes("rouge") || vLower.includes("red") || vLower.includes("cherry") || vLower.includes("porpora") || vLower.includes("amber") || vLower.includes("ambrata") || vLower.includes("rituel")) {
@@ -223,15 +236,27 @@ export function mergeBeers(staticBeers: Beer[] = beers, customBeers?: any): Beer
         : ((cb as any).variant ? [(cb as any).variant] : ['Classica']);
       const cbVariants = rawVars.map((v: string) => formatBeerTitle(v || 'Classica'));
 
+      const cbType = cb.beerType || undefined;
+
       if (mergedMap.has(cbBrand)) {
         const existing = mergedMap.get(cbBrand)!;
         if (!Array.isArray(existing.variants)) existing.variants = ['Classica'];
+        if (!existing.variantTypes) existing.variantTypes = {};
         cbVariants.forEach((v: string) => {
           if (v && !existing.variants.includes(v)) {
             existing.variants.push(v);
           }
+          if (v && cbType) {
+            existing.variantTypes![v] = cbType;
+          }
         });
       } else {
+        const varTypesObj: Record<string, any> = {};
+        if (cbType) {
+          cbVariants.forEach((v: string) => {
+            if (v) varTypesObj[v] = cbType;
+          });
+        }
         mergedMap.set(cbBrand, {
           brand: cbBrand,
           country: cb.country || "Italia",
@@ -241,6 +266,8 @@ export function mergeBeers(staticBeers: Beer[] = beers, customBeers?: any): Beer
           variants: cbVariants.length > 0 ? [...cbVariants] : ["Classica"],
           regione: cb.regione || undefined,
           barcodes: Array.isArray(cb.barcodes) ? [...cb.barcodes] : [],
+          beerType: cbType,
+          variantTypes: varTypesObj,
         });
       }
     }

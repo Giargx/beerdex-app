@@ -5,6 +5,7 @@ export interface BeerProposalItem {
   proposalId: string;
   brand: string;
   variant: string;
+  beerType?: "bionda" | "rossa" | "scura" | "bianca" | "ipa";
   country: string;
   regione?: string;
   rarity: "comune" | "media" | "rara";
@@ -65,6 +66,7 @@ export const AdminProposalsModal: React.FC<AdminProposalsModalProps> = ({
   const [editedDataMap, setEditedDataMap] = useState<Record<string, {
     brand: string;
     variant: string;
+    beerType?: string;
     country: string;
     regione: string;
     rarity: "comune" | "media" | "rara";
@@ -87,6 +89,7 @@ export const AdminProposalsModal: React.FC<AdminProposalsModalProps> = ({
         [item.proposalId]: {
           brand: formatBeerTitle(item.brand),
           variant: formatBeerTitle(item.variant),
+          beerType: item.beerType || 'bionda',
           country: item.country || 'Non specificata',
           regione: item.regione || 'Tutte',
           rarity: item.rarity || 'comune',
@@ -107,6 +110,7 @@ export const AdminProposalsModal: React.FC<AdminProposalsModalProps> = ({
         ...(prev[proposalId] || {
           brand: '',
           variant: '',
+          beerType: 'bionda',
           country: 'Italia',
           regione: 'Tutte',
           rarity: 'comune',
@@ -121,6 +125,7 @@ export const AdminProposalsModal: React.FC<AdminProposalsModalProps> = ({
     const edit = editedDataMap[item.proposalId];
     const rawBrand = edit ? edit.brand : item.brand;
     const rawVariant = edit ? edit.variant : item.variant;
+    const rawBeerType = edit ? edit.beerType : item.beerType;
     const rawCountry = edit ? edit.country : item.country;
     const rawRegione = edit ? edit.regione : item.regione;
     const rawRarity = edit ? edit.rarity : item.rarity;
@@ -134,6 +139,7 @@ export const AdminProposalsModal: React.FC<AdminProposalsModalProps> = ({
       ...item,
       brand: formattedBrand,
       variant: formattedVariant,
+      beerType: (rawBeerType as any) || 'bionda',
       country: formattedCountry,
       regione: formattedCountry.toLowerCase() === 'italia' && rawRegione && rawRegione !== 'Tutte' ? rawRegione : undefined,
       rarity: rawRarity,
@@ -625,8 +631,13 @@ export const AdminProposalsModal: React.FC<AdminProposalsModalProps> = ({
                             {item.isVariantProposal ? '💡 Nuova Variante (+1 Pt Bonus)' : '✨ Nuova Marca (+2 Pt Bonus)'}
                           </span>
                         </div>
-                        <div style={{ fontSize: '14px', fontWeight: 'bold', color: 'var(--dark)' }}>
+                        <div style={{ fontSize: '14px', fontWeight: 'bold', color: 'var(--dark)', display: 'flex', alignItems: 'center', gap: '6px' }}>
                           {currentData.variant}
+                          {currentData.beerType && (
+                            <span style={{ fontSize: '11px', background: '#F1F5F9', color: '#475569', padding: '1px 6px', borderRadius: '8px', textTransform: 'capitalize', fontWeight: 600 }}>
+                              {currentData.beerType}
+                            </span>
+                          )}
                         </div>
                         <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '2px' }}>
                           Nazione: <strong>{currentData.country}</strong> {currentData.country.trim().toLowerCase() === 'italia' && currentData.regione && currentData.regione !== 'Tutte' ? `(${currentData.regione})` : ''}
@@ -652,7 +663,7 @@ export const AdminProposalsModal: React.FC<AdminProposalsModalProps> = ({
                           <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>tune</span>
                           Modifica / Completa Campi Proposta prima di Approvare:
                         </div>
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '8px' }}>
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px', marginBottom: '8px' }}>
                           <div>
                             <label style={{ fontSize: '11px', fontWeight: 'bold', display: 'block', marginBottom: '2px' }}>Marca / Birrificio</label>
                             <input
@@ -663,13 +674,27 @@ export const AdminProposalsModal: React.FC<AdminProposalsModalProps> = ({
                             />
                           </div>
                           <div>
-                            <label style={{ fontSize: '11px', fontWeight: 'bold', display: 'block', marginBottom: '2px' }}>Variante / Stile</label>
+                            <label style={{ fontSize: '11px', fontWeight: 'bold', display: 'block', marginBottom: '2px' }}>Nome Variante</label>
                             <input
                               type="text"
                               value={currentData.variant}
                               onChange={(e) => updateField(item.proposalId, 'variant', e.target.value)}
                               style={{ width: '100%', boxSizing: 'border-box', padding: '6px 8px', fontSize: '12px', margin: 0 }}
                             />
+                          </div>
+                          <div>
+                            <label style={{ fontSize: '11px', fontWeight: 'bold', display: 'block', marginBottom: '2px' }}>Tipologia</label>
+                            <select
+                              value={currentData.beerType || 'bionda'}
+                              onChange={(e) => updateField(item.proposalId, 'beerType', e.target.value)}
+                              style={{ width: '100%', padding: '6px', fontSize: '12px', borderRadius: '8px' }}
+                            >
+                              <option value="bionda">🍺 Bionda</option>
+                              <option value="rossa">🔴 Rossa</option>
+                              <option value="scura">🌑 Scura</option>
+                              <option value="bianca">⚪ Bianca</option>
+                              <option value="ipa">🌿 IPA</option>
+                            </select>
                           </div>
                         </div>
 

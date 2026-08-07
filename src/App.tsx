@@ -1082,6 +1082,7 @@ export default function App() {
         proposalId: newRef.key!,
         brand: proposalData.brand,
         variant: proposalData.variant,
+        beerType: proposalData.beerType,
         country: proposalData.country,
         regione: proposalData.regione || null,
         rarity: proposalData.rarity,
@@ -1110,6 +1111,7 @@ export default function App() {
       const formattedCountry = formatBeerTitle((proposal.country || 'Non specificata').trim());
       const isVariant = proposal.isVariantProposal ?? false;
       const bonusPoints = proposal.bonusPoints ?? (isVariant ? 1 : 2);
+      const beerType = proposal.beerType || 'bionda';
 
       // 1. Save new custom beer to catalog in Firebase DB
       const newCustomBeer: Beer = {
@@ -1120,6 +1122,7 @@ export default function App() {
         desc: proposal.desc || `Birra ${formattedBrand} (${formattedVariant})`,
         variants: [formattedVariant],
         barcodes: [],
+        beerType: beerType,
       };
       if (proposal.regione) {
         newCustomBeer.regione = proposal.regione;
