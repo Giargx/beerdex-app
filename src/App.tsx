@@ -514,56 +514,7 @@ export default function App() {
   const [pubProfileScore, setPubProfileScore] = useState<number>(0);
   const [pubProfileBackPage, setPubProfileBackPage] = useState<string>('page-leaderboard');
 
-  // Lock body scroll when any modal / unlock panel is open
-  useEffect(() => {
-    const isModalOpen =
-      scannerConfig.open ||
-      captureOpen ||
-      storyCaptureOpen ||
-      cropOpen ||
-      !!unlockRatingModalState?.isOpen ||
-      proposeModalOpen ||
-      tagRequestModalState.isOpen ||
-      adminProposalsModalOpen ||
-      customModal.open ||
-      confirmConfig.open ||
-      !!storyViewerState.open ||
-      !!reportPostModalState.open ||
-      !!postOptionsMenuState.open ||
-      permissionModal.open ||
-      avatarSelectorOpen ||
-      settingsOpen;
 
-    if (isModalOpen) {
-      document.body.style.overflow = 'hidden';
-      document.body.style.touchAction = 'none';
-    } else {
-      document.body.style.overflow = '';
-      document.body.style.touchAction = '';
-    }
-
-    return () => {
-      document.body.style.overflow = '';
-      document.body.style.touchAction = '';
-    };
-  }, [
-    scannerConfig.open,
-    captureOpen,
-    storyCaptureOpen,
-    cropOpen,
-    unlockRatingModalState,
-    proposeModalOpen,
-    tagRequestModalState.isOpen,
-    adminProposalsModalOpen,
-    customModal.open,
-    confirmConfig.open,
-    storyViewerState,
-    reportPostModalState,
-    postOptionsMenuState,
-    permissionModal.open,
-    avatarSelectorOpen,
-    settingsOpen,
-  ]);
 
   // Main Tab Touch Swipe State & Handlers
   const touchStartX = useRef<number>(0);
@@ -818,6 +769,57 @@ export default function App() {
   };
 
 
+
+  // Lock body scroll when any modal / unlock panel is open
+  useEffect(() => {
+    const isModalOpen =
+      scannerConfig.open ||
+      captureOpen ||
+      storyCaptureOpen ||
+      cropOpen ||
+      !!unlockRatingModalState?.isOpen ||
+      proposeModalOpen ||
+      activeTagRequestModal !== null ||
+      myTagRequests.length > 0 ||
+      adminProposalsModalOpen ||
+      alertConfig.open ||
+      confirmConfig.open ||
+      activeStoryViewerIndex !== null ||
+      isStoryEditorOpen ||
+      permissionModalState.isOpen ||
+      avatarSelectorOpen ||
+      settingsOpen;
+
+    if (isModalOpen) {
+      document.body.style.overflow = 'hidden';
+      document.body.style.touchAction = 'none';
+    } else {
+      document.body.style.overflow = '';
+      document.body.style.touchAction = '';
+    }
+
+    return () => {
+      document.body.style.overflow = '';
+      document.body.style.touchAction = '';
+    };
+  }, [
+    scannerConfig.open,
+    captureOpen,
+    storyCaptureOpen,
+    cropOpen,
+    unlockRatingModalState,
+    proposeModalOpen,
+    activeTagRequestModal,
+    myTagRequests.length,
+    adminProposalsModalOpen,
+    alertConfig.open,
+    confirmConfig.open,
+    activeStoryViewerIndex,
+    isStoryEditorOpen,
+    permissionModalState.isOpen,
+    avatarSelectorOpen,
+    settingsOpen,
+  ]);
 
   // check age gate on mount
   useEffect(() => {
