@@ -66,6 +66,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
   const [feedbackText, setFeedbackText] = useState('');
   const [isSubmittingFeedback, setIsSubmittingFeedback] = useState(false);
   const [feedbackSent, setFeedbackSent] = useState(false);
+  const [isFeedbackExpanded, setIsFeedbackExpanded] = useState(false);
 
   const handleSendFeedbackSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -1354,76 +1355,106 @@ export const HomeView: React.FC<HomeViewProps> = ({
           </button>
         </div>
 
-        {/* CONSIGLI & PROBLEMATICHE SECTION */}
+        {/* CONSIGLI SECTION (EXPANDABLE) */}
         <div
           style={{
             background: 'linear-gradient(135deg, #1E293B 0%, #0F172A 100%)',
-            borderRadius: '24px',
-            padding: '20px',
+            borderRadius: '20px',
+            padding: isFeedbackExpanded ? '18px 20px' : '14px 20px',
             marginTop: '25px',
             border: '1px solid rgba(245, 158, 11, 0.25)',
-            boxShadow: '0 10px 25px rgba(15, 23, 42, 0.15)',
+            boxShadow: '0 8px 20px rgba(15, 23, 42, 0.15)',
             color: 'white',
+            transition: 'all 0.3s ease',
           }}
         >
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
-            <span className="material-symbols-outlined" style={{ color: '#F59E0B', fontSize: '22px' }}>
-              rate_review
-            </span>
-            <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 800, color: '#F8FAFC' }}>
-              Consigli & Problematiche
-            </h3>
-          </div>
-          <p style={{ fontSize: '12px', color: '#94A3B8', margin: '0 0 12px 0', lineHeight: 1.5 }}>
-            Hai suggerimenti per migliorare l'app o hai riscontrato dei problemi? Comunicalo direttamente agli admin!
-          </p>
-          {feedbackSent ? (
-            <div style={{ background: 'rgba(16, 185, 129, 0.15)', border: '1px solid #10B981', color: '#10B981', padding: '12px', borderRadius: '14px', fontSize: '12px', fontWeight: 700, textAlign: 'center' }}>
-              ✓ Messaggio inviato con successo agli admin! Grazie per il tuo feedback.
+          {/* Header Row - Single line clickable banner */}
+          <div
+            onClick={() => setIsFeedbackExpanded(!isFeedbackExpanded)}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              cursor: 'pointer',
+              userSelect: 'none',
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <span className="material-symbols-outlined" style={{ color: '#F59E0B', fontSize: '22px' }}>
+                rate_review
+              </span>
+              <h3 style={{ margin: 0, fontSize: '15px', fontWeight: 800, color: '#F8FAFC' }}>
+                Consigli
+              </h3>
             </div>
-          ) : (
-            <form onSubmit={handleSendFeedbackSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-              <textarea
-                placeholder="Scrivi qui consigli, idee o segnalazioni di problemi..."
-                value={feedbackText}
-                onChange={(e) => setFeedbackText(e.target.value)}
-                rows={3}
-                style={{
-                  width: '100%',
-                  padding: '12px',
-                  borderRadius: '14px',
-                  border: '1px solid #334155',
-                  background: '#0F172A',
-                  color: 'white',
-                  fontSize: '13px',
-                  resize: 'none',
-                  outline: 'none',
-                  boxSizing: 'border-box',
-                }}
-              />
-              <button
-                type="submit"
-                disabled={isSubmittingFeedback || !feedbackText.trim()}
-                style={{
-                  background: feedbackText.trim() ? 'linear-gradient(135deg, #FFB300, #FF6F00)' : '#334155',
-                  color: feedbackText.trim() ? '#0F172A' : '#64748B',
-                  border: 'none',
-                  borderRadius: '12px',
-                  padding: '10px 16px',
-                  fontSize: '13px',
-                  fontWeight: 800,
-                  cursor: feedbackText.trim() ? 'pointer' : 'not-allowed',
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: '6px',
-                  transition: 'all 0.2s ease',
-                }}
-              >
-                <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>send</span>
-                Invia agli Admin
-              </button>
-            </form>
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              {!isFeedbackExpanded && (
+                <span style={{ fontSize: '11px', color: '#94A3B8', fontWeight: 600 }}>
+                  Scrivi agli admin
+                </span>
+              )}
+              <span className="material-symbols-outlined" style={{ color: '#F59E0B', fontSize: '20px' }}>
+                {isFeedbackExpanded ? 'expand_less' : 'expand_more'}
+              </span>
+            </div>
+          </div>
+
+          {/* Step 2: Expanded Content */}
+          {isFeedbackExpanded && (
+            <div style={{ marginTop: '14px', paddingTop: '12px', borderTop: '1px solid rgba(255, 255, 255, 0.1)' }}>
+              <p style={{ fontSize: '12px', color: '#94A3B8', margin: '0 0 12px 0', lineHeight: 1.5 }}>
+                Hai suggerimenti per migliorare l'app o hai riscontrato dei problemi? Comunicalo direttamente agli admin!
+              </p>
+              {feedbackSent ? (
+                <div style={{ background: 'rgba(16, 185, 129, 0.15)', border: '1px solid #10B981', color: '#10B981', padding: '12px', borderRadius: '14px', fontSize: '12px', fontWeight: 700, textAlign: 'center' }}>
+                  ✓ Messaggio inviato con successo agli admin! Grazie per il tuo feedback.
+                </div>
+              ) : (
+                <form onSubmit={handleSendFeedbackSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                  <textarea
+                    placeholder="Scrivi qui consigli, idee o segnalazioni di problemi..."
+                    value={feedbackText}
+                    onChange={(e) => setFeedbackText(e.target.value)}
+                    rows={3}
+                    style={{
+                      width: '100%',
+                      padding: '12px',
+                      borderRadius: '14px',
+                      border: '1px solid #334155',
+                      background: '#0F172A',
+                      color: 'white',
+                      fontSize: '13px',
+                      resize: 'none',
+                      outline: 'none',
+                      boxSizing: 'border-box',
+                    }}
+                  />
+                  <button
+                    type="submit"
+                    disabled={isSubmittingFeedback || !feedbackText.trim()}
+                    style={{
+                      background: feedbackText.trim() ? 'linear-gradient(135deg, #FFB300, #FF6F00)' : '#334155',
+                      color: feedbackText.trim() ? '#0F172A' : '#64748B',
+                      border: 'none',
+                      borderRadius: '12px',
+                      padding: '10px 16px',
+                      fontSize: '13px',
+                      fontWeight: 800,
+                      cursor: feedbackText.trim() ? 'pointer' : 'not-allowed',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '6px',
+                      transition: 'all 0.2s ease',
+                    }}
+                  >
+                    <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>send</span>
+                    Invia agli Admin
+                  </button>
+                </form>
+              )}
+            </div>
           )}
         </div>
       </div>
