@@ -99,11 +99,11 @@ export const PublicProfileView: React.FC<PublicProfileViewProps> = ({
 
   // Rating Stats Calculation for Public Profile
   const beerTypeMeta: Record<string, { label: string; icon: string; color: string }> = {
-    ipa: { label: 'IPA & Craft', icon: 'sports_bar', color: '#F59E0B' },
+    ipa: { label: 'IPA & Craft', icon: 'glass_cup', color: '#10B981' },
     bianca: { label: 'Bianca / Weiss', icon: 'snowing', color: '#6366F1' },
     scura: { label: 'Scura / Stout', icon: 'dark_mode', color: '#475569' },
     rossa: { label: 'Rossa / Ambrata', icon: 'local_fire_department', color: '#EF4444' },
-    bionda: { label: 'Bionda / Lager', icon: 'glass_cup', color: '#10B981' },
+    bionda: { label: 'Bionda / Lager', icon: 'sports_bar', color: '#F59E0B' },
   };
 
   const styleStats: Record<string, { sum: number; count: number; average: number }> = {

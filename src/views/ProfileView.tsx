@@ -155,11 +155,11 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
 
   // ----------------- CALCULATE BEER RATING STATS -----------------
   const beerTypeMeta: Record<string, { label: string; icon: string; color: string }> = {
-    ipa: { label: 'IPA & Craft', icon: 'sports_bar', color: '#F59E0B' },
+    ipa: { label: 'IPA & Craft', icon: 'glass_cup', color: '#10B981' },
     bianca: { label: 'Bianca / Weiss', icon: 'snowing', color: '#6366F1' },
     scura: { label: 'Scura / Stout', icon: 'dark_mode', color: '#475569' },
     rossa: { label: 'Rossa / Ambrata', icon: 'local_fire_department', color: '#EF4444' },
-    bionda: { label: 'Bionda / Lager', icon: 'glass_cup', color: '#10B981' },
+    bionda: { label: 'Bionda / Lager', icon: 'sports_bar', color: '#F59E0B' },
   };
 
   const styleStats: Record<string, { sum: number; count: number; average: number }> = {
@@ -1163,7 +1163,8 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
           {/* Overview Banner */}
           <div
             style={{
-              background: 'linear-gradient(135deg, #F59E0B 0%, #D97706 100%)',
+              background: 'linear-gradient(135deg, #0F172A 0%, #1E293B 100%)',
+              border: '1px solid rgba(255, 255, 255, 0.1)',
               borderRadius: '20px',
               padding: '20px',
               color: 'white',
@@ -1171,6 +1172,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
               boxShadow: '0 10px 25px rgba(15,23,42,0.15)',
               position: 'relative',
               overflow: 'hidden',
+              fontFamily: "'Outfit', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
             }}
           >
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>

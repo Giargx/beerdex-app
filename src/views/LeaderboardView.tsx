@@ -477,11 +477,6 @@ export const LeaderboardView: React.FC<LeaderboardViewProps> = ({
                         transform: 'translateX(-50%)',
                         background: 'linear-gradient(135deg, #E2E8F0, #94A3B8)',
                         color: '#0F172A',
-                        fontWeight: 900,
-                        fontSize: '10px',
-                        padding: '2px 8px',
-                        borderRadius: '12px',
-                        boxShadow: '0 2px 6px rgba(0,0,0,0.3)'
                       }}>
                         2°
                       </span>
@@ -490,7 +485,22 @@ export const LeaderboardView: React.FC<LeaderboardViewProps> = ({
                     <div style={{ fontWeight: 800, fontSize: '12px', color: '#F8FAFC', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '85px', textAlign: 'center' }}>
                       {safeDisplayNames[top2.name] || top2.name}
                     </div>
-                    <div style={{ fontWeight: 900, fontSize: '12px', color: '#94A3B8', marginBottom: '6px' }}>
+                    {['gargo', 'forne02', 'aviatore'].includes((top2.name || '').toLowerCase()) && (
+                      <span style={{
+                        background: 'linear-gradient(135deg, #EF4444 0%, #B91C1C 100%)',
+                        color: 'white',
+                        fontSize: '8px',
+                        fontWeight: 900,
+                        padding: '1px 5px',
+                        borderRadius: '5px',
+                        marginTop: '2px',
+                        boxShadow: '0 2px 4px rgba(239, 68, 68, 0.4)',
+                        letterSpacing: '0.5px'
+                      }}>
+                        ADMIN
+                      </span>
+                    )}
+                    <div style={{ fontWeight: 900, fontSize: '12px', color: '#94A3B8', marginBottom: '6px', marginTop: '2px' }}>
                       {top2.score} pt
                     </div>
 
@@ -563,7 +573,22 @@ export const LeaderboardView: React.FC<LeaderboardViewProps> = ({
                     <div style={{ fontWeight: 900, fontSize: '13px', color: '#FFFFFF', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '95px', textAlign: 'center' }}>
                       {safeDisplayNames[top1.name] || top1.name}
                     </div>
-                    <div style={{ fontWeight: 900, fontSize: '13px', color: '#FFB300', marginBottom: '6px' }}>
+                    {['gargo', 'forne02', 'aviatore'].includes((top1.name || '').toLowerCase()) && (
+                      <span style={{
+                        background: 'linear-gradient(135deg, #EF4444 0%, #B91C1C 100%)',
+                        color: 'white',
+                        fontSize: '8px',
+                        fontWeight: 900,
+                        padding: '1px 5px',
+                        borderRadius: '5px',
+                        marginTop: '2px',
+                        boxShadow: '0 2px 4px rgba(239, 68, 68, 0.4)',
+                        letterSpacing: '0.5px'
+                      }}>
+                        ADMIN
+                      </span>
+                    )}
+                    <div style={{ fontWeight: 900, fontSize: '13px', color: '#FFB300', marginBottom: '6px', marginTop: '2px' }}>
                       {top1.score} pt
                     </div>
 
@@ -602,7 +627,7 @@ export const LeaderboardView: React.FC<LeaderboardViewProps> = ({
                         width: '54px',
                         height: '54px',
                         borderRadius: '50%',
-                        border: '3px solid #D97706',
+                        border: '3.5px solid #D97706',
                         overflow: 'hidden',
                         background: '#334155',
                         boxShadow: '0 4px 15px rgba(217, 119, 6, 0.3)'
@@ -635,7 +660,22 @@ export const LeaderboardView: React.FC<LeaderboardViewProps> = ({
                     <div style={{ fontWeight: 800, fontSize: '12px', color: '#F8FAFC', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '85px', textAlign: 'center' }}>
                       {safeDisplayNames[top3.name] || top3.name}
                     </div>
-                    <div style={{ fontWeight: 900, fontSize: '12px', color: '#FDBA74', marginBottom: '6px' }}>
+                    {['gargo', 'forne02', 'aviatore'].includes((top3.name || '').toLowerCase()) && (
+                      <span style={{
+                        background: 'linear-gradient(135deg, #EF4444 0%, #B91C1C 100%)',
+                        color: 'white',
+                        fontSize: '8px',
+                        fontWeight: 900,
+                        padding: '1px 5px',
+                        borderRadius: '5px',
+                        marginTop: '2px',
+                        boxShadow: '0 2px 4px rgba(239, 68, 68, 0.4)',
+                        letterSpacing: '0.5px'
+                      }}>
+                        ADMIN
+                      </span>
+                    )}
+                    <div style={{ fontWeight: 900, fontSize: '12px', color: '#FDBA74', marginBottom: '6px', marginTop: '2px' }}>
                       {top3.score} pt
                     </div>
 
