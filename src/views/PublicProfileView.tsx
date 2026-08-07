@@ -1231,6 +1231,28 @@ export const PublicProfileView: React.FC<PublicProfileViewProps> = ({
                     {filteredEntries.map(([key, entry]) => {
                       const brand = entry.brand || key.split('-')[0];
                       const variant = key.split('-').slice(1).join('-');
+
+                      let resolvedPhoto = entry.photo || '';
+                      if (!resolvedPhoto) {
+                        const myPostMatch = (myPosts || []).find((p: any) =>
+                          p && p.photo && typeof p.photo === 'string' && p.photo.trim().length > 0 &&
+                          (p.brand || '').toLowerCase() === brand.toLowerCase() &&
+                          (p.variant || '').toLowerCase() === variant.toLowerCase()
+                        );
+                        if (myPostMatch) {
+                          resolvedPhoto = myPostMatch.photo;
+                        } else {
+                          const anyPostMatch = (safePosts || []).find((p: any) =>
+                            p && p.photo && typeof p.photo === 'string' && p.photo.trim().length > 0 &&
+                            (p.brand || '').toLowerCase() === brand.toLowerCase() &&
+                            (p.variant || '').toLowerCase() === variant.toLowerCase()
+                          );
+                          if (anyPostMatch) {
+                            resolvedPhoto = anyPostMatch.photo;
+                          }
+                        }
+                      }
+
                       return (
                         <div
                           key={key}
@@ -1246,10 +1268,10 @@ export const PublicProfileView: React.FC<PublicProfileViewProps> = ({
                         >
                           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                             <div style={{ width: '36px', height: '36px', borderRadius: '8px', overflow: 'hidden', flexShrink: 0, border: '1px solid var(--gray)' }}>
-                              {entry.photo ? (
-                                <img src={entry.photo} alt={variant} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                              {resolvedPhoto ? (
+                                <img src={resolvedPhoto} alt={variant} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                               ) : (
-                                <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#F1F5F9', color: '#94A3B8' }}>
+                                <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'linear-gradient(135deg, #FEF3C7 0%, #FDE68A 100%)', color: '#D97706', fontSize: '18px' }}>
                                   🍺
                                 </div>
                               )}

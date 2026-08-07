@@ -1336,19 +1336,40 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
                 const normKey = `${b.toLowerCase()}-${v.toLowerCase()}`;
                 const existing = deduplicatedMap.get(normKey);
 
+                let resolvedPhoto = entry.photo || '';
+                if (!resolvedPhoto) {
+                  const myPostMatch = (myPosts || []).find((p: any) =>
+                    p && p.photo && typeof p.photo === 'string' && p.photo.trim().length > 0 &&
+                    (p.brand || '').toLowerCase() === b.toLowerCase() &&
+                    (p.variant || '').toLowerCase() === v.toLowerCase()
+                  );
+                  if (myPostMatch) {
+                    resolvedPhoto = myPostMatch.photo;
+                  } else {
+                    const anyPostMatch = (posts || []).find((p: any) =>
+                      p && p.photo && typeof p.photo === 'string' && p.photo.trim().length > 0 &&
+                      (p.brand || '').toLowerCase() === b.toLowerCase() &&
+                      (p.variant || '').toLowerCase() === v.toLowerCase()
+                    );
+                    if (anyPostMatch) {
+                      resolvedPhoto = anyPostMatch.photo;
+                    }
+                  }
+                }
+
                 if (!existing) {
                   deduplicatedMap.set(normKey, {
                     brand: b,
                     variant: v,
                     rating: entry.rating || 0,
-                    photo: entry.photo || '',
+                    photo: resolvedPhoto,
                   });
                 } else {
                   if ((!existing.rating && entry.rating) || (entry.rating && entry.rating > existing.rating)) {
                     existing.rating = entry.rating;
                   }
-                  if (!existing.photo && entry.photo) {
-                    existing.photo = entry.photo;
+                  if (!existing.photo && resolvedPhoto) {
+                    existing.photo = resolvedPhoto;
                   }
                 }
               });
@@ -1396,9 +1417,9 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
                           {item.photo ? (
                             <img src={item.photo} alt={item.variant} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                           ) : (
-                            <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#F1F5F9', color: '#94A3B8' }}>
-                              🍺
-                            </div>
+                             <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'linear-gradient(135deg, #FEF3C7 0%, #FDE68A 100%)', color: '#D97706', fontSize: '18px' }}>
+                               🍺
+                             </div>
                           )}
                         </div>
                         <div>
