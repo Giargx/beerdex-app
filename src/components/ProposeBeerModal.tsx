@@ -238,7 +238,7 @@ export const ProposeBeerModal: React.FC<ProposeBeerModalProps> = ({
             </label>
             <input
               type="text"
-              placeholder="Moretti, Ichnusa, Guinness, Sapporo..."
+              placeholder="Moretti, Ichnusa, Heineken,..."
               value={brand}
               onChange={(e) => setBrand(e.target.value)}
               disabled={isBrandLocked}
@@ -261,7 +261,7 @@ export const ProposeBeerModal: React.FC<ProposeBeerModalProps> = ({
               </label>
               <input
                 type="text"
-                placeholder="Non Filtrata, Weiss, Extra..."
+                placeholder=""
                 value={variant}
                 onChange={(e) => setVariant(e.target.value)}
                 style={{ width: '100%', boxSizing: 'border-box', margin: 0, padding: '12px', borderRadius: '12px', border: '1px solid var(--gray)' }}
