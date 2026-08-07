@@ -252,7 +252,13 @@ export function getEventMedals(userPosts: any[], catalog: Beer[] = beers): Event
     return timeA - timeB;
   });
 
-  return medals;
+  // Filter out past expired events (where endDate < now) so current active event is first
+  const activeMedals = medals.filter((m) => {
+    if (!m.endDate) return true;
+    return m.endDate >= now;
+  });
+
+  return activeMedals;
 }
 
 export interface TrophyGridProps {

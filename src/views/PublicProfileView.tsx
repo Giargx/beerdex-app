@@ -5,6 +5,7 @@ import { FoamBubbles } from '../components/FoamBubbles';
 import { beers, getBeerType, formatBeerTitle, getUniqueParticipantPosts, resolvePokedexEntryBeer } from '../beers';
 import type { Beer } from '../beers';
 import { StarRating } from '../components/StarRating';
+import { ScoreBreakdownCard } from '../components/ScoreBreakdownCard';
 
 interface PublicProfileViewProps {
   username: string;
@@ -936,7 +937,14 @@ export const PublicProfileView: React.FC<PublicProfileViewProps> = ({
 
         {/* 3. STATISTICHE GENERALI (STATS) TAB FOR PUBLIC PROFILE */}
         {activeTab === 'stats' && (
-          <div style={{ animation: 'fadeIn 0.2s ease-out', marginBottom: '30px' }}>
+          <div style={{ animation: 'fadeIn 0.2s ease-out' }}>
+            {/* Score Breakdown Card */}
+            <ScoreBreakdownCard
+              pokedex={safePokedex}
+              userPosts={myPosts}
+              catalog={safeCatalog}
+              title="Come sono stati ottenuti i Punti"
+            />
             {/* Circular/Linear progress summary */}
             <div style={{ background: 'var(--white)', padding: '20px', borderRadius: '16px', border: '1px solid var(--gray)', boxShadow: 'var(--card-shadow)', textAlign: 'center', marginBottom: '20px' }}>
               <h4 style={{ margin: '0 0 15px 0', fontSize: '14px', textTransform: 'uppercase', color: 'var(--text-muted)', letterSpacing: '0.5px' }}>

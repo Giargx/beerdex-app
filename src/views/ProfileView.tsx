@@ -3,6 +3,7 @@ import { TrophyGrid, getEventMedals } from '../components/TrophyGrid';
 import type { PokedexEntry } from '../components/TrophyGrid';
 import { beers, getBeerType, formatBeerTitle, getUniqueParticipantPosts, resolvePokedexEntryBeer, type Beer } from '../beers';
 import { StarRating } from '../components/StarRating';
+import { ScoreBreakdownCard } from '../components/ScoreBreakdownCard';
 
 interface ProfileViewProps {
   currentUserNick: string;
@@ -1104,6 +1105,13 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
       {/* 3. STATS TAB */}
       {activeTab === 'stats' && (
         <div style={{ padding: '0 20px', animation: 'fadeIn 0.2s ease-out' }}>
+          {/* Score Breakdown Card */}
+          <ScoreBreakdownCard
+            pokedex={myPokedex}
+            userPosts={myPosts}
+            catalog={catalog}
+            title="Come sono stati ottenuti i Punti"
+          />
           {/* Circular/Linear progress summary */}
           <div style={{ background: 'var(--white)', padding: '20px', borderRadius: '16px', border: '1px solid var(--gray)', boxShadow: 'var(--card-shadow)', textAlign: 'center', marginBottom: '20px' }}>
             <h4 style={{ margin: '0 0 15px 0', fontSize: '14px', textTransform: 'uppercase', color: 'var(--text-muted)', letterSpacing: '0.5px' }}>
