@@ -643,9 +643,9 @@ export const HomeView: React.FC<HomeViewProps> = ({
               src="/pop-it-logo.png"
               alt="POP IT"
               style={{
-                height: '115px',
+                height: '135px',
                 width: 'auto',
-                maxHeight: '125px',
+                maxHeight: '145px',
                 maxWidth: '90%',
                 objectFit: 'contain',
                 display: 'block',

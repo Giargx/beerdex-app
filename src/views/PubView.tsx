@@ -325,7 +325,7 @@ export const PubView: React.FC<PubViewProps> = ({
       {/* Pub Hero Banner - Identico a Esplora e Classifiche */}
       <header className="hero">
         <FoamBubbles />
-        <h1 style={{ position: 'relative', zIndex: 2 }}>Il Pub</h1>
+        <h1 style={{ position: 'relative', zIndex: 2 }}>Pub</h1>
         <p style={{ position: 'relative', zIndex: 2 }}>Il bancone virtuale dove festeggiare e brindare con i tuoi amici.</p>
       </header>
 

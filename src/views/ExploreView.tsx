@@ -176,7 +176,7 @@ export const ExploreView: React.FC<ExploreViewProps> = ({
       {/* 🌟 Modern Hero Banner with Glassmorphism Stats */}
       <header className="hero">
         <FoamBubbles />
-        <h1 style={{ position: 'relative', zIndex: 2 }}>Esplora Catalogo Birre 🍺</h1>
+        <h1 style={{ position: 'relative', zIndex: 2 }}>Catalogo Birre</h1>
         <p style={{ position: 'relative', zIndex: 2 }}>Scopri tutte le birre disponibili nel beerdex, filtra per paese o ricerca la tua preferita.</p>
       </header>
 
