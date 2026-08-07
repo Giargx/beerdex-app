@@ -369,20 +369,20 @@ export const ExploreView: React.FC<ExploreViewProps> = ({
               >
                 <div style={{ fontSize: '14px', fontWeight: 'bold', color: 'var(--dark)', marginBottom: '4px' }}>
                   {searchTerm ? (
-                    <>Non trovi la variante esatta per "<strong>{searchTerm}</strong>"?</>
+                    <>Manca la marca "<strong>{searchTerm}</strong>"?</>
                   ) : (
-                    <>Manca una birra che conosci nel catalogo?</>
+                    <>Manca una nuova marca nel catalogo?</>
                   )}
                 </div>
                 <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '12px' }}>
-                  Proponila agli admin: la sbloccherai subito e otterrai <strong>+2 Punti Bonus</strong>!
+                  Proponila agli admin: se approvata la sbloccherai subito e otterrai <strong>+2 Punti Bonus</strong>!
                 </div>
                 <button
                   className="btn-main"
                   onClick={() => onOpenProposeModal(searchTerm)}
                   style={{ display: 'inline-flex', width: 'auto', padding: '10px 20px', fontSize: '13px', margin: '0 auto' }}
                 >
-                  <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>add_circle</span> Proponi Nuova Birra
+                  <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>add_circle</span> Proponi Nuova Marca
                 </button>
               </div>
             </>

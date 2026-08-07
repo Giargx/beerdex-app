@@ -319,7 +319,7 @@ export const BeerCard: React.FC<BeerCardProps> = ({
                 }}
               >
                 <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>add_circle</span>
-                Manca una variante di {beer.brand}? Proponila (+2pt)
+                Manca una variante di {beer.brand}? Proponila (+1pt)
               </button>
             </div>
           )}

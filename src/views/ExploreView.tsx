@@ -35,7 +35,23 @@ export const ExploreView: React.FC<ExploreViewProps> = ({
   const [searchTerm, setSearchTerm] = useState(initialSearchTerm);
   const [countryFilter, setCountryFilter] = useState('Tutte');
   const [regionFilter, setRegionFilter] = useState('Tutte');
-  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>(() => {
+    try {
+      const saved = localStorage.getItem('beerdex_catalog_view_mode');
+      return saved === 'list' ? 'list' : 'grid';
+    } catch {
+      return 'grid';
+    }
+  });
+
+  const handleSetViewMode = (mode: 'grid' | 'list') => {
+    setViewMode(mode);
+    try {
+      localStorage.setItem('beerdex_catalog_view_mode', mode);
+    } catch (e) {
+      console.error(e);
+    }
+  };
 
   const [sortFilter, setSortFilter] = useState(() => {
     try { return localStorage.getItem('beerdex_catalog_sort') || 'alpha'; } catch { return 'alpha'; }
@@ -326,9 +342,9 @@ export const ExploreView: React.FC<ExploreViewProps> = ({
           )}
 
           {/* Sort & Layout Controls Bar */}
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '10px', marginTop: '12px', paddingTop: '10px', borderTop: '1px solid #F1F5F9' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexGrow: 1 }}>
-              <span style={{ fontSize: '11px', fontWeight: 700, color: '#64748B' }}>Ordina:</span>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', marginTop: '12px', paddingTop: '10px', borderTop: '1px solid #F1F5F9', flexWrap: 'nowrap', width: '100%', boxSizing: 'border-box' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexGrow: 1, minWidth: 0 }}>
+              <span style={{ fontSize: '12px', fontWeight: 700, color: '#64748B', whiteSpace: 'nowrap' }}>Ordina:</span>
               <select
                 value={sortFilter}
                 onChange={(e) => {
@@ -337,7 +353,8 @@ export const ExploreView: React.FC<ExploreViewProps> = ({
                   localStorage.setItem('beerdex_catalog_sort', val);
                 }}
                 style={{
-                  padding: '6px 10px',
+                  height: '34px',
+                  padding: '0 8px',
                   borderRadius: '10px',
                   border: '1px solid #CBD5E1',
                   fontSize: '12px',
@@ -345,7 +362,12 @@ export const ExploreView: React.FC<ExploreViewProps> = ({
                   color: '#0F172A',
                   background: '#FFFFFF',
                   flexGrow: 1,
-                  maxWidth: '160px',
+                  maxWidth: '140px',
+                  minWidth: '90px',
+                  outline: 'none',
+                  margin: 0,
+                  boxSizing: 'border-box',
+                  cursor: 'pointer',
                 }}
               >
                 <option value="alpha">Alfabetico</option>
@@ -358,13 +380,17 @@ export const ExploreView: React.FC<ExploreViewProps> = ({
                   border: '1px solid #CBD5E1',
                   background: '#F8FAFC',
                   borderRadius: '10px',
-                  width: '32px',
-                  height: '32px',
+                  width: '34px',
+                  height: '34px',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
                   cursor: 'pointer',
                   color: '#334155',
+                  margin: 0,
+                  padding: 0,
+                  boxSizing: 'border-box',
+                  flexShrink: 0,
                 }}
                 title={sortDir === 1 ? "Crescente" : "Decrescente"}
               >
@@ -375,18 +401,20 @@ export const ExploreView: React.FC<ExploreViewProps> = ({
             </div>
 
             {/* View Mode Switcher (Grid 2-Col vs Compact List) */}
-            <div style={{ display: 'flex', background: '#F1F5F9', padding: '3px', borderRadius: '10px', border: '1px solid #E2E8F0' }}>
+            <div style={{ display: 'flex', alignItems: 'center', background: '#F1F5F9', padding: '2px', borderRadius: '10px', border: '1px solid #E2E8F0', flexShrink: 0, height: '34px', boxSizing: 'border-box' }}>
               <button
-                onClick={() => setViewMode('grid')}
+                onClick={() => handleSetViewMode('grid')}
                 style={{
                   border: 'none',
                   background: viewMode === 'grid' ? '#FFFFFF' : 'transparent',
                   color: viewMode === 'grid' ? '#F59E0B' : '#64748B',
-                  borderRadius: '7px',
-                  padding: '4px 8px',
+                  borderRadius: '8px',
+                  padding: '0 8px',
+                  height: '28px',
                   cursor: 'pointer',
                   display: 'flex',
                   alignItems: 'center',
+                  justifyContent: 'center',
                   boxShadow: viewMode === 'grid' ? '0 2px 5px rgba(0,0,0,0.08)' : 'none',
                 }}
                 title="Vista a Griglia (2 Colonne)"
@@ -394,16 +422,18 @@ export const ExploreView: React.FC<ExploreViewProps> = ({
                 <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>grid_view</span>
               </button>
               <button
-                onClick={() => setViewMode('list')}
+                onClick={() => handleSetViewMode('list')}
                 style={{
                   border: 'none',
                   background: viewMode === 'list' ? '#FFFFFF' : 'transparent',
                   color: viewMode === 'list' ? '#F59E0B' : '#64748B',
-                  borderRadius: '7px',
-                  padding: '4px 8px',
+                  borderRadius: '8px',
+                  padding: '0 8px',
+                  height: '28px',
                   cursor: 'pointer',
                   display: 'flex',
                   alignItems: 'center',
+                  justifyContent: 'center',
                   boxShadow: viewMode === 'list' ? '0 2px 5px rgba(0,0,0,0.08)' : 'none',
                 }}
                 title="Vista a Lista (1 Colonna)"
@@ -519,20 +549,20 @@ export const ExploreView: React.FC<ExploreViewProps> = ({
               >
                 <div style={{ fontSize: '14px', fontWeight: 800, color: '#0F172A', marginBottom: '4px' }}>
                   {searchTerm ? (
-                    <>Manca la variante per "<strong>{searchTerm}</strong>"?</>
+                    <>Manca la marca "<strong>{searchTerm}</strong>"?</>
                   ) : (
-                    <>Manca una birra che conosci nel catalogo?</>
+                    <>Manca una nuova marca nel catalogo?</>
                   )}
                 </div>
                 <div style={{ fontSize: '12px', color: '#64748B', marginBottom: '14px', fontWeight: 500 }}>
-                  Proponila agli admin: la sbloccherai subito e otterrai <strong>+2 Punti Bonus</strong>!
+                  Proponila agli admin: se approvata la sbloccherai subito e otterrai <strong>+2 Punti Bonus</strong>!
                 </div>
                 <button
                   className="btn-main"
                   onClick={() => onOpenProposeModal(searchTerm)}
                   style={{ display: 'inline-flex', width: 'auto', padding: '10px 20px', fontSize: '13px', margin: '0 auto' }}
                 >
-                  <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>add_circle</span> Proponi Nuova Birra
+                  <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>add_circle</span> Proponi Nuova Marca
                 </button>
               </div>
             </>

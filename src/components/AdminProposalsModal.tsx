@@ -742,7 +742,7 @@ export const AdminProposalsModal: React.FC<AdminProposalsModalProps> = ({
                         }}
                       >
                         <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>check_circle</span>
-                        Accetta (+2pt a @{item.proposedBy})
+                        Accetta (+{item.isVariantProposal ? '1' : '2'}pt a @{item.proposedBy})
                       </button>
                       <button
                         className="btn-secondary"
