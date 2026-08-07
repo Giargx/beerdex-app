@@ -659,6 +659,7 @@ header.hero p {
     backdrop-filter: blur(14px); 
     -webkit-backdrop-filter: blur(14px);
     overflow-y: auto;
+    overscroll-behavior: contain;
     padding: 20px;
     box-sizing: border-box;
 }

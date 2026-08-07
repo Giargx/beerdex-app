@@ -513,6 +513,58 @@ export default function App() {
   const [pubProfileDex, setPubProfileDex] = useState<Record<string, any>>({});
   const [pubProfileScore, setPubProfileScore] = useState<number>(0);
   const [pubProfileBackPage, setPubProfileBackPage] = useState<string>('page-leaderboard');
+
+  // Lock body scroll when any modal / unlock panel is open
+  useEffect(() => {
+    const isModalOpen =
+      scannerConfig.open ||
+      captureOpen ||
+      storyCaptureOpen ||
+      cropOpen ||
+      !!unlockRatingModalState?.isOpen ||
+      proposeModalOpen ||
+      tagRequestModalState.isOpen ||
+      adminProposalsModalOpen ||
+      customModal.open ||
+      confirmConfig.open ||
+      !!storyViewerState.open ||
+      !!reportPostModalState.open ||
+      !!postOptionsMenuState.open ||
+      permissionModal.open ||
+      avatarSelectorOpen ||
+      settingsOpen;
+
+    if (isModalOpen) {
+      document.body.style.overflow = 'hidden';
+      document.body.style.touchAction = 'none';
+    } else {
+      document.body.style.overflow = '';
+      document.body.style.touchAction = '';
+    }
+
+    return () => {
+      document.body.style.overflow = '';
+      document.body.style.touchAction = '';
+    };
+  }, [
+    scannerConfig.open,
+    captureOpen,
+    storyCaptureOpen,
+    cropOpen,
+    unlockRatingModalState,
+    proposeModalOpen,
+    tagRequestModalState.isOpen,
+    adminProposalsModalOpen,
+    customModal.open,
+    confirmConfig.open,
+    storyViewerState,
+    reportPostModalState,
+    postOptionsMenuState,
+    permissionModal.open,
+    avatarSelectorOpen,
+    settingsOpen,
+  ]);
+
   // Main Tab Touch Swipe State & Handlers
   const touchStartX = useRef<number>(0);
   const touchStartY = useRef<number>(0);
@@ -873,6 +925,9 @@ export default function App() {
         }
       }
       setCustomBeers(list);
+      if (nickname) {
+        recalculateTotalScore(nickname);
+      }
     });
 
     // Beer Proposals
@@ -891,7 +946,21 @@ export default function App() {
       setBeerProposals(proposalsList);
     });
 
-
+    // User Notifications (e.g. brand medal revoked due to new variant)
+    if (nickname) {
+      onValue(ref(db, `user_notifications/${nickname}`), (snap) => {
+        if (snap.exists()) {
+          const val = snap.val();
+          for (const key in val) {
+            const notif = val[key];
+            if (notif && notif.message) {
+              showAlert(notif.message, notif.title || 'Avviso');
+            }
+            remove(ref(db, `user_notifications/${nickname}/${key}`));
+          }
+        }
+      });
+    }
 
     // Avatars
     onValue(ref(db, 'users_avatars'), (snap) => {
@@ -997,6 +1066,8 @@ export default function App() {
     // 1. Backfill pokedex_profiles from social_timeline checkins if missing
     const timelineSnap = await get(ref(db, 'social_timeline'));
     const userPosts: any[] = [];
+    const validPostKeysSet = new Set<string>();
+
     if (timelineSnap.exists()) {
       const timelineData = timelineSnap.val();
       const dexUpdates: Record<string, any> = {};
@@ -1012,6 +1083,7 @@ export default function App() {
               const formattedB = formatBeerTitle(post.brand);
               const formattedV = formatBeerTitle(post.variant);
               const uId = `${formattedB}-${formattedV}`;
+              validPostKeysSet.add(uId);
               if (!existingDex[uId] && !dexUpdates[uId]) {
                 dexUpdates[uId] = {
                   photo: post.photo || '',
@@ -1035,6 +1107,28 @@ export default function App() {
       }
     }
 
+    // 2. Clean up any orphan pokedex_profiles entries whose post was deleted
+    if (snap.exists()) {
+      const profileData = snap.val();
+      const keysToRemove: string[] = [];
+
+      for (const uniqueId in profileData) {
+        const entry = profileData[uniqueId];
+        // Keep if created via accepted proposal bonus or if matching timeline post exists
+        if (!entry.proposalBonus && !entry.isProposalBonus && !validPostKeysSet.has(uniqueId)) {
+          keysToRemove.push(uniqueId);
+        }
+      }
+
+      if (keysToRemove.length > 0) {
+        for (const rKey of keysToRemove) {
+          await remove(ref(db, `pokedex_profiles/${username}/${rKey}`));
+        }
+        snap = await get(ref(db, `pokedex_profiles/${username}`));
+      }
+    }
+
+    // 3. Compute score based on remaining valid pokedex_profiles
     if (snap.exists()) {
       const profileData = snap.val();
       for (const uniqueId in profileData) {
@@ -1078,6 +1172,38 @@ export default function App() {
       }
     });
 
+    // 4. Brand Completion Medals & Revocation Check
+    const brandMedalsSnap = await get(ref(db, `user_brand_medals/${username}`));
+    const prevCompletedMedals = brandMedalsSnap.exists() ? brandMedalsSnap.val() : {};
+    const newCompletedMedals: Record<string, any> = {};
+
+    currentCatalog.forEach((beer) => {
+      const vars = Array.isArray(beer?.variants) ? beer.variants : ['Classica'];
+      const bName = beer.brand;
+      const isCompleted = vars.length > 0 && brandUnlockCounts[bName] === vars.length;
+
+      if (isCompleted) {
+        newCompletedMedals[bName] = {
+          completed: true,
+          totalVariantsAtUnlock: vars.length,
+          updatedAt: Date.now(),
+        };
+      } else if (prevCompletedMedals[bName]) {
+        // Medal was previously completed, but now user lacks variant(s) -> Revoke medal and notify!
+        const notifMsg = `⚠️ Nuova variante per ${bName}!\nÈ stata aggiunta una nuova variante per la birra ${bName}. La tua medaglia brand è stata temporaneamente sospesa finché non la sbloccherai!`;
+        if (username === currentUserNick) {
+          showAlert(notifMsg, 'Medaglia Brand Sospesa 🍺');
+        } else {
+          push(ref(db, `user_notifications/${username}`), {
+            title: 'Medaglia Brand Sospesa 🍺',
+            message: notifMsg,
+            time: Date.now(),
+          });
+        }
+      }
+    });
+
+    await set(ref(db, `user_brand_medals/${username}`), newCompletedMedals);
     await set(ref(db, `leaderboard_scores/${username}`), totalScore);
   };
 
@@ -2176,7 +2302,9 @@ export default function App() {
   // Delete variant/checkin
   const handleDeleteVariant = (brand: string, variant: string, targetUser?: string) => {
     const userToEdit = targetUser || currentUserNick;
-    const uniqueId = `${brand}-${variant}`;
+    const formattedB = formatBeerTitle(brand);
+    const formattedV = formatBeerTitle(variant);
+    const uniqueId = `${formattedB}-${formattedV}`;
     showConfirm(
       `Vuoi davvero eliminare lo sblocco per ${brand} - ${variant}${targetUser ? ` dell'utente ${targetUser}` : ''}?`,
       'Conferma Eliminazione',
@@ -2184,15 +2312,21 @@ export default function App() {
         try {
           await remove(ref(db, `pokedex_profiles/${userToEdit}/${uniqueId}`));
           
-          // remove matching post in community feed as well
+          // remove matching posts in community feed as well
           const timelineSnap = await get(ref(db, 'social_timeline'));
           if (timelineSnap.exists()) {
+            const removes: Promise<void>[] = [];
             timelineSnap.forEach((child) => {
               const p = child.val();
-              if (p.user === userToEdit && p.brand === brand && p.variant === variant) {
-                remove(ref(db, `social_timeline/${child.key}`));
+              if (
+                p.user === userToEdit &&
+                formatBeerTitle(p.brand) === formattedB &&
+                formatBeerTitle(p.variant) === formattedV
+              ) {
+                removes.push(remove(ref(db, `social_timeline/${child.key}`)));
               }
             });
+            await Promise.all(removes);
           }
 
           await recalculateTotalScore(userToEdit);
@@ -2205,7 +2339,9 @@ export default function App() {
   };
 
   const handleDeletePost = (postId: string, postUser: string, brand: string, variant: string) => {
-    const uniqueId = `${brand}-${variant}`;
+    const formattedB = formatBeerTitle(brand);
+    const formattedV = formatBeerTitle(variant);
+    const uniqueId = `${formattedB}-${formattedV}`;
     const postRef = ref(db, `social_timeline/${postId}`);
 
     get(postRef).then((postSnap) => {
@@ -2373,10 +2509,32 @@ export default function App() {
 
   const handleRemoveFlaggedPost = async (postId: string, postUser: string, brand: string, variant: string) => {
     try {
-      const uniqueId = `${brand}-${variant}`;
-      await remove(ref(db, `pokedex_profiles/${postUser}/${uniqueId}`));
+      const formattedB = formatBeerTitle(brand);
+      const formattedV = formatBeerTitle(variant);
+      const uniqueId = `${formattedB}-${formattedV}`;
       await remove(ref(db, `social_timeline/${postId}`));
       await remove(ref(db, `flagged_posts/${postId}`));
+      
+      const timelineSnap = await get(ref(db, 'social_timeline'));
+      let hasRemainingPost = false;
+      if (timelineSnap.exists()) {
+        timelineSnap.forEach((child) => {
+          if (child.key !== postId) {
+            const p = child.val();
+            if (
+              p.user === postUser &&
+              formatBeerTitle(p.brand) === formattedB &&
+              formatBeerTitle(p.variant) === formattedV
+            ) {
+              hasRemainingPost = true;
+            }
+          }
+        });
+      }
+      if (!hasRemainingPost) {
+        await remove(ref(db, `pokedex_profiles/${postUser}/${uniqueId}`));
+      }
+
       await recalculateTotalScore(postUser);
       showAlert(`Il post di @${postUser} è stato eliminato con successo.`, 'Post Eliminato');
     } catch (err: any) {
