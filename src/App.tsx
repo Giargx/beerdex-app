@@ -124,13 +124,22 @@ export default function App() {
     setProposeModalOpen(true);
   };
   const [adminProposalsModalOpen, setAdminProposalsModalOpen] = useState(false);
-  const [adminModalTab, setAdminModalTab] = useState<'proposals' | 'flagged' | 'users'>('proposals');
+  const [adminModalTab, setAdminModalTab] = useState<'proposals' | 'flagged' | 'users' | 'feedback'>('proposals');
   const [flaggedPosts, setFlaggedPosts] = useState<Record<string, any>>({});
+  const [appFeedbacks, setAppFeedbacks] = useState<Record<string, any>>({});
   const [unlockRatingModalState, setUnlockRatingModalState] = useState<{ isOpen: boolean; brand: string; variant: string; photo?: string } | null>(null);
   const [tutorialOpen, setTutorialOpen] = useState<boolean>(false);
   const [isStoryEditorOpen, setIsStoryEditorOpen] = useState<boolean>(false);
   const [activeStoryViewerIndex, setActiveStoryViewerIndex] = useState<number | null>(null);
   const [pubStories, setPubStories] = useState<Record<string, any>>({});
+
+  useEffect(() => {
+    const feedbackRef = ref(db, 'app_feedback');
+    const unsubscribe = onValue(feedbackRef, (snap) => {
+      setAppFeedbacks(snap.val() || {});
+    });
+    return () => unsubscribe();
+  }, []);
 
   useEffect(() => {
     const storiesRef = ref(db, 'pub_stories');
@@ -1101,6 +1110,37 @@ export default function App() {
       );
     } catch (err: any) {
       showAlert('Errore durante l\'invio della proposta: ' + err.message, 'Errore');
+    }
+  };
+
+  const handleSendFeedback = async (message: string) => {
+    try {
+      const newRef = push(ref(db, 'app_feedback'));
+      await set(newRef, {
+        feedbackId: newRef.key!,
+        user: currentUserNick,
+        message: message.trim(),
+        timestamp: Date.now(),
+        status: 'unread',
+      });
+    } catch (err: any) {
+      showAlert('Errore durante l\'invio del messaggio: ' + err.message, 'Errore');
+    }
+  };
+
+  const handleDeleteFeedback = async (feedbackId: string) => {
+    try {
+      await remove(ref(db, `app_feedback/${feedbackId}`));
+    } catch (err: any) {
+      showAlert('Errore durante la cancellazione: ' + err.message, 'Errore');
+    }
+  };
+
+  const handleMarkFeedbackRead = async (feedbackId: string) => {
+    try {
+      await update(ref(db, `app_feedback/${feedbackId}`), { status: 'read' });
+    } catch (err: any) {
+      console.error(err);
     }
   };
 
@@ -3576,6 +3616,7 @@ export default function App() {
                     globalUserPrivacy={globalUserPrivacy}
                     isAdminUser={isAdminUser}
                     onOpenUserStory={handleOpenUserStory}
+                    onSendFeedback={handleSendFeedback}
                   />
                 )}
               </div>
@@ -3690,6 +3731,11 @@ export default function App() {
                       setAdminModalTab('users');
                       setAdminProposalsModalOpen(true);
                     }}
+                    onOpenAdminFeedback={() => {
+                      setAdminModalTab('feedback');
+                      setAdminProposalsModalOpen(true);
+                    }}
+                    unreadFeedbackCount={Object.values(appFeedbacks || {}).filter((f: any) => f && f.status !== 'read').length}
                     onRateBeer={handleRateBeer}
                     myReceivedRequests={myReceivedRequests}
                     onNavigateToFriends={() => navigateTo('page-friends')}
@@ -4022,6 +4068,9 @@ export default function App() {
         }}
         leaderboardScores={globalLeaderboardScores}
         allPokedexProfiles={allPokedexProfiles}
+        feedbacks={appFeedbacks}
+        onDeleteFeedback={handleDeleteFeedback}
+        onMarkFeedbackRead={handleMarkFeedbackRead}
       />
 
       {/* Clash of Clans Style Live App Tutorial */}

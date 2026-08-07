@@ -31,6 +31,8 @@ interface ProfileViewProps {
   onOpenScanner?: () => void;
   onOpenStoryUpload?: () => void;
   onOpenAdminUsers?: () => void;
+  onOpenAdminFeedback?: () => void;
+  unreadFeedbackCount?: number;
   onOpenUserStory?: (username: string) => boolean;
 }
 
@@ -53,6 +55,8 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
   onOpenAdminReports,
   flaggedPostsCount = 0,
   onOpenAdminUsers,
+  onOpenAdminFeedback,
+  unreadFeedbackCount = 0,
   onRateBeer,
   myReceivedRequests: _myReceivedRequests = [],
   onNavigateToFriends: _onNavigateToFriends,
@@ -440,7 +444,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
           <div
             style={{
               display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))',
+              gridTemplateColumns: 'repeat(2, 1fr)',
               gap: '8px',
             }}
           >
@@ -553,6 +557,50 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
                     }}
                   >
                     {flaggedPostsCount}
+                  </span>
+                )}
+              </button>
+            )}
+
+            {onOpenAdminFeedback && (
+              <button
+                onClick={onOpenAdminFeedback}
+                style={{
+                  background: '#FFFFFF',
+                  border: '1px solid #E2E8F0',
+                  borderRadius: '12px',
+                  padding: '10px 12px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  gap: '8px',
+                  cursor: 'pointer',
+                  fontSize: '12px',
+                  fontWeight: 700,
+                  color: '#1E293B',
+                  boxShadow: '0 2px 6px rgba(0,0,0,0.03)',
+                  transition: 'all 0.2s ease',
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', overflow: 'hidden' }}>
+                  <span className="material-symbols-outlined" style={{ fontSize: '18px', color: '#10B981' }}>
+                    rate_review
+                  </span>
+                  <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>Consigli Utenti</span>
+                </div>
+                {unreadFeedbackCount > 0 && (
+                  <span
+                    style={{
+                      background: '#EF4444',
+                      color: '#FFFFFF',
+                      fontSize: '10px',
+                      fontWeight: 900,
+                      borderRadius: '10px',
+                      padding: '1px 6px',
+                      flexShrink: 0,
+                    }}
+                  >
+                    {unreadFeedbackCount}
                   </span>
                 )}
               </button>

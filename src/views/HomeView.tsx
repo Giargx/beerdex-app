@@ -35,6 +35,7 @@ interface HomeViewProps {
   globalUserPrivacy?: Record<string, boolean>;
   isAdminUser?: boolean;
   onOpenUserStory?: (username: string) => boolean;
+  onSendFeedback?: (message: string) => Promise<void> | void;
 }
 
 export const HomeView: React.FC<HomeViewProps> = ({
@@ -56,10 +57,31 @@ export const HomeView: React.FC<HomeViewProps> = ({
   globalUserPrivacy = {},
   isAdminUser = false,
   onOpenUserStory,
+  onSendFeedback,
 }) => {
   const [timedEvent, setTimedEvent] = useState<{ name: string; desc: string } | null>(null);
   const [cheersToast, setCheersToast] = useState<string | null>(null);
   const [cheeredPosts, setCheeredPosts] = useState<Record<string, boolean>>({});
+
+  const [feedbackText, setFeedbackText] = useState('');
+  const [isSubmittingFeedback, setIsSubmittingFeedback] = useState(false);
+  const [feedbackSent, setFeedbackSent] = useState(false);
+
+  const handleSendFeedbackSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!feedbackText.trim() || !onSendFeedback) return;
+    setIsSubmittingFeedback(true);
+    try {
+      await onSendFeedback(feedbackText.trim());
+      setFeedbackSent(true);
+      setFeedbackText('');
+      setTimeout(() => setFeedbackSent(false), 4000);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setIsSubmittingFeedback(false);
+    }
+  };
 
   // Dynamic greeting based on time of day
   const getGreeting = () => {
@@ -1330,6 +1352,79 @@ export const HomeView: React.FC<HomeViewProps> = ({
           >
             <span className="material-symbols-outlined">collections_bookmark</span> La Mia Collezione
           </button>
+        </div>
+
+        {/* CONSIGLI & PROBLEMATICHE SECTION */}
+        <div
+          style={{
+            background: 'linear-gradient(135deg, #1E293B 0%, #0F172A 100%)',
+            borderRadius: '24px',
+            padding: '20px',
+            marginTop: '25px',
+            border: '1px solid rgba(245, 158, 11, 0.25)',
+            boxShadow: '0 10px 25px rgba(15, 23, 42, 0.15)',
+            color: 'white',
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+            <span className="material-symbols-outlined" style={{ color: '#F59E0B', fontSize: '22px' }}>
+              rate_review
+            </span>
+            <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 800, color: '#F8FAFC' }}>
+              Consigli & Problematiche
+            </h3>
+          </div>
+          <p style={{ fontSize: '12px', color: '#94A3B8', margin: '0 0 12px 0', lineHeight: 1.5 }}>
+            Hai suggerimenti per migliorare l'app o hai riscontrato dei problemi? Comunicalo direttamente agli admin!
+          </p>
+          {feedbackSent ? (
+            <div style={{ background: 'rgba(16, 185, 129, 0.15)', border: '1px solid #10B981', color: '#10B981', padding: '12px', borderRadius: '14px', fontSize: '12px', fontWeight: 700, textAlign: 'center' }}>
+              ✓ Messaggio inviato con successo agli admin! Grazie per il tuo feedback.
+            </div>
+          ) : (
+            <form onSubmit={handleSendFeedbackSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+              <textarea
+                placeholder="Scrivi qui consigli, idee o segnalazioni di problemi..."
+                value={feedbackText}
+                onChange={(e) => setFeedbackText(e.target.value)}
+                rows={3}
+                style={{
+                  width: '100%',
+                  padding: '12px',
+                  borderRadius: '14px',
+                  border: '1px solid #334155',
+                  background: '#0F172A',
+                  color: 'white',
+                  fontSize: '13px',
+                  resize: 'none',
+                  outline: 'none',
+                  boxSizing: 'border-box',
+                }}
+              />
+              <button
+                type="submit"
+                disabled={isSubmittingFeedback || !feedbackText.trim()}
+                style={{
+                  background: feedbackText.trim() ? 'linear-gradient(135deg, #FFB300, #FF6F00)' : '#334155',
+                  color: feedbackText.trim() ? '#0F172A' : '#64748B',
+                  border: 'none',
+                  borderRadius: '12px',
+                  padding: '10px 16px',
+                  fontSize: '13px',
+                  fontWeight: 800,
+                  cursor: feedbackText.trim() ? 'pointer' : 'not-allowed',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '6px',
+                  transition: 'all 0.2s ease',
+                }}
+              >
+                <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>send</span>
+                Invia agli Admin
+              </button>
+            </form>
+          )}
         </div>
       </div>
     </div>

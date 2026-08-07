@@ -29,11 +29,14 @@ interface AdminProposalsModalProps {
   flaggedPosts?: Record<string, any>;
   onRemoveFlaggedPost?: (postId: string, postUser: string, brand: string, variant: string) => void;
   onDismissFlaggedPost?: (postId: string) => void;
-  initialTab?: 'proposals' | 'flagged' | 'users';
+  initialTab?: 'proposals' | 'flagged' | 'users' | 'feedback';
   onDeleteUserProfile?: (username: string) => void;
   onOpenPublicProfile?: (username: string) => void;
   leaderboardScores?: Record<string, number>;
   allPokedexProfiles?: Record<string, Record<string, any>>;
+  feedbacks?: Record<string, any> | any[];
+  onDeleteFeedback?: (feedbackId: string) => void;
+  onMarkFeedbackRead?: (feedbackId: string) => void;
 }
 
 const ItalianRegions = [
@@ -59,8 +62,11 @@ export const AdminProposalsModal: React.FC<AdminProposalsModalProps> = ({
   onOpenPublicProfile,
   leaderboardScores = {},
   allPokedexProfiles = {},
+  feedbacks = {},
+  onDeleteFeedback,
+  onMarkFeedbackRead,
 }) => {
-  const [activeTab, setActiveTab] = useState<'proposals' | 'flagged' | 'users'>(initialTab);
+  const [activeTab, setActiveTab] = useState<'proposals' | 'flagged' | 'users' | 'feedback'>(initialTab);
   const [userSearchTerm, setUserSearchTerm] = useState('');
   const [showEditMap, setShowEditMap] = useState<Record<string, boolean>>({});
   const [editedDataMap, setEditedDataMap] = useState<Record<string, {
@@ -153,6 +159,23 @@ export const AdminProposalsModal: React.FC<AdminProposalsModalProps> = ({
 
   const pendingProposals = (proposals || []).filter((p) => p && p.status === 'pending');
   const flaggedList = Object.values(flaggedPosts || {});
+  const feedbacksList = Array.isArray(feedbacks) ? feedbacks : Object.values(feedbacks || {});
+
+  const getHeaderInfo = () => {
+    switch (activeTab) {
+      case 'proposals':
+        return { title: `Proposte Birre (${pendingProposals.length})`, icon: 'sports_bar', color: '#F59E0B' };
+      case 'flagged':
+        return { title: `Segnalazioni Post (${flaggedList.length})`, icon: 'report_problem', color: '#E11D48' };
+      case 'users':
+        return { title: 'Gestione Utenti', icon: 'manage_accounts', color: '#6366F1' };
+      case 'feedback':
+        return { title: `Consigli & Problematiche (${feedbacksList.length})`, icon: 'rate_review', color: '#10B981' };
+      default:
+        return { title: 'Pannello Moderazione Admin', icon: 'shield_person', color: '#F59E0B' };
+    }
+  };
+  const headerInfo = getHeaderInfo();
 
   return (
     <div className="auth-modal" style={{ zIndex: 19500 }}>
@@ -170,8 +193,8 @@ export const AdminProposalsModal: React.FC<AdminProposalsModalProps> = ({
       >
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px', borderBottom: '1px solid var(--gray)', paddingBottom: '12px' }}>
           <h3 style={{ margin: 0, color: 'var(--dark)', fontSize: '18px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <span className="material-symbols-outlined" style={{ color: 'var(--primary-dark)' }}>admin_panel_settings</span>
-            Pannello Moderazione Admin
+            <span className="material-symbols-outlined" style={{ color: headerInfo.color }}>{headerInfo.icon}</span>
+            {headerInfo.title}
           </h3>
           <button
             onClick={onClose}
@@ -187,73 +210,6 @@ export const AdminProposalsModal: React.FC<AdminProposalsModalProps> = ({
             }}
           >
             <span className="material-symbols-outlined">close</span>
-          </button>
-        </div>
-
-        {/* Tab Navigation */}
-        <div style={{ display: 'flex', gap: '6px', marginBottom: '14px' }}>
-          <button
-            onClick={() => setActiveTab('proposals')}
-            style={{
-              flex: 1,
-              padding: '8px 8px',
-              borderRadius: '12px',
-              border: activeTab === 'proposals' ? '2px solid var(--primary-dark)' : '1px solid var(--gray)',
-              background: activeTab === 'proposals' ? '#FFFBEB' : 'white',
-              color: activeTab === 'proposals' ? 'var(--dark)' : 'var(--text-muted)',
-              fontWeight: 'bold',
-              fontSize: '12px',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: '4px',
-            }}
-          >
-            <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>sports_bar</span>
-            Proposte ({pendingProposals.length})
-          </button>
-          <button
-            onClick={() => setActiveTab('flagged')}
-            style={{
-              flex: 1,
-              padding: '8px 8px',
-              borderRadius: '12px',
-              border: activeTab === 'flagged' ? '2px solid #EF4444' : '1px solid var(--gray)',
-              background: activeTab === 'flagged' ? '#FEF2F2' : 'white',
-              color: activeTab === 'flagged' ? '#DC2626' : 'var(--text-muted)',
-              fontWeight: 'bold',
-              fontSize: '12px',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: '4px',
-            }}
-          >
-            <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>warning</span>
-            Segnalati ({flaggedList.length})
-          </button>
-          <button
-            onClick={() => setActiveTab('users')}
-            style={{
-              flex: 1,
-              padding: '8px 8px',
-              borderRadius: '12px',
-              border: activeTab === 'users' ? '2px solid #6366F1' : '1px solid var(--gray)',
-              background: activeTab === 'users' ? '#EEF2FF' : 'white',
-              color: activeTab === 'users' ? '#4F46E5' : 'var(--text-muted)',
-              fontWeight: 'bold',
-              fontSize: '12px',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: '4px',
-            }}
-          >
-            <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>manage_accounts</span>
-            Utenti
           </button>
         </div>
 
@@ -399,6 +355,119 @@ export const AdminProposalsModal: React.FC<AdminProposalsModalProps> = ({
                 );
               })()}
             </div>
+          ) : activeTab === 'feedback' ? (
+            feedbacksList.length === 0 ? (
+              <div style={{ textAlign: 'center', padding: '40px 20px', color: 'var(--text-muted)' }}>
+                <span className="material-symbols-outlined" style={{ fontSize: '48px', marginBottom: '10px', color: '#10B981' }}>rate_review</span>
+                <p style={{ margin: 0, fontWeight: 'bold' }}>Nessun consiglio o segnalazione al momento</p>
+                <p style={{ fontSize: '12px', marginTop: '4px' }}>I consigli e i feedback inviati dagli utenti appariranno qui.</p>
+              </div>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                {feedbacksList.map((fb: any) => {
+                  const fbUser = fb.user || 'Anonimo';
+                  const fbDisp = globalDisplayNames[fbUser] || fbUser;
+                  const fbAvat = globalAvatars[fbUser];
+                  const dateStr = new Date(fb.timestamp || Date.now()).toLocaleDateString('it-IT', {
+                    day: 'numeric',
+                    month: 'short',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                  });
+                  const isRead = fb.status === 'read';
+
+                  return (
+                    <div
+                      key={fb.feedbackId || fb.timestamp}
+                      style={{
+                        background: isRead ? '#F8FAFC' : '#ECFDF5',
+                        border: isRead ? '1px solid #E2E8F0' : '1px solid #A7F3D0',
+                        borderRadius: '16px',
+                        padding: '14px',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: '10px',
+                      }}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                          <div style={{ width: '36px', height: '36px', borderRadius: '50%', background: '#e0e6ed', overflow: 'hidden' }}>
+                            {fbAvat ? (
+                              <img src={fbAvat} alt={fbUser} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                            ) : (
+                              <span className="material-symbols-outlined" style={{ fontSize: '24px', color: 'var(--text-muted)' }}>person</span>
+                            )}
+                          </div>
+                          <div style={{ textAlign: 'left' }}>
+                            <div style={{ fontWeight: 'bold', fontSize: '13px', color: 'var(--dark)' }}>{fbDisp}</div>
+                            <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>@{fbUser} • {dateStr}</div>
+                          </div>
+                        </div>
+
+                        {!isRead ? (
+                          <span style={{ background: '#10B981', color: 'white', fontSize: '10px', fontWeight: 900, padding: '3px 8px', borderRadius: '12px' }}>
+                            NUOVO
+                          </span>
+                        ) : (
+                          <span style={{ background: '#E2E8F0', color: '#64748B', fontSize: '10px', fontWeight: 700, padding: '3px 8px', borderRadius: '12px' }}>
+                            Letto
+                          </span>
+                        )}
+                      </div>
+
+                      <div style={{ background: 'white', padding: '12px', borderRadius: '12px', border: '1px solid #E2E8F0', fontSize: '13px', color: '#1E293B', lineHeight: 1.5, textAlign: 'left', whiteSpace: 'pre-wrap' }}>
+                        {fb.message}
+                      </div>
+
+                      <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
+                        {!isRead && onMarkFeedbackRead && (
+                          <button
+                            onClick={() => onMarkFeedbackRead(fb.feedbackId)}
+                            style={{
+                              background: '#F1F5F9',
+                              border: '1px solid #CBD5E1',
+                              color: '#334155',
+                              padding: '6px 12px',
+                              borderRadius: '8px',
+                              fontSize: '11px',
+                              fontWeight: 'bold',
+                              cursor: 'pointer',
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '4px',
+                            }}
+                          >
+                            <span className="material-symbols-outlined" style={{ fontSize: '15px' }}>done</span>
+                            Segna come letto
+                          </button>
+                        )}
+                        {onDeleteFeedback && (
+                          <button
+                            onClick={() => onDeleteFeedback(fb.feedbackId)}
+                            style={{
+                              background: '#FEF2F2',
+                              border: '1px solid #FECACA',
+                              color: '#EF4444',
+                              padding: '6px 12px',
+                              borderRadius: '8px',
+                              fontSize: '11px',
+                              fontWeight: 'bold',
+                              cursor: 'pointer',
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '4px',
+                            }}
+                          >
+                            <span className="material-symbols-outlined" style={{ fontSize: '15px' }}>delete</span>
+                            Elimina
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )
           ) : activeTab === 'flagged' ? (
             flaggedList.length === 0 ? (
               <div style={{ textAlign: 'center', padding: '40px 20px', color: 'var(--text-muted)' }}>
