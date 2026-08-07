@@ -136,7 +136,41 @@ export default function App() {
     const storiesRef = ref(db, 'pub_stories');
     const unsubscribe = onValue(storiesRef, (snap) => {
       if (snap.exists()) {
-        setPubStories(snap.val());
+        const data = snap.val();
+        setPubStories(data);
+
+        // Automatic cleanup of expired stories (>24h) from Firebase RTDB
+        const now = Date.now();
+        const TWENTY_FOUR_HOURS_MS = 24 * 60 * 60 * 1000;
+        const updatesToDelete: Record<string, null> = {};
+
+        if (data && typeof data === 'object') {
+          Object.entries(data).forEach(([key, val]: [string, any]) => {
+            if (val && typeof val === 'object') {
+              if (val.user || val.photo || val.mediaUrl) {
+                const storyTime = val.time || val.timestamp;
+                if (storyTime && now - storyTime > TWENTY_FOUR_HOURS_MS) {
+                  updatesToDelete[`pub_stories/${key}`] = null;
+                }
+              } else {
+                Object.entries(val).forEach(([subKey, subVal]: [string, any]) => {
+                  if (subVal && typeof subVal === 'object') {
+                    const storyTime = subVal.time || subVal.timestamp;
+                    if (storyTime && now - storyTime > TWENTY_FOUR_HOURS_MS) {
+                      updatesToDelete[`pub_stories/${key}/${subKey}`] = null;
+                    }
+                  }
+                });
+              }
+            }
+          });
+        }
+
+        if (Object.keys(updatesToDelete).length > 0) {
+          update(ref(db), updatesToDelete).catch((err) => {
+            console.error("Error auto-cleaning expired stories:", err);
+          });
+        }
       } else {
         setPubStories({});
       }
@@ -149,6 +183,8 @@ export default function App() {
   const activePubStories = useMemo(() => {
     const storiesList: any[] = [];
     const seenStoryIds = new Set<string>();
+    const TWENTY_FOUR_HOURS_MS = 24 * 60 * 60 * 1000;
+    const now = Date.now();
 
     const parseAndAddStory = (key: string, val: any) => {
       if (!val || typeof val !== 'object') return;
@@ -156,6 +192,9 @@ export default function App() {
       if (!media) return;
 
       const storyTime = val.time || val.timestamp || Date.now();
+      // Only include stories created within the last 24 hours
+      if (now - storyTime > TWENTY_FOUR_HOURS_MS) return;
+
       if (!seenStoryIds.has(key)) {
         seenStoryIds.add(key);
         storiesList.push({

@@ -181,6 +181,8 @@ export const PubView: React.FC<PubViewProps> = ({
   const storyPosts = useMemo(() => {
     const storiesList: any[] = [];
     const seenStoryIds = new Set<string>();
+    const TWENTY_FOUR_HOURS_MS = 24 * 60 * 60 * 1000;
+    const now = Date.now();
 
     const parseAndAddStory = (key: string, val: any) => {
       if (!val || typeof val !== 'object') return;
@@ -188,6 +190,8 @@ export const PubView: React.FC<PubViewProps> = ({
       if (!media) return;
 
       const storyTime = val.time || val.timestamp || Date.now();
+      if (now - storyTime > TWENTY_FOUR_HOURS_MS) return;
+
       if (!seenStoryIds.has(key)) {
         seenStoryIds.add(key);
         storiesList.push({
