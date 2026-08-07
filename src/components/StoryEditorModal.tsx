@@ -32,7 +32,7 @@ export const POPULAR_MUSIC_TRACKS: MusicTrack[] = [
     title: 'Highway to Hell 🎸',
     artist: 'Pub Rock Vibe',
     coverUrl: 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=150&auto=format&fit=crop&q=80',
-    audioUrl: 'https://raw.githubusercontent.com/mdn/webaudio-examples/main/audio-basics/out-of-sight.mp3',
+    audioUrl: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3',
   },
   {
     id: 'track_2',
@@ -46,14 +46,14 @@ export const POPULAR_MUSIC_TRACKS: MusicTrack[] = [
     title: 'Summer Chill Sax 🎷',
     artist: 'Lounge Sunset Vibes',
     coverUrl: 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=150&auto=format&fit=crop&q=80',
-    audioUrl: 'https://raw.githubusercontent.com/mdn/webaudio-examples/main/audio-analyser/viper.mp3',
+    audioUrl: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3',
   },
   {
     id: 'track_4',
     title: 'Deep Night Club 🎧',
     artist: 'Electronic House Beat',
     coverUrl: 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=150&auto=format&fit=crop&q=80',
-    audioUrl: 'https://raw.githubusercontent.com/mdn/webaudio-examples/main/spatialisation/media/fight-club.mp3',
+    audioUrl: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3',
   },
 ];
 

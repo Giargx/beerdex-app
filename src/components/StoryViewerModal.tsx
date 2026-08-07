@@ -83,11 +83,19 @@ export const StoryViewerModal: React.FC<StoryViewerModalProps> = ({
       }
     }
 
-    if (!currentAudioUrl && currentStory.musicAudioUrl && !currentStory.musicAudioUrl.includes('pixabay.com')) {
-      currentAudioUrl = currentStory.musicAudioUrl;
+    if (!currentAudioUrl && currentStory.musicAudioUrl) {
+      if (
+        currentStory.musicAudioUrl.includes('out-of-sight.mp3') ||
+        currentStory.musicAudioUrl.includes('fight-club.mp3') ||
+        currentStory.musicAudioUrl.includes('pixabay.com')
+      ) {
+        currentAudioUrl = POPULAR_MUSIC_TRACKS[0]?.audioUrl || '';
+      } else {
+        currentAudioUrl = currentStory.musicAudioUrl;
+      }
     }
 
-    if (!currentAudioUrl && (currentStory.musicTitle || currentStory.musicTrackId || currentStory.musicAudioUrl)) {
+    if (!currentAudioUrl && (currentStory.musicTitle || currentStory.musicTrackId)) {
       currentAudioUrl = POPULAR_MUSIC_TRACKS[0]?.audioUrl || '';
     }
   }
@@ -237,6 +245,12 @@ export const StoryViewerModal: React.FC<StoryViewerModalProps> = ({
           loop
           preload="auto"
           playsInline
+          onError={() => {
+            if (audioRef.current && currentAudioUrl !== POPULAR_MUSIC_TRACKS[0]?.audioUrl) {
+              audioRef.current.src = POPULAR_MUSIC_TRACKS[0]?.audioUrl || '';
+              audioRef.current.play().catch(() => {});
+            }
+          }}
         />
       )}
 
