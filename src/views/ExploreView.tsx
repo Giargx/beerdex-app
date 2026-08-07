@@ -304,7 +304,7 @@ export const ExploreView: React.FC<ExploreViewProps> = ({
                 const flag = getCountryFlag(c);
                 return (
                   <option key={c} value={c}>
-                    {flag && flag !== '🍺' ? `${flag} ${c}` : `🍺 ${c}`}
+                    {flag && flag !== 'XX' ? `${flag} - ${c}` : c}
                   </option>
                 );
               })}

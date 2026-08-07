@@ -145,8 +145,15 @@ export function getBeerType(brandName: string, variantName: string, allBeersCata
 }
 
 export function getCountryFlag(country?: string): string {
-  if (!country || typeof country !== 'string') return "🍺";
+  if (!country || typeof country !== 'string') return "XX";
   const trimmed = country.trim();
+  if (!trimmed) return "XX";
+
+  // If already a 2-3 letter code
+  if (/^[A-Z]{2,3}(-[A-Z]{2,3})?$/i.test(trimmed)) {
+    return trimmed.toUpperCase();
+  }
+
   const flags: Record<string, string> = {
     "Italia": "IT",
     "Germania": "DE",
@@ -178,9 +185,50 @@ export function getCountryFlag(country?: string): string {
     "Brasile": "BR",
     "Cina": "CN",
     "Corea Del Sud": "KR",
-    "Sudafrica": "ZA"
+    "Corea del Sud": "KR",
+    "Thailandia": "TH",
+    "Thailand": "TH",
+    "Vietnam": "VN",
+    "Turchia": "TR",
+    "Cuba": "CU",
+    "Giamaica": "JM",
+    "Perù": "PE",
+    "Cile": "CL",
+    "Colombia": "CO",
+    "Venezuela": "VE",
+    "Egitto": "EG",
+    "Marocco": "MA",
+    "Tunisia": "TN",
+    "India": "IN",
+    "Filippine": "PH",
+    "Indonesia": "ID",
+    "Singapore": "SG",
+    "Malesia": "MY",
+    "Islanda": "IS",
+    "Croazia": "HR",
+    "Serbia": "RS",
+    "Slovenia": "SI",
+    "Ungheria": "HU",
+    "Romania": "RO",
+    "Bulgaria": "BG",
+    "Ucraina": "UA",
+    "Lituania": "LT",
+    "Lettonia": "LV",
+    "Estonia": "EE",
+    "Sudafrica": "ZA",
+    "Israele": "IL",
+    "Repubblica Dominicana": "DO",
+    "Porto Rico": "PR"
   };
-  return flags[trimmed] || "🍺";
+
+  const foundKey = Object.keys(flags).find((k) => k.toLowerCase() === trimmed.toLowerCase());
+  if (foundKey) return flags[foundKey];
+
+  const cleanStr = trimmed.replace(/[^a-zA-Z]/g, '');
+  if (cleanStr.length >= 2) {
+    return cleanStr.substring(0, 2).toUpperCase();
+  }
+  return "XX";
 }
 
 export function formatBeerTitle(str: string): string {
@@ -260,7 +308,7 @@ export function mergeBeers(staticBeers: Beer[] = beers, customBeers?: any): Beer
         mergedMap.set(cbBrand, {
           brand: cbBrand,
           country: cb.country || "Italia",
-          flag: cb.flag || getCountryFlag(cb.country || "Italia"),
+          flag: (cb.flag && cb.flag !== '🍺' && cb.flag !== '??' && cb.flag !== 'XX') ? cb.flag : getCountryFlag(cb.country || "Italia"),
           rarity: cb.rarity || "comune",
           desc: cb.desc || `Birra ${cbBrand}`,
           variants: cbVariants.length > 0 ? [...cbVariants] : ["Classica"],
