@@ -13,6 +13,8 @@ export interface BeerProposalItem {
   proposedBy: string;
   timestamp: number;
   status: "pending" | "accepted" | "rejected";
+  isVariantProposal?: boolean;
+  bonusPoints?: number;
 }
 
 interface AdminProposalsModalProps {
@@ -126,15 +128,18 @@ export const AdminProposalsModal: React.FC<AdminProposalsModalProps> = ({
 
     const formattedBrand = formatBeerTitle(rawBrand.trim());
     const formattedVariant = formatBeerTitle(rawVariant.trim());
+    const formattedCountry = formatBeerTitle((rawCountry || 'Non specificata').trim());
 
     const finalProposal: BeerProposalItem = {
       ...item,
       brand: formattedBrand,
       variant: formattedVariant,
-      country: rawCountry || 'Italia',
-      regione: rawCountry === 'Italia' && rawRegione && rawRegione !== 'Tutte' ? rawRegione : undefined,
+      country: formattedCountry,
+      regione: formattedCountry.toLowerCase() === 'italia' && rawRegione && rawRegione !== 'Tutte' ? rawRegione : undefined,
       rarity: rawRarity,
       desc: rawDesc && rawDesc.trim() ? rawDesc.trim() : `Birra ${formattedBrand} (${formattedVariant})`,
+      isVariantProposal: item.isVariantProposal,
+      bonusPoints: item.bonusPoints ?? (item.isVariantProposal ? 1 : 2),
     };
 
     onAcceptProposal(finalProposal);
@@ -604,14 +609,27 @@ export const AdminProposalsModal: React.FC<AdminProposalsModalProps> = ({
                         </div>
                       )}
                       <div style={{ flexGrow: 1, textAlign: 'left' }}>
-                        <div style={{ fontSize: '16px', fontWeight: 900, color: 'var(--primary-dark)' }}>
-                          {currentData.brand}
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                          <span style={{ fontSize: '16px', fontWeight: 900, color: 'var(--primary-dark)' }}>
+                            {currentData.brand}
+                          </span>
+                          <span style={{
+                            fontSize: '10px',
+                            fontWeight: 800,
+                            padding: '2px 8px',
+                            borderRadius: '12px',
+                            background: item.isVariantProposal ? '#E0F2FE' : '#FEF3C7',
+                            color: item.isVariantProposal ? '#0369A1' : '#B45309',
+                            border: item.isVariantProposal ? '1px solid #BAE6FD' : '1px solid #FDE68A',
+                          }}>
+                            {item.isVariantProposal ? '💡 Nuova Variante (+1 Pt Bonus)' : '✨ Nuova Marca (+2 Pt Bonus)'}
+                          </span>
                         </div>
                         <div style={{ fontSize: '14px', fontWeight: 'bold', color: 'var(--dark)' }}>
                           {currentData.variant}
                         </div>
                         <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '2px' }}>
-                          Nazione: <strong>{currentData.country}</strong> {currentData.country === 'Italia' && currentData.regione && currentData.regione !== 'Tutte' ? `(${currentData.regione})` : ''}
+                          Nazione: <strong>{currentData.country}</strong> {currentData.country.trim().toLowerCase() === 'italia' && currentData.regione && currentData.regione !== 'Tutte' ? `(${currentData.regione})` : ''}
                         </div>
                         {currentData.desc && (
                           <div style={{ fontSize: '12px', color: 'var(--dark)', marginTop: '4px', fontStyle: 'italic', background: '#F8FAFC', padding: '4px 8px', borderRadius: '6px' }}>
@@ -655,34 +673,19 @@ export const AdminProposalsModal: React.FC<AdminProposalsModalProps> = ({
                           </div>
                         </div>
 
-                        <div style={{ display: 'grid', gridTemplateColumns: currentData.country === 'Italia' ? '1fr 1fr 1fr' : '1fr 1fr', gap: '8px', marginBottom: '8px' }}>
+                        <div style={{ display: 'grid', gridTemplateColumns: currentData.country.trim().toLowerCase() === 'italia' ? '1fr 1fr 1fr' : '1fr 1fr', gap: '8px', marginBottom: '8px' }}>
                           <div>
                             <label style={{ fontSize: '11px', fontWeight: 'bold', display: 'block', marginBottom: '2px' }}>Nazione</label>
-                            <select
+                            <input
+                              type="text"
                               value={currentData.country}
                               onChange={(e) => updateField(item.proposalId, 'country', e.target.value)}
-                              style={{ width: '100%', padding: '6px', fontSize: '12px', borderRadius: '8px' }}
-                            >
-                              <option value="Non specificata">Non specificata</option>
-                              <option value="Italia">Italia</option>
-                              <option value="Germania">Germania</option>
-                              <option value="Belgio">Belgio</option>
-                              <option value="Paesi Bassi">Paesi Bassi</option>
-                              <option value="Repubblica Ceca">Repubblica Ceca</option>
-                              <option value="Danimarca">Danimarca</option>
-                              <option value="Spagna">Spagna</option>
-                              <option value="Francia">Francia</option>
-                              <option value="Irlanda">Irlanda</option>
-                              <option value="Scozia">Scozia</option>
-                              <option value="Portogallo">Portogallo</option>
-                              <option value="Messico">Messico</option>
-                              <option value="Stati Uniti">Stati Uniti</option>
-                              <option value="Giappone">Giappone</option>
-                              <option value="Altra">Altra</option>
-                            </select>
+                              placeholder="es. Giappone, Italia, Germania..."
+                              style={{ width: '100%', boxSizing: 'border-box', padding: '6px 8px', fontSize: '12px', borderRadius: '8px', border: '1px solid var(--gray)', margin: 0 }}
+                            />
                           </div>
 
-                          {currentData.country === 'Italia' && (
+                          {currentData.country.trim().toLowerCase() === 'italia' && (
                             <div>
                               <label style={{ fontSize: '11px', fontWeight: 'bold', display: 'block', marginBottom: '2px' }}>Regione</label>
                               <select

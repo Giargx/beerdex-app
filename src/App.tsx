@@ -1035,8 +1035,14 @@ export default function App() {
         const isShared = entry.isShared || false;
         totalScore += getBeerPoints(brand, variant, isShiny, isShared, currentCatalog);
 
-        // Grant +2 Bonus Points for proposed beer if accepted!
-        if (entry.proposalBonus || entry.isProposalBonus) {
+        // Grant Bonus Points for proposed beer if accepted (+1 for variant, +2 for brand)
+        if (entry.proposalBonus !== undefined && entry.proposalBonus !== null) {
+          if (typeof entry.proposalBonus === 'number') {
+            totalScore += entry.proposalBonus;
+          } else if (entry.proposalBonus === true) {
+            totalScore += entry.proposalType === 'variant' ? 1 : 2;
+          }
+        } else if (entry.isProposalBonus) {
           totalScore += 2;
         }
 
@@ -1069,6 +1075,8 @@ export default function App() {
   // Proposal Handlers
   const handleProposeBeerSubmit = async (proposalData: BeerProposalData) => {
     try {
+      const isVariant = proposalData.isVariantProposal ?? false;
+      const bonusPoints = isVariant ? 1 : 2;
       const newRef = push(ref(db, 'beer_proposals'));
       const proposalObj = {
         proposalId: newRef.key!,
@@ -1082,10 +1090,12 @@ export default function App() {
         proposedBy: currentUserNick,
         timestamp: Date.now(),
         status: 'pending',
+        isVariantProposal: isVariant,
+        bonusPoints: bonusPoints,
       };
       await set(newRef, proposalObj);
       showAlert(
-        `Proposta per "${proposalData.brand} - ${proposalData.variant}" inviata agli admin! Se approvata, verrà aggiunta al catalogo, la sbloccherai subito e riceverai i punti della birra + 2 Punti Bonus!`,
+        `Proposta per "${proposalData.brand} - ${proposalData.variant}" inviata agli admin! Se approvata, verrà aggiunta al catalogo, la sbloccherai subito e riceverai i punti della birra + ${bonusPoints} Punti Bonus!`,
         'Proposta Inviata!'
       );
     } catch (err: any) {
@@ -1097,12 +1107,15 @@ export default function App() {
     try {
       const formattedBrand = formatBeerTitle(proposal.brand);
       const formattedVariant = formatBeerTitle(proposal.variant);
+      const formattedCountry = formatBeerTitle((proposal.country || 'Non specificata').trim());
+      const isVariant = proposal.isVariantProposal ?? false;
+      const bonusPoints = proposal.bonusPoints ?? (isVariant ? 1 : 2);
 
       // 1. Save new custom beer to catalog in Firebase DB
       const newCustomBeer: Beer = {
         brand: formattedBrand,
-        country: proposal.country,
-        flag: getCountryFlag(proposal.country),
+        country: formattedCountry,
+        flag: getCountryFlag(formattedCountry),
         rarity: proposal.rarity,
         desc: proposal.desc || `Birra ${formattedBrand} (${formattedVariant})`,
         variants: [formattedVariant],
@@ -1113,7 +1126,7 @@ export default function App() {
       }
       await set(ref(db, `custom_beers/${proposal.proposalId}`), newCustomBeer);
 
-      // 2. Unlock beer for proposing user with proposalBonus: true
+      // 2. Unlock beer for proposing user with proposalBonus
       const uniqueId = `${formattedBrand}-${formattedVariant}`;
       const pokedexEntry = {
         brand: formattedBrand,
@@ -1122,7 +1135,8 @@ export default function App() {
         unlockedAt: Date.now(),
         isShiny: false,
         isShared: false,
-        proposalBonus: true,
+        proposalBonus: bonusPoints,
+        proposalType: isVariant ? 'variant' : 'brand',
       };
       await set(ref(db, `pokedex_profiles/${proposal.proposedBy}/${uniqueId}`), pokedexEntry);
 
@@ -1136,7 +1150,7 @@ export default function App() {
         time: Date.now(),
         isShiny: false,
         isShared: false,
-        proposalBonus: true,
+        proposalBonus: bonusPoints,
         taggedFriend: null,
       });
 
@@ -1144,18 +1158,20 @@ export default function App() {
       await update(ref(db, `beer_proposals/${proposal.proposalId}`), {
         brand: formattedBrand,
         variant: formattedVariant,
-        country: proposal.country,
+        country: formattedCountry,
         regione: proposal.regione || null,
         rarity: proposal.rarity,
         desc: proposal.desc || null,
         status: 'accepted',
+        isVariantProposal: isVariant,
+        bonusPoints: bonusPoints,
       });
 
       // 5. Recalculate score for proposing user
       await recalculateTotalScore(proposal.proposedBy);
 
       showAlert(
-        `Proposta "${formattedBrand} - ${formattedVariant}" ACCETTATA! Nuova birra inserita nel catalogo e punti + 2 Bonus accreditati a @${proposal.proposedBy}.`,
+        `Proposta "${formattedBrand} - ${formattedVariant}" ACCETTATA! Nuova birra inserita nel catalogo e punti + ${bonusPoints} Bonus accreditati a @${proposal.proposedBy}.`,
         'Proposta Accettata!'
       );
     } catch (err: any) {

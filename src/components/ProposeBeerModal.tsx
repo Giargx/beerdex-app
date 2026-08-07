@@ -11,6 +11,7 @@ export interface BeerProposalData {
   rarity: "comune" | "media" | "rara";
   desc?: string;
   photo: string;
+  isVariantProposal?: boolean;
 }
 
 interface ProposeBeerModalProps {
@@ -35,7 +36,7 @@ export const ProposeBeerModal: React.FC<ProposeBeerModalProps> = ({
 }) => {
   const [brand, setBrand] = useState(initialBrandSearch);
   const [variant, setVariant] = useState(initialVariantPrefill);
-  const [country, setCountry] = useState('Italia');
+  const [country, setCountry] = useState('');
   const [regione, setRegione] = useState('Tutte');
   const [desc, setDesc] = useState(initialDescPrefill);
   const [photoBase64, setPhotoBase64] = useState<string>('');
@@ -63,7 +64,7 @@ export const ProposeBeerModal: React.FC<ProposeBeerModalProps> = ({
         setRegione(matched.regione || 'Tutte');
         setDesc(matched.desc || '');
       } else {
-        setCountry('Italia');
+        setCountry('');
         setRegione('Tutte');
         setDesc(initialDescPrefill || '');
       }
@@ -79,7 +80,6 @@ export const ProposeBeerModal: React.FC<ProposeBeerModalProps> = ({
       else setRegione('Tutte');
       if (existingBeer.desc) setDesc(existingBeer.desc);
     } else if (!initialBrandSearch) {
-      // Se si sta proponendo una nuova marca generica (non pre-compilata), mantieni pulita la descrizione
       setDesc('');
     }
   }, [brand, existingBeer, isOpen, initialBrandSearch]);
@@ -138,14 +138,20 @@ export const ProposeBeerModal: React.FC<ProposeBeerModalProps> = ({
       return;
     }
 
+    if (!existingBeer && !country.trim()) {
+      setErrorMessage('Scrivi la nazione di provenienza della birra.');
+      return;
+    }
+
     const effectiveVariant = variant.trim() ? variant.trim() : 'Classica';
+    const effectiveCountry = country.trim() ? formatBeerTitle(country.trim()) : 'Non specificata';
 
     if (!photoBase64) {
       setErrorMessage('Scatta o seleziona una foto della birra.');
       return;
     }
-    if (containsProfanity(brand) || containsProfanity(effectiveVariant) || containsProfanity(desc)) {
-      setErrorMessage('La marca, la variante o la descrizione contengono termini non appropriati o blasfemi.');
+    if (containsProfanity(brand) || containsProfanity(effectiveVariant) || containsProfanity(desc) || containsProfanity(effectiveCountry)) {
+      setErrorMessage('La marca, la variante, la nazione o la descrizione contengono termini non appropriati o blasfemi.');
       return;
     }
 
@@ -166,11 +172,12 @@ export const ProposeBeerModal: React.FC<ProposeBeerModalProps> = ({
     onSubmitProposal({
       brand: formattedBrand,
       variant: formattedVariant,
-      country,
-      regione: country === 'Italia' && regione !== 'Tutte' ? regione : undefined,
+      country: effectiveCountry,
+      regione: effectiveCountry.toLowerCase() === 'italia' && regione !== 'Tutte' ? regione : undefined,
       rarity: 'comune', // Impostata dagli Admin in fase di accettazione
       desc: desc.trim() || `Birra ${formattedBrand} (${formattedVariant})`,
       photo: photoBase64,
+      isVariantProposal: !!existingBeer,
     });
     setIsSubmitting(false);
     onClose();
@@ -205,7 +212,7 @@ export const ProposeBeerModal: React.FC<ProposeBeerModalProps> = ({
           Proponi Nuova Birra
         </h3>
         <p style={{ color: 'var(--text-muted)', fontSize: '13px', marginBottom: '16px', textAlign: 'center', lineHeight: 1.4 }}>
-          Gli admin valuteranno la tua proposta. Se approvata, la birra entrerà nell'app, la sbloccherai subito e riceverai un <strong>Bonus di +2 Punti</strong>!
+          Gli admin valuteranno la tua proposta. Se approvata, la birra entrerà nel catalogo e sbloccherai un <strong>Bonus di +2 Punti</strong> (nuova marca) o <strong>+1 Punto</strong> (nuova variante)!
         </p>
 
         {errorMessage && (
@@ -221,7 +228,7 @@ export const ProposeBeerModal: React.FC<ProposeBeerModalProps> = ({
             </label>
             <input
               type="text"
-              placeholder="Moretti, Ichnusa, Guinness..."
+              placeholder="Moretti, Ichnusa, Guinness, Sapporo..."
               value={brand}
               onChange={(e) => setBrand(e.target.value)}
               disabled={isBrandLocked}
@@ -250,12 +257,14 @@ export const ProposeBeerModal: React.FC<ProposeBeerModalProps> = ({
             />
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: country === 'Italia' ? '1fr 1fr' : '1fr', gap: '10px', marginBottom: '12px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: country.trim().toLowerCase() === 'italia' ? '1fr 1fr' : '1fr', gap: '10px', marginBottom: '12px' }}>
             <div>
               <label style={{ fontSize: '12px', fontWeight: 'bold', color: 'var(--dark)', display: 'block', marginBottom: '4px' }}>
-                Nazione
+                Nazione {existingBeer ? '' : '*'}
               </label>
-              <select
+              <input
+                type="text"
+                placeholder="Scrivi nazione (es. Giappone, Italia, Germania...)"
                 value={country}
                 onChange={(e) => setCountry(e.target.value)}
                 disabled={!!existingBeer}
@@ -266,30 +275,14 @@ export const ProposeBeerModal: React.FC<ProposeBeerModalProps> = ({
                   border: '1px solid var(--gray)',
                   opacity: existingBeer ? 0.8 : 1,
                   background: existingBeer ? '#F1F5F9' : 'white',
-                  appearance: 'none',
-                  WebkitAppearance: 'none',
-                  MozAppearance: 'none',
-                  cursor: existingBeer ? 'not-allowed' : 'pointer',
+                  cursor: existingBeer ? 'not-allowed' : 'text',
+                  boxSizing: 'border-box',
+                  margin: 0,
                 }}
-              >
-                <option value="Non specificata">Non specificata / Non so</option>
-                <option value="Italia">Italia</option>
-                <option value="Germania">Germania</option>
-                <option value="Belgio">Belgio</option>
-                <option value="Paesi Bassi">Paesi Bassi</option>
-                <option value="Repubblica Ceca">Repubblica Ceca</option>
-                <option value="Danimarca">Danimarca</option>
-                <option value="Spagna">Spagna</option>
-                <option value="Francia">Francia</option>
-                <option value="Irlanda">Irlanda</option>
-                <option value="Scozia">Scozia</option>
-                <option value="Portogallo">Portogallo</option>
-                <option value="Messico">Messico</option>
-                <option value="Stati Uniti">Stati Uniti</option>
-              </select>
+              />
             </div>
 
-            {country === 'Italia' && (
+            {country.trim().toLowerCase() === 'italia' && (
               <div>
                 <label style={{ fontSize: '12px', fontWeight: 'bold', color: 'var(--dark)', display: 'block', marginBottom: '4px' }}>
                   Regione (opzionale)

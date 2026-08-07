@@ -133,6 +133,7 @@ export function getBeerType(_brandName: string, variantName: string): "rossa" | 
 
 export function getCountryFlag(country?: string): string {
   if (!country || typeof country !== 'string') return "🍺";
+  const trimmed = country.trim();
   const flags: Record<string, string> = {
     "Italia": "IT",
     "Germania": "DE",
@@ -144,11 +145,29 @@ export function getCountryFlag(country?: string): string {
     "Francia": "FR",
     "Irlanda": "IE",
     "Scozia": "GB-SCT",
+    "Inghilterra": "GB-ENG",
+    "Regno Unito": "GB",
     "Portogallo": "PT",
     "Messico": "MX",
-    "Stati Uniti": "US"
+    "Stati Uniti": "US",
+    "Giappone": "JP",
+    "Austria": "AT",
+    "Svizzera": "CH",
+    "Polonia": "PL",
+    "Svezia": "SE",
+    "Norvegia": "NO",
+    "Finlandia": "FI",
+    "Grecia": "GR",
+    "Australia": "AU",
+    "Nuova Zelanda": "NZ",
+    "Canada": "CA",
+    "Argentina": "AR",
+    "Brasile": "BR",
+    "Cina": "CN",
+    "Corea Del Sud": "KR",
+    "Sudafrica": "ZA"
   };
-  return flags[country] || "🍺";
+  return flags[trimmed] || "🍺";
 }
 
 export function formatBeerTitle(str: string): string {

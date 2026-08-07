@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { beers, normalizeStr } from '../beers';
+import React, { useState, useMemo } from 'react';
+import { beers, normalizeStr, getCountryFlag } from '../beers';
 import type { Beer } from '../beers';
 import { BeerCard } from '../components/BeerCard';
 import type { PokedexEntry } from '../components/TrophyGrid';
@@ -74,6 +74,16 @@ export const ExploreView: React.FC<ExploreViewProps> = ({
   };
 
   const safeCatalog = Array.isArray(allBeersCatalog) ? allBeersCatalog : beers;
+
+  const availableCountries = useMemo(() => {
+    const set = new Set<string>();
+    safeCatalog.forEach((b) => {
+      if (b && b.country) {
+        set.add(b.country);
+      }
+    });
+    return Array.from(set).sort((a, b) => a.localeCompare(b));
+  }, [safeCatalog]);
 
   // Extract unique regions for Italian beers
   const ItalianRegions = Array.from(
@@ -192,19 +202,14 @@ export const ExploreView: React.FC<ExploreViewProps> = ({
             }}
           >
             <option value="Tutte">Tutte le Nazioni</option>
-            <option value="Italia">Italia</option>
-            <option value="Germania">Germania</option>
-            <option value="Belgio">Belgio</option>
-            <option value="Paesi Bassi">Paesi Bassi</option>
-            <option value="Repubblica Ceca">Repubblica Ceca</option>
-            <option value="Danimarca">Danimarca</option>
-            <option value="Spagna">Spagna</option>
-            <option value="Francia">Francia</option>
-            <option value="Irlanda">Irlanda</option>
-            <option value="Scozia">Scozia</option>
-            <option value="Portogallo">Portogallo</option>
-            <option value="Messico">Messico</option>
-            <option value="Stati Uniti">Stati Uniti</option>
+            {availableCountries.map((c) => {
+              const flag = getCountryFlag(c);
+              return (
+                <option key={c} value={c}>
+                  {flag && flag !== '🍺' ? `${flag} ${c}` : `🍺 ${c}`}
+                </option>
+              );
+            })}
           </select>
 
           {countryFilter === 'Italia' && (
