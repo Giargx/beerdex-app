@@ -13,6 +13,7 @@ export interface Beer {
 
 export const beers: Beer[] = [
   { brand: "Affligem", country: "Belgio", flag: "BE", rarity: "comune", desc: "Storica birra d'abbazia belga ad alta fermentazione.", variants: ["Blonde", "Double", "Triple"], barcodes: [] },
+  { brand: "Amarcord", country: "Italia", regione: "Emilia-Romagna", flag: "IT", rarity: "media", desc: "Birrificio indipendente di Rimini ispirato ai film di Federico Fellini.", variants: ["Gradisca (Lager)", "Midona (Bionda)", "Volpina (Rossa)", "Tabachera (Doppio Malto)"], barcodes: [] },
   { brand: "Asahi", country: "Giappone", flag: "JP", rarity: "comune", desc: "La lager super dry giapponese più famosa al mondo.", variants: ["Super Dry"], barcodes: [] },
   { brand: "Augustiner", country: "Germania", flag: "DE", rarity: "media", desc: "Storico birrificio di Monaco di Baviera.", variants: ["Lagerbier Hell", "Edelstoff", "Maximator"], barcodes: [] },
   { brand: "Baladin", country: "Italia", regione: "Piemonte", flag: "IT", rarity: "rara", desc: "Pioniere della birra artigianale italiana.", variants: ["Isaac (Blanche)", "Wayan (Saison)", "Nora (Speziata)", "Super Bitter", "Leon", "Nazionale", "L'IPPA", "Rock'n'Roll"], barcodes: [] },
@@ -22,7 +23,9 @@ export const beers: Beer[] = [
   { brand: "Birrificio Italiano", country: "Italia", regione: "Lombardia", flag: "IT", rarity: "rara", desc: "Storico birrificio artigianale lombardo.", variants: ["Tipopils", "Bibock", "Nigredo", "Vudù", "Amber Shock"], barcodes: [] },
   { brand: "Birrificio Lambrate", country: "Italia", regione: "Lombardia", flag: "IT", rarity: "rara", desc: "Il birrificio simbolo di Milano e del fermento artigianale.", variants: ["Montestella", "Sant'Ambroeus", "Ghisa", "Porpora", "Quarantot"], barcodes: [] },
   { brand: "Birrificio Messina", country: "Italia", regione: "Sicilia", flag: "IT", rarity: "comune", desc: "Birrificio cooperativo siciliano che produce la celebre Birra dello Stretto.", variants: ["Doc 15", "Birra dello Stretto"], barcodes: [] },
-  { brand: "BrewDog", country: "Scozia", flag: "GB-SCT", rarity: "media", desc: "Birrificio artigianale scozzese famoso in tutto il mondo.", variants: ["Punk IPA", "Elvis Juice", "Hazy Jane"], barcodes: [] },
+  { brand: "Boucanier", country: "Belgio", flag: "BE", rarity: "media", desc: "Potente Strong Belgian Ale prodotta nelle Fiandre orientali dalla Brouwerij Van Steenberge.", variants: ["Golden Ale", "Dark Ale", "Red Ale"], barcodes: [] },
+  { brand: "Bourgogne des Flandres", country: "Belgio", flag: "BE", rarity: "media", desc: "Tipica birra di Bruges ottenuta dall'assemblaggio di birra scura e Lambic invecchiato in botte.", variants: ["Brune", "Blonden Os"], barcodes: [] },
+  { brand: "BrewDog", country: "Scozia", flag: "GB-SCT", rarity: "media", desc: "Birrificio artigianale scozzese famoso in tutto il mondo.", variants: ["Punk IPA", "Elvis Juice", "Hazy Jane", "Wingman", "Clockwork Tangerine", "Lost Lager", "Black Heart (Stout)"], barcodes: [] },
   { brand: "Budweiser (USA)", country: "Stati Uniti", flag: "US", rarity: "comune", desc: "La famosissima lager americana, 'The King of Beers'.", variants: ["Lager"], barcodes: [] },
   { brand: "Budweiser Budvar", country: "Repubblica Ceca", flag: "CZ", rarity: "media", desc: "L'autentica lager ceca protetta.", variants: ["Original Lager", "Dark Lager", "Nealko"], barcodes: [] },
   { brand: "Carlsberg", country: "Danimarca", flag: "DK", rarity: "comune", desc: "Colosso industriale danese.", variants: ["Pilsner", "Elephant", "Special Brew"], barcodes: [] },
@@ -30,6 +33,7 @@ export const beers: Beer[] = [
   { brand: "Ceres", country: "Danimarca", flag: "DK", rarity: "comune", desc: "Marchio danese diventato un cult in Italia per le strong ale.", variants: ["Strong Ale", "Red Erik", "Extreme Ten"], barcodes: [] },
   { brand: "Chimay", country: "Belgio", flag: "BE", rarity: "media", desc: "Autentica birra trappista belga prodotta dai monaci.", variants: ["Première (Rossa)", "Cinq Cents (Tripel)", "Grande Réserve (Blu)"], barcodes: [] },
   { brand: "Chouffe", country: "Belgio", flag: "BE", rarity: "media", desc: "La celebre birra artigianale belga dello gnomo.", variants: ["La Chouffe (Blonde)", "Mc Chouffe (Brune)", "Cherry Chouffe"], barcodes: [] },
+  { brand: "Cornet", country: "Belgio", flag: "BE", rarity: "media", desc: "Famosa birra belga ad alta fermentazione affinata in botte con trucioli di quercia.", variants: ["Oaked Strong Blonde", "Smoked", "Alcohol Free"], barcodes: [] },
   { brand: "Corona", country: "Messico", flag: "MX", rarity: "comune", desc: "La lager messicana famosa in tutto il mondo.", variants: ["Extra", "Cero"], barcodes: [] },
   { brand: "Crak Brewery", country: "Italia", regione: "Veneto", flag: "IT", rarity: "rara", desc: "Rivoluzionario birrificio veneto, re indiscusso delle IPA.", variants: ["Guerrilla (IPA)", "Mundaka", "Mansueto", "After Summer"], barcodes: [] },
   { brand: "Del Borgo", country: "Italia", regione: "Lazio", flag: "IT", rarity: "media", desc: "Famoso birrificio laziale, noto per le sue ricette creative.", variants: ["ReAle", "Duchessa", "My Antonia", "Lisa", "Cortigiana"], barcodes: [] },
@@ -52,46 +56,56 @@ export const beers: Beer[] = [
   { brand: "Hoegaarden", country: "Belgio", flag: "BE", rarity: "comune", desc: "La regina delle birre bianche belghe.", variants: ["Witbier", "Rosée"], barcodes: [] },
   { brand: "Hofbräu", country: "Germania", flag: "DE", rarity: "media", desc: "Il leggendario birrificio della HB di Monaco.", variants: ["Original", "Münchner Weisse", "Schwarze Weisse", "Dunkel"], barcodes: [] },
   { brand: "Ichnusa", country: "Italia", regione: "Sardegna", flag: "IT", rarity: "comune", desc: "L'iconica birra sarda, amatissima in tutta Italia.", variants: ["Classica", "Non Filtrata", "Cruda", "Ambra Limpidissima", "Radler", "Metodo Lento"], barcodes: [] },
+  { brand: "KBirr", country: "Italia", regione: "Campania", flag: "IT", rarity: "rara", desc: "La birra napoletana artigianale prodotta nel cuore della Campania.", variants: ["Nata Vota (Lager)", "Jattura (Scotch Ale)", "Pulicenella (Witbier)"], barcodes: [] },
+  { brand: "Keiler", country: "Germania", flag: "DE", rarity: "media", desc: "Tradizionale birra bavarese del cinghiale prodotta a Würzburg secondo la legge di purezza.", variants: ["Kellerbier", "Helles", "Weissbier Hell", "Weissbier Dunkel", "Landbier"], barcodes: [] },
   { brand: "Kozel", country: "Repubblica Ceca", flag: "CZ", rarity: "comune", desc: "Famosissima birra ceca.", variants: ["Premium Lager", "Dark (Cerna)"], barcodes: [] },
   { brand: "Krombacher", country: "Germania", flag: "DE", rarity: "comune", desc: "Una delle pilsner tedesche più vendute e apprezzate.", variants: ["Pils", "Weizen", "Dunkel"], barcodes: [] },
   { brand: "Kronenbourg 1664", country: "Francia", flag: "FR", rarity: "comune", desc: "Il marchio francese più venduto al mondo.", variants: ["Blanc", "Lager"], barcodes: [] },
   { brand: "Kwak", country: "Belgio", flag: "BE", rarity: "media", desc: "Famosa per il suo iconico bicchiere a clessidra e l'alto grado alcolico.", variants: ["Pauwel Kwak", "Rouge"], barcodes: [] },
-  { brand: "La Trappe", country: "Paesi Bassi", flag: "NL", rarity: "media", desc: "La celebre birra trappista olandese prodotta all'abbazia di Koningshoeven.", variants: ["Blond", "Dubbel", "Tripel", "Quadrupel", "Witte Trappist"], barcodes: [] },
+  { brand: "L'Olmaia", country: "Italia", regione: "Toscana", flag: "IT", rarity: "rara", desc: "Birrificio artigianale della Val d'Orcia in Toscana.", variants: ["La 5", "La 9", "Starship"], barcodes: [] },
+  { brand: "La Trappe", country: "Paesi Bassi", flag: "NL", rarity: "media", desc: "La celebre birra trappista olandese prodotta all'abbazia di Koningshoeven.", variants: ["Blond", "Dubbel", "Tripel", "Quadrupel", "Witte Trappist", "Isid'or", "Bockbier"], barcodes: [] },
   { brand: "Leffe", country: "Belgio", flag: "BE", rarity: "comune", desc: "La storica birra d'abbazia belga.", variants: ["Blonde", "Brune", "Rituel 9°", "Rouge", "Triple"], barcodes: [] },
+  { brand: "Loch Lomond", country: "Scozia", flag: "GB-SCT", rarity: "rara", desc: "Pluripremiato birrificio artigianale scozzese situato sulle sponde del lago Loch Lomond.", variants: ["Silkie Stout", "Zoom Time (NEIPA)", "Southern Summit", "Lost in Mosaic"], barcodes: [] },
   { brand: "Löwenbräu", country: "Germania", flag: "DE", rarity: "comune", desc: "Storica birra monacense del leone.", variants: ["Original", "Oktoberfestbier", "Triumphator"], barcodes: [] },
+  { brand: "Maltus Faber", country: "Italia", regione: "Liguria", flag: "IT", rarity: "rara", desc: "Birrificio artigianale genovese pluripremiato.", variants: ["Blonde", "Amber Ale", "Triple"], barcodes: [] },
+  { brand: "Martin's", country: "Belgio", flag: "BE", rarity: "media", desc: "Storica casa birraria belga d'ispirazione britannica fondata da John Martin.", variants: ["Pale Ale", "IPA 55", "Gordon Finest Scotch"], barcodes: [] },
   { brand: "Mastri Birrai Umbri", country: "Italia", regione: "Umbria", flag: "IT", rarity: "media", desc: "Realtà umbra che esalta i cereali del territorio.", variants: ["Cotta 21 (Bionda)", "Cotta 37 (Rossa)", "Cotta 74 (Nera)", "Cotta 68 (IPA)", "Cotta 50 (Weiss)"], barcodes: [] },
   { brand: "Menabrea", country: "Italia", regione: "Piemonte", flag: "IT", rarity: "comune", desc: "Pluripremiato birrificio di Biella (Piemonte).", variants: ["Bionda 150°", "Ambrata", "Non Filtrata", "Strong", "Weiss", "Rossa"], barcodes: [] },
   { brand: "Messina", country: "Italia", regione: "Sicilia", flag: "IT", rarity: "comune", desc: "Storico marchio siciliano dai sapori del Mediterraneo.", variants: ["Ricetta Classica", "Cristalli di Sale", "Vivace"], barcodes: [] },
   { brand: "Moretti", country: "Italia", regione: "Friuli-Venezia Giulia", flag: "IT", rarity: "comune", desc: "Storico marchio nato in Friuli-Venezia Giulia.", variants: ["Ricetta Originale", "Baffo d'Oro", "La Rossa", "Filtrata a Freddo", "IPA", "Bianca", "Zero", "Lunga Maturazione"], barcodes: [] },
-  { brand: "Orval", country: "Belgio", flag: "BE", rarity: "rara", desc: "Una delle birre trappiste più singolari e complesse, rifermentata con lieviti selvaggi Brettanomyces.", variants: ["Trappist Ale"], barcodes: [] },
+  { brand: "Orval", country: "Belgio", flag: "BE", rarity: "rara", desc: "Una delle birre trappistes più singolari e complesse, rifermentata con lieviti selvaggi Brettanomyces.", variants: ["Trappist Ale"], barcodes: [] },
   { brand: "Paulaner", country: "Germania", flag: "DE", rarity: "comune", desc: "Grande protagonista dell'Oktoberfest.", variants: ["Hefe-Weißbier Naturtrüb", "Oktoberfest Bier", "Münchner Hell", "Salvator"], barcodes: [] },
   { brand: "Pedavena", country: "Italia", regione: "Veneto", flag: "IT", rarity: "comune", desc: "Antica tradizione bellunese (Veneto).", variants: ["Pils", "Lager", "Speciale", "Bock", "8 Gradi"], barcodes: [] },
   { brand: "Peroni", country: "Italia", regione: "Lazio", flag: "IT", rarity: "comune", desc: "Il colosso romano, celebre a livello internazionale.", variants: ["Classica", "Nastro Azzurro", "Nastro Azzurro 0.0", "Non Filtrata", "Cruda", "Gran Riserva Puro Malto", "Gran Riserva Doppio Malto", "Gran Riserva Rossa", "Gran Riserva Bianca", "Chill Lemon", "Capri"], barcodes: [] },
+  { brand: "Pietra", country: "Francia", flag: "FR", rarity: "media", desc: "Iconica birra corsa brassata con la tipica farina di castagne della Corsica.", variants: ["Amber (Castagna)", "Blonde Bio Gluten Free", "Blanche", "Bière de Noël"], barcodes: [] },
   { brand: "Pilsner Urquell", country: "Repubblica Ceca", flag: "CZ", rarity: "comune", desc: "La madre di tutte le birre bionde.", variants: ["Original Lager"], barcodes: [] },
   { brand: "Poretti", country: "Italia", regione: "Lombardia", flag: "IT", rarity: "comune", desc: "Realtà lombarda che classifica le birre coi luppoli.", variants: ["3 Luppoli", "4 Luppoli Originale", "4 Luppoli Non Filtrata", "5 Luppoli Bock", "6 Luppoli Rossa", "7 Luppoli", "8 Luppoli", "Le 9 Luppoli (IPA)"], barcodes: [] },
   { brand: "Raffo", country: "Italia", regione: "Puglia", flag: "IT", rarity: "comune", desc: "La 'birra dei due mari', simbolo della città di Taranto.", variants: ["Classica", "Lavorazione Grezza"], barcodes: [] },
   { brand: "Rochefort", country: "Belgio", flag: "BE", rarity: "rara", desc: "Birra trappista belga di straordinaria complessità aromatica.", variants: ["6 (Red Cap)", "8 (Green Cap)", "10 (Blue Cap)", "Triple Extra"], barcodes: [] },
+  { brand: "Rodenbach", country: "Belgio", flag: "BE", rarity: "media", desc: "Iconico birrificio belga celebre per le sue Flemish Red Sour Ale invecchiate in botti di quercia (foeders).", variants: ["Classic", "Grand Cru", "Alexander", "Caractère Rouge", "Fruitage"], barcodes: [] },
   { brand: "Salento", country: "Italia", regione: "Puglia", flag: "IT", rarity: "rara", desc: "Eccellenza artigianale pugliese, nata a Leverano (Lecce).", variants: ["Agricola (Lager)", "Nuda e Cruda", "Beggia", "Taranta (IPA)"], barcodes: [] },
   { brand: "San Miguel", country: "Spagna", flag: "ES", rarity: "comune", desc: "Marchio spagnolo popolarissimo.", variants: ["Especial", "Selecta", "0,0"], barcodes: [] },
   { brand: "Schneider Weisse", country: "Germania", flag: "DE", rarity: "media", desc: "Birrificio bavarese specializzato in eccezionali birre di frumento.", variants: ["TAP7 Original", "TAP6 Aventinus", "TAP1 Helle Weisse", "TAP5 Meine Hopfenweisse"], barcodes: [] },
   { brand: "Semedorato", country: "Italia", regione: "Sicilia", flag: "IT", rarity: "rara", desc: "Birra artigianale premium siciliana.", variants: ["Bionda Premium", "Rossa Doppio Malto", "Non Filtrata"], barcodes: [] },
+  { brand: "Sheppy's", country: "Regno Unito", flag: "GB", rarity: "media", desc: "Storico produttore di sidro artigianale inglese nel Somerset dal 1816.", variants: ["Original Cloudy Cider", "Vintage Cider", "Dabinett Cider"], barcodes: [] },
   { brand: "Slalom", country: "Scozia", flag: "GB-SCT", rarity: "comune", desc: "Strong Lager scozzese, popolarissima nei pub italiani.", variants: ["Strong"], barcodes: [] },
   { brand: "Spaten", country: "Germania", flag: "DE", rarity: "comune", desc: "Storico birrificio di Monaco di Baviera, creatore dello stile Münchner Hell.", variants: ["Münchner Hell", "Premium Lager", "Oktoberfestbier"], barcodes: [] },
+  { brand: "Steenbrugge", country: "Belgio", flag: "BE", rarity: "media", desc: "Storica birra d'abbazia belga speziata con la tradizionale miscela segreta di erbe 'Gruut'.", variants: ["Dubbel Brune", "Blond", "Tripel", "Witrik"], barcodes: [] },
   { brand: "Stella Artois", country: "Belgio", flag: "BE", rarity: "comune", desc: "Premium lager belga.", variants: ["Premium Lager", "Unfiltered", "0.0"], barcodes: [] },
   { brand: "Super Bock", country: "Portogallo", flag: "PT", rarity: "comune", desc: "La birra più famosa del Portogallo.", variants: ["Original", "Abadia", "Stout"], barcodes: [] },
   { brand: "Tennent's", country: "Scozia", flag: "GB-SCT", rarity: "comune", desc: "Storico marchio scozzese.", variants: ["Super", "Extra", "1885 Lager", "Scotch Ale"], barcodes: [] },
   { brand: "Theresianer", country: "Italia", regione: "Veneto", flag: "IT", rarity: "comune", desc: "Storico marchio triestino rinato come eccellenza artigianale in Veneto.", variants: ["Premium Pilsner", "Strong Ale", "Bock", "Witbier", "IPPA"], barcodes: [] },
+  { brand: "Timmermans", country: "Belgio", flag: "BE", rarity: "media", desc: "Il più antico birrificio di Lambic a fermentazione spontanea del mondo (fondato nel 1702).", variants: ["Lambicus Blanche", "Faro", "Oude Kriek", "Oude Gueuze", "Pêche", "Kriek Black Pepper"], barcodes: [] },
   { brand: "Tripel Karmeliet", country: "Belgio", flag: "BE", rarity: "media", desc: "Straordinaria birra belga ai tre cereali.", variants: ["Tripel"], barcodes: [] },
+  { brand: "Tête de Mort", country: "Belgio", flag: "BE", rarity: "media", desc: "Caratteristica gamma di birre belghe ad alta gradazione prodotta dalla Brasserie Du Bocq.", variants: ["Triple", "Amber", "Red", "Green"], barcodes: [] },
   { brand: "Tuborg", country: "Danimarca", flag: "DK", rarity: "comune", desc: "Lager danese leggera.", variants: ["Green", "Strong", "Red"], barcodes: [] },
   { brand: "Voll-Damm", country: "Spagna", flag: "ES", rarity: "comune", desc: "La famosa Märzen a doppio malto prodotta a Barcellona.", variants: ["Märzen"], barcodes: [] },
   { brand: "Warsteiner", country: "Germania", flag: "DE", rarity: "comune", desc: "Popolarissima pilsner tedesca premium.", variants: ["Premium Verum", "Double Hops", "Analcolica"], barcodes: [] },
+  { brand: "Waterloo", country: "Belgio", flag: "BE", rarity: "media", desc: "Birra belga ad alta fermentazione prodotta nella storica fattoria di Mont-Saint-Jean a Waterloo.", variants: ["Double Brune", "Triple Blond", "Récolte", "Kriek"], barcodes: [] },
   { brand: "Weihenstephaner", country: "Germania", flag: "DE", rarity: "media", desc: "Il più antico marchio di birra al mondo (1040).", variants: ["Hefe Weissbier", "Vitus", "Original Hell"], barcodes: [] },
   { brand: "Westmalle", country: "Belgio", flag: "BE", rarity: "rara", desc: "La madre di tutte le Tripel trappiste belghe.", variants: ["Dubbel", "Tripel", "Extra"], barcodes: [] },
-  { brand: "Wuhrer", country: "Italia", regione: "Lombardia", flag: "IT", rarity: "comune", desc: "Il più antico marchio di birra italiano (Brescia, 1829).", variants: ["La Classica"], barcodes: [] },
-  { brand: "Amarcord", country: "Italia", regione: "Emilia-Romagna", flag: "IT", rarity: "media", desc: "Birrificio indipendente di Rimini ispirato ai film di Federico Fellini.", variants: ["Gradisca (Lager)", "Midona (Bionda)", "Volpina (Rossa)", "Tabachera (Doppio Malto)"], barcodes: [] },
-  { brand: "KBirr", country: "Italia", regione: "Campania", flag: "IT", rarity: "rara", desc: "La birra napoletana artigianale prodotta nel cuore della Campania.", variants: ["Nata Vota (Lager)", "Jattura (Scotch Ale)", "Pulicenella (Witbier)"], barcodes: [] },
-  { brand: "Maltus Faber", country: "Italia", regione: "Liguria", flag: "IT", rarity: "rara", desc: "Birrificio artigianale genovese pluripremiato.", variants: ["Blonde", "Amber Ale", "Triple"], barcodes: [] },
-  { brand: "L'Olmaia", country: "Italia", regione: "Toscana", flag: "IT", rarity: "rara", desc: "Birrificio artigianale della Val d'Orcia in Toscana.", variants: ["La 5", "La 9", "Starship"], barcodes: [] }
+  { brand: "Wold Top", country: "Regno Unito", flag: "GB", rarity: "rara", desc: "Birrificio artigianale dello Yorkshire specializzato in Pale Ale tradizionali e birre Gluten Free.", variants: ["Marmalade Porter", "Against The Grain (GF)", "Headland Red", "Wold Gold", "Scarborough Fair IPA"], barcodes: [] },
+  { brand: "Wuhrer", country: "Italia", regione: "Lombardia", flag: "IT", rarity: "comune", desc: "Il più antico marchio di birra italiano (Brescia, 1829).", variants: ["La Classica"], barcodes: [] }
 ];
 
 export const countryCoordinates: Record<string, { latMin: number; latMax: number; lngMin: number; lngMax: number }> = {
@@ -128,16 +142,16 @@ export function getBeerType(brandName: string, variantName: string, allBeersCata
   }
   if (!variantName || typeof variantName !== 'string') return "bionda";
   const vLower = variantName.toLowerCase();
-  if (vLower.includes("rossa") || vLower.includes("rouge") || vLower.includes("red") || vLower.includes("cherry") || vLower.includes("porpora") || vLower.includes("amber") || vLower.includes("ambrata") || vLower.includes("rituel")) {
+  if (vLower.includes("rossa") || vLower.includes("rouge") || vLower.includes("red") || vLower.includes("cherry") || vLower.includes("porpora") || vLower.includes("amber") || vLower.includes("ambrata") || vLower.includes("rituel") || vLower.includes("kriek")) {
     return "rossa";
   }
-  if (vLower.includes("scura") || vLower.includes("stout") || vLower.includes("dark") || vLower.includes("dunkel") || vLower.includes("nera") || vLower.includes("cerna") || vLower.includes("blue") || vLower.includes("blu") || vLower.includes("maximator") || vLower.includes("sixtus") || vLower.includes("salvator") || vLower.includes("ghisa") || vLower.includes("leon")) {
+  if (vLower.includes("scura") || vLower.includes("stout") || vLower.includes("dark") || vLower.includes("dunkel") || vLower.includes("nera") || vLower.includes("cerna") || vLower.includes("blue") || vLower.includes("blu") || vLower.includes("maximator") || vLower.includes("sixtus") || vLower.includes("salvator") || vLower.includes("ghisa") || vLower.includes("leon") || vLower.includes("brune") || vLower.includes("porter") || vLower.includes("dubbel") || vLower.includes("quadrupel")) {
     return "scura";
   }
-  if (vLower.includes("bianca") || vLower.includes("weiss") || vLower.includes("weiß") || vLower.includes("witbier") || vLower.includes("blanche") || vLower.includes("isaac") || vLower.includes("wayan") || vLower.includes("nora") || vLower.includes("hazy")) {
+  if (vLower.includes("bianca") || vLower.includes("weiss") || vLower.includes("weiß") || vLower.includes("witbier") || vLower.includes("blanche") || vLower.includes("isaac") || vLower.includes("wayan") || vLower.includes("nora") || vLower.includes("hazy") || vLower.includes("witrik")) {
     return "bianca";
   }
-  if (vLower.includes("ipa") || vLower.includes("ippa") || vLower.includes("guerrilla") || vLower.includes("taranta") || vLower.includes("elvis")) {
+  if (vLower.includes("ipa") || vLower.includes("ippa") || vLower.includes("guerrilla") || vLower.includes("taranta") || vLower.includes("elvis") || vLower.includes("wingman") || vLower.includes("neipa")) {
     return "ipa";
   }
   return "bionda"; 
