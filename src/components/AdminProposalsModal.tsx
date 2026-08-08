@@ -564,9 +564,6 @@ export const AdminProposalsModal: React.FC<AdminProposalsModalProps> = ({
                 );
               })()}
             </div>
-          ) : (
-              })()}
-            </div>
           ) : activeTab === 'feedback' ? (
             feedbacksList.length === 0 ? (
               <div style={{ textAlign: 'center', padding: '40px 20px', color: 'var(--text-muted)' }}>
