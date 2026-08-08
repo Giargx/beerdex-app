@@ -98,10 +98,11 @@ Per evitare la creazione di card duplicate quando gli utenti propongono nuove bi
 Il catalogo dell'app conta oltre **110 brand internazionali ed artigianali** con più di **350 varianti ufficiali**, organizzati per Nazione e Regione.
 
 ### Principali Nazioni e Birrifici inclusi:
-* 🇮🇹 **Italia**: Peroni, Moretti, Ichnusa, Menabrea, Birra Messina, Forst, Baladin, Birrificio Italiano, Birrificio Lambrate, Crak Brewery, Del Borgo, Flea, KBirr, Salento, Semedorato, Theresianer, Wuhrer, Mastri Birrai Umbri, Amarcord, Castello, Dreher, Pedavena, Raffo.
-* 🇧🇪 **Belgio**: Abbaye de Forest, Chouffe (La Chouffe, Mc Chouffe, Houblon, N'Ice, Soleil, Cherry), Chimay, Duvel, Leffe, Delirium, Grimbergen, Hoegaarden, Kwak, Orval, Rochefort, Rodenbach, Steenbrugge, Stella Artois, Timmermans, Tripel Karmeliet, Tête de Mort, Waterloo, Cornet, Boucanier, Bourgogne des Flandres, Martin's.
+* 🇮🇹 **Italia**: Peroni, Moretti, Ichnusa, Menabrea, Birra Messina, Forst, Baladin, Birrificio Italiano, Birrificio Lambrate, Crak Brewery, Del Borgo, Flea, KBirr, Salento, Semedorato, Theresianer, Wuhrer, Mastri Birrai Umbri, Amarcord, Castello, Dreher, Pedavena, Raffo, Ritual Lab, Jungle Juice Brewing, Ca' del Brado, Birra Elvo, Birra Perugia, Shire Brewing, Mister B, Kashmir, Wild Raccoon, Birra 100Venti.
+* 🇧🇪 **Belgio**: Abbaye de Forest, Chouffe (La Chouffe, Mc Chouffe, Houblon, N'Ice, Soleil, Cherry), Chimay, Duvel, Leffe, Delirium, Grimbergen, Hoegaarden, Kwak, Orval, Rochefort, Rodenbach, Steenbrugge, Stella Artois, Timmermans, Tripel Karmeliet, Tête de Mort, Waterloo, Cornet, Boucanier, Bourgogne des Flandres, Martin's, Fantôme.
 * 🇩🇪 **Germania**: Augustiner, Beck's, Erdinger, Franziskaner, Hacker-Pschorr, Hofbräu, Keiler, Krombacher, Löwenbräu, Paulaner, Schneider Weisse, Spaten, Warsteiner, Weihenstephaner, Best Brau, Finkbräu.
-* 🇬🇧 / 🏴󠁧󠁢󠁳󠁣󠁴󠁿 **Regno Unito / Scozia**: BrewDog, Bulldog, Loch Lomond, Wold Top, Sheppy's, Slalom, Tennent's.
+* 🇬🇧 / 🏴󠁧󠁢󠁳󠁣󠁴󠁿 **Regno Unito / Scozia**: BrewDog, Bulldog, Loch Lomond, Wold Top, Sheppy's, Slalom, Tennent's, Samuel Smith.
+* 🇸🇪 **Svezia**: Brewski.
 * 🇺🇸 **Stati Uniti**: Sierra Nevada, Brooklyn Brewery, Founders, Goose Island, Samuel Adams, Blue Moon, Anchor, Lagunitas, Miller, Coors, Pabst Blue Ribbon, Budweiser (USA).
 * 🇹🇭 **Thailandia**: Singha, Chang, Leo, Phuket Beer.
 * 🇨🇿 **Repubblica Ceca**: Pilsner Urquell, Kozel, Budweiser Budvar, Malastrana.
