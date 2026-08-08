@@ -407,7 +407,8 @@ export function calculateCompositeRarity(params: RarityScoreParams): "comune" | 
 export function getBasePoints(brandName: string, variantName: string, allBeersCatalog: Beer[] = beers): number {
   let base = 1;
   const safeCatalog = Array.isArray(allBeersCatalog) ? allBeersCatalog : beers;
-  const beer = safeCatalog.find(b => b && b.brand === brandName);
+  const normTarget = stripStr(brandName);
+  const beer = safeCatalog.find(b => b && b.brand && (b.brand === brandName || stripStr(b.brand) === normTarget || normTarget.includes(stripStr(b.brand)) || stripStr(b.brand).includes(normTarget)));
   if (beer) {
     if (beer.rarity === "media") base = 2;
     if (beer.rarity === "rara") base = 5;

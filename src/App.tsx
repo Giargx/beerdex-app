@@ -167,13 +167,22 @@ export default function App() {
         const pData = pokedexSnap.val();
         Object.entries(pData).forEach(([entryKey, entryVal]: [string, any]) => {
           const entryBrandStr = stripStr(entryVal?.brand || (entryKey.includes('-') ? entryKey.split('-')[0] : entryKey));
-          if (entryKey === oldKey || stripStr(entryKey) === normOldKeyStr || entryBrandStr === normOldBrandStr) {
+          const isTargetMatch = entryKey === oldKey ||
+            stripStr(entryKey) === normOldKeyStr ||
+            entryBrandStr === normOldBrandStr ||
+            (normOldBrandStr.includes('abbay') && entryBrandStr.includes('abbay')) ||
+            (normOldBrandStr.includes('deforest') && entryBrandStr.includes('deforest'));
+
+          if (isTargetMatch) {
             updates[`pokedex_profiles/${targetUsername}/${entryKey}`] = null;
+            
+            // Clean old custom proposal bonus flags if re-assigning to static catalog beer
+            const { proposalBonus, isProposalBonus, ...restVal } = (entryVal || {});
             updates[`pokedex_profiles/${targetUsername}/${newKey}`] = {
-              ...entryVal,
+              ...restVal,
               brand: canonicalB,
               variant: canonicalV,
-              timestamp: entryVal?.timestamp || Date.now()
+              timestamp: restVal?.timestamp || Date.now()
             };
           }
         });
@@ -184,8 +193,11 @@ export default function App() {
       if (customSnap.exists()) {
         const cData = customSnap.val();
         Object.entries(cData).forEach(([cId, cVal]: [string, any]) => {
-          if (cVal && stripStr(cVal.brand) === normOldBrandStr) {
-            updates[`custom_beers/${cId}`] = null;
+          if (cVal && cVal.brand) {
+            const cBrandStr = stripStr(cVal.brand);
+            if (cBrandStr === normOldBrandStr || cBrandStr.includes('abbay') || cBrandStr.includes('deforest')) {
+              updates[`custom_beers/${cId}`] = null;
+            }
           }
         });
       }
@@ -197,7 +209,12 @@ export default function App() {
         Object.entries(tData).forEach(([postId, postVal]: [string, any]) => {
           if (postVal && postVal.user && postVal.user.toLowerCase() === targetUsername.toLowerCase()) {
             const pBrandStr = stripStr(postVal.brand);
-            if (pBrandStr === normOldBrandStr || `${formatBeerTitle(postVal.brand)}-${formatBeerTitle(postVal.variant)}` === oldKey) {
+            const isPostMatch = pBrandStr === normOldBrandStr ||
+              pBrandStr.includes('abbay') ||
+              pBrandStr.includes('deforest') ||
+              `${formatBeerTitle(postVal.brand)}-${formatBeerTitle(postVal.variant)}` === oldKey;
+
+            if (isPostMatch) {
               updates[`social_timeline/${postId}/brand`] = canonicalB;
               updates[`social_timeline/${postId}/variant`] = canonicalV;
             }
