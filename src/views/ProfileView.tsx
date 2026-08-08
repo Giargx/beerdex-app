@@ -36,6 +36,7 @@ interface ProfileViewProps {
   unreadFeedbackCount?: number;
   onOpenUserStory?: (username: string) => boolean;
   onOpenAdminMoveModal?: (username?: string, oldKey?: string) => void;
+  onOpenShareProfileModal?: () => void;
 }
 
 export const ProfileView: React.FC<ProfileViewProps> = ({
@@ -69,6 +70,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
   onOpenStoryUpload,
   onOpenUserStory,
   onOpenAdminMoveModal,
+  onOpenShareProfileModal,
 }) => {
   const catalog = (allBeersCatalog && allBeersCatalog.length > 0) ? allBeersCatalog : beers;
   const [activeTab, setActiveTab] = useState<'collection' | 'posts' | 'saved' | 'stats' | 'ratings'>('posts');
@@ -377,6 +379,31 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
             <div className="user-rank-title" style={{ marginBottom: 0, fontSize: '13px', padding: '5px 12px', display: 'inline-block' }}>
               {rankTitle}
             </div>
+
+            {onOpenShareProfileModal && (
+              <div style={{ marginTop: '10px' }}>
+                <button
+                  onClick={onOpenShareProfileModal}
+                  style={{
+                    background: 'linear-gradient(135deg, #F59E0B 0%, #D97706 100%)',
+                    color: '#FFFFFF',
+                    border: 'none',
+                    borderRadius: '12px',
+                    padding: '8px 16px',
+                    fontSize: '12px',
+                    fontWeight: 800,
+                    cursor: 'pointer',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    boxShadow: '0 4px 10px rgba(245, 158, 11, 0.3)',
+                  }}
+                >
+                  <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>share</span>
+                  Condividi Profilo & Invita Amici
+                </button>
+              </div>
+            )}
           </div>
 
           {/* Instagram-style user stats row */}

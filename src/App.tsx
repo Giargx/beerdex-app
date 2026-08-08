@@ -37,6 +37,8 @@ import { AdminMoveBeerModal } from './components/AdminMoveBeerModal';
 import type { BeerProposalData } from './components/ProposeBeerModal';
 import type { BeerProposalItem } from './components/AdminProposalsModal';
 import { UnlockRatingModal } from './components/UnlockRatingModal';
+import { ShareProfileModal } from './components/ShareProfileModal';
+import { FriendInviteModal } from './components/FriendInviteModal';
 import { PermissionModal, type PermissionType, type PermissionChoice } from './components/PermissionModal';
 import { TagRequestModal, type TagRequestItem } from './components/TagRequestModal';
 import { AppTutorialModal } from './components/AppTutorialModal';
@@ -129,6 +131,63 @@ export default function App() {
   const [adminMoveModalOpen, setAdminMoveModalOpen] = useState<boolean>(false);
   const [adminMoveTargetUser, setAdminMoveTargetUser] = useState<string>('');
   const [adminMoveInitialOldKey, setAdminMoveInitialOldKey] = useState<string>('');
+
+  // Share Profile & Friend Invite State
+  const [shareProfileModalOpen, setShareProfileModalOpen] = useState<boolean>(false);
+  const [friendInviteModal, setFriendInviteModal] = useState<{ isOpen: boolean; inviterNick: string } | null>(null);
+
+  // 1. Detect incoming friend link query params (?friend=Username or ?invite=Username or ?addFriend=Username)
+  useEffect(() => {
+    try {
+      const params = new URLSearchParams(window.location.search);
+      const friendParam = params.get('friend') || params.get('invite') || params.get('addFriend');
+      if (friendParam) {
+        const cleanInviter = friendParam.trim();
+        if (cleanInviter) {
+          localStorage.setItem('popit_pending_friend_invite', cleanInviter);
+        }
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  }, []);
+
+  // 2. Check pending friend invite when app loads or auth status changes
+  useEffect(() => {
+    const pendingInviter = localStorage.getItem('popit_pending_friend_invite');
+    if (pendingInviter) {
+      const cleanInviter = pendingInviter.trim();
+      if (currentUserNick) {
+        if (cleanInviter.toLowerCase() !== currentUserNick.toLowerCase()) {
+          setFriendInviteModal({ isOpen: true, inviterNick: cleanInviter });
+        } else {
+          localStorage.removeItem('popit_pending_friend_invite');
+          window.history.replaceState({}, document.title, window.location.pathname);
+        }
+      } else {
+        // Visitor not logged in yet! Open friend invite modal encouraging registration/login
+        setFriendInviteModal({ isOpen: true, inviterNick: cleanInviter });
+      }
+    }
+  }, [currentUserNick]);
+
+  const handleAcceptFriendInvite = async (inviterNick: string) => {
+    if (!inviterNick) return;
+    try {
+      if (currentUserNick) {
+        await handleAddFriend(inviterNick);
+        localStorage.removeItem('popit_pending_friend_invite');
+        window.history.replaceState({}, document.title, window.location.pathname);
+        setFriendInviteModal(null);
+        showAlert(`🎉 Richiesta d'amicizia inviata con successo a @${inviterNick}!`, 'Amicizia Stretta');
+      } else {
+        setFriendInviteModal(null);
+        setAuthOpen(true);
+      }
+    } catch (e: any) {
+      console.error(e);
+    }
+  };
 
   const handleOpenAdminMoveModal = (targetUser?: string, oldKey?: string) => {
     if (!isAdminUser) {
@@ -3682,6 +3741,31 @@ export default function App() {
           <div className="settings-instagram-section">
             <div className="section-title">Profilo e Account</div>
 
+            {/* Row Condividi Profilo & Invita Amici */}
+            <div
+              className="settings-row"
+              onClick={() => {
+                setSettingsOpen(false);
+                setShareProfileModalOpen(true);
+              }}
+              style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                <span className="material-symbols-outlined icon" style={{ color: '#F59E0B' }}>
+                  person_add
+                </span>
+                <div style={{ textAlign: 'left' }}>
+                  <div className="row-label" style={{ fontWeight: 800 }}>Condividi Profilo & Invita Amici</div>
+                  <div className="row-desc">
+                    Invia il tuo link personale su WhatsApp o Instagram senza codici
+                  </div>
+                </div>
+              </div>
+              <span className="material-symbols-outlined" style={{ color: '#94A3B8', fontSize: '20px' }}>
+                chevron_right
+              </span>
+            </div>
+
             {/* Row Profilo Privato */}
             <div className="settings-row" onClick={() => handleToggleProfilePrivacy(!isProfilePrivate)} style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
@@ -4655,6 +4739,37 @@ export default function App() {
           onToggleLike={handleToggleLike}
           onOpenPublicProfile={handleOpenPublicProfile}
           onDeleteStory={handleDeleteStory}
+        />
+      )}
+
+      {/* Share Profile Modal */}
+      <ShareProfileModal
+        isOpen={shareProfileModalOpen}
+        onClose={() => setShareProfileModalOpen(false)}
+        currentUserNick={currentUserNick}
+        displayName={globalDisplayNames[currentUserNick] || currentUserNick}
+        avatarUrl={globalAvatars[currentUserNick]}
+        userScore={globalLeaderboardScores[currentUserNick] || 0}
+      />
+
+      {/* Incoming Friend Invite Modal */}
+      {friendInviteModal && (
+        <FriendInviteModal
+          isOpen={friendInviteModal.isOpen}
+          inviterNick={friendInviteModal.inviterNick}
+          inviterDisplayName={globalDisplayNames[friendInviteModal.inviterNick] || friendInviteModal.inviterNick}
+          inviterAvatar={globalAvatars[friendInviteModal.inviterNick]}
+          isLoggedIn={!!currentUserNick}
+          onAccept={handleAcceptFriendInvite}
+          onClose={() => {
+            setFriendInviteModal(null);
+            localStorage.removeItem('popit_pending_friend_invite');
+            window.history.replaceState({}, document.title, window.location.pathname);
+          }}
+          onOpenAuth={() => {
+            setFriendInviteModal(null);
+            setAuthOpen(true);
+          }}
         />
       )}
     </PullToRefreshHandler>

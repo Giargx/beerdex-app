@@ -138,6 +138,12 @@ Il catalogo dell'app conta oltre **130 brand internazionali ed artigianali** con
   - **Notifica Unificata Admin**: Gli amministratori ricevono un unico avviso di proposta per evitare duplicati.
   - **Assegnazione Automatica dei Punti**: Alla conferma degli admin, la birra entra nel catalogo e **tutti gli amici taggati sbloccano automaticamente la birra nel Pokédex** ricevendo i relativi punti bonus!
 
+* **Condivisione Profilo & Invito Amici 1-Click (Senza Codici)**:
+  - Pulsante **"Condividi Profilo & Invita Amici 📲"** presente sia nel Profilo che nelle Impostazioni.
+  - Generazione dinamica di **Link di Amicizia Diretti** (`?friend=USERNAME`) integrata con WhatsApp, Instagram e Web Share API.
+  - **Integrazione QR Code**: QR Code dinamico generato al volo da inquadrare con la fotocamera al pub per aggiungere un amico sul posto.
+  - **Gestione Nuovi Utenti Non Registrati**: Se un amico apre il link senza avere l'app o l'account, viene memorizzato l'invito pendente. Alla registrazione o al login, l'amicizia viene stretta automaticamente!
+
 ---
 
 ## 🏗️ Architettura e Struttura del Codice
