@@ -29,13 +29,15 @@
     <!-- TensorFlow.js & NSFWJS AI Moderation Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.22.0/dist/tf.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/nsfwjs@2.4.2/dist/nsfwjs.min.js"></script>
-    <script type="module" crossorigin src="/popit-app/assets/index-DhkCHShg.js"></script>
+    <script type="module" crossorigin src="/popit-app/assets/index-CEbMV-Lv.js"></script>
     <link rel="stylesheet" crossorigin href="/popit-app/assets/index-DlwT16Yz.css">
   </head>
   <body style="margin: 0; background-color: #FFF8F0;">
-    <!-- Splash Screen Preloader nativo con Logo POP IT (Visibile per 2 secondi con dissolvenza morbida) -->
-    <div id="app-splash-screen" style="position: fixed; inset: 0; background: #FFF8F0; display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 9999999; font-family: 'Outfit', system-ui, sans-serif; transition: opacity 0.5s cubic-bezier(0.16, 1, 0.3, 1);">
-      <img src="/popit-app/pop-it-logo.png" alt="POP IT" style="width: 180px; height: 180px; object-fit: contain; filter: drop-shadow(0 6px 20px rgba(245, 158, 11, 0.35)); animation: pulse 1.6s ease-in-out infinite;" />
+    <!-- Splash Screen Preloader nativo con Logo POP IT e Sfondo Blu Home (Visibile per 2 secondi con dissolvenza morbida) -->
+    <div id="app-splash-screen" style="position: fixed; inset: 0; background: linear-gradient(180deg, #1E293B 0%, #0F172A 100%); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 9999999; font-family: 'Outfit', system-ui, sans-serif; transition: opacity 0.5s cubic-bezier(0.16, 1, 0.3, 1); overflow: hidden;">
+      <!-- Soft Ambient Golden Aura -->
+      <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 340px; height: 180px; background: radial-gradient(ellipse at center, rgba(245, 158, 11, 0.4) 0%, rgba(217, 119, 6, 0.15) 60%, rgba(15, 23, 42, 0) 80%); borderRadius: 50%; pointer-events: none; filter: blur(20px);"></div>
+      <img src="/popit-app/pop-it-logo.png" alt="POP IT" style="width: 200px; height: auto; max-height: 180px; object-fit: contain; position: relative; z-index: 2; filter: drop-shadow(0 4px 24px rgba(255, 179, 0, 0.85)); animation: pulse 1.6s ease-in-out infinite;" />
     </div>
 
     <div id="root"></div>
