@@ -358,33 +358,45 @@ export default function App() {
 
   // Zoomed Avatar State
   const [zoomedAvatarUrl, setZoomedAvatarUrl] = useState<string | null>(null);
-  const longPressTimeout = useRef<number | null>(null);
+  const longPressTimeout = useRef<any>(null);
+  const isLongPressActive = useRef<boolean>(false);
+  const zoomOpenedAt = useRef<number>(0);
 
   const handleAvatarPressStart = (avatarUrl: string | undefined) => {
+    isLongPressActive.current = false;
     if (longPressTimeout.current) {
-      window.clearTimeout(longPressTimeout.current);
+      clearTimeout(longPressTimeout.current);
     }
-    longPressTimeout.current = window.setTimeout(() => {
+    longPressTimeout.current = setTimeout(() => {
+      isLongPressActive.current = true;
+      zoomOpenedAt.current = Date.now();
       setZoomedAvatarUrl(avatarUrl || 'generic');
-    }, 300); // 300ms long press delay
+    }, 350); // 350ms long press delay
   };
 
   const handleAvatarPressEnd = () => {
     if (longPressTimeout.current) {
-      window.clearTimeout(longPressTimeout.current);
+      clearTimeout(longPressTimeout.current);
       longPressTimeout.current = null;
     }
   };
 
-  const getAvatarZoomProps = (avatarUrl: string | undefined) => {
+  const getAvatarZoomProps = (avatarUrl: string | undefined, onClickFallback?: (e?: any) => void) => {
     return {
       onMouseDown: () => handleAvatarPressStart(avatarUrl),
-      onTouchStart: () => {
-        handleAvatarPressStart(avatarUrl);
-      },
+      onTouchStart: () => handleAvatarPressStart(avatarUrl),
       onMouseUp: handleAvatarPressEnd,
       onTouchEnd: handleAvatarPressEnd,
       onMouseLeave: handleAvatarPressEnd,
+      onClick: (e: any) => {
+        if (isLongPressActive.current) {
+          e?.stopPropagation?.();
+          e?.preventDefault?.();
+          isLongPressActive.current = false;
+          return;
+        }
+        if (onClickFallback) onClickFallback(e);
+      },
       style: { cursor: 'zoom-in' }
     };
   };
@@ -4261,50 +4273,58 @@ export default function App() {
       {/* Zoomed Profile Avatar modal */}
       {zoomedAvatarUrl && (
         <div
-          onClick={() => setZoomedAvatarUrl(null)}
-          onTouchStart={() => setZoomedAvatarUrl(null)}
+          onClick={() => {
+            if (Date.now() - zoomOpenedAt.current > 250) {
+              setZoomedAvatarUrl(null);
+            }
+          }}
+          onTouchEnd={() => {
+            if (Date.now() - zoomOpenedAt.current > 250) {
+              setZoomedAvatarUrl(null);
+            }
+          }}
           style={{
             position: 'fixed',
             top: 0,
             left: 0,
             width: '100vw',
             height: '100vh',
-            background: 'rgba(0, 0, 0, 0.75)',
+            background: 'rgba(0, 0, 0, 0.85)',
             backdropFilter: 'blur(10px)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            zIndex: 99999,
+            zIndex: 999999,
             pointerEvents: 'auto',
             animation: 'fadeIn 0.2s ease-out',
             cursor: 'zoom-out',
           }}
         >
           <div
-            onClick={(e) => e.stopPropagation()} // Prevent closing when clicking the image container directly
+            onClick={(e) => e.stopPropagation()}
             style={{
-              width: '260px',
-              height: '260px',
+              width: '280px',
+              height: '280px',
               borderRadius: '50%',
               overflow: 'hidden',
               boxShadow: '0 12px 35px rgba(0,0,0,0.6)',
-              border: '5px solid var(--white)',
-              background: '#e0e6ed',
+              border: '4px solid var(--white)',
+              background: '#1a1a1a',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               animation: 'zoomIn 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275)',
             }}
           >
-            {zoomedAvatarUrl.startsWith('data:') ? (
+            {zoomedAvatarUrl && zoomedAvatarUrl !== 'generic' ? (
               <img
                 src={zoomedAvatarUrl}
-                alt="Zoomed Avatar"
+                alt="Avatar Ingrandito"
                 style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                 onContextMenu={(e) => e.preventDefault()}
               />
             ) : (
-              <span className="material-symbols-outlined" style={{ fontSize: '120px', color: 'var(--text-muted)' }} onContextMenu={(e) => e.preventDefault()}>
+              <span className="material-symbols-outlined" style={{ fontSize: '130px', color: '#888' }} onContextMenu={(e) => e.preventDefault()}>
                 person
               </span>
             )}

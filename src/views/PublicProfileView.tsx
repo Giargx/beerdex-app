@@ -15,7 +15,7 @@ interface PublicProfileViewProps {
   avatar: string | undefined;
   onBack: () => void;
   getUserRankTitle: (score: number, unlockedCount?: number) => string;
-  getAvatarZoomProps?: (url: string | undefined) => any;
+  getAvatarZoomProps?: (url: string | undefined, onClickFallback?: (e?: any) => void) => any;
   posts: any[];
   onOpenPostDetail: (username: string, postId: string) => void;
   allBeersCatalog?: Beer[];
@@ -233,12 +233,19 @@ export const PublicProfileView: React.FC<PublicProfileViewProps> = ({
         
         <div
           id="pubAvatarDisplay"
-          onClick={(e) => {
-            e.stopPropagation();
+          {...(_getAvatarZoomProps ? _getAvatarZoomProps(avatar, (e: any) => {
+            e?.stopPropagation?.();
             if (onOpenUserStory) {
               onOpenUserStory(username);
             }
-          }}
+          }) : {
+            onClick: (e: any) => {
+              e?.stopPropagation?.();
+              if (onOpenUserStory) {
+                onOpenUserStory(username);
+              }
+            }
+          })}
           style={{
             width: '70px',
             height: '70px',

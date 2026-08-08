@@ -15,7 +15,7 @@ interface ProfileViewProps {
   onToggleSettings: () => void;
   onDeleteVariant: (brand: string, variant: string) => void;
   getUserRankTitle: (score: number, unlockedCount?: number) => string;
-  getAvatarZoomProps?: (url: string | undefined) => any;
+  getAvatarZoomProps?: (url: string | undefined, onClickFallback?: (e?: any) => void) => any;
   posts: any[];
   onOpenPostDetail: (username: string, postId: string) => void;
   allBeersCatalog?: Beer[];
@@ -277,13 +277,21 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
           >
             <div
               id="profileAvatarDisplay"
-              onClick={(e) => {
-                e.stopPropagation();
+              {...(_getAvatarZoomProps ? _getAvatarZoomProps(avatar, (e: any) => {
+                e?.stopPropagation?.();
                 const opened = onOpenUserStory ? onOpenUserStory(currentUserNick) : false;
                 if (!opened) {
                   setProfileCameraMenuOpen(true);
                 }
-              }}
+              }) : {
+                onClick: (e: any) => {
+                  e?.stopPropagation?.();
+                  const opened = onOpenUserStory ? onOpenUserStory(currentUserNick) : false;
+                  if (!opened) {
+                    setProfileCameraMenuOpen(true);
+                  }
+                }
+              })}
               style={{
                 width: '90px',
                 height: '90px',
