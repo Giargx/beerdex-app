@@ -1,5 +1,5 @@
 import React from 'react';
-import { getBeerType, getBasePoints, getCountryFlag } from '../beers';
+import { getBeerType, getBasePoints, getCountryFlag, stripStr } from '../beers';
 import type { Beer } from '../beers';
 import type { PokedexEntry } from './TrophyGrid';
 import { StarRating } from './StarRating';
@@ -38,7 +38,18 @@ export const BeerCard: React.FC<BeerCardProps> = ({
   const brandTotal = variants.length;
   let brandDrunk = 0;
   variants.forEach((v) => {
-    if (safePokedex[`${beer.brand}-${v}`]) {
+    const uId = `${beer.brand}-${v}`;
+    const normBrand = stripStr(beer.brand);
+    const normVar = stripStr(v);
+    const hasEntry = !!safePokedex[uId] || Object.keys(safePokedex).some((pKey) => {
+      const pVal = safePokedex[pKey];
+      if (!pVal) return false;
+      const pBrand = pVal.brand || (pKey.includes('-') ? pKey.split('-')[0] : pKey);
+      const pVariant = pVal.variant || (pKey.includes('-') ? pKey.split('-').slice(1).join('-') : 'Classica');
+      return (stripStr(pBrand) === normBrand || normBrand.includes(stripStr(pBrand)) || stripStr(pBrand).includes(normBrand)) &&
+             (stripStr(pVariant) === normVar || normVar.includes(stripStr(pVariant)) || stripStr(pVariant).includes(normVar));
+    });
+    if (hasEntry) {
       brandDrunk++;
     }
   });
@@ -126,7 +137,18 @@ export const BeerCard: React.FC<BeerCardProps> = ({
             <p>Varianti da trovare:</p>
           {variants.map((variant) => {
             const uniqueId = `${beer.brand}-${variant}`;
-            const entry = safePokedex[uniqueId];
+            const normBrand = stripStr(beer.brand);
+            const normVar = stripStr(variant);
+            const matchingKey = Object.keys(safePokedex).find((pKey) => {
+              if (pKey === uniqueId) return true;
+              const pVal = safePokedex[pKey];
+              if (!pVal) return false;
+              const pBrand = pVal.brand || (pKey.includes('-') ? pKey.split('-')[0] : pKey);
+              const pVariant = pVal.variant || (pKey.includes('-') ? pKey.split('-').slice(1).join('-') : 'Classica');
+              return (stripStr(pBrand) === normBrand || normBrand.includes(stripStr(pBrand)) || stripStr(pBrand).includes(normBrand)) &&
+                     (stripStr(pVariant) === normVar || normVar.includes(stripStr(pVariant)) || stripStr(pVariant).includes(normVar));
+            });
+            const entry = matchingKey ? safePokedex[matchingKey] : undefined;
             const hasPhoto = entry !== undefined;
             const specificPts = getBasePoints(beer.brand, variant);
             const typeKey = getBeerType(beer.brand, variant);

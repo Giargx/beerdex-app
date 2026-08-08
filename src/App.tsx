@@ -1278,19 +1278,33 @@ export default function App() {
         if (post && !post.isStory && isUserParticipantInPost(post, username)) {
           userPosts.push(post);
           if (post.brand && post.variant) {
-            const formattedB = formatBeerTitle(post.brand);
-            const formattedV = formatBeerTitle(post.variant);
-            const uId = `${formattedB}-${formattedV}`;
+            const { brand: resolvedB, variant: resolvedV } = resolvePokedexEntryBeer(
+              `${post.brand}-${post.variant}`,
+              post,
+              currentCatalog
+            );
+            const canonicalB = resolvedB || formatBeerTitle(post.brand);
+            const canonicalV = resolvedV || formatBeerTitle(post.variant);
+            const uId = `${canonicalB}-${canonicalV}`;
+
             validPostKeysSet.add(uId);
+            validPostKeysSet.add(stripStr(uId));
+            validPostKeysSet.add(`${stripStr(post.brand)}-${stripStr(post.variant)}`);
+
             if (post.user && post.user.toLowerCase() === username.toLowerCase()) {
-              if (!existingDex[uId] && !dexUpdates[uId]) {
-                dexUpdates[uId] = {
+              const existingMatchingKey = Object.keys(existingDex).find(
+                (k) => stripStr(k) === stripStr(uId) || stripStr(k) === `${stripStr(post.brand)}-${stripStr(post.variant)}`
+              );
+              const targetKey = existingMatchingKey || uId;
+
+              if (!existingDex[targetKey] && !dexUpdates[targetKey]) {
+                dexUpdates[targetKey] = {
                   photo: post.photo || '',
                   isShiny: post.isShiny || false,
                   isShared: post.isShared || false,
                   taggedFriend: post.taggedFriend || null,
-                  brand: formattedB,
-                  variant: formattedV,
+                  brand: canonicalB,
+                  variant: canonicalV,
                   timestamp: post.time || Date.now(),
                 };
                 needsDexUpdate = true;
@@ -1313,8 +1327,18 @@ export default function App() {
 
       for (const uniqueId in profileData) {
         const entry = profileData[uniqueId];
+        const strippedKey = stripStr(uniqueId);
+        const entryBrand = entry.brand || (uniqueId.includes('-') ? uniqueId.split('-')[0] : uniqueId);
+        const entryVariant = entry.variant || (uniqueId.includes('-') ? uniqueId.split('-').slice(1).join('-') : 'Classica');
+        const strippedBrandVar = `${stripStr(entryBrand)}-${stripStr(entryVariant)}`;
+
+        const isMatchInPosts =
+          validPostKeysSet.has(uniqueId) ||
+          validPostKeysSet.has(strippedKey) ||
+          validPostKeysSet.has(strippedBrandVar);
+
         // Keep if created via accepted proposal bonus or if matching timeline post exists
-        if (!entry.proposalBonus && !entry.isProposalBonus && !validPostKeysSet.has(uniqueId)) {
+        if (!entry.proposalBonus && !entry.isProposalBonus && !isMatchInPosts) {
           keysToRemove.push(uniqueId);
         }
       }
