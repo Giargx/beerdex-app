@@ -95,10 +95,10 @@ Per evitare la creazione di card duplicate quando gli utenti propongono nuove bi
 
 ## 🌐 Catalogo Birre Globale
 
-Il catalogo dell'app conta oltre **110 brand internazionali ed artigianali** con più di **350 varianti ufficiali**, organizzati per Nazione e Regione.
+Il catalogo dell'app conta oltre **130 brand internazionali ed artigianali** con più di **400 varianti ufficiali**, organizzati per Nazione e Regione.
 
 ### Principali Nazioni e Birrifici inclusi:
-* 🇮🇹 **Italia**: Peroni, Moretti, Ichnusa, Menabrea, Birra Messina, Forst, Baladin, Birrificio Italiano, Birrificio Lambrate, Crak Brewery, Del Borgo, Flea, KBirr, Salento, Semedorato, Theresianer, Wuhrer, Mastri Birrai Umbri, Amarcord, Castello, Dreher, Pedavena, Raffo, Ritual Lab, Jungle Juice Brewing, Ca' del Brado, Birra Elvo, Birra Perugia, Shire Brewing, Mister B, Kashmir, Wild Raccoon, Birra 100Venti.
+* 🇮🇹 **Italia**: Peroni, Moretti, Ichnusa, Menabrea, Birra Messina, Forst, Baladin, Birrificio Italiano, Birrificio Lambrate, Crak Brewery, Del Borgo, Flea, KBirr, Salento, Semedorato, Theresianer, Wuhrer, Mastri Birrai Umbri, Amarcord, Castello, Dreher, Pedavena, Raffo, Ritual Lab, Jungle Juice Brewing, Ca' del Brado, Birra Elvo, Birra Perugia, Shire Brewing, Mister B, Kashmir, Wild Raccoon, Birra 100Venti, LoverBeer, Siemàn, Retorto, Antikorpo Brewing, Birra Bellazzi, Birra Del Bosco, Birrificio 61cento, Birrificio Civale, Birrificio Monpiër, Birrificio Noiz, La Casa di Cura, Ofelia.
 * 🇧🇪 **Belgio**: Abbaye de Forest, Chouffe (La Chouffe, Mc Chouffe, Houblon, N'Ice, Soleil, Cherry), Chimay, Duvel, Leffe, Delirium, Grimbergen, Hoegaarden, Kwak, Orval, Rochefort, Rodenbach, Steenbrugge, Stella Artois, Timmermans, Tripel Karmeliet, Tête de Mort, Waterloo, Cornet, Boucanier, Bourgogne des Flandres, Martin's, Fantôme.
 * 🇩🇪 **Germania**: Augustiner, Beck's, Erdinger, Franziskaner, Hacker-Pschorr, Hofbräu, Keiler, Krombacher, Löwenbräu, Paulaner, Schneider Weisse, Spaten, Warsteiner, Weihenstephaner, Best Brau, Finkbräu.
 * 🇬🇧 / 🏴󠁧󠁢󠁳󠁣󠁴󠁿 **Regno Unito / Scozia**: BrewDog, Bulldog, Loch Lomond, Wold Top, Sheppy's, Slalom, Tennent's, Samuel Smith.
