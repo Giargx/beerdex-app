@@ -24,13 +24,6 @@ export interface AdminViewProps {
   onMarkFeedbackRead?: (feedbackId: string) => void;
 }
 
-const ItalianRegions = [
-  'Abruzzo', 'Basilicata', 'Calabria', 'Campania', 'Emilia-Romagna',
-  'Friuli-Venezia Giulia', 'Lazio', 'Liguria', 'Lombardia', 'Marche',
-  'Molise', 'Piemonte', 'Puglia', 'Sardegna', 'Sicilia', 'Toscana',
-  'Trentino-Alto Adige', 'Umbria', "Valle d'Aosta", 'Veneto'
-];
-
 export const AdminView: React.FC<AdminViewProps> = ({
   onBack,
   initialTab = 'users',
