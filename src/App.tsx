@@ -944,6 +944,21 @@ export default function App() {
         });
       }
 
+      // 1b. Clean up duplicate beer_proposals in Firebase
+      const propSnap = await get(ref(db, 'beer_proposals'));
+      if (propSnap.exists()) {
+        const propData = propSnap.val();
+        Object.entries(propData).forEach(([pId, pVal]: [string, any]) => {
+          if (pVal && pVal.brand) {
+            const normPBrand = normalizeStr(pVal.brand);
+            if (normPBrand.includes('deforest') || normPBrand.includes('baiadeforest')) {
+              updates[`beer_proposals/${pId}`] = null;
+              needsUpdate = true;
+            }
+          }
+        });
+      }
+
       // 2. Migrate user's pokedex entries to canonical brand and key
       const pokedexSnap = await get(ref(db, `pokedex_profiles/${targetNick}`));
       if (pokedexSnap.exists()) {
@@ -999,6 +1014,12 @@ export default function App() {
       console.error('Errore durante la migrazione delle birre custom:', err);
     }
   };
+
+  useEffect(() => {
+    if (currentUserNick) {
+      cleanupAndMigrateCustomBeers(currentUserNick);
+    }
+  }, [currentUserNick]);
 
   // Setup app listeners
   const setupRealtimeListeners = (nickname: string) => {
