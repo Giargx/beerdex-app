@@ -1,4 +1,4 @@
-import { beers, getBasePoints, resolvePokedexEntryBeer, formatBeerTitle, type Beer } from '../beers';
+import { beers, getBasePoints, resolvePokedexEntryBeer, formatBeerTitle, stripStr, type Beer } from '../beers';
 import { getEventMedals } from '../components/TrophyGrid';
 
 export interface ScoreBreakdown {
@@ -30,12 +30,24 @@ export function calculateScoreBreakdown(
   });
 
   const safePokedex = pokedex || {};
+  const countedVariantsSet = new Set<string>();
+
   Object.keys(safePokedex).forEach((key) => {
     const entry = safePokedex[key];
     if (!entry) return;
 
     const { beer, brand, variant } = resolvePokedexEntryBeer(key, entry, safeCatalog);
-    const base = getBasePoints(brand, variant, safeCatalog);
+    const targetBrand = beer ? beer.brand : brand;
+    const canonicalV = variant ? formatBeerTitle(variant) : 'Classica';
+    const uniqueVariantKey = `${stripStr(targetBrand)}-${stripStr(canonicalV)}`;
+
+    if (countedVariantsSet.has(uniqueVariantKey)) {
+      // Già conteggiata questa variante unica per l'utente, evita doppio conteggio
+      return;
+    }
+    countedVariantsSet.add(uniqueVariantKey);
+
+    const base = getBasePoints(targetBrand, canonicalV, safeCatalog);
 
     beerUnlocks += base;
 
@@ -53,13 +65,12 @@ export function calculateScoreBreakdown(
       proposalsBonus += 2;
     }
 
-    const targetBrand = beer ? beer.brand : brand;
     if (targetBrand) {
       if (!brandUnlockedVariantsMap[targetBrand]) {
         brandUnlockedVariantsMap[targetBrand] = new Set<string>();
       }
-      if (variant) {
-        brandUnlockedVariantsMap[targetBrand].add(formatBeerTitle(variant));
+      if (canonicalV) {
+        brandUnlockedVariantsMap[targetBrand].add(canonicalV);
       }
     }
   });
