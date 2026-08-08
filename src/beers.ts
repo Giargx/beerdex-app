@@ -300,17 +300,30 @@ export function mergeBeers(staticBeers: Beer[] = beers, customBeers?: any): Beer
   if (!customList || customList.length === 0) return safeStatic;
 
   const mergedMap = new Map<string, Beer>();
+  const normKeyMap = new Map<string, string>();
 
   safeStatic.forEach((b) => {
     if (b && b.brand) {
+      const norm = normalizeStr(b.brand);
       const safeVars = Array.isArray(b.variants) ? b.variants : ['Classica'];
       mergedMap.set(b.brand, { ...b, variants: [...safeVars] });
+      normKeyMap.set(norm, b.brand);
     }
   });
 
   customList.forEach((cb) => {
     if (cb && cb.brand) {
       const cbBrand = formatBeerTitle(cb.brand);
+      const normCb = normalizeStr(cbBrand);
+
+      // Resolve alias or normalized key
+      let matchedCanonical = normKeyMap.get(normCb);
+      if (!matchedCanonical) {
+        if (normCb.includes('deforest') || normCb.includes('abbayedeforest') || normCb.includes('baiadeforest')) {
+          matchedCanonical = 'Abbaye de Forest';
+        }
+      }
+
       const rawVars = Array.isArray(cb.variants)
         ? cb.variants
         : ((cb as any).variant ? [(cb as any).variant] : ['Classica']);
@@ -318,12 +331,14 @@ export function mergeBeers(staticBeers: Beer[] = beers, customBeers?: any): Beer
 
       const cbType = cb.beerType || undefined;
 
-      if (mergedMap.has(cbBrand)) {
-        const existing = mergedMap.get(cbBrand)!;
+      if (matchedCanonical && mergedMap.has(matchedCanonical)) {
+        const existing = mergedMap.get(matchedCanonical)!;
         if (!Array.isArray(existing.variants)) existing.variants = ['Classica'];
         if (!existing.variantTypes) existing.variantTypes = {};
         cbVariants.forEach((v: string) => {
-          if (v && !existing.variants.includes(v)) {
+          const normV = normalizeStr(v);
+          const alreadyExists = existing.variants.some((ev) => normalizeStr(ev) === normV);
+          if (!alreadyExists && v) {
             existing.variants.push(v);
           }
           if (v && cbType) {
@@ -349,6 +364,7 @@ export function mergeBeers(staticBeers: Beer[] = beers, customBeers?: any): Beer
           beerType: cbType,
           variantTypes: varTypesObj,
         });
+        normKeyMap.set(normCb, cbBrand);
       }
     }
   });
@@ -481,6 +497,14 @@ export function resolvePokedexEntryBeer(
     foundBeer = safeCatalog.find(
       (b) => b && (b.brand === entryBrand || normalizeStr(b.brand) === normalizeStr(entryBrand))
     );
+  }
+
+  // 1b. Alias check (e.g. Baia Deforest -> Abbaye de Forest)
+  if (!foundBeer && (entryBrand || key)) {
+    const normStr = normalizeStr(entryBrand || key);
+    if (normStr.includes('deforest') || normStr.includes('baiadeforest')) {
+      foundBeer = safeCatalog.find((b) => b && b.brand === 'Abbaye de Forest');
+    }
   }
 
   // 2. Match exact key with `${b.brand}-${v}` or formatted titles
