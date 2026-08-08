@@ -921,10 +921,92 @@ export default function App() {
     return () => unsubscribe();
   }, [ageGateOpen]);
 
+  const cleanupAndMigrateCustomBeers = async (targetNick: string) => {
+    if (!targetNick) return;
+    try {
+      const updates: Record<string, any> = {};
+      let needsUpdate = false;
+
+      // 1. Clean up duplicate custom_beers entries in Firebase
+      const customSnap = await get(ref(db, 'custom_beers'));
+      if (customSnap.exists()) {
+        const customData = customSnap.val();
+        Object.entries(customData).forEach(([cKey, cVal]: [string, any]) => {
+          if (cVal && cVal.brand) {
+            const normCBrand = normalizeStr(cVal.brand);
+            const isStaticMatch = beers.some((b) => normalizeStr(b.brand) === normCBrand) ||
+              normCBrand.includes('deforest') || normCBrand.includes('baiadeforest');
+            if (isStaticMatch) {
+              updates[`custom_beers/${cKey}`] = null;
+              needsUpdate = true;
+            }
+          }
+        });
+      }
+
+      // 2. Migrate user's pokedex entries to canonical brand and key
+      const pokedexSnap = await get(ref(db, `pokedex_profiles/${targetNick}`));
+      if (pokedexSnap.exists()) {
+        const pokedexData = pokedexSnap.val();
+        Object.entries(pokedexData).forEach(([pKey, pVal]: [string, any]) => {
+          if (pVal) {
+            const pBrand = pVal.brand || (pKey.includes('-') ? pKey.split('-')[0] : pKey);
+            const normPBrand = normalizeStr(pBrand);
+            if (normPBrand.includes('deforest') || normPBrand.includes('baiadeforest')) {
+              const canonicalBrand = 'Abbaye de Forest';
+              const variant = pVal.variant || (pKey.includes('-') ? pKey.split('-').slice(1).join('-') : 'Brune');
+              const canonicalKey = `${canonicalBrand}-${variant}`;
+
+              if (pKey !== canonicalKey || pVal.brand !== canonicalBrand) {
+                if (pKey !== canonicalKey) {
+                  updates[`pokedex_profiles/${targetNick}/${pKey}`] = null;
+                }
+                updates[`pokedex_profiles/${targetNick}/${canonicalKey}`] = {
+                  ...pVal,
+                  brand: canonicalBrand,
+                  variant: variant,
+                  timestamp: pVal.timestamp || Date.now()
+                };
+                needsUpdate = true;
+              }
+            }
+          }
+        });
+      }
+
+      // 3. Migrate social_timeline posts
+      const timelineSnap = await get(ref(db, 'social_timeline'));
+      if (timelineSnap.exists()) {
+        const timelineData = timelineSnap.val();
+        Object.entries(timelineData).forEach(([postKey, postVal]: [string, any]) => {
+          if (postVal && postVal.brand) {
+            const normPostBrand = normalizeStr(postVal.brand);
+            if (normPostBrand.includes('deforest') || normPostBrand.includes('baiadeforest')) {
+              if (postVal.brand !== 'Abbaye de Forest') {
+                updates[`social_timeline/${postKey}/brand`] = 'Abbaye de Forest';
+                needsUpdate = true;
+              }
+            }
+          }
+        });
+      }
+
+      if (needsUpdate) {
+        await update(ref(db), updates);
+        await recalculateTotalScore(targetNick);
+      }
+    } catch (err) {
+      console.error('Errore durante la migrazione delle birre custom:', err);
+    }
+  };
+
   // Setup app listeners
   const setupRealtimeListeners = (nickname: string) => {
     // Calibrate all scores on initial sync
     recalculateAllScores();
+    if (nickname) {
+      cleanupAndMigrateCustomBeers(nickname);
+    }
 
     // Custom Beers
     onValue(ref(db, 'custom_beers'), (snap) => {
