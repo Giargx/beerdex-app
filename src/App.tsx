@@ -3,11 +3,12 @@ import { onAuthStateChanged, signOut, updatePassword, EmailAuthProvider, reauthe
 import { ref, onValue, set, get, update, push, remove } from 'firebase/database';
 import { auth, db } from './firebase';
 
-import { beers, getBeerPoints, countryCoordinates, normalizeStr, mergeBeers, getCountryFlag, formatBeerTitle, resolvePokedexEntryBeer } from './beers';
+import { beers, getBeerPoints, countryCoordinates, normalizeStr, mergeBeers, getCountryFlag, formatBeerTitle, resolvePokedexEntryBeer, isUserParticipantInPost } from './beers';
 import type { Beer } from './beers';
 import { playPopSound, playClinkSound } from './utils/audio';
 import { checkImageSafety } from './utils/imageModeration';
 import { containsProfanity } from './utils/textFilter';
+import { calculateScoreBreakdown } from './utils/score';
 import { getEventMedals } from './components/TrophyGrid';
 
 // Import Views
@@ -1047,8 +1048,6 @@ export default function App() {
   const recalculateTotalScore = async (username: string) => {
     if (!username) return;
     let snap = await get(ref(db, `pokedex_profiles/${username}`));
-    let totalScore = 0;
-    const brandUnlockCounts: Record<string, number> = {};
 
     // Get current custom beers snapshot for accurate score recalculation
     const customSnap = await get(ref(db, 'custom_beers'));
@@ -1060,10 +1059,6 @@ export default function App() {
       }
     }
     const currentCatalog = mergeBeers(beers, currentCustomBeers);
-
-    currentCatalog.forEach((b) => {
-      brandUnlockCounts[b.brand] = 0;
-    });
 
     // 1. Backfill pokedex_profiles from social_timeline checkins if missing
     const timelineSnap = await get(ref(db, 'social_timeline'));
@@ -1078,14 +1073,14 @@ export default function App() {
 
       for (const key in timelineData) {
         const post = timelineData[key];
-        if (post && post.user === username) {
-          if (!post.isStory) {
-            userPosts.push(post);
-            if (post.brand && post.variant) {
-              const formattedB = formatBeerTitle(post.brand);
-              const formattedV = formatBeerTitle(post.variant);
-              const uId = `${formattedB}-${formattedV}`;
-              validPostKeysSet.add(uId);
+        if (post && !post.isStory && isUserParticipantInPost(post, username)) {
+          userPosts.push(post);
+          if (post.brand && post.variant) {
+            const formattedB = formatBeerTitle(post.brand);
+            const formattedV = formatBeerTitle(post.variant);
+            const uId = `${formattedB}-${formattedV}`;
+            validPostKeysSet.add(uId);
+            if (post.user && post.user.toLowerCase() === username.toLowerCase()) {
               if (!existingDex[uId] && !dexUpdates[uId]) {
                 dexUpdates[uId] = {
                   photo: post.photo || '',
@@ -1130,59 +1125,37 @@ export default function App() {
       }
     }
 
-    // 3. Compute score based on remaining valid pokedex_profiles
-    if (snap.exists()) {
-      const profileData = snap.val();
-      for (const uniqueId in profileData) {
-        const entry = profileData[uniqueId];
-        const { beer, brand, variant } = resolvePokedexEntryBeer(uniqueId, entry, currentCatalog);
-        const isShiny = entry.isShiny || false;
-        const isShared = entry.isShared || false;
-        totalScore += getBeerPoints(brand, variant, isShiny, isShared, currentCatalog);
+    const currentDexData = snap.exists() ? snap.val() : {};
 
-        // Grant Bonus Points for proposed beer if accepted (+1 for variant, +2 for brand)
-        if (entry.proposalBonus !== undefined && entry.proposalBonus !== null) {
-          if (typeof entry.proposalBonus === 'number') {
-            totalScore += entry.proposalBonus;
-          } else if (entry.proposalBonus === true) {
-            totalScore += entry.proposalType === 'variant' ? 1 : 2;
-          }
-        } else if (entry.isProposalBonus) {
-          totalScore += 2;
-        }
-
-        if (brandUnlockCounts[brand] !== undefined) {
-          brandUnlockCounts[brand]++;
-        } else if (beer && brandUnlockCounts[beer.brand] !== undefined) {
-          brandUnlockCounts[beer.brand]++;
-        }
-      }
-    }
-
-    currentCatalog.forEach((beer) => {
-      const vars = Array.isArray(beer?.variants) ? beer.variants : ['Classica'];
-      if (vars.length > 0 && brandUnlockCounts[beer.brand] === vars.length) {
-        totalScore += vars.length * 3;
-      }
-    });
-
-    // Event Medals Recalculation
-    const eventMedals = getEventMedals(userPosts, currentCatalog);
-    eventMedals.forEach((medal) => {
-      if (medal.isUnlocked) {
-        totalScore += medal.points;
-      }
-    });
+    // 3. Compute score breakdown deterministically using calculateScoreBreakdown
+    const breakdown = calculateScoreBreakdown(currentDexData, userPosts, currentCatalog);
+    const totalScore = breakdown.total;
 
     // 4. Brand Completion Medals & Revocation Check
     const brandMedalsSnap = await get(ref(db, `user_brand_medals/${username}`));
     const prevCompletedMedals = brandMedalsSnap.exists() ? brandMedalsSnap.val() : {};
     const newCompletedMedals: Record<string, any> = {};
 
+    const brandUnlockedVariantsMap: Record<string, Set<string>> = {};
+    currentCatalog.forEach((b) => {
+      if (b && b.brand) brandUnlockedVariantsMap[b.brand] = new Set<string>();
+    });
+    Object.keys(currentDexData).forEach((key) => {
+      const entry = currentDexData[key];
+      if (!entry) return;
+      const { beer, brand, variant } = resolvePokedexEntryBeer(key, entry, currentCatalog);
+      const bName = beer ? beer.brand : brand;
+      if (bName) {
+        if (!brandUnlockedVariantsMap[bName]) brandUnlockedVariantsMap[bName] = new Set<string>();
+        if (variant) brandUnlockedVariantsMap[bName].add(formatBeerTitle(variant));
+      }
+    });
+
     currentCatalog.forEach((beer) => {
       const vars = Array.isArray(beer?.variants) ? beer.variants : ['Classica'];
       const bName = beer.brand;
-      const isCompleted = vars.length > 0 && brandUnlockCounts[bName] === vars.length;
+      const unlockedSet = brandUnlockedVariantsMap[bName];
+      const isCompleted = vars.length > 0 && unlockedSet && unlockedSet.size >= vars.length;
 
       if (isCompleted) {
         newCompletedMedals[bName] = {
@@ -4221,6 +4194,7 @@ export default function App() {
         onDismissFlaggedPost={handleDismissFlaggedPost}
         initialTab={adminModalTab}
         onDeleteUserProfile={handleDeleteUserProfile}
+        onRecalculateUserScore={recalculateTotalScore}
         onOpenPublicProfile={(uname) => {
           setPubProfileUser(uname);
           setPubProfileBackPage('page-home');

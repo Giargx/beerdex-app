@@ -31,6 +31,7 @@ interface AdminProposalsModalProps {
   onDismissFlaggedPost?: (postId: string) => void;
   initialTab?: 'proposals' | 'flagged' | 'users' | 'feedback';
   onDeleteUserProfile?: (username: string) => void;
+  onRecalculateUserScore?: (username: string) => Promise<void> | void;
   onOpenPublicProfile?: (username: string) => void;
   leaderboardScores?: Record<string, number>;
   allPokedexProfiles?: Record<string, Record<string, any>>;
@@ -59,6 +60,7 @@ export const AdminProposalsModal: React.FC<AdminProposalsModalProps> = ({
   onDismissFlaggedPost,
   initialTab = 'proposals',
   onDeleteUserProfile,
+  onRecalculateUserScore,
   onOpenPublicProfile,
   leaderboardScores = {},
   allPokedexProfiles = {},
@@ -68,6 +70,10 @@ export const AdminProposalsModal: React.FC<AdminProposalsModalProps> = ({
 }) => {
   const [activeTab, setActiveTab] = useState<'proposals' | 'flagged' | 'users' | 'feedback'>(initialTab);
   const [userSearchTerm, setUserSearchTerm] = useState('');
+  const [userFilterTab, setUserFilterTab] = useState<'all' | 'top' | 'novice' | 'rich'>('all');
+  const [userSortOption, setUserSortOption] = useState<'score_desc' | 'score_asc' | 'unlocked_desc' | 'name_asc'>('score_desc');
+  const [userPageLimit, setUserPageLimit] = useState<number>(15);
+  const [recalculatingUserMap, setRecalculatingUserMap] = useState<Record<string, boolean>>({});
   const [showEditMap, setShowEditMap] = useState<Record<string, boolean>>({});
   const [editedDataMap, setEditedDataMap] = useState<Record<string, {
     brand: string;
@@ -215,27 +221,7 @@ export const AdminProposalsModal: React.FC<AdminProposalsModalProps> = ({
 
         <div style={{ overflowY: 'auto', flexGrow: 1, paddingRight: '4px' }}>
           {activeTab === 'users' ? (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-              <div style={{ position: 'relative' }}>
-                <input
-                  type="text"
-                  placeholder="Cerca utente per nickname o nome..."
-                  value={userSearchTerm}
-                  onChange={(e) => setUserSearchTerm(e.target.value)}
-                  style={{
-                    width: '100%',
-                    padding: '8px 12px 8px 36px',
-                    borderRadius: '12px',
-                    border: '1px solid var(--gray)',
-                    fontSize: '13px',
-                    boxSizing: 'border-box',
-                  }}
-                />
-                <span className="material-symbols-outlined" style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)', fontSize: '18px' }}>
-                  search
-                </span>
-              </div>
-
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
               {(() => {
                 const userNicks = Array.from(
                   new Set([
@@ -254,105 +240,331 @@ export const AdminProposalsModal: React.FC<AdminProposalsModalProps> = ({
                   unlockedCount: Object.keys((allPokedexProfiles && allPokedexProfiles[nick]) || {}).length,
                 }));
 
-                const filtered = userList.filter(
-                  (u) =>
-                    u.nick.toLowerCase().includes(userSearchTerm.toLowerCase()) ||
-                    u.displayName.toLowerCase().includes(userSearchTerm.toLowerCase())
-                );
+                const totalUsers = userList.length;
+                const totalUnlocks = userList.reduce((acc, u) => acc + u.unlockedCount, 0);
+                const avgScore = totalUsers > 0 ? Math.round(userList.reduce((acc, u) => acc + u.score, 0) / totalUsers) : 0;
+                const topUser = [...userList].sort((a, b) => b.score - a.score)[0];
 
-                if (filtered.length === 0) {
-                  return (
-                    <div style={{ textAlign: 'center', padding: '30px 20px', color: 'var(--text-muted)', fontSize: '13px' }}>
-                      Nessun utente trovato.
-                    </div>
-                  );
-                }
+                // Filtering
+                let filtered = userList.filter((u) => {
+                  const matchSearch =
+                    !userSearchTerm ||
+                    u.nick.toLowerCase().includes(userSearchTerm.toLowerCase()) ||
+                    u.displayName.toLowerCase().includes(userSearchTerm.toLowerCase());
+
+                  if (!matchSearch) return false;
+
+                  if (userFilterTab === 'top') return u.score >= 200;
+                  if (userFilterTab === 'novice') return u.score < 50;
+                  if (userFilterTab === 'rich') return u.unlockedCount >= 10;
+                  return true;
+                });
+
+                // Sorting
+                filtered.sort((a, b) => {
+                  if (userSortOption === 'score_desc') return b.score - a.score;
+                  if (userSortOption === 'score_asc') return a.score - b.score;
+                  if (userSortOption === 'unlocked_desc') return b.unlockedCount - a.unlockedCount;
+                  if (userSortOption === 'name_asc') return a.displayName.localeCompare(b.displayName);
+                  return 0;
+                });
+
+                const visibleUsers = filtered.slice(0, userPageLimit);
+
+                const getUserRankTitleText = (score: number) => {
+                  if (score < 50) return "🍺 Novizio del Pub";
+                  if (score < 200) return "🍺 Apprendista Bevitore";
+                  if (score < 500) return "🍺 Esploratore di Luppoli";
+                  if (score < 1200) return "🍺 Sommelier del Bancone";
+                  return "👑 Mastro Birraio";
+                };
+
+                const handleRecalculateSingle = async (nick: string) => {
+                  if (!onRecalculateUserScore) return;
+                  setRecalculatingUserMap((prev) => ({ ...prev, [nick]: true }));
+                  try {
+                    await onRecalculateUserScore(nick);
+                  } catch (e) {
+                    console.error("Error recalculating score for user:", nick, e);
+                  } finally {
+                    setRecalculatingUserMap((prev) => ({ ...prev, [nick]: false }));
+                  }
+                };
 
                 return (
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                    {filtered.map((user) => (
-                      <div
-                        key={user.nick}
-                        style={{
-                          background: 'white',
-                          border: '1px solid var(--gray)',
-                          borderRadius: '14px',
-                          padding: '12px',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'space-between',
-                          gap: '10px',
-                        }}
-                      >
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                          <div style={{ width: '40px', height: '40px', borderRadius: '50%', background: '#E2E8F0', overflow: 'hidden', flexShrink: 0 }}>
-                            {user.avatar ? (
-                              <img src={user.avatar} alt={user.nick} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                            ) : (
-                              <span className="material-symbols-outlined" style={{ fontSize: '26px', color: '#94A3B8', width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>person</span>
-                            )}
-                          </div>
-                          <div style={{ textAlign: 'left' }}>
-                            <div style={{ fontWeight: 'bold', fontSize: '13px', color: 'var(--dark)' }}>{user.displayName}</div>
-                            <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>@{user.nick} • {user.score} pt ({user.unlockedCount} birre)</div>
-                          </div>
-                        </div>
-
-                        <div style={{ display: 'flex', gap: '6px' }}>
-                          {onOpenPublicProfile && (
-                            <button
-                              onClick={() => {
-                                onClose();
-                                onOpenPublicProfile(user.nick);
-                              }}
-                              style={{
-                                border: '1px solid var(--gray)',
-                                background: '#F8FAFC',
-                                borderRadius: '8px',
-                                padding: '6px 8px',
-                                fontSize: '11px',
-                                fontWeight: 'bold',
-                                color: 'var(--dark)',
-                                cursor: 'pointer',
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: '4px',
-                              }}
-                            >
-                              <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>visibility</span>
-                              Profilo
-                            </button>
-                          )}
-                          {onDeleteUserProfile && (
-                            <button
-                              onClick={() => {
-                                if (window.confirm(`⚠️ ATTENZIONE ADMIN:\n\nSei sicuro di voler eliminare DEFINITIVAMENTE il profilo dell'utente @${user.nick} dal database?\n\nVerranno rimossi in modo permanente tutti i suoi sblocchi, punteggi e dati associati.`)) {
-                                  onDeleteUserProfile(user.nick);
-                                }
-                              }}
-                              style={{
-                                border: '1px solid #FCA5A5',
-                                background: '#FEF2F2',
-                                borderRadius: '8px',
-                                padding: '6px 8px',
-                                fontSize: '11px',
-                                fontWeight: 'bold',
-                                color: '#DC2626',
-                                cursor: 'pointer',
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: '4px',
-                              }}
-                            >
-                              <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>delete_forever</span>
-                              Elimina
-                            </button>
-                          )}
+                  <>
+                    {/* Summary Cards */}
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '8px' }}>
+                      <div style={{ background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: '12px', padding: '8px 10px', textAlign: 'center' }}>
+                        <div style={{ fontSize: '10px', color: '#64748B', fontWeight: 700, textTransform: 'uppercase' }}>Utenti</div>
+                        <div style={{ fontSize: '16px', fontWeight: 900, color: '#1E293B' }}>{totalUsers}</div>
+                      </div>
+                      <div style={{ background: '#FEF3C7', border: '1px solid #FDE68A', borderRadius: '12px', padding: '8px 10px', textAlign: 'center' }}>
+                        <div style={{ fontSize: '10px', color: '#B45309', fontWeight: 700, textTransform: 'uppercase' }}>Sblocchi Tot</div>
+                        <div style={{ fontSize: '16px', fontWeight: 900, color: '#92400E' }}>{totalUnlocks}</div>
+                      </div>
+                      <div style={{ background: '#EEF2FF', border: '1px solid #C7D2FE', borderRadius: '12px', padding: '8px 10px', textAlign: 'center' }}>
+                        <div style={{ fontSize: '10px', color: '#4338CA', fontWeight: 700, textTransform: 'uppercase' }}>Media Punti</div>
+                        <div style={{ fontSize: '16px', fontWeight: 900, color: '#3730A3' }}>{avgScore}</div>
+                      </div>
+                      <div style={{ background: '#ECFDF5', border: '1px solid #A7F3D0', borderRadius: '12px', padding: '8px 10px', textAlign: 'center' }}>
+                        <div style={{ fontSize: '10px', color: '#047857', fontWeight: 700, textTransform: 'uppercase' }}>Top Player</div>
+                        <div style={{ fontSize: '13px', fontWeight: 900, color: '#065F46', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                          {topUser ? topUser.displayName : '-'}
                         </div>
                       </div>
-                    ))}
-                  </div>
+                    </div>
+
+                    {/* Search & Sort Row */}
+                    <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                      <div style={{ position: 'relative', flex: 1 }}>
+                        <input
+                          type="text"
+                          placeholder="Cerca utente per nickname o nome..."
+                          value={userSearchTerm}
+                          onChange={(e) => {
+                            setUserSearchTerm(e.target.value);
+                            setUserPageLimit(15);
+                          }}
+                          style={{
+                            width: '100%',
+                            padding: '8px 12px 8px 34px',
+                            borderRadius: '12px',
+                            border: '1px solid #CBD5E1',
+                            fontSize: '12px',
+                            boxSizing: 'border-box',
+                            background: '#FFFFFF',
+                          }}
+                        />
+                        <span className="material-symbols-outlined" style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', color: '#94A3B8', fontSize: '18px' }}>
+                          search
+                        </span>
+                        {userSearchTerm && (
+                          <button
+                            onClick={() => setUserSearchTerm('')}
+                            style={{ position: 'absolute', right: '8px', top: '50%', transform: 'translateY(-50%)', border: 'none', background: 'transparent', cursor: 'pointer', color: '#94A3B8', fontSize: '14px' }}
+                          >
+                            ✕
+                          </button>
+                        )}
+                      </div>
+
+                      <select
+                        value={userSortOption}
+                        onChange={(e) => {
+                          setUserSortOption(e.target.value as any);
+                          setUserPageLimit(15);
+                        }}
+                        style={{
+                          padding: '8px 10px',
+                          borderRadius: '12px',
+                          border: '1px solid #CBD5E1',
+                          fontSize: '12px',
+                          fontWeight: 700,
+                          color: '#334155',
+                          background: '#F8FAFC',
+                          cursor: 'pointer',
+                        }}
+                      >
+                        <option value="score_desc">Punteggio ↓</option>
+                        <option value="score_asc">Punteggio ↑</option>
+                        <option value="unlocked_desc">Sblocchi ↓</option>
+                        <option value="name_asc">Nome (A-Z)</option>
+                      </select>
+                    </div>
+
+                    {/* Filter Pills */}
+                    <div style={{ display: 'flex', gap: '6px', overflowX: 'auto', paddingBottom: '2px' }}>
+                      {[
+                        { id: 'all', label: `Tutti (${totalUsers})` },
+                        { id: 'top', label: '🏆 Top (>200pt)' },
+                        { id: 'novice', label: '🌱 Novizi (<50pt)' },
+                        { id: 'rich', label: '🍺 >10 Birre' },
+                      ].map((pill) => (
+                        <button
+                          key={pill.id}
+                          onClick={() => {
+                            setUserFilterTab(pill.id as any);
+                            setUserPageLimit(15);
+                          }}
+                          style={{
+                            padding: '4px 10px',
+                            borderRadius: '20px',
+                            border: userFilterTab === pill.id ? '1px solid #6366F1' : '1px solid #E2E8F0',
+                            background: userFilterTab === pill.id ? '#EEF2FF' : '#FFFFFF',
+                            color: userFilterTab === pill.id ? '#4338CA' : '#64748B',
+                            fontSize: '11px',
+                            fontWeight: 800,
+                            cursor: 'pointer',
+                            whiteSpace: 'nowrap',
+                          }}
+                        >
+                          {pill.label}
+                        </button>
+                      ))}
+                    </div>
+
+                    {/* Users List */}
+                    {filtered.length === 0 ? (
+                      <div style={{ textAlign: 'center', padding: '30px 20px', color: '#94A3B8', fontSize: '13px', background: '#F8FAFC', borderRadius: '14px', border: '1px dashed #CBD5E1' }}>
+                        Nessun utente corrisponde ai filtri selezionati.
+                      </div>
+                    ) : (
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                        {visibleUsers.map((user) => {
+                          const isRecalculating = recalculatingUserMap[user.nick];
+                          const rankTitle = getUserRankTitleText(user.score);
+                          return (
+                            <div
+                              key={user.nick}
+                              style={{
+                                background: '#FFFFFF',
+                                border: '1px solid #E2E8F0',
+                                borderRadius: '14px',
+                                padding: '10px 12px',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'space-between',
+                                gap: '10px',
+                                boxShadow: '0 2px 4px rgba(0,0,0,0.02)',
+                              }}
+                            >
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flex: 1, minWidth: 0 }}>
+                                <div style={{ width: '42px', height: '42px', borderRadius: '50%', background: '#F1F5F9', border: '1px solid #E2E8F0', overflow: 'hidden', flexShrink: 0 }}>
+                                  {user.avatar ? (
+                                    <img src={user.avatar} alt={user.nick} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                  ) : (
+                                    <span className="material-symbols-outlined" style={{ fontSize: '24px', color: '#94A3B8', width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>person</span>
+                                  )}
+                                </div>
+                                <div style={{ textAlign: 'left', overflow: 'hidden' }}>
+                                  <div style={{ fontWeight: 800, fontSize: '13px', color: '#0F172A', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                                    {user.displayName}
+                                  </div>
+                                  <div style={{ fontSize: '11px', color: '#64748B', display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
+                                    <span>@{user.nick}</span>
+                                    <span style={{ fontSize: '10px', background: '#F1F5F9', padding: '1px 5px', borderRadius: '6px', color: '#475569', fontWeight: 600 }}>
+                                      {rankTitle}
+                                    </span>
+                                  </div>
+                                  <div style={{ fontSize: '11px', color: '#D97706', fontWeight: 800, marginTop: '2px' }}>
+                                    {user.score} PT • {user.unlockedCount} birre sbloccate
+                                  </div>
+                                </div>
+                              </div>
+
+                              <div style={{ display: 'flex', gap: '4px', flexShrink: 0 }}>
+                                {onOpenPublicProfile && (
+                                  <button
+                                    onClick={() => {
+                                      onClose();
+                                      onOpenPublicProfile(user.nick);
+                                    }}
+                                    title="Visualizza Profilo"
+                                    style={{
+                                      border: '1px solid #CBD5E1',
+                                      background: '#F8FAFC',
+                                      borderRadius: '8px',
+                                      padding: '6px 8px',
+                                      fontSize: '11px',
+                                      fontWeight: 800,
+                                      color: '#334155',
+                                      cursor: 'pointer',
+                                      display: 'flex',
+                                      alignItems: 'center',
+                                      gap: '4px',
+                                    }}
+                                  >
+                                    <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>visibility</span>
+                                    <span className="admin-btn-label">Profilo</span>
+                                  </button>
+                                )}
+
+                                {onRecalculateUserScore && (
+                                  <button
+                                    onClick={() => handleRecalculateSingle(user.nick)}
+                                    disabled={isRecalculating}
+                                    title="Ricalcola Punti e Medaglie per questo utente"
+                                    style={{
+                                      border: '1px solid #BFDBFE',
+                                      background: isRecalculating ? '#EFF6FF' : '#DBEAFE',
+                                      borderRadius: '8px',
+                                      padding: '6px 8px',
+                                      fontSize: '11px',
+                                      fontWeight: 800,
+                                      color: '#1D4ED8',
+                                      cursor: isRecalculating ? 'wait' : 'pointer',
+                                      display: 'flex',
+                                      alignItems: 'center',
+                                      gap: '4px',
+                                      opacity: isRecalculating ? 0.7 : 1,
+                                    }}
+                                  >
+                                    <span className={`material-symbols-outlined ${isRecalculating ? 'spin' : ''}`} style={{ fontSize: '14px' }}>
+                                      sync
+                                    </span>
+                                    <span className="admin-btn-label">{isRecalculating ? '...' : 'Ricalcola'}</span>
+                                  </button>
+                                )}
+
+                                {onDeleteUserProfile && (
+                                  <button
+                                    onClick={() => {
+                                      if (window.confirm(`⚠️ ATTENZIONE ADMIN:\n\nSei sicuro di voler eliminare DEFINITIVAMENTE il profilo dell'utente @${user.nick} dal database?\n\nVerranno rimossi in modo permanente tutti i suoi sblocchi, punteggi e dati associati.`)) {
+                                        onDeleteUserProfile(user.nick);
+                                      }
+                                    }}
+                                    title="Elimina Profilo Utente"
+                                    style={{
+                                      border: '1px solid #FCA5A5',
+                                      background: '#FEF2F2',
+                                      borderRadius: '8px',
+                                      padding: '6px 8px',
+                                      fontSize: '11px',
+                                      fontWeight: 800,
+                                      color: '#DC2626',
+                                      cursor: 'pointer',
+                                      display: 'flex',
+                                      alignItems: 'center',
+                                      gap: '4px',
+                                    }}
+                                  >
+                                    <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>delete_forever</span>
+                                    <span className="admin-btn-label">Elimina</span>
+                                  </button>
+                                )}
+                              </div>
+                            </div>
+                          );
+                        })}
+
+                        {/* Pagination Load More */}
+                        {visibleUsers.length < filtered.length && (
+                          <div style={{ textAlign: 'center', marginTop: '6px' }}>
+                            <button
+                              onClick={() => setUserPageLimit((prev) => prev + 15)}
+                              style={{
+                                padding: '8px 16px',
+                                borderRadius: '12px',
+                                border: '1px solid #CBD5E1',
+                                background: '#F1F5F9',
+                                color: '#334155',
+                                fontSize: '12px',
+                                fontWeight: 800,
+                                cursor: 'pointer',
+                              }}
+                            >
+                              Mostra altri {Math.min(15, filtered.length - visibleUsers.length)} utenti ({visibleUsers.length}/{filtered.length})
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </>
                 );
+              })()}
+            </div>
+          ) : (
               })()}
             </div>
           ) : activeTab === 'feedback' ? (

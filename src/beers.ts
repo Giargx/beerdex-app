@@ -116,15 +116,14 @@ export function normalizeStr(str?: string | null): string {
 }
 
 export function getBeerType(brandName: string, variantName: string, allBeersCatalog?: Beer[]): "rossa" | "scura" | "bianca" | "ipa" | "bionda" {
-  if (allBeersCatalog && Array.isArray(allBeersCatalog)) {
-    const beer = allBeersCatalog.find(b => b && b.brand && b.brand.toLowerCase() === (brandName || '').toLowerCase());
-    if (beer) {
-      if (beer.variantTypes && beer.variantTypes[variantName]) {
-        return beer.variantTypes[variantName];
-      }
-      if (beer.beerType) {
-        return beer.beerType;
-      }
+  const safeCatalog = (allBeersCatalog && Array.isArray(allBeersCatalog) && allBeersCatalog.length > 0) ? allBeersCatalog : beers;
+  const beer = safeCatalog.find(b => b && b.brand && (b.brand.toLowerCase() === (brandName || '').toLowerCase() || formatBeerTitle(b.brand) === formatBeerTitle(brandName || '')));
+  if (beer) {
+    if (beer.variantTypes && variantName && beer.variantTypes[variantName]) {
+      return beer.variantTypes[variantName];
+    }
+    if (beer.beerType) {
+      return beer.beerType;
     }
   }
   if (!variantName || typeof variantName !== 'string') return "bionda";

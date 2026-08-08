@@ -1,4 +1,4 @@
-import { beers, getBasePoints, resolvePokedexEntryBeer, type Beer } from '../beers';
+import { beers, getBasePoints, resolvePokedexEntryBeer, formatBeerTitle, type Beer } from '../beers';
 import { getEventMedals } from '../components/TrophyGrid';
 
 export interface ScoreBreakdown {
@@ -22,9 +22,11 @@ export function calculateScoreBreakdown(
   let brandMedals = 0;
   let eventMedals = 0;
 
-  const brandUnlockCounts: Record<string, number> = {};
+  const brandUnlockedVariantsMap: Record<string, Set<string>> = {};
   safeCatalog.forEach((b) => {
-    if (b && b.brand) brandUnlockCounts[b.brand] = 0;
+    if (b && b.brand) {
+      brandUnlockedVariantsMap[b.brand] = new Set<string>();
+    }
   });
 
   const safePokedex = pokedex || {};
@@ -51,17 +53,22 @@ export function calculateScoreBreakdown(
       proposalsBonus += 2;
     }
 
-    if (brandUnlockCounts[brand] !== undefined) {
-      brandUnlockCounts[brand]++;
-    } else if (beer && brandUnlockCounts[beer.brand] !== undefined) {
-      brandUnlockCounts[beer.brand]++;
+    const targetBrand = beer ? beer.brand : brand;
+    if (targetBrand) {
+      if (!brandUnlockedVariantsMap[targetBrand]) {
+        brandUnlockedVariantsMap[targetBrand] = new Set<string>();
+      }
+      if (variant) {
+        brandUnlockedVariantsMap[targetBrand].add(formatBeerTitle(variant));
+      }
     }
   });
 
   safeCatalog.forEach((beer) => {
     if (!beer || !beer.brand) return;
     const vars = Array.isArray(beer.variants) && beer.variants.length > 0 ? beer.variants : ['Classica'];
-    if (vars.length > 0 && brandUnlockCounts[beer.brand] === vars.length) {
+    const unlockedSet = brandUnlockedVariantsMap[beer.brand];
+    if (vars.length > 0 && unlockedSet && unlockedSet.size >= vars.length) {
       brandMedals += vars.length * 3;
     }
   });

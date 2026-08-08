@@ -49,16 +49,24 @@ export function getEventMedals(userPosts: any[], catalog: Beer[] = beers): Event
   };
 
   const year = currentYear;
+  const getPostDate = (p: any): Date | null => {
+    if (!p) return null;
+    const timeVal = p.time ?? p.timestamp ?? p.createdAt;
+    if (!timeVal) return null;
+    const t = new Date(timeVal);
+    return isNaN(t.getTime()) ? null : t;
+  };
 
   // 1. ❄️ Inverno Y (21 Dic Y-1 - 20 Mar Y)
   const winterStart = new Date(year - 1, 11, 21, 0, 0, 0);
   const winterEnd = new Date(year, 2, 20, 23, 59, 59);
   const winterPosts = userPosts.filter(p => {
-    const t = new Date(p.time);
-    return t >= winterStart && t <= winterEnd;
+    const t = getPostDate(p);
+    return t && t >= winterStart && t <= winterEnd;
   });
   const winterCount = winterPosts.filter(p => {
-    const type = getBeerType(p.brand, p.variant);
+    if (!p.brand || !p.variant) return false;
+    const type = getBeerType(p.brand, p.variant, safeCatalog);
     return type === "scura" || type === "rossa";
   }).length;
   medals.push({
@@ -78,13 +86,15 @@ export function getEventMedals(userPosts: any[], catalog: Beer[] = beers): Event
   const patrizioStart = new Date(year, 2, 15, 0, 0, 0);
   const patrizioEnd = new Date(year, 2, 21, 23, 59, 59);
   const patrizioPosts = userPosts.filter(p => {
-    const t = new Date(p.time);
-    return t >= patrizioStart && t <= patrizioEnd;
+    const t = getPostDate(p);
+    return t && t >= patrizioStart && t <= patrizioEnd;
   });
   const patrizioCount = patrizioPosts.filter(p => {
-    const beer = safeCatalog.find(b => b.brand === p.brand || formatBeerTitle(b.brand) === formatBeerTitle(p.brand));
-    const type = getBeerType(p.brand, p.variant);
-    return (beer && (beer.country === "Irlanda" || beer.country === "Scozia")) || type === "scura";
+    if (!p.brand || !p.variant) return false;
+    const beer = safeCatalog.find(b => b && (b.brand === p.brand || formatBeerTitle(b.brand) === formatBeerTitle(p.brand)));
+    const type = getBeerType(p.brand, p.variant, safeCatalog);
+    const isIrishOrScotch = beer && (beer.country === "Irlanda" || beer.country === "Scozia" || beer.flag === "IE" || beer.flag === "GB-SCT");
+    return isIrishOrScotch || type === "scura";
   }).length;
   medals.push({
     id: `patrizio-${year}`,
@@ -103,10 +113,13 @@ export function getEventMedals(userPosts: any[], catalog: Beer[] = beers): Event
   const springStart = new Date(year, 2, 21, 0, 0, 0);
   const springEnd = new Date(year, 5, 20, 23, 59, 59);
   const springPosts = userPosts.filter(p => {
-    const t = new Date(p.time);
-    return t >= springStart && t <= springEnd;
+    const t = getPostDate(p);
+    return t && t >= springStart && t <= springEnd;
   });
-  const springCount = springPosts.filter(p => getBeerType(p.brand, p.variant) === "bianca").length;
+  const springCount = springPosts.filter(p => {
+    if (!p.brand || !p.variant) return false;
+    return getBeerType(p.brand, p.variant, safeCatalog) === "bianca";
+  }).length;
   medals.push({
     id: `spring-${year}`,
     name: `Primavera ${year}`,
@@ -129,13 +142,15 @@ export function getEventMedals(userPosts: any[], catalog: Beer[] = beers): Event
   pasquettaEnd.setDate(easterDate.getDate() + 1);
   pasquettaEnd.setHours(23, 59, 59, 999);
   const pasquettaPosts = userPosts.filter(p => {
-    const t = new Date(p.time);
-    return t >= pasquettaStart && t <= pasquettaEnd;
+    const t = getPostDate(p);
+    return t && t >= pasquettaStart && t <= pasquettaEnd;
   });
   const pasquettaCount = pasquettaPosts.filter(p => {
-    const beer = safeCatalog.find(b => b.brand === p.brand || formatBeerTitle(b.brand) === formatBeerTitle(p.brand));
-    const type = getBeerType(p.brand, p.variant);
-    return (beer && beer.country === "Belgio") || type === "bionda";
+    if (!p.brand || !p.variant) return false;
+    const beer = safeCatalog.find(b => b && (b.brand === p.brand || formatBeerTitle(b.brand) === formatBeerTitle(p.brand)));
+    const type = getBeerType(p.brand, p.variant, safeCatalog);
+    const isBelgian = beer && (beer.country === "Belgio" || beer.flag === "BE");
+    return isBelgian || type === "bionda";
   }).length;
   medals.push({
     id: `pasquetta-${year}`,
@@ -154,11 +169,12 @@ export function getEventMedals(userPosts: any[], catalog: Beer[] = beers): Event
   const summerStart = new Date(year, 5, 21, 0, 0, 0);
   const summerEnd = new Date(year, 8, 22, 23, 59, 59);
   const summerPosts = userPosts.filter(p => {
-    const t = new Date(p.time);
-    return t >= summerStart && t <= summerEnd;
+    const t = getPostDate(p);
+    return t && t >= summerStart && t <= summerEnd;
   });
   const summerCount = summerPosts.filter(p => {
-    const type = getBeerType(p.brand, p.variant);
+    if (!p.brand || !p.variant) return false;
+    const type = getBeerType(p.brand, p.variant, safeCatalog);
     return type === "bionda" || type === "ipa";
   }).length;
   medals.push({
@@ -178,10 +194,10 @@ export function getEventMedals(userPosts: any[], catalog: Beer[] = beers): Event
   const ferragostoStart = new Date(year, 7, 14, 0, 0, 0);
   const ferragostoEnd = new Date(year, 7, 16, 23, 59, 59);
   const ferragostoPosts = userPosts.filter(p => {
-    const t = new Date(p.time);
-    return t >= ferragostoStart && t <= ferragostoEnd;
+    const t = getPostDate(p);
+    return t && t >= ferragostoStart && t <= ferragostoEnd;
   });
-  const ferragostoCount = ferragostoPosts.length;
+  const ferragostoCount = ferragostoPosts.filter(p => p && p.brand && p.variant).length;
   medals.push({
     id: `ferragosto-${year}`,
     name: `Ferragosto ${year}`,
@@ -199,12 +215,13 @@ export function getEventMedals(userPosts: any[], catalog: Beer[] = beers): Event
   const oktoberfestStart = new Date(year, 8, 16, 0, 0, 0);
   const oktoberfestEnd = new Date(year, 9, 4, 23, 59, 59);
   const oktoberfestPosts = userPosts.filter(p => {
-    const t = new Date(p.time);
-    return t >= oktoberfestStart && t <= oktoberfestEnd;
+    const t = getPostDate(p);
+    return t && t >= oktoberfestStart && t <= oktoberfestEnd;
   });
   const oktoberfestCount = oktoberfestPosts.filter(p => {
-    const beer = safeCatalog.find(b => b.brand === p.brand || formatBeerTitle(b.brand) === formatBeerTitle(p.brand));
-    return beer && beer.country === "Germania";
+    if (!p.brand || !p.variant) return false;
+    const beer = safeCatalog.find(b => b && (b.brand === p.brand || formatBeerTitle(b.brand) === formatBeerTitle(p.brand)));
+    return beer && (beer.country === "Germania" || beer.flag === "DE");
   }).length;
   medals.push({
     id: `oktoberfest-${year}`,
@@ -223,13 +240,14 @@ export function getEventMedals(userPosts: any[], catalog: Beer[] = beers): Event
   const autumnStart = new Date(year, 8, 23, 0, 0, 0);
   const autumnEnd = new Date(year, 11, 20, 23, 59, 59);
   const autumnPosts = userPosts.filter(p => {
-    const t = new Date(p.time);
-    return t >= autumnStart && t <= autumnEnd;
+    const t = getPostDate(p);
+    return t && t >= autumnStart && t <= autumnEnd;
   });
   const autumnCount = autumnPosts.filter(p => {
-    const type = getBeerType(p.brand, p.variant);
-    const beer = safeCatalog.find(b => b.brand === p.brand || formatBeerTitle(b.brand) === formatBeerTitle(p.brand));
-    const isGerman = beer && beer.country === "Germania";
+    if (!p.brand || !p.variant) return false;
+    const type = getBeerType(p.brand, p.variant, safeCatalog);
+    const beer = safeCatalog.find(b => b && (b.brand === p.brand || formatBeerTitle(b.brand) === formatBeerTitle(p.brand)));
+    const isGerman = beer && (beer.country === "Germania" || beer.flag === "DE");
     return type === "rossa" || type === "ipa" || isGerman;
   }).length;
   medals.push({
@@ -252,8 +270,9 @@ export function getEventMedals(userPosts: any[], catalog: Beer[] = beers): Event
     return timeA - timeB;
   });
 
-  // Filter out past expired events (where endDate < now) so current active event is first
+  // Keep all unlocked medals, plus active or future upcoming events
   const activeMedals = medals.filter((m) => {
+    if (m.isUnlocked) return true; // Always retain unlocked medals!
     if (!m.endDate) return true;
     return m.endDate >= now;
   });
