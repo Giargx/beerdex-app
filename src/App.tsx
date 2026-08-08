@@ -94,7 +94,6 @@ export default function App() {
   const [globalAvatars, setGlobalAvatars] = useState<Record<string, string>>({});
   const [globalDisplayNames, setGlobalDisplayNames] = useState<Record<string, string>>({});
   const [allPokedexProfiles, setAllPokedexProfiles] = useState<Record<string, Record<string, any>>>({});
-  const [registeredUsernames, setRegisteredUsernames] = useState<Set<string>>(new Set());
 
   // Proposal & Custom Beers State
   const [customBeers, setCustomBeers] = useState<Beer[]>([]);
@@ -1039,65 +1038,7 @@ export default function App() {
     onValue(ref(db, 'pokedex_profiles'), (snap) => {
       setAllPokedexProfiles(snap.val() || {});
     });
-
-    // Registered Usernames (for orphan cleanup & active user validation)
-    onValue(ref(db, 'usernames_emails'), (snap) => {
-      if (snap.exists()) {
-        const data = snap.val() || {};
-        const setOfNicks = new Set<string>();
-        Object.keys(data).forEach((k) => setOfNicks.add(k.toLowerCase()));
-        setRegisteredUsernames(setOfNicks);
-      } else {
-        setRegisteredUsernames(new Set());
-      }
-    });
   };
-
-  // Auto-cleanup orphaned friend relationships (e.g. if a friend profile was deleted previously)
-  useEffect(() => {
-    if (!currentUserNick || registeredUsernames.size === 0) return;
-
-    if (myFriendsList.length > 0) {
-      const orphanedFriends = myFriendsList.filter((f) => !registeredUsernames.has((f || '').toLowerCase()));
-      if (orphanedFriends.length > 0) {
-        setMyFriendsList((prev) => prev.filter((f) => registeredUsernames.has((f || '').toLowerCase())));
-        orphanedFriends.forEach((orphan) => {
-          remove(ref(db, `users_friends/${currentUserNick}/${orphan}`));
-          remove(ref(db, `users_friends/${orphan}/${currentUserNick}`));
-        });
-      }
-    }
-
-    if (myReceivedRequests.length > 0) {
-      const orphanedRec = myReceivedRequests.filter((f) => !registeredUsernames.has((f || '').toLowerCase()));
-      if (orphanedRec.length > 0) {
-        setMyReceivedRequests((prev) => prev.filter((f) => registeredUsernames.has((f || '').toLowerCase())));
-        orphanedRec.forEach((orphan) => {
-          remove(ref(db, `friend_requests/${currentUserNick}/${orphan}`));
-        });
-      }
-    }
-
-    if (mySentRequests.length > 0) {
-      const orphanedSent = mySentRequests.filter((f) => !registeredUsernames.has((f || '').toLowerCase()));
-      if (orphanedSent.length > 0) {
-        setMySentRequests((prev) => prev.filter((f) => registeredUsernames.has((f || '').toLowerCase())));
-        orphanedSent.forEach((orphan) => {
-          remove(ref(db, `friend_requests_sent/${currentUserNick}/${orphan}`));
-        });
-      }
-    }
-
-    if (myRejectedRequests.length > 0) {
-      const orphanedRej = myRejectedRequests.filter((f) => !registeredUsernames.has((f || '').toLowerCase()));
-      if (orphanedRej.length > 0) {
-        setMyRejectedRequests((prev) => prev.filter((f) => registeredUsernames.has((f || '').toLowerCase())));
-        orphanedRej.forEach((orphan) => {
-          remove(ref(db, `friend_requests_rejected/${currentUserNick}/${orphan}`));
-        });
-      }
-    }
-  }, [currentUserNick, registeredUsernames, myFriendsList, myReceivedRequests, mySentRequests, myRejectedRequests]);
 
   // Score Recalculation
   const recalculateTotalScore = async (username: string) => {
