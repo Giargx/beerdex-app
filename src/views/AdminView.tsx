@@ -279,9 +279,9 @@ export const AdminView: React.FC<AdminViewProps> = ({
         {/* Navigation Tabs Bar */}
         <div
           style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(5, 1fr)',
-            gap: '4px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '6px',
             background: '#FFFFFF',
             padding: '6px',
             borderRadius: '16px',
@@ -290,6 +290,9 @@ export const AdminView: React.FC<AdminViewProps> = ({
             position: 'sticky',
             top: '10px',
             zIndex: 100,
+            overflowX: 'auto',
+            WebkitOverflowScrolling: 'touch',
+            touchAction: 'pan-x',
           }}
         >
           {[
@@ -305,6 +308,9 @@ export const AdminView: React.FC<AdminViewProps> = ({
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id as any)}
                 style={{
+                  flex: 1,
+                  minWidth: '60px',
+                  flexShrink: 0,
                   display: 'flex',
                   flexDirection: 'column',
                   alignItems: 'center',
@@ -322,8 +328,8 @@ export const AdminView: React.FC<AdminViewProps> = ({
                   transition: 'all 0.2s ease',
                 }}
               >
-                <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                  <span className="material-symbols-outlined" style={{ fontSize: '18px', color: isActive ? '#FFB300' : tab.color }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '3px' }}>
+                  <span className="material-symbols-outlined" style={{ fontSize: '17px', color: isActive ? '#FFB300' : tab.color }}>
                     {tab.icon}
                   </span>
                   <span style={{ whiteSpace: 'nowrap' }}>{tab.label}</span>
@@ -332,8 +338,8 @@ export const AdminView: React.FC<AdminViewProps> = ({
                   <span
                     style={{
                       position: 'absolute',
-                      top: '4px',
-                      right: '4px',
+                      top: '3px',
+                      right: '3px',
                       background: '#EF4444',
                       color: '#FFFFFF',
                       fontSize: '9px',

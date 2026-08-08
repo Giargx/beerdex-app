@@ -6,8 +6,8 @@ import { getBasePoints, formatBeerTitle } from '../beers';
 import { StarRating } from '../components/StarRating';
 import { BrindisiSummary } from '../components/BrindisiSummary';
 import { ReportPostModal } from '../components/ReportPostModal';
-import type { PokedexEntry } from '../components/TrophyGrid';
 import { getSeenStories, isUserStoryUnseen } from '../utils/stories';
+import { LikersBottomSheetModal } from '../components/LikersBottomSheetModal';
 
 interface Post {
   postId: string;
@@ -83,6 +83,7 @@ export const PubView: React.FC<PubViewProps> = ({
   // Modals & Interactive States
   const [selectedReportPost, setSelectedReportPost] = useState<Post | null>(null);
   const [selectedParticipantsPost, setSelectedParticipantsPost] = useState<Post | null>(null);
+  const [activeLikersPost, setActiveLikersPost] = useState<Post | null>(null);
   const [savedPostIds, setSavedPostIds] = useState<string[]>(() => {
     try {
       const saved = localStorage.getItem('beerdex_saved_posts');
@@ -1152,7 +1153,7 @@ export const PubView: React.FC<PubViewProps> = ({
                   <div
                     className="post-actions"
                     style={{
-                      padding: '12px 16px 6px 16px',
+                      padding: '10px 16px 4px 16px',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'space-between',
@@ -1169,30 +1170,30 @@ export const PubView: React.FC<PubViewProps> = ({
                         onToggleLike(post.postId, imgContainer);
                       }}
                       style={{
-                        borderRadius: '20px',
-                        padding: '8px 18px',
-                        fontSize: '13px',
-                        fontWeight: 800,
-                        display: 'inline-flex',
+                        width: '42px',
+                        height: '42px',
+                        borderRadius: '50%',
+                        display: 'flex',
                         alignItems: 'center',
-                        gap: '6px',
-                        border: isLiked ? 'none' : '1px solid #E2E8F0',
-                        background: isLiked ? 'linear-gradient(135deg, #F59E0B, #D97706)' : '#F8FAFC',
-                        color: isLiked ? '#FFFFFF' : '#475569',
-                        boxShadow: isLiked ? '0 4px 12px rgba(245, 158, 11, 0.35)' : 'none',
+                        justifyContent: 'center',
+                        border: isLiked ? 'none' : '1px solid #CBD5E1',
+                        background: isLiked ? 'linear-gradient(135deg, #F59E0B 0%, #D97706 100%)' : '#F8FAFC',
+                        color: isLiked ? '#FFFFFF' : '#64748B',
+                        boxShadow: isLiked ? '0 4px 14px rgba(245, 158, 11, 0.45)' : 'none',
                         cursor: 'pointer',
-                        transition: 'all 0.2s ease',
+                        transition: 'transform 0.15s ease, background 0.2s ease, box-shadow 0.2s ease',
                       }}
                     >
-                      <span className="material-symbols-outlined" style={{ fontSize: '20px', color: isLiked ? '#FFFFFF' : '#F59E0B' }}>
+                      <span
+                        className="material-symbols-outlined"
+                        style={{
+                          fontSize: '22px',
+                          color: isLiked ? '#FFFFFF' : '#F59E0B',
+                          filter: isLiked ? 'drop-shadow(0 2px 4px rgba(0,0,0,0.25))' : 'none',
+                        }}
+                      >
                         sports_bar
                       </span>
-                      <span>Brindisi</span>
-                      {likesCount > 0 && (
-                        <span style={{ fontSize: '12px', opacity: 0.9, fontWeight: 900, marginLeft: '2px' }}>
-                          ({likesCount})
-                        </span>
-                      )}
                     </button>
 
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -1216,14 +1217,40 @@ export const PubView: React.FC<PubViewProps> = ({
                     </div>
                   </div>
 
+                  {/* Brindisi Count underneath Like Icon - Click opens Likers Bottom Sheet ("tendina da sotto") */}
+                  <div
+                    onClick={() => setActiveLikersPost(post)}
+                    style={{
+                      padding: '2px 16px 6px 16px',
+                      fontSize: '13px',
+                      fontWeight: 800,
+                      color: 'var(--dark, #0F172A)',
+                      cursor: 'pointer',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '4px',
+                      width: 'fit-content',
+                    }}
+                    title="Vedi chi ha brindato"
+                  >
+                    <span>
+                      {likesCount === 1 ? '1 brindisi' : `${likesCount} brindisi`}
+                    </span>
+                    <span className="material-symbols-outlined" style={{ fontSize: '16px', color: '#94A3B8' }}>
+                      keyboard_arrow_down
+                    </span>
+                  </div>
+
                   {/* Likers Summary with Avatars */}
-                  <BrindisiSummary
-                    likes={post.likes}
-                    currentUserNick={currentUserNick}
-                    globalDisplayNames={globalDisplayNames}
-                    globalAvatars={globalAvatars}
-                    onOpenPublicProfile={onOpenPublicProfile}
-                  />
+                  <div onClick={() => setActiveLikersPost(post)} style={{ cursor: 'pointer' }}>
+                    <BrindisiSummary
+                      likes={post.likes}
+                      currentUserNick={currentUserNick}
+                      globalDisplayNames={globalDisplayNames}
+                      globalAvatars={globalAvatars}
+                      onOpenPublicProfile={onOpenPublicProfile}
+                    />
+                  </div>
 
                   {/* Clear Structural Card Division: Dedicated Beer Info Box & Caption */}
                   <div className="post-caption" style={{ padding: '0 16px 16px 16px' }}>
@@ -1579,9 +1606,18 @@ export const PubView: React.FC<PubViewProps> = ({
                 </div>
               );
             })()}
-          </div>
         </div>
       )}
+
+      {/* Likers Bottom Sheet Modal ("tendina da sotto con gli account di chi ha brindato") */}
+      <LikersBottomSheetModal
+        isOpen={!!activeLikersPost}
+        onClose={() => setActiveLikersPost(null)}
+        likes={activeLikersPost?.likes}
+        globalDisplayNames={globalDisplayNames}
+        globalAvatars={globalAvatars}
+        onOpenPublicProfile={onOpenPublicProfile}
+      />
     </div>
   );
 };
