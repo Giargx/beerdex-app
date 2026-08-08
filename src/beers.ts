@@ -148,6 +148,11 @@ export function normalizeStr(str?: string | null): string {
   return str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
 }
 
+export function stripStr(str?: string | null): string {
+  if (!str || typeof str !== 'string') return "";
+  return str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]/g, "");
+}
+
 export function getBeerType(brandName: string, variantName: string, allBeersCatalog?: Beer[]): "rossa" | "scura" | "bianca" | "ipa" | "bionda" {
   const safeCatalog = (allBeersCatalog && Array.isArray(allBeersCatalog) && allBeersCatalog.length > 0) ? allBeersCatalog : beers;
   const beer = safeCatalog.find(b => b && b.brand && (b.brand.toLowerCase() === (brandName || '').toLowerCase() || formatBeerTitle(b.brand) === formatBeerTitle(brandName || '')));
@@ -300,26 +305,26 @@ export function mergeBeers(staticBeers: Beer[] = beers, customBeers?: any): Beer
   if (!customList || customList.length === 0) return safeStatic;
 
   const mergedMap = new Map<string, Beer>();
-  const normKeyMap = new Map<string, string>();
+  const strippedKeyMap = new Map<string, string>();
 
   safeStatic.forEach((b) => {
     if (b && b.brand) {
-      const norm = normalizeStr(b.brand);
+      const stripped = stripStr(b.brand);
       const safeVars = Array.isArray(b.variants) ? b.variants : ['Classica'];
       mergedMap.set(b.brand, { ...b, variants: [...safeVars] });
-      normKeyMap.set(norm, b.brand);
+      strippedKeyMap.set(stripped, b.brand);
     }
   });
 
   customList.forEach((cb) => {
     if (cb && cb.brand) {
       const cbBrand = formatBeerTitle(cb.brand);
-      const normCb = normalizeStr(cbBrand);
+      const strippedCb = stripStr(cbBrand);
 
-      // Resolve alias or normalized key
-      let matchedCanonical = normKeyMap.get(normCb);
+      // Resolve alias or stripped key
+      let matchedCanonical = strippedKeyMap.get(strippedCb);
       if (!matchedCanonical) {
-        if (normCb.includes('deforest') || normCb.includes('abbayedeforest') || normCb.includes('baiadeforest')) {
+        if (strippedCb.includes('deforest') || strippedCb.includes('baiadeforest')) {
           matchedCanonical = 'Abbaye de Forest';
         }
       }
@@ -336,8 +341,8 @@ export function mergeBeers(staticBeers: Beer[] = beers, customBeers?: any): Beer
         if (!Array.isArray(existing.variants)) existing.variants = ['Classica'];
         if (!existing.variantTypes) existing.variantTypes = {};
         cbVariants.forEach((v: string) => {
-          const normV = normalizeStr(v);
-          const alreadyExists = existing.variants.some((ev) => normalizeStr(ev) === normV);
+          const normV = stripStr(v);
+          const alreadyExists = existing.variants.some((ev) => stripStr(ev) === normV);
           if (!alreadyExists && v) {
             existing.variants.push(v);
           }
@@ -364,7 +369,7 @@ export function mergeBeers(staticBeers: Beer[] = beers, customBeers?: any): Beer
           beerType: cbType,
           variantTypes: varTypesObj,
         });
-        normKeyMap.set(normCb, cbBrand);
+        strippedKeyMap.set(strippedCb, cbBrand);
       }
     }
   });

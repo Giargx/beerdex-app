@@ -3,7 +3,7 @@ import { onAuthStateChanged, signOut, updatePassword, EmailAuthProvider, reauthe
 import { ref, onValue, set, get, update, push, remove } from 'firebase/database';
 import { auth, db } from './firebase';
 
-import { beers, getBeerPoints, countryCoordinates, normalizeStr, mergeBeers, getCountryFlag, formatBeerTitle, resolvePokedexEntryBeer, isUserParticipantInPost, getUniqueParticipantPosts } from './beers';
+import { beers, getBeerPoints, countryCoordinates, normalizeStr, stripStr, mergeBeers, getCountryFlag, formatBeerTitle, resolvePokedexEntryBeer, isUserParticipantInPost, getUniqueParticipantPosts } from './beers';
 import type { Beer } from './beers';
 import { playPopSound, playClinkSound } from './utils/audio';
 import { checkImageSafety } from './utils/imageModeration';
@@ -33,6 +33,7 @@ import { StoryViewerModal } from './components/StoryViewerModal';
 import { CropModal } from './components/CropModal';
 import { MapContainer } from './components/MapContainer';
 import { ProposeBeerModal } from './components/ProposeBeerModal';
+import { AdminMoveBeerModal } from './components/AdminMoveBeerModal';
 import type { BeerProposalData } from './components/ProposeBeerModal';
 import type { BeerProposalItem } from './components/AdminProposalsModal';
 import { UnlockRatingModal } from './components/UnlockRatingModal';
@@ -123,6 +124,96 @@ export default function App() {
     }
     setProposeModalOpen(true);
   };
+
+  // Admin Move Beer / Variant State
+  const [adminMoveModalOpen, setAdminMoveModalOpen] = useState<boolean>(false);
+  const [adminMoveTargetUser, setAdminMoveTargetUser] = useState<string>('');
+  const [adminMoveInitialOldKey, setAdminMoveInitialOldKey] = useState<string>('');
+
+  const handleOpenAdminMoveModal = (targetUser?: string, oldKey?: string) => {
+    if (!isAdminUser) {
+      showAlert("Operazione riservata agli Amministratori.", "Accesso Negato");
+      return;
+    }
+    setAdminMoveTargetUser(targetUser || currentUserNick || '');
+    setAdminMoveInitialOldKey(oldKey || '');
+    setAdminMoveModalOpen(true);
+  };
+
+  const handleAdminMoveLoggedBeer = async (
+    targetUsername: string,
+    oldKey: string,
+    newBrand: string,
+    newVariant: string
+  ) => {
+    if (!isAdminUser) return;
+    if (!targetUsername || !oldKey || !newBrand || !newVariant) {
+      showAlert("Compila tutti i campi per effettuare lo spostamento.", "Dati Incompleti");
+      return;
+    }
+
+    try {
+      const canonicalB = formatBeerTitle(newBrand.trim());
+      const canonicalV = formatBeerTitle(newVariant.trim());
+      const newKey = `${canonicalB}-${canonicalV}`;
+      const normOldKeyStr = stripStr(oldKey);
+      const normOldBrandStr = stripStr(oldKey.includes('-') ? oldKey.split('-')[0] : oldKey);
+
+      const updates: Record<string, any> = {};
+
+      // 1. Move pokedex_profiles entry
+      const pokedexSnap = await get(ref(db, `pokedex_profiles/${targetUsername}`));
+      if (pokedexSnap.exists()) {
+        const pData = pokedexSnap.val();
+        Object.entries(pData).forEach(([entryKey, entryVal]: [string, any]) => {
+          const entryBrandStr = stripStr(entryVal?.brand || (entryKey.includes('-') ? entryKey.split('-')[0] : entryKey));
+          if (entryKey === oldKey || stripStr(entryKey) === normOldKeyStr || entryBrandStr === normOldBrandStr) {
+            updates[`pokedex_profiles/${targetUsername}/${entryKey}`] = null;
+            updates[`pokedex_profiles/${targetUsername}/${newKey}`] = {
+              ...entryVal,
+              brand: canonicalB,
+              variant: canonicalV,
+              timestamp: entryVal?.timestamp || Date.now()
+            };
+          }
+        });
+      }
+
+      // 2. Clean custom_beers if matching old brand
+      const customSnap = await get(ref(db, 'custom_beers'));
+      if (customSnap.exists()) {
+        const cData = customSnap.val();
+        Object.entries(cData).forEach(([cId, cVal]: [string, any]) => {
+          if (cVal && stripStr(cVal.brand) === normOldBrandStr) {
+            updates[`custom_beers/${cId}`] = null;
+          }
+        });
+      }
+
+      // 3. Move timeline posts
+      const timelineSnap = await get(ref(db, 'social_timeline'));
+      if (timelineSnap.exists()) {
+        const tData = timelineSnap.val();
+        Object.entries(tData).forEach(([postId, postVal]: [string, any]) => {
+          if (postVal && postVal.user && postVal.user.toLowerCase() === targetUsername.toLowerCase()) {
+            const pBrandStr = stripStr(postVal.brand);
+            if (pBrandStr === normOldBrandStr || `${formatBeerTitle(postVal.brand)}-${formatBeerTitle(postVal.variant)}` === oldKey) {
+              updates[`social_timeline/${postId}/brand`] = canonicalB;
+              updates[`social_timeline/${postId}/variant`] = canonicalV;
+            }
+          }
+        });
+      }
+
+      await update(ref(db), updates);
+      await recalculateTotalScore(targetUsername);
+
+      showAlert(`Foto/Bevuta di @${targetUsername} spostata con successo su "${canonicalB} (${canonicalV})"! Punteggio ricalcolato.`, "Spostamento Completato");
+    } catch (err: any) {
+      showAlert("Errore durante lo spostamento: " + err.message, "Errore");
+    }
+  };
+
   const [adminModalTab, setAdminModalTab] = useState<'proposals' | 'flagged' | 'users' | 'feedback'>('proposals');
   const [flaggedPosts, setFlaggedPosts] = useState<Record<string, any>>({});
   const [appFeedbacks, setAppFeedbacks] = useState<Record<string, any>>({});
@@ -4107,6 +4198,7 @@ export default function App() {
                     onOpenScanner={() => setScannerConfig({ open: true, brand: '', variant: '' })}
                     onOpenStoryUpload={handleOpenStoryUpload}
                     onOpenUserStory={handleOpenUserStory}
+                    onOpenAdminMoveModal={handleOpenAdminMoveModal}
                   />
                 )}
               </div>
@@ -4137,6 +4229,7 @@ export default function App() {
               }}
               isAdminUser={isAdminUser}
               onDeleteVariant={handleDeleteVariant}
+              onOpenAdminMoveModal={handleOpenAdminMoveModal}
               isPrivate={(() => {
                 if (!globalUserPrivacy || !pubProfileUser) return false;
                 const lower = pubProfileUser.toLowerCase();
@@ -4448,6 +4541,16 @@ export default function App() {
         globalAvatars={globalAvatars}
         globalDisplayNames={globalDisplayNames}
         onSubmitProposal={handleProposeBeerSubmit}
+      />
+
+      {/* Admin Move Beer / Variant Modal */}
+      <AdminMoveBeerModal
+        isOpen={adminMoveModalOpen}
+        onClose={() => setAdminMoveModalOpen(false)}
+        targetUsername={adminMoveTargetUser}
+        initialOldKey={adminMoveInitialOldKey}
+        allBeersCatalog={allBeersCatalog}
+        onConfirmMove={handleAdminMoveLoggedBeer}
       />
 
       {/* Clash of Clans Style Live App Tutorial */}

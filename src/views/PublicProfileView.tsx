@@ -22,6 +22,7 @@ interface PublicProfileViewProps {
   isAdminUser?: boolean;
   onDeleteVariant?: (brand: string, variant: string, targetUser?: string) => void;
   isPrivate?: boolean;
+  onOpenAdminMoveModal?: (username?: string, oldKey?: string) => void;
   isFriend?: boolean;
   currentUserNick?: string;
   myFriendsList?: string[];
@@ -63,6 +64,7 @@ export const PublicProfileView: React.FC<PublicProfileViewProps> = ({
   onDeleteUserProfile,
   onChangeUserNicknameByAdmin,
   onOpenUserStory,
+  onOpenAdminMoveModal,
 }) => {
   const [activeTab, setActiveTab] = useState<'collection' | 'posts' | 'stats' | 'ratings' | 'medals'>('posts');
 
@@ -408,9 +410,35 @@ export const PublicProfileView: React.FC<PublicProfileViewProps> = ({
               </button>
             )}
 
-            {/* Admin Actions: Change Nickname + Delete User Profile */}
+            {/* Admin Actions: Change Nickname + Move Photo + Delete User Profile */}
             {isAdminUser && (
               <>
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onOpenAdminMoveModal?.(username);
+                  }}
+                  style={{
+                    background: '#EEF2FF',
+                    border: '1px solid #C7D2FE',
+                    color: '#4338CA',
+                    padding: '8px 16px',
+                    borderRadius: '20px',
+                    fontSize: '13px',
+                    fontWeight: 800,
+                    cursor: 'pointer',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    boxShadow: '0 2px 8px rgba(99, 102, 241, 0.2)',
+                    transition: 'all 0.2s ease',
+                  }}
+                >
+                  <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>move_down</span>
+                  <span>Sposta Foto (ADMIN)</span>
+                </button>
+
                 <button
                   type="button"
                   onClick={(e) => {

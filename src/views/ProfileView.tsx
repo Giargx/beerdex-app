@@ -35,6 +35,7 @@ interface ProfileViewProps {
   onOpenAdminFeedback?: () => void;
   unreadFeedbackCount?: number;
   onOpenUserStory?: (username: string) => boolean;
+  onOpenAdminMoveModal?: (username?: string, oldKey?: string) => void;
 }
 
 export const ProfileView: React.FC<ProfileViewProps> = ({
@@ -67,6 +68,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
   onOpenScanner,
   onOpenStoryUpload,
   onOpenUserStory,
+  onOpenAdminMoveModal,
 }) => {
   const catalog = (allBeersCatalog && allBeersCatalog.length > 0) ? allBeersCatalog : beers;
   const [activeTab, setActiveTab] = useState<'collection' | 'posts' | 'saved' | 'stats' | 'ratings'>('posts');
@@ -457,6 +459,31 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
               gap: '8px',
             }}
           >
+            {onOpenAdminMoveModal && (
+              <button
+                onClick={() => onOpenAdminMoveModal(currentUserNick)}
+                style={{
+                  background: '#FFFFFF',
+                  border: '1px solid #E2E8F0',
+                  borderRadius: '12px',
+                  padding: '10px 12px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  cursor: 'pointer',
+                  fontSize: '12px',
+                  fontWeight: 700,
+                  color: '#1E293B',
+                  boxShadow: '0 2px 6px rgba(0,0,0,0.03)',
+                  transition: 'all 0.2s ease',
+                }}
+              >
+                <span className="material-symbols-outlined" style={{ fontSize: '18px', color: '#6366F1' }}>
+                  move_down
+                </span>
+                <span>Sposta Variante</span>
+              </button>
+            )}
             {onOpenAdminUsers && (
               <button
                 onClick={onOpenAdminUsers}
