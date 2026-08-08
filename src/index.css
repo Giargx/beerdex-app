@@ -17,6 +17,13 @@
     --modal-shadow: 0 30px 60px -15px rgba(15, 23, 42, 0.25);
 }
 
+html {
+    max-width: 100% !important;
+    width: 100%;
+    overflow-x: hidden !important;
+    position: relative;
+}
+
 body { 
     font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif; 
     background-color: var(--light); 
@@ -24,8 +31,18 @@ body {
     margin: 0; 
     padding-top: 0px; 
     padding-bottom: 0px; 
-    overflow-x: hidden; 
+    max-width: 100% !important;
+    width: 100%;
+    overflow-x: hidden !important; 
+    position: relative;
     -webkit-font-smoothing: antialiased;
+}
+
+#root {
+    max-width: 100% !important;
+    width: 100%;
+    overflow-x: hidden !important;
+    position: relative;
 }
 
 .material-symbols-outlined { 
@@ -229,8 +246,10 @@ select:focus {
 }
 
 /* Page views & Main Tabs Slider */
-.page-view { 
+.page-view {
     width: 100%;
+    max-width: 100% !important;
+    overflow-x: hidden !important;
     min-height: calc(100vh - 110px);
     box-sizing: border-box;
     display: none;
@@ -243,7 +262,9 @@ select:focus {
 
 .main-tabs-wrapper {
     width: 100%;
-    overflow: hidden;
+    max-width: 100% !important;
+    overflow: hidden !important;
+    overflow-x: hidden !important;
     position: relative;
     box-sizing: border-box;
 }
