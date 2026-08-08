@@ -9,7 +9,6 @@ import { playPopSound, playClinkSound } from './utils/audio';
 import { checkImageSafety } from './utils/imageModeration';
 import { containsProfanity } from './utils/textFilter';
 import { calculateScoreBreakdown } from './utils/score';
-import { getEventMedals } from './components/TrophyGrid';
 
 // Import Views
 import { HomeView } from './views/HomeView';
