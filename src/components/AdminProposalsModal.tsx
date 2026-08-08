@@ -280,20 +280,51 @@ export const AdminProposalsModal: React.FC<AdminProposalsModalProps> = ({
                   return "👑 Mastro Birraio";
                 };
 
+                const [recalculateBannerMsg, setRecalculateBannerMsg] = useState<string | null>(null);
+
                 const handleRecalculateSingle = async (nick: string) => {
                   if (!onRecalculateUserScore) return;
                   setRecalculatingUserMap((prev) => ({ ...prev, [nick]: true }));
                   try {
                     await onRecalculateUserScore(nick);
+                    setRecalculateBannerMsg(`✅ Punteggio di @${nick} ricalcolato con successo!`);
+                    setTimeout(() => setRecalculateBannerMsg(null), 3500);
                   } catch (e) {
                     console.error("Error recalculating score for user:", nick, e);
+                    setRecalculateBannerMsg(`❌ Errore durante il ricalcolo per @${nick}`);
+                    setTimeout(() => setRecalculateBannerMsg(null), 3500);
                   } finally {
                     setRecalculatingUserMap((prev) => ({ ...prev, [nick]: false }));
                   }
                 };
 
+                const handleRecalculateAllUsers = async () => {
+                  if (!onRecalculateUserScore || visibleUsers.length === 0) return;
+                  const ok = window.confirm(`Vuoi ricalcolare i punti e le medaglie per tutti i ${filtered.length} utenti?`);
+                  if (!ok) return;
+
+                  for (const u of filtered) {
+                    setRecalculatingUserMap((prev) => ({ ...prev, [u.nick]: true }));
+                    try {
+                      await onRecalculateUserScore(u.nick);
+                    } catch (e) {
+                      console.error(e);
+                    } finally {
+                      setRecalculatingUserMap((prev) => ({ ...prev, [u.nick]: false }));
+                    }
+                  }
+                  setRecalculateBannerMsg(`🎉 Punteggi di tutti i ${filtered.length} utenti ricalcolati con successo!`);
+                  setTimeout(() => setRecalculateBannerMsg(null), 4500);
+                };
+
                 return (
                   <>
+                    {recalculateBannerMsg && (
+                      <div style={{ background: '#D1FAE5', border: '1px solid #6EE7B7', color: '#065F46', padding: '10px 14px', borderRadius: '12px', fontSize: '13px', fontWeight: 800, textAlign: 'center', marginBottom: '8px' }}>
+                        {recalculateBannerMsg}
+                      </div>
+                    )}
+
                     {/* Summary Cards */}
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '8px' }}>
                       <div style={{ background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: '12px', padding: '8px 10px', textAlign: 'center' }}>
@@ -372,6 +403,30 @@ export const AdminProposalsModal: React.FC<AdminProposalsModalProps> = ({
                         <option value="unlocked_desc">Sblocchi ↓</option>
                         <option value="name_asc">Nome (A-Z)</option>
                       </select>
+
+                      {onRecalculateUserScore && (
+                        <button
+                          onClick={handleRecalculateAllUsers}
+                          title="Ricalcola i punti e le medaglie per tutti gli utenti"
+                          style={{
+                            padding: '8px 12px',
+                            borderRadius: '12px',
+                            border: '1px solid #BFDBFE',
+                            background: '#EFF6FF',
+                            color: '#1D4ED8',
+                            fontSize: '12px',
+                            fontWeight: 800,
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '4px',
+                            whiteSpace: 'nowrap',
+                          }}
+                        >
+                          <span className="material-symbols-outlined" style={{ fontSize: '15px' }}>sync</span>
+                          Ricalcola Tutti
+                        </button>
+                      )}
                     </div>
 
                     {/* Filter Pills */}
