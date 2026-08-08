@@ -7,6 +7,7 @@ declare global {
   }
 }
 
+let nsfwModelInstance: any = null;
 let nsfwModelPromise: Promise<any> | null = null;
 let isScriptLoading = false;
 
@@ -14,8 +15,10 @@ const loadScript = (src: string): Promise<void> => {
   return new Promise((resolve, reject) => {
     const existing = document.querySelector(`script[src="${src}"]`);
     if (existing) {
-      resolve();
-      return;
+      if ((window as any).nsfwjs || (window as any).tf) {
+        resolve();
+        return;
+      }
     }
     const script = document.createElement('script');
     script.src = src;
@@ -27,6 +30,7 @@ const loadScript = (src: string): Promise<void> => {
 };
 
 export const initModerationModel = async (): Promise<any> => {
+  if (nsfwModelInstance) return nsfwModelInstance;
   if (nsfwModelPromise) return nsfwModelPromise;
 
   nsfwModelPromise = (async () => {
@@ -42,8 +46,9 @@ export const initModerationModel = async (): Promise<any> => {
       }
 
       if (window.nsfwjs) {
-        // Load default mobile-friendly NSFWJS model
+        // Carica il modello NSFWJS mobile-friendly
         const model = await window.nsfwjs.load();
+        nsfwModelInstance = model;
         return model;
       }
       return null;
@@ -68,6 +73,7 @@ export const checkImageSafety = async (imageBase64: string): Promise<ModerationR
   try {
     const model = await initModerationModel();
     if (!model) {
+      console.warn('Modello AI di moderazione non pronto, impossibile verificare la foto.');
       return { isSafe: true };
     }
 
@@ -76,23 +82,36 @@ export const checkImageSafety = async (imageBase64: string): Promise<ModerationR
       img.crossOrigin = 'anonymous';
       img.onload = async () => {
         try {
-          const predictions = await model.classify(img);
+          // Renderizza l'immagine su un canvas per assicurare la compatibilità di lettura dei pixel con TensorFlow/NSFWJS
+          const canvas = document.createElement('canvas');
+          const width = img.naturalWidth || img.width || 299;
+          const height = img.naturalHeight || img.height || 299;
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          if (ctx) {
+            ctx.drawImage(img, 0, 0, width, height);
+          }
+
+          // Analizza direttamente l'elemento canvas o img
+          const predictions = await model.classify(ctx ? canvas : img);
           let isSafe = true;
           let reason = '';
 
           predictions.forEach((p: { className: string; probability: number }) => {
-            if ((p.className === 'Porn' || p.className === 'Hentai') && p.probability > 0.35) {
+            // Soglie di moderazione più severe per bloccare nudo ed esplicito
+            if ((p.className === 'Porn' || p.className === 'Hentai') && p.probability > 0.15) {
               isSafe = false;
               reason = 'La foto contiene contenuto per adulti o esplicito e non può essere caricata.';
-            } else if (p.className === 'Sexy' && p.probability > 0.80) {
+            } else if (p.className === 'Sexy' && p.probability > 0.50) {
               isSafe = false;
-              reason = 'La foto contiene contenuto ammiccante/esplicito non appropriato.';
+              reason = 'La foto contiene contenuto ammiccante o esplicito non appropriato.';
             }
           });
 
           resolve({ isSafe, reason, predictions });
         } catch (err) {
-          console.warn('Errore analisi immagini:', err);
+          console.warn('Errore durante la classificazione AI dell\'immagine:', err);
           resolve({ isSafe: true });
         }
       };
