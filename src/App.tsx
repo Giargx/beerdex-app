@@ -33,7 +33,6 @@ import { StoryViewerModal } from './components/StoryViewerModal';
 import { CropModal } from './components/CropModal';
 import { MapContainer } from './components/MapContainer';
 import { ProposeBeerModal } from './components/ProposeBeerModal';
-import { AdminMoveBeerModal } from './components/AdminMoveBeerModal';
 import type { BeerProposalData } from './components/ProposeBeerModal';
 import type { BeerProposalItem } from './components/AdminProposalsModal';
 import { UnlockRatingModal } from './components/UnlockRatingModal';
@@ -128,7 +127,6 @@ export default function App() {
   };
 
   // Admin Move Beer / Variant State
-  const [adminMoveModalOpen, setAdminMoveModalOpen] = useState<boolean>(false);
   const [adminMoveTargetUser, setAdminMoveTargetUser] = useState<string>('');
   const [adminMoveInitialOldKey, setAdminMoveInitialOldKey] = useState<string>('');
 
@@ -291,7 +289,7 @@ export default function App() {
     }
   };
 
-  const [adminModalTab, setAdminModalTab] = useState<'proposals' | 'flagged' | 'users' | 'feedback'>('proposals');
+  const [adminModalTab, setAdminModalTab] = useState<'proposals' | 'flagged' | 'users' | 'feedback' | 'move_variant'>('proposals');
   const [flaggedPosts, setFlaggedPosts] = useState<Record<string, any>>({});
   const [appFeedbacks, setAppFeedbacks] = useState<Record<string, any>>({});
   const [unlockRatingModalState, setUnlockRatingModalState] = useState<{ isOpen: boolean; brand: string; variant: string; photo?: string } | null>(null);
