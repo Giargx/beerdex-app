@@ -196,7 +196,8 @@ export default function App() {
     }
     setAdminMoveTargetUser(targetUser || currentUserNick || '');
     setAdminMoveInitialOldKey(oldKey || '');
-    setAdminMoveModalOpen(true);
+    setAdminModalTab('move_variant');
+    navigateTo('page-admin');
   };
 
   const handleAdminMoveLoggedBeer = async (
@@ -4502,6 +4503,10 @@ export default function App() {
               feedbacks={appFeedbacks}
               onDeleteFeedback={handleDeleteFeedback}
               onMarkFeedbackRead={handleMarkFeedbackRead}
+              targetUsername={adminMoveTargetUser}
+              initialOldKey={adminMoveInitialOldKey}
+              allBeersCatalog={allBeersCatalog}
+              onConfirmMove={handleAdminMoveLoggedBeer}
             />
           ) : null}
         </div>
@@ -4668,15 +4673,7 @@ export default function App() {
         onSubmitProposal={handleProposeBeerSubmit}
       />
 
-      {/* Admin Move Beer / Variant Modal */}
-      <AdminMoveBeerModal
-        isOpen={adminMoveModalOpen}
-        onClose={() => setAdminMoveModalOpen(false)}
-        targetUsername={adminMoveTargetUser}
-        initialOldKey={adminMoveInitialOldKey}
-        allBeersCatalog={allBeersCatalog}
-        onConfirmMove={handleAdminMoveLoggedBeer}
-      />
+
 
       {/* Clash of Clans Style Live App Tutorial */}
       <AppTutorialModal

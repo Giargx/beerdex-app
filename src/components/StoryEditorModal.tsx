@@ -145,16 +145,25 @@ export const StoryEditorModal: React.FC<StoryEditorModalProps> = ({
   const startCamera = async () => {
     stopCamera();
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: { ideal: facingMode } },
-        audio: true,
-      });
+      let stream: MediaStream;
+      try {
+        stream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: { ideal: facingMode } },
+          audio: true,
+        });
+      } catch (_audioErr) {
+        stream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: { ideal: facingMode } },
+          audio: false,
+        });
+      }
       mediaStreamRef.current = stream;
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
         videoRef.current.play().catch(() => {});
       }
       setIsCameraActive(true);
+      try { localStorage.setItem('beerdex_camera_permission', 'always'); } catch {}
     } catch (e) {
       console.warn("Camera fallback to file upload:", e);
       setIsCameraActive(false);
@@ -962,10 +971,10 @@ export const StoryEditorModal: React.FC<StoryEditorModalProps> = ({
         <div
           style={{
             position: 'absolute',
-            bottom: 'env(safe-area-inset-bottom, 24px)',
+            bottom: 'calc(env(safe-area-inset-bottom, 24px) + 28px)',
             left: 0,
             right: 0,
-            padding: '20px',
+            padding: '24px 20px 36px 20px',
             display: 'flex',
             justifyContent: 'space-around',
             alignItems: 'center',
@@ -1103,7 +1112,7 @@ export const StoryEditorModal: React.FC<StoryEditorModalProps> = ({
           onClick={handlePublish}
           style={{
             position: 'absolute',
-            bottom: 'env(safe-area-inset-bottom, 28px)',
+            bottom: 'calc(env(safe-area-inset-bottom, 28px) + 28px)',
             right: '20px',
             width: '58px',
             height: '58px',

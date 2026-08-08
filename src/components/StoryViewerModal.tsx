@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { POPULAR_MUSIC_TRACKS } from './StoryEditorModal';
+import { markStorySeen } from '../utils/stories';
 
 export interface StoryPost {
   postId: string;
@@ -73,6 +74,16 @@ export const StoryViewerModal: React.FC<StoryViewerModalProps> = ({
 
   // Calcola l'URL dell'audio per la storia corrente
   const currentStory = stories[currentIndex];
+
+  useEffect(() => {
+    if (isOpen && currentStory) {
+      const sId = currentStory.postId || (currentStory as any).id || (currentStory as any).time;
+      if (sId) {
+        markStorySeen(String(sId));
+      }
+    }
+  }, [isOpen, currentIndex, currentStory]);
+
   let currentAudioUrl = '';
 
   if (currentStory) {

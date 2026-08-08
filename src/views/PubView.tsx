@@ -7,6 +7,7 @@ import { StarRating } from '../components/StarRating';
 import { BrindisiSummary } from '../components/BrindisiSummary';
 import { ReportPostModal } from '../components/ReportPostModal';
 import type { PokedexEntry } from '../components/TrophyGrid';
+import { getSeenStories, isUserStoryUnseen } from '../utils/stories';
 
 interface Post {
   postId: string;
@@ -69,6 +70,15 @@ export const PubView: React.FC<PubViewProps> = ({
   onOpenUserStory,
 }) => {
   const [searchQuery, setSearchQuery] = useState<string>('');
+  const [seenStoriesSet, setSeenStoriesSet] = useState<Set<string>>(() => getSeenStories());
+
+  useEffect(() => {
+    const handleStoriesUpdated = () => {
+      setSeenStoriesSet(getSeenStories());
+    };
+    window.addEventListener('beerdex_stories_updated', handleStoriesUpdated);
+    return () => window.removeEventListener('beerdex_stories_updated', handleStoriesUpdated);
+  }, []);
   
   // Modals & Interactive States
   const [selectedReportPost, setSelectedReportPost] = useState<Post | null>(null);
@@ -468,21 +478,31 @@ export const PubView: React.FC<PubViewProps> = ({
             );
           })()}
 
-          {/* Other Drinkers' Stories */}
+          {/* Other Drinkers' Stories (Instagram-style Seen vs Unseen) */}
           {(() => {
             const userLower = (currentUserNick || '').toLowerCase();
-            const userStoryMap = new Map<string, { user: string; firstIndex: number }>();
+            const userStoryMap = new Map<string, { user: string; stories: any[]; firstIndex: number }>();
 
             storyPosts.forEach((s, idx) => {
               if (s && s.user && s.user.toLowerCase() !== userLower) {
                 const uKey = s.user.toLowerCase();
                 if (!userStoryMap.has(uKey)) {
-                  userStoryMap.set(uKey, { user: s.user, firstIndex: idx });
+                  userStoryMap.set(uKey, { user: s.user, stories: [s], firstIndex: idx });
+                } else {
+                  userStoryMap.get(uKey)!.stories.push(s);
                 }
               }
             });
 
-            return Array.from(userStoryMap.values()).map(({ user }) => {
+            const storyUserItems = Array.from(userStoryMap.values()).map((item) => {
+              const isUnseen = isUserStoryUnseen(item.stories, seenStoriesSet);
+              return { ...item, isUnseen };
+            });
+
+            // Sort: Unseen stories FIRST, seen stories AFTER
+            storyUserItems.sort((a, b) => (b.isUnseen ? 1 : 0) - (a.isUnseen ? 1 : 0));
+
+            return storyUserItems.map(({ user, isUnseen }) => {
               const uKey = user.toLowerCase();
               const av = globalAvatars[user] || globalAvatars[uKey];
               const disp = globalDisplayNames?.[user] || globalDisplayNames?.[uKey] || user;
@@ -508,8 +528,13 @@ export const PubView: React.FC<PubViewProps> = ({
                       height: '60px',
                       borderRadius: '50%',
                       padding: '3px',
-                      background: 'linear-gradient(45deg, #F59E0B, #E67E22, #EC4899)',
-                      boxShadow: '0 4px 10px rgba(245, 158, 11, 0.3)',
+                      background: isUnseen
+                        ? 'linear-gradient(45deg, #F59E0B, #E67E22, #EC4899)'
+                        : '#CBD5E1',
+                      boxShadow: isUnseen
+                        ? '0 4px 10px rgba(245, 158, 11, 0.35)'
+                        : '0 2px 6px rgba(0,0,0,0.06)',
+                      transition: 'all 0.2s ease',
                     }}
                   >
                     <div
@@ -537,8 +562,8 @@ export const PubView: React.FC<PubViewProps> = ({
                   <span
                     style={{
                       fontSize: '11px',
-                      fontWeight: 700,
-                      color: '#334155',
+                      fontWeight: isUnseen ? 800 : 600,
+                      color: isUnseen ? '#0F172A' : '#64748B',
                       marginTop: '4px',
                       maxWidth: '64px',
                       overflow: 'hidden',
@@ -868,7 +893,8 @@ export const PubView: React.FC<PubViewProps> = ({
                           ) : (
                             /* Single User Avatar */
                             (() => {
-                              const hasStory = storyPosts.some((s) => s.user && s.user.toLowerCase() === post.user.toLowerCase());
+                              const userStoriesForPost = storyPosts.filter((s) => s.user && s.user.toLowerCase() === post.user.toLowerCase());
+                              const hasUnseenStory = isUserStoryUnseen(userStoriesForPost, seenStoriesSet);
                               return (
                                 <div
                                   className="post-avatar clickable-user"
@@ -879,10 +905,10 @@ export const PubView: React.FC<PubViewProps> = ({
                                     height: '42px',
                                     borderRadius: '50%',
                                     padding: '2.5px',
-                                    background: hasStory
+                                    background: hasUnseenStory
                                       ? 'linear-gradient(45deg, #F59E0B, #E67E22, #EC4899)'
                                       : 'linear-gradient(135deg, #F59E0B 0%, #D97706 100%)',
-                                    boxShadow: hasStory ? '0 4px 12px rgba(236, 72, 153, 0.35)' : '0 2px 8px rgba(245, 158, 11, 0.25)',
+                                    boxShadow: hasUnseenStory ? '0 4px 12px rgba(236, 72, 153, 0.35)' : '0 2px 8px rgba(245, 158, 11, 0.25)',
                                   }}
                                   {...(getAvatarZoomProps ? getAvatarZoomProps(av1) : {})}
                                 >

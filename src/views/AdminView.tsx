@@ -3,9 +3,11 @@ import { formatBeerTitle } from '../beers';
 import { FoamBubbles } from '../components/FoamBubbles';
 import type { BeerProposalItem } from '../components/AdminProposalsModal';
 
+import type { Beer } from '../beers';
+
 export interface AdminViewProps {
   onBack: () => void;
-  initialTab?: 'users' | 'proposals' | 'flagged' | 'feedback';
+  initialTab?: 'users' | 'proposals' | 'flagged' | 'feedback' | 'move_variant';
   proposals: BeerProposalItem[];
   onAcceptProposal: (proposal: BeerProposalItem) => void;
   onRejectProposal: (proposalId: string) => void;
@@ -22,6 +24,10 @@ export interface AdminViewProps {
   feedbacks?: Record<string, any> | any[];
   onDeleteFeedback?: (feedbackId: string) => void;
   onMarkFeedbackRead?: (feedbackId: string) => void;
+  targetUsername?: string;
+  initialOldKey?: string;
+  allBeersCatalog?: Beer[];
+  onConfirmMove?: (targetUsername: string, oldKey: string, newBrand: string, newVariant: string) => Promise<void> | void;
 }
 
 export const AdminView: React.FC<AdminViewProps> = ({
@@ -43,13 +49,86 @@ export const AdminView: React.FC<AdminViewProps> = ({
   feedbacks = {},
   onDeleteFeedback,
   onMarkFeedbackRead,
+  targetUsername = '',
+  initialOldKey = '',
+  allBeersCatalog = [],
+  onConfirmMove,
 }) => {
-  const [activeTab, setActiveTab] = useState<'users' | 'proposals' | 'flagged' | 'feedback'>(initialTab);
+  const [activeTab, setActiveTab] = useState<'users' | 'proposals' | 'flagged' | 'feedback' | 'move_variant'>(initialTab);
   const [userSearchTerm, setUserSearchTerm] = useState('');
   const [userFilterTab, setUserFilterTab] = useState<'all' | 'top' | 'novice' | 'rich'>('all');
   const [userSortOption, setUserSortOption] = useState<'score_desc' | 'score_asc' | 'unlocked_desc' | 'name_asc'>('score_desc');
   const [userPageLimit, setUserPageLimit] = useState<number>(15);
   const [recalculatingUserMap, setRecalculatingUserMap] = useState<Record<string, boolean>>({});
+  const [recalculateBannerMsg, setRecalculateBannerMsg] = useState<string | null>(null);
+
+  // Sposta Variante Page Tab States
+  const [moveUser, setMoveUser] = useState(targetUsername);
+  const [moveOldKey, setMoveOldKey] = useState(initialOldKey);
+  const [moveSelectedBrand, setMoveSelectedBrand] = useState<string>('');
+  const [moveSelectedVariant, setMoveSelectedVariant] = useState<string>('');
+  const [moveCustomVariant, setMoveCustomVariant] = useState<string>('');
+  const [isMoveSubmitting, setIsMoveSubmitting] = useState(false);
+  const [moveMessage, setMoveMessage] = useState<{ text: string; type: 'success' | 'error' } | null>(null);
+
+  React.useEffect(() => {
+    setActiveTab(initialTab);
+  }, [initialTab]);
+
+  React.useEffect(() => {
+    setMoveUser(targetUsername);
+    setMoveOldKey(initialOldKey);
+    if (allBeersCatalog && allBeersCatalog.length > 0) {
+      const defaultBrand = allBeersCatalog.find((b) => b && b.brand === 'Abbaye de Forest') || allBeersCatalog[0];
+      if (defaultBrand) {
+        setMoveSelectedBrand(defaultBrand.brand);
+        setMoveSelectedVariant((defaultBrand.variants && defaultBrand.variants[0]) || 'Classica');
+      }
+    }
+  }, [targetUsername, initialOldKey, allBeersCatalog]);
+
+  const handleMoveBrandChange = (brandName: string) => {
+    setMoveSelectedBrand(brandName);
+    const found = allBeersCatalog.find((b) => b && b.brand === brandName);
+    if (found && found.variants && found.variants.length > 0) {
+      setMoveSelectedVariant(found.variants[0]);
+    } else {
+      setMoveSelectedVariant('Classica');
+    }
+  };
+
+  const handleMoveSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!moveUser.trim()) {
+      setMoveMessage({ text: 'Inserisci il nickname dell\'utente.', type: 'error' });
+      return;
+    }
+    if (!moveOldKey.trim()) {
+      setMoveMessage({ text: 'Inserisci la chiave o il nome della birra attuale da spostare.', type: 'error' });
+      return;
+    }
+    if (!moveSelectedBrand.trim()) {
+      setMoveMessage({ text: 'Seleziona la marca di destinazione.', type: 'error' });
+      return;
+    }
+    if (!onConfirmMove) {
+      setMoveMessage({ text: 'Funzione di spostamento non disponibile.', type: 'error' });
+      return;
+    }
+
+    const finalVariant = (moveCustomVariant.trim() || moveSelectedVariant.trim() || 'Classica');
+    setIsMoveSubmitting(true);
+    setMoveMessage(null);
+
+    try {
+      await onConfirmMove(moveUser.trim(), moveOldKey.trim(), moveSelectedBrand.trim(), finalVariant);
+      setIsMoveSubmitting(false);
+      setMoveMessage({ text: `✅ Birra "${moveOldKey}" di @${moveUser} spostata con successo in ${moveSelectedBrand} (${finalVariant})!`, type: 'success' });
+    } catch (err: any) {
+      setIsMoveSubmitting(false);
+      setMoveMessage({ text: err.message || 'Errore durante lo spostamento della birra.', type: 'error' });
+    }
+  };
 
   const [showEditMap, setShowEditMap] = useState<Record<string, boolean>>({});
   const [editedDataMap, setEditedDataMap] = useState<Record<string, {
@@ -201,8 +280,8 @@ export const AdminView: React.FC<AdminViewProps> = ({
         <div
           style={{
             display: 'grid',
-            gridTemplateColumns: 'repeat(4, 1fr)',
-            gap: '6px',
+            gridTemplateColumns: 'repeat(5, 1fr)',
+            gap: '4px',
             background: '#FFFFFF',
             padding: '6px',
             borderRadius: '16px',
@@ -218,6 +297,7 @@ export const AdminView: React.FC<AdminViewProps> = ({
             { id: 'proposals', label: 'Proposte', icon: 'sports_bar', badge: pendingProposals.length, color: '#F59E0B' },
             { id: 'flagged', label: 'Segnalazioni', icon: 'report_problem', badge: flaggedList.length, color: '#E11D48' },
             { id: 'feedback', label: 'Consigli', icon: 'rate_review', badge: unreadFeedbackCount, color: '#10B981' },
+            { id: 'move_variant', label: 'Sposta', icon: 'move_down', badge: 0, color: '#8B5CF6' },
           ].map((tab) => {
             const isActive = activeTab === tab.id;
             return (
@@ -336,8 +416,6 @@ export const AdminView: React.FC<AdminViewProps> = ({
                   if (score < 1200) return "🍺 Sommelier del Bancone";
                   return "👑 Mastro Birraio";
                 };
-
-                const [recalculateBannerMsg, setRecalculateBannerMsg] = useState<string | null>(null);
 
                 const handleRecalculateSingle = async (nick: string) => {
                   if (!onRecalculateUserScore) return;
@@ -1088,6 +1166,147 @@ export const AdminView: React.FC<AdminViewProps> = ({
                   </div>
                 );
               })}
+            </div>
+          )}
+
+          {activeTab === 'move_variant' && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '4px' }}>
+                <div style={{ width: '44px', height: '44px', borderRadius: '14px', background: 'rgba(139, 92, 246, 0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#8B5CF6' }}>
+                  <span className="material-symbols-outlined" style={{ fontSize: '26px' }}>move_down</span>
+                </div>
+                <div>
+                  <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 800, color: 'var(--dark)' }}>
+                    Sposta Variante / Marca 🔄
+                  </h3>
+                  <p style={{ margin: 0, fontSize: '13px', color: 'var(--text-muted)' }}>
+                    Sposta una bevuta o foto caricata da una scheda/variante errata o duplicata alla variante canonica desiderata.
+                  </p>
+                </div>
+              </div>
+
+              {moveMessage && (
+                <div style={{
+                  background: moveMessage.type === 'success' ? '#D1FAE5' : '#FEE2E2',
+                  border: `1px solid ${moveMessage.type === 'success' ? '#6EE7B7' : '#EF4444'}`,
+                  color: moveMessage.type === 'success' ? '#065F46' : '#B91C1C',
+                  padding: '12px 16px',
+                  borderRadius: '14px',
+                  fontSize: '13px',
+                  fontWeight: 800,
+                  textAlign: 'center'
+                }}>
+                  {moveMessage.text}
+                </div>
+              )}
+
+              <form onSubmit={handleMoveSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                <div>
+                  <label style={{ fontSize: '12px', fontWeight: 800, color: 'var(--dark)', display: 'block', marginBottom: '6px' }}>
+                    Utente Proprietario *
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="Username (es. forne02)"
+                    value={moveUser}
+                    onChange={(e) => setMoveUser(e.target.value)}
+                    style={{ width: '100%', boxSizing: 'border-box', margin: 0, padding: '12px 14px', borderRadius: '12px', border: '1px solid #CBD5E1', fontSize: '14px' }}
+                  />
+                </div>
+
+                <div>
+                  <label style={{ fontSize: '12px', fontWeight: 800, color: 'var(--dark)', display: 'block', marginBottom: '6px' }}>
+                    Chiave / Nome Birra Attuale da Spostare *
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="es. Abbaye De Forest-Brune o Baia Deforest"
+                    value={moveOldKey}
+                    onChange={(e) => setMoveOldKey(e.target.value)}
+                    style={{ width: '100%', boxSizing: 'border-box', margin: 0, padding: '12px 14px', borderRadius: '12px', border: '1px solid #CBD5E1', fontSize: '14px' }}
+                  />
+                </div>
+
+                <div>
+                  <label style={{ fontSize: '12px', fontWeight: 800, color: 'var(--dark)', display: 'block', marginBottom: '6px' }}>
+                    Marca di Destinazione *
+                  </label>
+                  <select
+                    value={moveSelectedBrand}
+                    onChange={(e) => handleMoveBrandChange(e.target.value)}
+                    style={{
+                      width: '100%',
+                      padding: '12px 14px',
+                      borderRadius: '12px',
+                      border: '1px solid #CBD5E1',
+                      background: 'white',
+                      boxSizing: 'border-box',
+                      margin: 0,
+                      fontSize: '14px',
+                      fontWeight: 600,
+                    }}
+                  >
+                    {(allBeersCatalog || []).map((b) => (
+                      <option key={b.brand} value={b.brand}>
+                        {b.brand} ({b.country})
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                  <div>
+                    <label style={{ fontSize: '12px', fontWeight: 800, color: 'var(--dark)', display: 'block', marginBottom: '6px' }}>
+                      Variante Destinazione *
+                    </label>
+                    <select
+                      value={moveSelectedVariant}
+                      onChange={(e) => {
+                        setMoveSelectedVariant(e.target.value);
+                        setMoveCustomVariant('');
+                      }}
+                      style={{
+                        width: '100%',
+                        padding: '12px 14px',
+                        borderRadius: '12px',
+                        border: '1px solid #CBD5E1',
+                        background: 'white',
+                        boxSizing: 'border-box',
+                        margin: 0,
+                        fontSize: '14px',
+                        fontWeight: 600,
+                      }}
+                    >
+                      {((allBeersCatalog.find((b) => b && b.brand === moveSelectedBrand)?.variants) || ['Classica']).map((v) => (
+                        <option key={v} value={v}>{v}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div>
+                    <label style={{ fontSize: '12px', fontWeight: 800, color: 'var(--dark)', display: 'block', marginBottom: '6px' }}>
+                      Oppure Nuova Variante
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="es. Brune"
+                      value={moveCustomVariant}
+                      onChange={(e) => setMoveCustomVariant(e.target.value)}
+                      style={{ width: '100%', boxSizing: 'border-box', margin: 0, padding: '12px 14px', borderRadius: '12px', border: '1px solid #CBD5E1', fontSize: '14px' }}
+                    />
+                  </div>
+                </div>
+
+                <button
+                  type="submit"
+                  className="btn-main"
+                  disabled={isMoveSubmitting}
+                  style={{ width: '100%', margin: '8px 0 0 0', padding: '14px', background: 'linear-gradient(135deg, #8B5CF6 0%, #7C3AED 100%)', fontSize: '15px' }}
+                >
+                  <span className="material-symbols-outlined">sync_alt</span>
+                  {isMoveSubmitting ? 'Spostamento in corso...' : 'Conferma Spostamento'}
+                </button>
+              </form>
             </div>
           )}
         </div>
