@@ -1008,6 +1008,7 @@ export const UserPostsDetailView: React.FC<UserPostsDetailViewProps> = ({
                 </div>
               );
             })()}
+          </div>
         </div>
       )}
 

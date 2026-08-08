@@ -1606,6 +1606,7 @@ export const PubView: React.FC<PubViewProps> = ({
                 </div>
               );
             })()}
+          </div>
         </div>
       )}
 
