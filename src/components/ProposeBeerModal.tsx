@@ -210,7 +210,7 @@ export const ProposeBeerModal: React.FC<ProposeBeerModalProps> = ({
     'Trentino-Alto Adige', 'Umbria', "Valle d'Aosta", 'Veneto'
   ];
 
-  const isBrandLocked = !!existingBeer || (!!initialBrandSearch && initialBrandSearch.trim() !== '');
+  const isBrandLocked = !!existingBeer;
 
   return (
     <div className="auth-modal" style={{ zIndex: 19000, padding: '20px 10px 70px 10px', boxSizing: 'border-box', overflowY: 'auto' }}>
