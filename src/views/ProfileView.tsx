@@ -787,7 +787,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
               </span>{' '}
               Medaglie Evento
               <span style={{ fontSize: '11px', color: 'var(--text-muted)', background: '#F1F5F9', padding: '2px 8px', borderRadius: '10px' }}>
-                {getEventMedals(myPosts, catalog).filter((e: any) => e.isUnlocked).length} / {getEventMedals(myPosts, catalog).length}
+                {getEventMedals(myPosts, catalog, myPokedex).filter((e: any) => e.isUnlocked).length} / {getEventMedals(myPosts, catalog, myPokedex).length}
               </span>
               <span
                 className="material-symbols-outlined"
