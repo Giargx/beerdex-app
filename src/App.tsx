@@ -1026,7 +1026,7 @@ export default function App() {
           if (cVal && cVal.brand) {
             const normCBrand = normalizeStr(cVal.brand);
             const isStaticMatch = beers.some((b) => normalizeStr(b.brand) === normCBrand) ||
-              normCBrand.includes('deforest') || normCBrand.includes('baiadeforest');
+              normCBrand.includes('deforest') || normCBrand.includes('baiadeforest') || normCBrand.includes('abbay');
             if (isStaticMatch) {
               updates[`custom_beers/${cKey}`] = null;
               needsUpdate = true;
@@ -1042,7 +1042,7 @@ export default function App() {
         Object.entries(propData).forEach(([pId, pVal]: [string, any]) => {
           if (pVal && pVal.brand) {
             const normPBrand = normalizeStr(pVal.brand);
-            if (normPBrand.includes('deforest') || normPBrand.includes('baiadeforest')) {
+            if (normPBrand.includes('deforest') || normPBrand.includes('baiadeforest') || normPBrand.includes('abbay')) {
               updates[`beer_proposals/${pId}`] = null;
               needsUpdate = true;
             }
@@ -1058,7 +1058,7 @@ export default function App() {
           if (pVal) {
             const pBrand = pVal.brand || (pKey.includes('-') ? pKey.split('-')[0] : pKey);
             const normPBrand = normalizeStr(pBrand);
-            if (normPBrand.includes('deforest') || normPBrand.includes('baiadeforest')) {
+            if (normPBrand.includes('deforest') || normPBrand.includes('baiadeforest') || normPBrand.includes('abbay')) {
               const canonicalBrand = 'Abbaye de Forest';
               const variant = pVal.variant || (pKey.includes('-') ? pKey.split('-').slice(1).join('-') : 'Brune');
               const canonicalKey = `${canonicalBrand}-${variant}`;
@@ -1087,7 +1087,7 @@ export default function App() {
         Object.entries(timelineData).forEach(([postKey, postVal]: [string, any]) => {
           if (postVal && postVal.brand) {
             const normPostBrand = normalizeStr(postVal.brand);
-            if (normPostBrand.includes('deforest') || normPostBrand.includes('baiadeforest')) {
+            if (normPostBrand.includes('deforest') || normPostBrand.includes('baiadeforest') || normPostBrand.includes('abbay')) {
               if (postVal.brand !== 'Abbaye de Forest') {
                 updates[`social_timeline/${postKey}/brand`] = 'Abbaye de Forest';
                 needsUpdate = true;

@@ -324,7 +324,7 @@ export function mergeBeers(staticBeers: Beer[] = beers, customBeers?: any): Beer
       // Resolve alias or stripped key
       let matchedCanonical = strippedKeyMap.get(strippedCb);
       if (!matchedCanonical) {
-        if (strippedCb.includes('deforest') || strippedCb.includes('baiadeforest')) {
+        if (strippedCb.includes('deforest') || strippedCb.includes('baiadeforest') || strippedCb.includes('abbay')) {
           matchedCanonical = 'Abbaye de Forest';
         }
       }
@@ -504,10 +504,10 @@ export function resolvePokedexEntryBeer(
     );
   }
 
-  // 1b. Alias check (e.g. Baia Deforest -> Abbaye de Forest)
+  // 1b. Alias check (e.g. Baia Deforest / Abbay -> Abbaye de Forest)
   if (!foundBeer && (entryBrand || key)) {
     const normStr = normalizeStr(entryBrand || key);
-    if (normStr.includes('deforest') || normStr.includes('baiadeforest')) {
+    if (normStr.includes('deforest') || normStr.includes('baiadeforest') || normStr.includes('abbay')) {
       foundBeer = safeCatalog.find((b) => b && b.brand === 'Abbaye de Forest');
     }
   }
