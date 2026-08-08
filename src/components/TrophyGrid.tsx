@@ -22,6 +22,8 @@ export interface EventMedal {
   points: number;
   startDate?: Date;
   endDate?: Date;
+  currentCount?: number;
+  targetCount?: number;
 }
 
 export function getEventMedals(userPosts: any[], catalog: Beer[] = beers): EventMedal[] {
@@ -64,11 +66,15 @@ export function getEventMedals(userPosts: any[], catalog: Beer[] = beers): Event
     const t = getPostDate(p);
     return t && t >= winterStart && t <= winterEnd;
   });
-  const winterCount = winterPosts.filter(p => {
-    if (!p.brand || !p.variant) return false;
+  const winterBeers = new Set<string>();
+  winterPosts.forEach(p => {
+    if (!p.brand || !p.variant) return;
     const type = getBeerType(p.brand, p.variant, safeCatalog);
-    return type === "scura" || type === "rossa";
-  }).length;
+    if (type === "scura" || type === "rossa") {
+      winterBeers.add(`${formatBeerTitle(p.brand)}::${formatBeerTitle(p.variant)}`);
+    }
+  });
+  const winterCount = winterBeers.size;
   medals.push({
     id: `winter-${year}`,
     name: `Inverno ${year}`,
@@ -80,6 +86,8 @@ export function getEventMedals(userPosts: any[], catalog: Beer[] = beers): Event
     points: 10,
     startDate: winterStart,
     endDate: winterEnd,
+    currentCount: Math.min(winterCount, 10),
+    targetCount: 10,
   });
 
   // 2. 🍀 San Patrizio (15 - 21 Mar)
@@ -89,13 +97,17 @@ export function getEventMedals(userPosts: any[], catalog: Beer[] = beers): Event
     const t = getPostDate(p);
     return t && t >= patrizioStart && t <= patrizioEnd;
   });
-  const patrizioCount = patrizioPosts.filter(p => {
-    if (!p.brand || !p.variant) return false;
+  const patrizioBeers = new Set<string>();
+  patrizioPosts.forEach(p => {
+    if (!p.brand || !p.variant) return;
     const beer = safeCatalog.find(b => b && (b.brand === p.brand || formatBeerTitle(b.brand) === formatBeerTitle(p.brand)));
     const type = getBeerType(p.brand, p.variant, safeCatalog);
     const isIrishOrScotch = beer && (beer.country === "Irlanda" || beer.country === "Scozia" || beer.flag === "IE" || beer.flag === "GB-SCT");
-    return isIrishOrScotch || type === "scura";
-  }).length;
+    if (isIrishOrScotch || type === "scura") {
+      patrizioBeers.add(`${formatBeerTitle(p.brand)}::${formatBeerTitle(p.variant)}`);
+    }
+  });
+  const patrizioCount = patrizioBeers.size;
   medals.push({
     id: `patrizio-${year}`,
     name: `San Patrizio ${year}`,
@@ -107,6 +119,8 @@ export function getEventMedals(userPosts: any[], catalog: Beer[] = beers): Event
     points: 3,
     startDate: patrizioStart,
     endDate: patrizioEnd,
+    currentCount: Math.min(patrizioCount, 1),
+    targetCount: 1,
   });
 
   // 3. 🌸 Primavera (21 Mar - 20 Giu)
@@ -116,10 +130,14 @@ export function getEventMedals(userPosts: any[], catalog: Beer[] = beers): Event
     const t = getPostDate(p);
     return t && t >= springStart && t <= springEnd;
   });
-  const springCount = springPosts.filter(p => {
-    if (!p.brand || !p.variant) return false;
-    return getBeerType(p.brand, p.variant, safeCatalog) === "bianca";
-  }).length;
+  const springBeers = new Set<string>();
+  springPosts.forEach(p => {
+    if (!p.brand || !p.variant) return;
+    if (getBeerType(p.brand, p.variant, safeCatalog) === "bianca") {
+      springBeers.add(`${formatBeerTitle(p.brand)}::${formatBeerTitle(p.variant)}`);
+    }
+  });
+  const springCount = springBeers.size;
   medals.push({
     id: `spring-${year}`,
     name: `Primavera ${year}`,
@@ -131,6 +149,8 @@ export function getEventMedals(userPosts: any[], catalog: Beer[] = beers): Event
     points: 10,
     startDate: springStart,
     endDate: springEnd,
+    currentCount: Math.min(springCount, 10),
+    targetCount: 10,
   });
 
   // 4. 🧺 Pasquetta (Weekend Pasquetta)
@@ -145,13 +165,17 @@ export function getEventMedals(userPosts: any[], catalog: Beer[] = beers): Event
     const t = getPostDate(p);
     return t && t >= pasquettaStart && t <= pasquettaEnd;
   });
-  const pasquettaCount = pasquettaPosts.filter(p => {
-    if (!p.brand || !p.variant) return false;
+  const pasquettaBeers = new Set<string>();
+  pasquettaPosts.forEach(p => {
+    if (!p.brand || !p.variant) return;
     const beer = safeCatalog.find(b => b && (b.brand === p.brand || formatBeerTitle(b.brand) === formatBeerTitle(p.brand)));
     const type = getBeerType(p.brand, p.variant, safeCatalog);
     const isBelgian = beer && (beer.country === "Belgio" || beer.flag === "BE");
-    return isBelgian || type === "bionda";
-  }).length;
+    if (isBelgian || type === "bionda") {
+      pasquettaBeers.add(`${formatBeerTitle(p.brand)}::${formatBeerTitle(p.variant)}`);
+    }
+  });
+  const pasquettaCount = pasquettaBeers.size;
   medals.push({
     id: `pasquetta-${year}`,
     name: `Pasquetta ${year}`,
@@ -163,6 +187,8 @@ export function getEventMedals(userPosts: any[], catalog: Beer[] = beers): Event
     points: 3,
     startDate: pasquettaStart,
     endDate: pasquettaEnd,
+    currentCount: Math.min(pasquettaCount, 1),
+    targetCount: 1,
   });
 
   // 5. ☀️ Estate (21 Giu - 22 Set)
@@ -172,11 +198,15 @@ export function getEventMedals(userPosts: any[], catalog: Beer[] = beers): Event
     const t = getPostDate(p);
     return t && t >= summerStart && t <= summerEnd;
   });
-  const summerCount = summerPosts.filter(p => {
-    if (!p.brand || !p.variant) return false;
+  const summerBeers = new Set<string>();
+  summerPosts.forEach(p => {
+    if (!p.brand || !p.variant) return;
     const type = getBeerType(p.brand, p.variant, safeCatalog);
-    return type === "bionda" || type === "ipa";
-  }).length;
+    if (type === "bionda" || type === "ipa") {
+      summerBeers.add(`${formatBeerTitle(p.brand)}::${formatBeerTitle(p.variant)}`);
+    }
+  });
+  const summerCount = summerBeers.size;
   medals.push({
     id: `summer-${year}`,
     name: `Estate ${year}`,
@@ -188,6 +218,8 @@ export function getEventMedals(userPosts: any[], catalog: Beer[] = beers): Event
     points: 10,
     startDate: summerStart,
     endDate: summerEnd,
+    currentCount: Math.min(summerCount, 10),
+    targetCount: 10,
   });
 
   // 6. 🍉 Ferragosto (14 - 16 Ago)
@@ -197,7 +229,12 @@ export function getEventMedals(userPosts: any[], catalog: Beer[] = beers): Event
     const t = getPostDate(p);
     return t && t >= ferragostoStart && t <= ferragostoEnd;
   });
-  const ferragostoCount = ferragostoPosts.filter(p => p && p.brand && p.variant).length;
+  const ferragostoBeers = new Set<string>();
+  ferragostoPosts.forEach(p => {
+    if (!p.brand || !p.variant) return;
+    ferragostoBeers.add(`${formatBeerTitle(p.brand)}::${formatBeerTitle(p.variant)}`);
+  });
+  const ferragostoCount = ferragostoBeers.size;
   medals.push({
     id: `ferragosto-${year}`,
     name: `Ferragosto ${year}`,
@@ -209,6 +246,8 @@ export function getEventMedals(userPosts: any[], catalog: Beer[] = beers): Event
     points: 3,
     startDate: ferragostoStart,
     endDate: ferragostoEnd,
+    currentCount: Math.min(ferragostoCount, 1),
+    targetCount: 1,
   });
 
   // 7. 🍺 Oktoberfest (16 Set - 4 Ott)
@@ -218,11 +257,15 @@ export function getEventMedals(userPosts: any[], catalog: Beer[] = beers): Event
     const t = getPostDate(p);
     return t && t >= oktoberfestStart && t <= oktoberfestEnd;
   });
-  const oktoberfestCount = oktoberfestPosts.filter(p => {
-    if (!p.brand || !p.variant) return false;
+  const oktoberfestBeers = new Set<string>();
+  oktoberfestPosts.forEach(p => {
+    if (!p.brand || !p.variant) return;
     const beer = safeCatalog.find(b => b && (b.brand === p.brand || formatBeerTitle(b.brand) === formatBeerTitle(p.brand)));
-    return beer && (beer.country === "Germania" || beer.flag === "DE");
-  }).length;
+    if (beer && (beer.country === "Germania" || beer.flag === "DE")) {
+      oktoberfestBeers.add(`${formatBeerTitle(p.brand)}::${formatBeerTitle(p.variant)}`);
+    }
+  });
+  const oktoberfestCount = oktoberfestBeers.size;
   medals.push({
     id: `oktoberfest-${year}`,
     name: `Oktoberfest ${year}`,
@@ -234,6 +277,8 @@ export function getEventMedals(userPosts: any[], catalog: Beer[] = beers): Event
     points: 5,
     startDate: oktoberfestStart,
     endDate: oktoberfestEnd,
+    currentCount: Math.min(oktoberfestCount, 3),
+    targetCount: 3,
   });
 
   // 8. 🍁 Autunno (23 Set - 20 Dic)
@@ -243,13 +288,17 @@ export function getEventMedals(userPosts: any[], catalog: Beer[] = beers): Event
     const t = getPostDate(p);
     return t && t >= autumnStart && t <= autumnEnd;
   });
-  const autumnCount = autumnPosts.filter(p => {
-    if (!p.brand || !p.variant) return false;
+  const autumnBeers = new Set<string>();
+  autumnPosts.forEach(p => {
+    if (!p.brand || !p.variant) return;
     const type = getBeerType(p.brand, p.variant, safeCatalog);
     const beer = safeCatalog.find(b => b && (b.brand === p.brand || formatBeerTitle(b.brand) === formatBeerTitle(p.brand)));
     const isGerman = beer && (beer.country === "Germania" || beer.flag === "DE");
-    return type === "rossa" || type === "ipa" || isGerman;
-  }).length;
+    if (type === "rossa" || type === "ipa" || isGerman) {
+      autumnBeers.add(`${formatBeerTitle(p.brand)}::${formatBeerTitle(p.variant)}`);
+    }
+  });
+  const autumnCount = autumnBeers.size;
   medals.push({
     id: `autumn-${year}`,
     name: `Autunno ${year}`,
@@ -261,6 +310,8 @@ export function getEventMedals(userPosts: any[], catalog: Beer[] = beers): Event
     points: 10,
     startDate: autumnStart,
     endDate: autumnEnd,
+    currentCount: Math.min(autumnCount, 10),
+    targetCount: 10,
   });
 
   // Sort medals in chronological order throughout the year

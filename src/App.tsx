@@ -3,7 +3,7 @@ import { onAuthStateChanged, signOut, updatePassword, EmailAuthProvider, reauthe
 import { ref, onValue, set, get, update, push, remove } from 'firebase/database';
 import { auth, db } from './firebase';
 
-import { beers, getBeerPoints, countryCoordinates, normalizeStr, mergeBeers, getCountryFlag, formatBeerTitle, resolvePokedexEntryBeer, isUserParticipantInPost } from './beers';
+import { beers, getBeerPoints, countryCoordinates, normalizeStr, mergeBeers, getCountryFlag, formatBeerTitle, resolvePokedexEntryBeer, isUserParticipantInPost, getUniqueParticipantPosts } from './beers';
 import type { Beer } from './beers';
 import { playPopSound, playClinkSound } from './utils/audio';
 import { checkImageSafety } from './utils/imageModeration';
@@ -1183,7 +1183,8 @@ export default function App() {
     const currentDexData = snap.exists() ? snap.val() : {};
 
     // 3. Compute score breakdown deterministically using calculateScoreBreakdown
-    const breakdown = calculateScoreBreakdown(currentDexData, userPosts, currentCatalog);
+    const cleanUserPosts = getUniqueParticipantPosts(userPosts, username);
+    const breakdown = calculateScoreBreakdown(currentDexData, cleanUserPosts, currentCatalog);
     const totalScore = breakdown.total;
 
     // 4. Brand Completion Medals & Revocation Check

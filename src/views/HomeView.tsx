@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { FoamBubbles } from '../components/FoamBubbles';
-import { beers, formatBeerTitle, getBeerType } from '../beers';
+import { beers, formatBeerTitle, getUniqueParticipantPosts } from '../beers';
+import { getEventMedals } from '../components/TrophyGrid';
 import { playClinkSound } from '../utils/audio';
 
 interface Post {
@@ -317,137 +318,18 @@ export const HomeView: React.FC<HomeViewProps> = ({
   const featuredBeerData = getSeasonalRecommendedBeer();
   const featuredBeer = featuredBeerData.beer;
 
-  // Timed Event Progress Calculation (aligned 100% with TrophyGrid event rules)
+  // Timed Event Progress Calculation (aligned 100% with TrophyGrid & score rules)
   const getEventProgress = () => {
     if (!timedEvent) return null;
 
-    const now = new Date();
-    const currentYear = now.getFullYear();
-    const eventName = timedEvent.name;
+    const myParticipantPosts = getUniqueParticipantPosts(posts, currentUserNick);
+    const catalogList = allBeersCatalog.length > 0 ? allBeersCatalog : beers;
+    const eventMedals = getEventMedals(myParticipantPosts, catalogList);
+    const activeMedal = eventMedals.find((m) => m.name.toLowerCase().includes(timedEvent.name.toLowerCase()));
+    if (!activeMedal) return null;
 
-    let target = 10;
-    let count = 0;
-
-    const getEasterDate = (year: number) => {
-      const a = year % 19;
-      const b = Math.floor(year / 100);
-      const c = year % 100;
-      const d = Math.floor(b / 4);
-      const e = b % 4;
-      const f = Math.floor((b + 8) / 25);
-      const g = Math.floor((b - f + 1) / 3);
-      const h = (19 * a + b - d - g + 15) % 30;
-      const i = Math.floor(c / 4);
-      const k = c % 4;
-      const L = (32 + 2 * e + 2 * i - h - k) % 7;
-      const m = Math.floor((a + 11 * h + 22 * L) / 451);
-      const month = Math.floor((h + L - 7 * m + 114) / 31);
-      const day = ((h + L - 7 * m + 114) % 31) + 1;
-      return new Date(year, month - 1, day);
-    };
-
-    if (eventName === 'Estate') {
-      target = 10;
-      const summerStart = new Date(currentYear, 5, 21, 0, 0, 0);
-      const summerEnd = new Date(currentYear, 8, 22, 23, 59, 59);
-      const summerPosts = myPosts.filter((p) => {
-        const t = new Date(p.time);
-        return t >= summerStart && t <= summerEnd;
-      });
-      count = summerPosts.filter((p) => {
-        const type = getBeerType(p.brand, p.variant);
-        return type === 'bionda' || type === 'ipa';
-      }).length;
-    } else if (eventName === 'Autunno') {
-      target = 10;
-      const autumnStart = new Date(currentYear, 8, 23, 0, 0, 0);
-      const autumnEnd = new Date(currentYear, 11, 20, 23, 59, 59);
-      const autumnPosts = myPosts.filter((p) => {
-        const t = new Date(p.time);
-        return t >= autumnStart && t <= autumnEnd;
-      });
-      count = autumnPosts.filter((p) => {
-        const type = getBeerType(p.brand, p.variant);
-        const beer = beers.find((b) => b.brand === p.brand);
-        const isGerman = beer && beer.country === 'Germania';
-        return type === 'rossa' || type === 'ipa' || isGerman;
-      }).length;
-    } else if (eventName === 'Primavera') {
-      target = 10;
-      const springStart = new Date(currentYear, 2, 21, 0, 0, 0);
-      const springEnd = new Date(currentYear, 5, 20, 23, 59, 59);
-      const springPosts = myPosts.filter((p) => {
-        const t = new Date(p.time);
-        return t >= springStart && t <= springEnd;
-      });
-      count = springPosts.filter((p) => getBeerType(p.brand, p.variant) === 'bianca').length;
-    } else if (eventName === 'Inverno') {
-      target = 10;
-      const winterStart = new Date(currentYear - 1, 11, 21, 0, 0, 0);
-      const winterEnd = new Date(currentYear, 2, 20, 23, 59, 59);
-      const winterPosts = myPosts.filter((p) => {
-        const t = new Date(p.time);
-        return t >= winterStart && t <= winterEnd;
-      });
-      count = winterPosts.filter((p) => {
-        const type = getBeerType(p.brand, p.variant);
-        return type === 'scura' || type === 'rossa';
-      }).length;
-    } else if (eventName === 'San Patrizio') {
-      target = 1;
-      const patrizioStart = new Date(currentYear, 2, 15, 0, 0, 0);
-      const patrizioEnd = new Date(currentYear, 2, 21, 23, 59, 59);
-      const patrizioPosts = myPosts.filter((p) => {
-        const t = new Date(p.time);
-        return t >= patrizioStart && t <= patrizioEnd;
-      });
-      count = patrizioPosts.filter((p) => {
-        const beer = beers.find((b) => b.brand === p.brand);
-        const type = getBeerType(p.brand, p.variant);
-        return (beer && (beer.country === 'Irlanda' || beer.country === 'Scozia')) || type === 'scura';
-      }).length;
-    } else if (eventName === 'Oktoberfest') {
-      target = 3;
-      const oktoberfestStart = new Date(currentYear, 8, 16, 0, 0, 0);
-      const oktoberfestEnd = new Date(currentYear, 9, 4, 23, 59, 59);
-      const oktoberfestPosts = myPosts.filter((p) => {
-        const t = new Date(p.time);
-        return t >= oktoberfestStart && t <= oktoberfestEnd;
-      });
-      count = oktoberfestPosts.filter((p) => {
-        const beer = beers.find((b) => b.brand === p.brand);
-        return beer && beer.country === 'Germania';
-      }).length;
-    } else if (eventName === 'Ferragosto') {
-      target = 1;
-      const ferragostoStart = new Date(currentYear, 7, 14, 0, 0, 0);
-      const ferragostoEnd = new Date(currentYear, 7, 16, 23, 59, 59);
-      const ferragostoPosts = myPosts.filter((p) => {
-        const t = new Date(p.time);
-        return t >= ferragostoStart && t <= ferragostoEnd;
-      });
-      count = ferragostoPosts.length;
-    } else if (eventName === 'Pasquetta') {
-      target = 1;
-      const easterDate = getEasterDate(currentYear);
-      const pasquettaStart = new Date(easterDate);
-      pasquettaStart.setDate(easterDate.getDate() - 1);
-      pasquettaStart.setHours(0, 0, 0, 0);
-      const pasquettaEnd = new Date(easterDate);
-      pasquettaEnd.setDate(easterDate.getDate() + 1);
-      pasquettaEnd.setHours(23, 59, 59, 999);
-      const pasquettaPosts = myPosts.filter((p) => {
-        const t = new Date(p.time);
-        return t >= pasquettaStart && t <= pasquettaEnd;
-      });
-      count = pasquettaPosts.filter((p) => {
-        const beer = beers.find((b) => b.brand === p.brand);
-        const type = getBeerType(p.brand, p.variant);
-        return (beer && beer.country === 'Belgio') || type === 'bionda';
-      }).length;
-    }
-
-    const current = Math.min(count, target);
+    const current = activeMedal.currentCount ?? 0;
+    const target = activeMedal.targetCount ?? 10;
     const pct = Math.min(Math.round((current / target) * 100), 100);
 
     return { current, target, pct };
