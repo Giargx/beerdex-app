@@ -343,9 +343,113 @@ export const ScannerModal: React.FC<ScannerModalProps> = ({
   allBeersCatalog,
   onRedirectToPropose,
 }) => {
+  const [manualBarcode, setManualBarcode] = React.useState('');
+  const [showManualInput, setShowManualInput] = React.useState(false);
+
   if (!isOpen) return null;
 
   const catalog = allBeersCatalog || beers;
+
+  const processBarcode = (decodedText: string) => {
+    const cleanCode = (decodedText || '').trim();
+    if (!cleanCode) return;
+
+    showAlert("Verifica prodotto in corso...", "Validazione", false);
+
+    fetch(`https://world.openfoodfacts.org/api/v2/product/${cleanCode}.json`)
+      .then((res) => res.json())
+      .then((data) => {
+        hideAlert();
+        const targetBeer = catalog.find((b) => b.brand === currentTargetBrand);
+
+        const proceedToCapture = () => {
+          if (targetBeer?.barcodes && targetBeer.barcodes.length > 0) {
+            if (!targetBeer.barcodes.includes(cleanCode)) {
+              showAlert("Il codice a barre non corrisponde a questa birra. Riprova!", "Codice Errato");
+              return;
+            }
+          }
+          onSuccess(false);
+        };
+
+        if (data.status === 1) {
+          const prod = data.product;
+          const prodName = prod.product_name || prod.product_name_it || prod.product_name_en || "Prodotto sconosciuto";
+
+          // 1. Strict anti-cheat: verify it is actually a beer
+          if (!isProductBeer(prod)) {
+            showAlert(
+              `Rilevato: "${prodName}". Sblocco annullato: questo codice a barre non appartiene a una birra.`,
+              "Prodotto Non Valido",
+              true,
+              () => {
+                onClose();
+              }
+            );
+            return;
+          }
+
+          // 2. Check if the brand matches target
+          const matchesTarget = checkBrandMatch(currentTargetBrand, prod.brands || "", prodName);
+
+          if (!matchesTarget) {
+            // Check if it belongs to a known different brand in our database
+            const identifiedBrand = getIdentifiedBrand(prod.brands || "", prodName, currentTargetBrand, catalog);
+
+            if (identifiedBrand) {
+              // Block them completely (no bypass allowed since it's confirmed to be a different brand in our database)
+              showAlert(
+                `Hai inquadrato una birra di marca "${identifiedBrand}" (${prodName}), ma stai cercando di sbloccare "${currentTargetBrand}". Gioca pulito!`,
+                "Sblocco Bloccato",
+                true,
+                () => {
+                  onClose();
+                }
+              );
+              return;
+            } else {
+              // The scanned beer is NOT in our catalog! Re-direct to Proponi with prefilled info!
+              const extracted = extractBeerDetailsFromOFF(prod);
+              showConfirm(
+                `Rilevata birra: "${extracted.brand} - ${extracted.variant}".\n\nQuesta birra non è ancora presente nel catalogo di POP IT! Vuoi andare alla pagina Proponi per aggiungerla con il nome e la rarità (${extracted.rarity}) già compilati?`,
+                "Birra non in catalogo",
+                () => {
+                  onClose();
+                  if (onRedirectToPropose) {
+                    onRedirectToPropose({
+                      brand: extracted.brand,
+                      variant: extracted.variant,
+                      rarity: extracted.rarity,
+                      desc: extracted.desc,
+                    });
+                  }
+                }
+              );
+              return;
+            }
+          }
+        } else {
+          // Barcode not found on Open Food Facts: since user is unlocking an existing beer, proceed to photo capture
+          proceedToCapture();
+          return;
+        }
+
+        proceedToCapture();
+      })
+      .catch((err) => {
+        console.error("Open Food Facts API error:", err);
+        hideAlert();
+
+        const targetBeer = catalog.find((b) => b.brand === currentTargetBrand);
+        if (targetBeer?.barcodes && targetBeer.barcodes.length > 0) {
+          if (!targetBeer.barcodes.includes(cleanCode)) {
+            showAlert("Il codice a barre non corrisponde a questa birra. Riprova!", "Codice Errato");
+            return;
+          }
+        }
+        onSuccess(false);
+      });
+  };
 
   const handleBarcodePhoto = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -376,106 +480,12 @@ export const ScannerModal: React.FC<ScannerModalProps> = ({
       .scanFile(file, true)
       .then((decodedText) => {
         hideAlert();
-        showAlert("Verifica prodotto in corso...", "Validazione", false);
-
-        fetch(`https://world.openfoodfacts.org/api/v2/product/${decodedText}.json`)
-          .then((res) => res.json())
-          .then((data) => {
-            hideAlert();
-            const targetBeer = catalog.find((b) => b.brand === currentTargetBrand);
-
-            const proceedToCapture = () => {
-              if (targetBeer?.barcodes && targetBeer.barcodes.length > 0) {
-                if (!targetBeer.barcodes.includes(decodedText)) {
-                  showAlert("Il codice a barre non corrisponde a questa birra. Riprova!", "Codice Errato");
-                  return;
-                }
-              }
-              onSuccess(false);
-            };
-
-            if (data.status === 1) {
-              const prod = data.product;
-              const prodName = prod.product_name || prod.product_name_it || prod.product_name_en || "Prodotto sconosciuto";
-
-              // 1. Strict anti-cheat: verify it is actually a beer
-              if (!isProductBeer(prod)) {
-                showAlert(
-                  `Rilevato: "${prodName}". Sblocco annullato: questo codice a barre non appartiene a una birra.`,
-                  "Prodotto Non Valido",
-                  true,
-                  () => {
-                    onClose();
-                  }
-                );
-                return;
-              }
-
-              // 2. Check if the brand matches target
-              const matchesTarget = checkBrandMatch(currentTargetBrand, prod.brands || "", prodName);
-
-              if (!matchesTarget) {
-                // Check if it belongs to a known different brand in our database
-                const identifiedBrand = getIdentifiedBrand(prod.brands || "", prodName, currentTargetBrand, catalog);
-
-                if (identifiedBrand) {
-                  // Block them completely (no bypass allowed since it's confirmed to be a different brand in our database)
-                  showAlert(
-                    `Hai inquadrato una birra di marca "${identifiedBrand}" (${prodName}), ma stai cercando di sbloccare "${currentTargetBrand}". Gioca pulito!`,
-                    "Sblocco Bloccato",
-                    true,
-                    () => {
-                      onClose();
-                    }
-                  );
-                  return;
-                } else {
-                  // The scanned beer is NOT in our catalog! Re-direct to Proponi with prefilled info!
-                  const extracted = extractBeerDetailsFromOFF(prod);
-                  showConfirm(
-                    `Rilevata birra: "${extracted.brand} - ${extracted.variant}".\n\nQuesta birra non è ancora presente nel catalogo di POP IT! Vuoi andare alla pagina Proponi per aggiungerla con il nome e la rarità (${extracted.rarity}) già compilati?`,
-                    "Birra non in catalogo",
-                    () => {
-                      onClose();
-                      if (onRedirectToPropose) {
-                        onRedirectToPropose({
-                          brand: extracted.brand,
-                          variant: extracted.variant,
-                          rarity: extracted.rarity,
-                          desc: extracted.desc,
-                        });
-                      }
-                    }
-                  );
-                  return;
-                }
-              }
-            } else {
-              // Barcode not found on Open Food Facts: since user is unlocking an existing beer, proceed to photo capture
-              proceedToCapture();
-              return;
-            }
-
-            proceedToCapture();
-          })
-          .catch((err) => {
-            console.error("Open Food Facts API error:", err);
-            hideAlert();
-
-            const targetBeer = catalog.find((b) => b.brand === currentTargetBrand);
-            if (targetBeer?.barcodes && targetBeer.barcodes.length > 0) {
-              if (!targetBeer.barcodes.includes(decodedText)) {
-                showAlert("Il codice a barre non corrisponde a questa birra. Riprova!", "Codice Errato");
-                return;
-              }
-            }
-            onSuccess(false);
-          });
+        processBarcode(decodedText);
       })
       .catch((_err) => {
         hideAlert();
         showAlert(
-          "Non sono riuscito a leggere chiaramente il codice a barre dalla foto. Riprova scattando una foto a fuoco e ben illuminata.",
+          "Non sono riuscito a leggere chiaramente il codice a barre dalla foto. Riprova scattando una foto a fuoco e ben illuminata, oppure inserisci le cifre manualmente.",
           "Lettura Fallita"
         );
       });
@@ -517,6 +527,57 @@ export const ScannerModal: React.FC<ScannerModalProps> = ({
           </label>
         </div>
 
+        {/* Option for users with broken camera or manual preference */}
+        <div style={{ marginTop: '10px' }}>
+          {!showManualInput ? (
+            <button
+              className="btn-secondary"
+              onClick={() => setShowManualInput(true)}
+              style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', textAlign: 'center', padding: '12px', cursor: 'pointer', width: '100%', boxSizing: 'border-box', background: '#F8FAFC', border: '1px solid #CBD5E1', color: '#334155' }}
+            >
+              <span className="material-symbols-outlined">keyboard</span> Digita Codice a Mano
+            </button>
+          ) : (
+            <div style={{ background: '#F8FAFC', padding: '14px', borderRadius: '16px', border: '1px solid #CBD5E1', display: 'flex', flexDirection: 'column', gap: '10px', marginTop: '6px' }}>
+              <label style={{ fontSize: '12px', fontWeight: 'bold', color: 'var(--dark)', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <span className="material-symbols-outlined" style={{ fontSize: '18px', color: 'var(--primary-dark)' }}>keyboard</span>
+                Digita le cifre del Codice a Barre
+              </label>
+              <input
+                type="text"
+                inputMode="numeric"
+                pattern="[0-9]*"
+                placeholder="Es. 8000570001234"
+                value={manualBarcode}
+                onChange={(e) => setManualBarcode(e.target.value.replace(/[^0-9]/g, ''))}
+                style={{ width: '100%', padding: '12px', borderRadius: '12px', border: '1px solid var(--gray)', fontSize: '14px', boxSizing: 'border-box', margin: 0 }}
+              />
+              <div style={{ display: 'flex', gap: '8px' }}>
+                <button
+                  className="btn-main"
+                  onClick={() => {
+                    if (!manualBarcode.trim()) {
+                      showAlert("Inserisci le cifre del codice a barre.", "Campo Vuoto");
+                      return;
+                    }
+                    processBarcode(manualBarcode);
+                  }}
+                  style={{ flex: 1, padding: '10px', fontSize: '13px', margin: 0 }}
+                >
+                  Verifica Codice
+                </button>
+                <button
+                  className="btn-secondary"
+                  onClick={() => setShowManualInput(false)}
+                  style={{ padding: '10px 14px', fontSize: '13px', margin: 0 }}
+                >
+                  Chiudi
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+
         <hr style={{ border: 0, borderTop: '1px solid var(--gray)', margin: '20px 0' }} />
         <p style={{ fontSize: '12px', color: 'var(--dark)', fontWeight: 'bold', marginTop: 0, textAlign: 'center' }}>
           Stai bevendo una birra alla spina?
@@ -530,7 +591,6 @@ export const ScannerModal: React.FC<ScannerModalProps> = ({
         </button>
 
         {/* Cancel button */}
-
         <button
           className="btn-secondary"
           onClick={onClose}

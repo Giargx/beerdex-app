@@ -12,6 +12,7 @@ export interface BeerProposalItem {
   desc?: string;
   photo: string;
   proposedBy: string;
+  taggedFriends?: string[];
   timestamp: number;
   status: "pending" | "accepted" | "rejected";
   isVariantProposal?: boolean;
@@ -847,6 +848,12 @@ export const AdminProposalsModal: React.FC<AdminProposalsModalProps> = ({
                         <div>
                           <div style={{ fontSize: '13px', fontWeight: 'bold', color: 'var(--dark)' }}>@{authorName}</div>
                           <div style={{ fontSize: '10px', color: 'var(--text-muted)' }}>Proposta il {dateStr}</div>
+                          {Array.isArray(item.taggedFriends) && item.taggedFriends.length > 0 && (
+                            <div style={{ fontSize: '11px', color: '#D97706', fontWeight: 800, marginTop: '2px', display: 'flex', alignItems: 'center', gap: '3px' }}>
+                              <span className="material-symbols-outlined" style={{ fontSize: '13px' }}>group</span>
+                              In compagnia di: {item.taggedFriends.map((f) => '@' + (globalDisplayNames[f] || f)).join(', ')}
+                            </div>
+                          )}
                         </div>
                       </div>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>

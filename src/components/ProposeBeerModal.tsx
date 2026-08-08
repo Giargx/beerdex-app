@@ -13,6 +13,7 @@ export interface BeerProposalData {
   desc?: string;
   photo: string;
   isVariantProposal?: boolean;
+  taggedFriends?: string[];
 }
 
 interface ProposeBeerModalProps {
@@ -23,6 +24,9 @@ interface ProposeBeerModalProps {
   initialRarityPrefill?: "comune" | "media" | "rara";
   initialDescPrefill?: string;
   allBeersCatalog?: Beer[];
+  myFriendsList?: string[];
+  globalAvatars?: Record<string, string>;
+  globalDisplayNames?: Record<string, string>;
   onSubmitProposal: (proposalData: BeerProposalData) => void;
 }
 
@@ -33,6 +37,9 @@ export const ProposeBeerModal: React.FC<ProposeBeerModalProps> = ({
   initialVariantPrefill = '',
   initialDescPrefill = '',
   allBeersCatalog = [],
+  myFriendsList = [],
+  globalAvatars = {},
+  globalDisplayNames = {},
   onSubmitProposal,
 }) => {
   const [brand, setBrand] = useState(initialBrandSearch);
@@ -42,6 +49,7 @@ export const ProposeBeerModal: React.FC<ProposeBeerModalProps> = ({
   const [regione, setRegione] = useState('Tutte');
   const [desc, setDesc] = useState(initialDescPrefill);
   const [photoBase64, setPhotoBase64] = useState<string>('');
+  const [selectedTaggedFriends, setSelectedTaggedFriends] = useState<string[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
 
@@ -58,6 +66,7 @@ export const ProposeBeerModal: React.FC<ProposeBeerModalProps> = ({
       setVariant(vPrefill);
       setBeerType('');
       setPhotoBase64('');
+      setSelectedTaggedFriends([]);
       setErrorMessage('');
 
       const matched = (allBeersCatalog || []).find(
@@ -188,6 +197,7 @@ export const ProposeBeerModal: React.FC<ProposeBeerModalProps> = ({
       desc: desc.trim() || `Birra ${formattedBrand} (${formattedVariant})`,
       photo: photoBase64,
       isVariantProposal: !!existingBeer,
+      taggedFriends: selectedTaggedFriends,
     });
     setIsSubmitting(false);
     onClose();
@@ -419,6 +429,61 @@ export const ProposeBeerModal: React.FC<ProposeBeerModalProps> = ({
               }}
             />
           </div>
+
+          {/* Proponi in compagnia / Tagga Amici */}
+          {myFriendsList && myFriendsList.length > 0 && (
+            <div style={{ marginBottom: '16px', background: '#F8FAFC', padding: '12px', borderRadius: '16px', border: '1px solid #E2E8F0' }}>
+              <label style={{ fontSize: '12px', fontWeight: 'bold', color: 'var(--dark)', display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '4px' }}>
+                <span className="material-symbols-outlined" style={{ fontSize: '18px', color: '#D97706' }}>group</span>
+                Proponi in Compagnia (Tagga Amici)
+              </label>
+              <p style={{ fontSize: '11px', color: 'var(--text-muted)', margin: '0 0 8px 0', lineHeight: 1.3 }}>
+                Sei al pub con amici? Tagga gli amici che bevono con te: quando la proposta verrà approvata dagli admin, sia tu che loro sbloccherete la birra e riceverete i punti!
+              </p>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', maxHeight: '140px', overflowY: 'auto', paddingRight: '4px' }}>
+                {myFriendsList.map((f) => {
+                  const isSelected = selectedTaggedFriends.includes(f);
+                  const disp = (globalDisplayNames && globalDisplayNames[f]) || f;
+                  const avat = globalAvatars && globalAvatars[f];
+                  return (
+                    <div
+                      key={f}
+                      onClick={() => {
+                        setSelectedTaggedFriends((prev) =>
+                          prev.includes(f) ? prev.filter((x) => x !== f) : [...prev, f]
+                        );
+                      }}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        padding: '8px 12px',
+                        borderRadius: '12px',
+                        border: '1px solid ' + (isSelected ? '#F59E0B' : '#E2E8F0'),
+                        background: isSelected ? '#FEF3C7' : '#FFFFFF',
+                        cursor: 'pointer',
+                        transition: 'all 0.15s ease',
+                      }}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px', fontWeight: 700, fontSize: '13px', color: '#0F172A' }}>
+                        <div style={{ width: '28px', height: '28px', borderRadius: '50%', overflow: 'hidden', background: '#E2E8F0', flexShrink: 0 }}>
+                          {avat ? (
+                            <img src={avat} alt={f} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                          ) : (
+                            <span className="material-symbols-outlined" style={{ fontSize: '18px', margin: '5px', color: '#64748B' }}>person</span>
+                          )}
+                        </div>
+                        <span>{disp} <small style={{ color: '#64748B', fontWeight: 500 }}>(@{f})</small></span>
+                      </div>
+                      <span className="material-symbols-outlined" style={{ color: isSelected ? '#D97706' : '#94A3B8', fontSize: '20px' }}>
+                        {isSelected ? 'check_circle' : 'radio_button_unchecked'}
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '18px', paddingBottom: '10px' }}>
             <button

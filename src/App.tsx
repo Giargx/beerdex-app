@@ -94,6 +94,7 @@ export default function App() {
   const [globalAvatars, setGlobalAvatars] = useState<Record<string, string>>({});
   const [globalDisplayNames, setGlobalDisplayNames] = useState<Record<string, string>>({});
   const [allPokedexProfiles, setAllPokedexProfiles] = useState<Record<string, Record<string, any>>>({});
+  const [registeredUsernames, setRegisteredUsernames] = useState<Set<string>>(new Set());
 
   // Proposal & Custom Beers State
   const [customBeers, setCustomBeers] = useState<Beer[]>([]);
@@ -1038,7 +1039,65 @@ export default function App() {
     onValue(ref(db, 'pokedex_profiles'), (snap) => {
       setAllPokedexProfiles(snap.val() || {});
     });
+
+    // Registered Usernames (for orphan cleanup & active user validation)
+    onValue(ref(db, 'usernames_emails'), (snap) => {
+      if (snap.exists()) {
+        const data = snap.val() || {};
+        const setOfNicks = new Set<string>();
+        Object.keys(data).forEach((k) => setOfNicks.add(k.toLowerCase()));
+        setRegisteredUsernames(setOfNicks);
+      } else {
+        setRegisteredUsernames(new Set());
+      }
+    });
   };
+
+  // Auto-cleanup orphaned friend relationships (e.g. if a friend profile was deleted previously)
+  useEffect(() => {
+    if (!currentUserNick || registeredUsernames.size === 0) return;
+
+    if (myFriendsList.length > 0) {
+      const orphanedFriends = myFriendsList.filter((f) => !registeredUsernames.has((f || '').toLowerCase()));
+      if (orphanedFriends.length > 0) {
+        setMyFriendsList((prev) => prev.filter((f) => registeredUsernames.has((f || '').toLowerCase())));
+        orphanedFriends.forEach((orphan) => {
+          remove(ref(db, `users_friends/${currentUserNick}/${orphan}`));
+          remove(ref(db, `users_friends/${orphan}/${currentUserNick}`));
+        });
+      }
+    }
+
+    if (myReceivedRequests.length > 0) {
+      const orphanedRec = myReceivedRequests.filter((f) => !registeredUsernames.has((f || '').toLowerCase()));
+      if (orphanedRec.length > 0) {
+        setMyReceivedRequests((prev) => prev.filter((f) => registeredUsernames.has((f || '').toLowerCase())));
+        orphanedRec.forEach((orphan) => {
+          remove(ref(db, `friend_requests/${currentUserNick}/${orphan}`));
+        });
+      }
+    }
+
+    if (mySentRequests.length > 0) {
+      const orphanedSent = mySentRequests.filter((f) => !registeredUsernames.has((f || '').toLowerCase()));
+      if (orphanedSent.length > 0) {
+        setMySentRequests((prev) => prev.filter((f) => registeredUsernames.has((f || '').toLowerCase())));
+        orphanedSent.forEach((orphan) => {
+          remove(ref(db, `friend_requests_sent/${currentUserNick}/${orphan}`));
+        });
+      }
+    }
+
+    if (myRejectedRequests.length > 0) {
+      const orphanedRej = myRejectedRequests.filter((f) => !registeredUsernames.has((f || '').toLowerCase()));
+      if (orphanedRej.length > 0) {
+        setMyRejectedRequests((prev) => prev.filter((f) => registeredUsernames.has((f || '').toLowerCase())));
+        orphanedRej.forEach((orphan) => {
+          remove(ref(db, `friend_requests_rejected/${currentUserNick}/${orphan}`));
+        });
+      }
+    }
+  }, [currentUserNick, registeredUsernames, myFriendsList, myReceivedRequests, mySentRequests, myRejectedRequests]);
 
   // Score Recalculation
   const recalculateTotalScore = async (username: string) => {
@@ -1195,14 +1254,20 @@ export default function App() {
         desc: proposalData.desc || null,
         photo: proposalData.photo,
         proposedBy: currentUserNick,
+        taggedFriends: proposalData.taggedFriends || [],
         timestamp: Date.now(),
         status: 'pending',
         isVariantProposal: isVariant,
         bonusPoints: bonusPoints,
       };
       await set(newRef, proposalObj);
+
+      const inCompagniaMsg = proposalData.taggedFriends && proposalData.taggedFriends.length > 0
+        ? ` in compagnia di ${proposalData.taggedFriends.map((f) => '@' + f).join(', ')}`
+        : '';
+
       showAlert(
-        `Proposta per "${proposalData.brand} - ${proposalData.variant}" inviata agli admin! Se approvata, verrà aggiunta al catalogo, la sbloccherai subito e riceverai i punti della birra + ${bonusPoints} Punti Bonus!`,
+        `Proposta per "${proposalData.brand} - ${proposalData.variant}"${inCompagniaMsg} inviata agli admin! Se approvata, verrà aggiunta al catalogo, la sbloccherete nel Pokédex e riceverete i punti della birra + ${bonusPoints} Punti Bonus ciascuno!`,
         'Proposta Inviata!'
       );
     } catch (err: any) {
@@ -1266,21 +1331,41 @@ export default function App() {
       }
       await set(ref(db, `custom_beers/${proposal.proposalId}`), newCustomBeer);
 
-      // 2. Unlock beer for proposing user with proposalBonus
+      // 2. Determine all participants (proposer + tagged friends)
+      const rawParticipants = [proposal.proposedBy, ...(proposal.taggedFriends || [])].filter(Boolean);
+      const participants = Array.from(new Set(rawParticipants));
+      const isSharedGroup = participants.length > 1;
       const uniqueId = `${formattedBrand}-${formattedVariant}`;
-      const pokedexEntry = {
-        brand: formattedBrand,
-        variant: formattedVariant,
-        photo: proposal.photo,
-        unlockedAt: Date.now(),
-        isShiny: false,
-        isShared: false,
-        proposalBonus: bonusPoints,
-        proposalType: isVariant ? 'variant' : 'brand',
-      };
-      await set(ref(db, `pokedex_profiles/${proposal.proposedBy}/${uniqueId}`), pokedexEntry);
 
-      // 3. Post to social timeline
+      // 3. Unlock beer for all participants with proposalBonus & recalculate scores
+      for (const userNick of participants) {
+        const pokedexEntry = {
+          brand: formattedBrand,
+          variant: formattedVariant,
+          photo: proposal.photo,
+          unlockedAt: Date.now(),
+          isShiny: false,
+          isShared: isSharedGroup,
+          proposalBonus: bonusPoints,
+          proposalType: isVariant ? 'variant' : 'brand',
+        };
+        await set(ref(db, `pokedex_profiles/${userNick}/${uniqueId}`), pokedexEntry);
+        await recalculateTotalScore(userNick);
+
+        if (userNick !== proposal.proposedBy) {
+          const notifRef = push(ref(db, `user_notifications/${userNick}`));
+          await set(notifRef, {
+            title: 'Birra Approvata!',
+            message: `La birra "${formattedBrand} - ${formattedVariant}" proposta da @${proposal.proposedBy} in tua compagnia è stata approvata dagli Admin! L'hai sbloccata nel Pokédex con +${bonusPoints} Punti Bonus!`,
+            timestamp: Date.now(),
+          });
+        }
+      }
+
+      // 4. Post to social timeline for the proposal
+      const taggedFriendsList = (proposal.taggedFriends || []).filter((f) => f !== proposal.proposedBy);
+      const taggedFriendStr = taggedFriendsList.length > 0 ? taggedFriendsList.join(', ') : null;
+
       const newPostRef = push(ref(db, 'social_timeline'));
       await set(newPostRef, {
         user: proposal.proposedBy,
@@ -1289,12 +1374,13 @@ export default function App() {
         photo: proposal.photo,
         time: Date.now(),
         isShiny: false,
-        isShared: false,
+        isShared: isSharedGroup,
         proposalBonus: bonusPoints,
-        taggedFriend: null,
+        taggedFriend: taggedFriendStr,
+        taggedFriends: taggedFriendsList,
       });
 
-      // 4. Update proposal status to accepted in DB
+      // 5. Update proposal status to accepted in DB
       await update(ref(db, `beer_proposals/${proposal.proposalId}`), {
         brand: formattedBrand,
         variant: formattedVariant,
@@ -1307,11 +1393,9 @@ export default function App() {
         bonusPoints: bonusPoints,
       });
 
-      // 5. Recalculate score for proposing user
-      await recalculateTotalScore(proposal.proposedBy);
-
+      const participantText = participants.map((p) => '@' + p).join(', ');
       showAlert(
-        `Proposta "${formattedBrand} - ${formattedVariant}" ACCETTATA! Nuova birra inserita nel catalogo e punti + ${bonusPoints} Bonus accreditati a @${proposal.proposedBy}.`,
+        `Proposta "${formattedBrand} - ${formattedVariant}" ACCETTATA! Nuova birra inserita nel catalogo e sbloccata con +${bonusPoints} Punti Bonus per: ${participantText}.`,
         'Proposta Accettata!'
       );
     } catch (err: any) {
@@ -1383,8 +1467,17 @@ export default function App() {
       const updates: Record<string, any> = {};
       const targetLower = targetUsername.toLowerCase();
 
-      // 1. Rimuovi da usernames_emails
-      updates[`usernames_emails/${targetLower}`] = null;
+      // 1. Rimuovi da usernames_emails (ricerca case-insensitive)
+      const emailsSnap = await get(ref(db, 'usernames_emails'));
+      if (emailsSnap.exists()) {
+        emailsSnap.forEach((child) => {
+          if (child.key.toLowerCase() === targetLower) {
+            updates[`usernames_emails/${child.key}`] = null;
+          }
+        });
+      } else {
+        updates[`usernames_emails/${targetLower}`] = null;
+      }
 
       // 2. Rimuovi da users_directory cercando l'UID associato
       const dirSnap = await get(ref(db, 'users_directory'));
@@ -1397,28 +1490,97 @@ export default function App() {
         });
       }
 
-      // 3. Rimuovi tutti i nodi profilo e dati utente
-      updates[`users/${targetUsername}`] = null;
-      updates[`pokedex_profiles/${targetUsername}`] = null;
-      updates[`leaderboard_scores/${targetUsername}`] = null;
-      updates[`users_avatars/${targetUsername}`] = null;
-      updates[`avatars/${targetUsername}`] = null;
-      updates[`display_names/${targetUsername}`] = null;
-      updates[`privacy_settings/${targetUsername}`] = null;
-      updates[`user_privacy/${targetUsername}`] = null;
-      updates[`tag_requests/${targetUsername}`] = null;
-      updates[`users_friends/${targetUsername}`] = null;
-      updates[`user_friends/${targetUsername}`] = null;
+      // 3. Rimuovi tutti i nodi profilo e dati utente (controllo chiavi case-insensitive)
+      const topLevelUserNodes = [
+        'users',
+        'pokedex_profiles',
+        'leaderboard_scores',
+        'users_avatars',
+        'avatars',
+        'display_names',
+        'users_display_names',
+        'privacy_settings',
+        'user_privacy',
+      ];
 
-      // 4. Rimuovi l'utente dalla lista amici di tutti i suoi amici
-      const friendsSnap = await get(ref(db, `users_friends/${targetUsername}`));
-      if (friendsSnap.exists()) {
-        Object.keys(friendsSnap.val()).forEach((friendNick) => {
-          updates[`users_friends/${friendNick}/${targetUsername}`] = null;
+      for (const nodeName of topLevelUserNodes) {
+        const snap = await get(ref(db, nodeName));
+        if (snap.exists()) {
+          snap.forEach((child) => {
+            if (child.key.toLowerCase() === targetLower) {
+              updates[`${nodeName}/${child.key}`] = null;
+            }
+          });
+        }
+      }
+
+      // 4. Rimuovi le relazioni d'amicizia da TUTTI gli utenti in users_friends e user_friends
+      const friendNodes = ['users_friends', 'user_friends'];
+      for (const fNode of friendNodes) {
+        const snap = await get(ref(db, fNode));
+        if (snap.exists()) {
+          snap.forEach((userSnap) => {
+            const userKey = userSnap.key;
+            if (userKey.toLowerCase() === targetLower) {
+              // Cancella l'intero nodo dell'utente eliminato
+              updates[`${fNode}/${userKey}`] = null;
+            } else {
+              // Cancella la voce dell'utente eliminato dalla lista amici degli altri utenti
+              userSnap.forEach((friendSnap) => {
+                if (friendSnap.key.toLowerCase() === targetLower) {
+                  updates[`${fNode}/${userKey}/${friendSnap.key}`] = null;
+                }
+              });
+            }
+          });
+        }
+      }
+
+      // 5. Rimuovi richieste di amicizia (inviate, ricevute, rifiutate) da TUTTI gli utenti
+      const reqNodes = ['friend_requests', 'friend_requests_sent', 'friend_requests_rejected'];
+      for (const rNode of reqNodes) {
+        const snap = await get(ref(db, rNode));
+        if (snap.exists()) {
+          snap.forEach((userSnap) => {
+            const userKey = userSnap.key;
+            if (userKey.toLowerCase() === targetLower) {
+              updates[`${rNode}/${userKey}`] = null;
+            } else {
+              userSnap.forEach((otherSnap) => {
+                if (otherSnap.key.toLowerCase() === targetLower) {
+                  updates[`${rNode}/${userKey}/${otherSnap.key}`] = null;
+                }
+              });
+            }
+          });
+        }
+      }
+
+      // 6. Rimuovi richieste di tag in tag_requests per tutti gli utenti
+      const tagSnap = await get(ref(db, 'tag_requests'));
+      if (tagSnap.exists()) {
+        tagSnap.forEach((userSnap) => {
+          const userKey = userSnap.key;
+          if (userKey.toLowerCase() === targetLower) {
+            updates[`tag_requests/${userKey}`] = null;
+          } else {
+            userSnap.forEach((reqSnap) => {
+              const reqVal = reqSnap.val();
+              if (
+                reqVal &&
+                (
+                  (reqVal.fromUser && reqVal.fromUser.toLowerCase() === targetLower) ||
+                  (reqVal.taggedFriend && reqVal.taggedFriend.toLowerCase() === targetLower)
+                )
+              ) {
+                updates[`tag_requests/${userKey}/${reqSnap.key}`] = null;
+              }
+            });
+          }
         });
       }
 
-      // 5. Rimuovi i post dell'utente dalla social_timeline
+      // 7. Rimuovi i post dell'utente dalla social_timeline
       const timelineSnap = await get(ref(db, 'social_timeline'));
       if (timelineSnap.exists()) {
         timelineSnap.forEach((child) => {
@@ -1429,7 +1591,7 @@ export default function App() {
         });
       }
 
-      // 6. Rimuovi le storie dell'utente da pub_stories
+      // 8. Rimuovi le storie dell'utente da pub_stories
       const pubStoriesSnap = await get(ref(db, 'pub_stories'));
       if (pubStoriesSnap.exists()) {
         pubStoriesSnap.forEach((child) => {
@@ -1440,10 +1602,21 @@ export default function App() {
         });
       }
 
+      // 9. Rimuovi post segnalati dell'utente
+      const flaggedSnap = await get(ref(db, 'flagged_posts'));
+      if (flaggedSnap.exists()) {
+        flaggedSnap.forEach((child) => {
+          const f = child.val();
+          if (f && f.postUser && f.postUser.toLowerCase() === targetLower) {
+            updates[`flagged_posts/${child.key}`] = null;
+          }
+        });
+      }
+
       // Esegui la cancellazione atomica su Firebase Realtime Database
       await update(ref(db), updates);
 
-      showAlert(`Il profilo dell'utente @${targetUsername} è stato definitivamente eliminato da Firebase. Il nickname è ora libero per un nuovo account!`, 'Profilo Eliminato');
+      showAlert(`Il profilo dell'utente @${targetUsername} è stato definitivamente eliminato da Firebase. Tutte le sue relazioni di amicizia, post e dati associati sono stati rimossi.`, 'Profilo Eliminato');
 
       if (currentPage === 'page-public-profile' && pubProfileUser && pubProfileUser.toLowerCase() === targetLower) {
         navigateTo('page-home');
@@ -4206,6 +4379,9 @@ export default function App() {
         initialRarityPrefill={proposeRarityPrefill}
         initialDescPrefill={proposeDescPrefill}
         allBeersCatalog={allBeersCatalog}
+        myFriendsList={myFriendsList}
+        globalAvatars={globalAvatars}
+        globalDisplayNames={globalDisplayNames}
         onSubmitProposal={handleProposeBeerSubmit}
       />
 
