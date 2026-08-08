@@ -20,6 +20,7 @@ import { PublicProfileView } from './views/PublicProfileView';
 import { UserPostsDetailView } from './views/UserPostsDetailView';
 import { FriendsView } from './views/FriendsView';
 import { RulesView } from './views/RulesView';
+import { AdminView } from './views/AdminView';
 
 // Import Components
 import { CustomModal } from './components/CustomModal';
@@ -33,7 +34,6 @@ import { CropModal } from './components/CropModal';
 import { MapContainer } from './components/MapContainer';
 import { ProposeBeerModal } from './components/ProposeBeerModal';
 import type { BeerProposalData } from './components/ProposeBeerModal';
-import { AdminProposalsModal } from './components/AdminProposalsModal';
 import type { BeerProposalItem } from './components/AdminProposalsModal';
 import { UnlockRatingModal } from './components/UnlockRatingModal';
 import { PermissionModal, type PermissionType, type PermissionChoice } from './components/PermissionModal';
@@ -123,7 +123,6 @@ export default function App() {
     }
     setProposeModalOpen(true);
   };
-  const [adminProposalsModalOpen, setAdminProposalsModalOpen] = useState(false);
   const [adminModalTab, setAdminModalTab] = useState<'proposals' | 'flagged' | 'users' | 'feedback'>('proposals');
   const [flaggedPosts, setFlaggedPosts] = useState<Record<string, any>>({});
   const [appFeedbacks, setAppFeedbacks] = useState<Record<string, any>>({});
@@ -781,7 +780,6 @@ export default function App() {
       proposeModalOpen ||
       activeTagRequestModal !== null ||
       myTagRequests.length > 0 ||
-      adminProposalsModalOpen ||
       alertConfig.open ||
       confirmConfig.open ||
       activeStoryViewerIndex !== null ||
@@ -811,7 +809,6 @@ export default function App() {
     proposeModalOpen,
     activeTagRequestModal,
     myTagRequests.length,
-    adminProposalsModalOpen,
     alertConfig.open,
     confirmConfig.open,
     activeStoryViewerIndex,
@@ -1657,7 +1654,6 @@ export default function App() {
     // Close any active drawers, menus, or modals on view switch
     setSettingsOpen(false);
     setProposeModalOpen(false);
-    setAdminProposalsModalOpen(false);
     setZoomedAvatarUrl(null);
     setScannerConfig((prev) => ({ ...prev, open: false, isOpen: false }));
     setCaptureOpen(false);
@@ -3851,21 +3847,25 @@ export default function App() {
                     }}
                     onOpenAdminProposals={() => {
                       setAdminModalTab('proposals');
-                      setAdminProposalsModalOpen(true);
+                      setSubPageBackPage('page-profile');
+                      navigateTo('page-admin');
                     }}
                     pendingProposalsCount={(beerProposals || []).filter((p: BeerProposalItem) => p && p.status === 'pending').length}
                     onOpenAdminReports={() => {
                       setAdminModalTab('flagged');
-                      setAdminProposalsModalOpen(true);
+                      setSubPageBackPage('page-profile');
+                      navigateTo('page-admin');
                     }}
                     flaggedPostsCount={Object.keys(flaggedPosts || {}).length}
                     onOpenAdminUsers={() => {
                       setAdminModalTab('users');
-                      setAdminProposalsModalOpen(true);
+                      setSubPageBackPage('page-profile');
+                      navigateTo('page-admin');
                     }}
                     onOpenAdminFeedback={() => {
                       setAdminModalTab('feedback');
-                      setAdminProposalsModalOpen(true);
+                      setSubPageBackPage('page-profile');
+                      navigateTo('page-admin');
                     }}
                     unreadFeedbackCount={Object.values(appFeedbacks || {}).filter((f: any) => f && f.status !== 'read').length}
                     onRateBeer={handleRateBeer}
@@ -4027,6 +4027,36 @@ export default function App() {
             />
           ) : null}
         </div>
+
+        {/* Page Admin Panel */}
+        <div className={`page-view ${currentPage === 'page-admin' ? 'active' : ''}`}>
+          {currentPage === 'page-admin' ? (
+            <AdminView
+              onBack={() => navigateTo(subPageBackPage || 'page-profile')}
+              initialTab={adminModalTab}
+              proposals={beerProposals}
+              onAcceptProposal={handleAcceptProposal}
+              onRejectProposal={handleRejectProposal}
+              globalAvatars={globalAvatars}
+              globalDisplayNames={globalDisplayNames}
+              flaggedPosts={flaggedPosts}
+              onRemoveFlaggedPost={handleRemoveFlaggedPost}
+              onDismissFlaggedPost={handleDismissFlaggedPost}
+              onDeleteUserProfile={handleDeleteUserProfile}
+              onRecalculateUserScore={recalculateTotalScore}
+              onOpenPublicProfile={(uname) => {
+                setPubProfileUser(uname);
+                setPubProfileBackPage('page-admin');
+                navigateTo('page-public-profile');
+              }}
+              leaderboardScores={globalLeaderboardScores}
+              allPokedexProfiles={allPokedexProfiles}
+              feedbacks={appFeedbacks}
+              onDeleteFeedback={handleDeleteFeedback}
+              onMarkFeedbackRead={handleMarkFeedbackRead}
+            />
+          ) : null}
+        </div>
       </div>
 
       {/* FLOATING NAVIGATION CAP BAR */}
@@ -4177,33 +4207,6 @@ export default function App() {
         initialDescPrefill={proposeDescPrefill}
         allBeersCatalog={allBeersCatalog}
         onSubmitProposal={handleProposeBeerSubmit}
-      />
-
-      {/* Admin Proposals, Reports & User Management Modal */}
-      <AdminProposalsModal
-        isOpen={adminProposalsModalOpen}
-        onClose={() => setAdminProposalsModalOpen(false)}
-        proposals={beerProposals}
-        onAcceptProposal={handleAcceptProposal}
-        onRejectProposal={handleRejectProposal}
-        globalAvatars={globalAvatars}
-        globalDisplayNames={globalDisplayNames}
-        flaggedPosts={flaggedPosts}
-        onRemoveFlaggedPost={handleRemoveFlaggedPost}
-        onDismissFlaggedPost={handleDismissFlaggedPost}
-        initialTab={adminModalTab}
-        onDeleteUserProfile={handleDeleteUserProfile}
-        onRecalculateUserScore={recalculateTotalScore}
-        onOpenPublicProfile={(uname) => {
-          setPubProfileUser(uname);
-          setPubProfileBackPage('page-home');
-          navigateTo('page-public-profile');
-        }}
-        leaderboardScores={globalLeaderboardScores}
-        allPokedexProfiles={allPokedexProfiles}
-        feedbacks={appFeedbacks}
-        onDeleteFeedback={handleDeleteFeedback}
-        onMarkFeedbackRead={handleMarkFeedbackRead}
       />
 
       {/* Clash of Clans Style Live App Tutorial */}

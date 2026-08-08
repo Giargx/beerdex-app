@@ -110,6 +110,15 @@ export const StoryEditorModal: React.FC<StoryEditorModalProps> = ({
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const audioPreviewRef = useRef<HTMLAudioElement | null>(null);
   const textInputRef = useRef<HTMLTextAreaElement | null>(null);
+  const lastTapRef = useRef<number>(0);
+
+  const handleCameraTap = () => {
+    const now = Date.now();
+    if (now - lastTapRef.current < 350) {
+      setFacingMode((prev) => (prev === 'user' ? 'environment' : 'user'));
+    }
+    lastTapRef.current = now;
+  };
 
   // Initialize Live WebRTC Camera Stream
   useEffect(() => {
@@ -523,6 +532,7 @@ export const StoryEditorModal: React.FC<StoryEditorModalProps> = ({
             autoPlay
             playsInline
             muted
+            onClick={handleCameraTap}
             style={{
               width: '100%',
               height: '100%',
@@ -530,6 +540,7 @@ export const StoryEditorModal: React.FC<StoryEditorModalProps> = ({
               transform: facingMode === 'user' ? 'scaleX(-1)' : 'none',
               filter: currentFilterCss,
               transition: 'filter 0.3s ease',
+              cursor: 'pointer',
             }}
           />
         )}
@@ -1058,9 +1069,31 @@ export const StoryEditorModal: React.FC<StoryEditorModalProps> = ({
             )}
           </div>
 
-          <div style={{ width: '48px', height: '48px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'rgba(255,255,255,0.6)', fontSize: '11px', fontWeight: 800, textAlign: 'center' }}>
-            LIVE 📸
-          </div>
+          {/* Camera Flip Button in bottom-right */}
+          <button
+            onClick={() => setFacingMode((prev) => (prev === 'user' ? 'environment' : 'user'))}
+            style={{
+              width: '48px',
+              height: '48px',
+              borderRadius: '50%',
+              background: 'rgba(0, 0, 0, 0.45)',
+              backdropFilter: 'blur(10px)',
+              WebkitBackdropFilter: 'blur(10px)',
+              border: '1px solid rgba(255, 255, 255, 0.3)',
+              color: '#FFFFFF',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              cursor: 'pointer',
+              boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
+              transition: 'all 0.2s ease',
+            }}
+            title="Gira Fotocamera"
+          >
+            <span className="material-symbols-outlined" style={{ fontSize: '24px' }}>
+              flip_camera_ios
+            </span>
+          </button>
         </div>
       )}
 

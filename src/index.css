@@ -1552,3 +1552,18 @@ header.hero p {
     flex-shrink: 0 !important;
 }
 
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+.spin {
+    animation: spin 0.9s linear infinite;
+}
+
+@media (max-width: 480px) {
+    .admin-btn-label {
+        display: none;
+    }
+}
+
+
