@@ -260,8 +260,9 @@ export default function App() {
         });
       }
 
-      // 3. Move timeline posts
+      // 3. Move timeline posts & collect tagged friends to recalculate
       const timelineSnap = await get(ref(db, 'social_timeline'));
+      const taggedFriendsToRecalculate = new Set<string>();
       if (timelineSnap.exists()) {
         const tData = timelineSnap.val();
         Object.entries(tData).forEach(([postId, postVal]: [string, any]) => {
@@ -275,6 +276,12 @@ export default function App() {
             if (isPostMatch) {
               updates[`social_timeline/${postId}/brand`] = canonicalB;
               updates[`social_timeline/${postId}/variant`] = canonicalV;
+
+              const friends: string[] = [
+                ...(Array.isArray(postVal.taggedFriends) ? postVal.taggedFriends : []),
+                ...(postVal.taggedFriend ? postVal.taggedFriend.split(',').map((s: string) => s.trim()) : []),
+              ].filter(Boolean);
+              friends.forEach((f) => taggedFriendsToRecalculate.add(f));
             }
           }
         });
@@ -282,6 +289,12 @@ export default function App() {
 
       await update(ref(db), updates);
       await recalculateTotalScore(targetUsername);
+
+      for (const friendNick of taggedFriendsToRecalculate) {
+        if (friendNick.toLowerCase() !== targetUsername.toLowerCase()) {
+          await recalculateTotalScore(friendNick);
+        }
+      }
 
       showAlert(`Foto/Bevuta di @${targetUsername} spostata con successo su "${canonicalB} (${canonicalV})"! Punteggio ricalcolato.`, "Spostamento Completato");
     } catch (err: any) {
@@ -1350,6 +1363,18 @@ export default function App() {
     }
     const currentCatalog = mergeBeers(beers, currentCustomBeers);
 
+    // Fetch user's accepted tag requests if any
+    const tagReqSnap = await get(ref(db, `tag_requests/${username}`));
+    const acceptedTagRequests: any[] = [];
+    if (tagReqSnap.exists()) {
+      const trVal = tagReqSnap.val();
+      for (const rKey in trVal) {
+        if (trVal[rKey] && trVal[rKey].status === 'accepted') {
+          acceptedTagRequests.push(trVal[rKey]);
+        }
+      }
+    }
+
     // 1. Backfill pokedex_profiles from social_timeline checkins if missing
     const timelineSnap = await get(ref(db, 'social_timeline'));
     const userPosts: any[] = [];
@@ -1379,7 +1404,34 @@ export default function App() {
             validPostKeysSet.add(stripStr(uId));
             validPostKeysSet.add(`${stripStr(post.brand)}-${stripStr(post.variant)}`);
 
-            if (post.user && post.user.toLowerCase() === username.toLowerCase()) {
+            const isAuthor = post.user && post.user.toLowerCase() === username.toLowerCase();
+
+            let isAcceptedFriend = false;
+            if (!isAuthor) {
+              const postUserLower = post.user ? post.user.toLowerCase() : '';
+
+              // Check if user has an existing pokedex entry for this drink/brand/photo
+              isAcceptedFriend = Object.values(existingDex).some((entry: any) => {
+                if (!entry) return false;
+                const sameBrand = stripStr(entry.brand) === stripStr(post.brand) || stripStr(entry.brand) === stripStr(canonicalB);
+                const samePhoto = entry.photo && post.photo && entry.photo === post.photo;
+                const sameTag = entry.taggedFriend && entry.taggedFriend.toLowerCase() === postUserLower;
+                return (sameBrand && sameTag) || (samePhoto && sameTag) || (samePhoto && post.photo);
+              });
+
+              // Check if user has an accepted tag request for this post
+              if (!isAcceptedFriend && acceptedTagRequests.length > 0) {
+                isAcceptedFriend = acceptedTagRequests.some((tr: any) => {
+                  const trFrom = tr.fromUser ? tr.fromUser.toLowerCase() : '';
+                  const sameFrom = trFrom === postUserLower;
+                  const sameBrand = stripStr(tr.brand) === stripStr(post.brand) || stripStr(tr.brand) === stripStr(canonicalB);
+                  const samePhoto = tr.photo && post.photo && tr.photo === post.photo;
+                  return (sameFrom && sameBrand) || (sameFrom && samePhoto);
+                });
+              }
+            }
+
+            if (isAuthor || isAcceptedFriend) {
               const existingMatchingKey = Object.keys(existingDex).find(
                 (k) => stripStr(k) === stripStr(uId) || stripStr(k) === `${stripStr(post.brand)}-${stripStr(post.variant)}`
               );
@@ -1389,8 +1441,8 @@ export default function App() {
                 dexUpdates[targetKey] = {
                   photo: post.photo || '',
                   isShiny: post.isShiny || false,
-                  isShared: post.isShared || false,
-                  taggedFriend: post.taggedFriend || null,
+                  isShared: isAuthor ? (post.isShared || false) : true,
+                  taggedFriend: isAuthor ? (post.taggedFriend || null) : post.user,
                   brand: canonicalB,
                   variant: canonicalV,
                   timestamp: post.time || Date.now(),
