@@ -206,10 +206,12 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ isOpen, onAuthSuccess, s
         const userCredential = await createUserWithEmailAndPassword(auth, trimmedEmail, password);
         const uid = userCredential.user.uid;
         
-        await set(ref(db, `users_directory/${uid}`), trimmedNickname);
-        await set(ref(db, `users_last_nickname_change/${uid}`), Date.now());
-        await set(ref(db, `usernames_emails/${trimmedNickname.toLowerCase()}`), trimmedEmail);
-        await set(ref(db, `leaderboard_scores/${trimmedNickname}`), 0);
+        await Promise.all([
+          set(ref(db, `users_directory/${uid}`), trimmedNickname),
+          set(ref(db, `users_last_nickname_change/${uid}`), Date.now()),
+          set(ref(db, `usernames_emails/${trimmedNickname.toLowerCase()}`), trimmedEmail),
+          set(ref(db, `leaderboard_scores/${trimmedNickname}`), 0),
+        ]);
         
         onAuthSuccess("BENVENUTO! STAPPO IN CORSO...");
       } catch (err: any) {

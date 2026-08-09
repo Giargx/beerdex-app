@@ -1069,8 +1069,15 @@ export default function App() {
           const email = user.email ? user.email.toLowerCase() : '';
           setCurrentUserEmail(email);
 
-          // Fetch Nickname
-          const nickSnap = await get(ref(db, `users_directory/${user.uid}`));
+          // Fetch Nickname (with retry to avoid race condition during registration)
+          let nickSnap = await get(ref(db, `users_directory/${user.uid}`));
+          let attempts = 0;
+          while (!nickSnap.exists() && attempts < 5) {
+            await new Promise((resolve) => setTimeout(resolve, 150));
+            nickSnap = await get(ref(db, `users_directory/${user.uid}`));
+            attempts++;
+          }
+
           let nickname = '';
           if (nickSnap.exists()) {
             nickname = nickSnap.val();
