@@ -292,7 +292,7 @@ export const StoryEditorModal: React.FC<StoryEditorModalProps> = ({
     if (!customAudioUrl.trim()) return;
     const newTrack: MusicTrack = {
       id: `custom_${Date.now()}`,
-      title: customSearchQuery.trim() || 'Traccia SoundCloud / Audio 🎵',
+      title: 'Traccia SoundCloud / Audio 🎵',
       artist: 'Custom Soundtrack',
       coverUrl: 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=150&auto=format&fit=crop&q=80',
       audioUrl: customAudioUrl.trim(),
