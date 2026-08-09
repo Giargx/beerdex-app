@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { playPopSound, playClinkSound } from '../utils/audio';
+import { playPopSound } from '../utils/audio';
 
 export interface StoryFilter {
   id: string;
@@ -98,7 +98,6 @@ export const StoryEditorModal: React.FC<StoryEditorModalProps> = ({
 
   const [selectedMusic, setSelectedMusic] = useState<MusicTrack | null>(null);
   const [showMusicPicker, setShowMusicPicker] = useState<boolean>(false);
-  const [customSearchQuery, setCustomSearchQuery] = useState<string>('');
   const [customAudioUrl, setCustomAudioUrl] = useState<string>('');
 
   // Refs
