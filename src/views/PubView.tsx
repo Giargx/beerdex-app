@@ -1256,8 +1256,8 @@ export const PubView: React.FC<PubViewProps> = ({
                       return (
                         <div
                           style={{
-                            background: '#FFFDF5',
-                            border: '1px solid rgba(245, 158, 11, 0.25)',
+                            background: '#FFF8ED',
+                            border: '1px solid #FDE68A',
                             borderRadius: '16px',
                             padding: '12px 14px',
                             marginTop: '4px',
@@ -1269,7 +1269,7 @@ export const PubView: React.FC<PubViewProps> = ({
                               <span>{formatBeerTitle(post.brand)}</span>
                               <span style={{ fontSize: '13px', fontWeight: 600, color: '#64748B' }}>({formatBeerTitle(post.variant)})</span>
 
-                              {/* Brindisi count next to the beer, no arrow dropdown, clicking number opens likers sheet */}
+                              {/* Brindisi count next to the beer, high-contrast white text on gold badge */}
                               <span
                                 onClick={(e) => {
                                   e.stopPropagation();
@@ -1277,24 +1277,24 @@ export const PubView: React.FC<PubViewProps> = ({
                                 }}
                                 style={{
                                   cursor: 'pointer',
-                                  background: 'linear-gradient(135deg, #FEF3C7 0%, #FDE68A 100%)',
-                                  color: '#D97706',
-                                  border: '1px solid #FCD34D',
+                                  background: 'linear-gradient(135deg, #F59E0B 0%, #D97706 100%)',
+                                  color: '#FFFFFF',
+                                  border: 'none',
                                   borderRadius: '12px',
-                                  padding: '2px 8px',
-                                  fontSize: '12px',
-                                  fontWeight: 800,
+                                  padding: '3px 9px',
+                                  fontSize: '11px',
+                                  fontWeight: 900,
                                   display: 'inline-flex',
                                   alignItems: 'center',
                                   gap: '4px',
                                   marginLeft: '4px',
-                                  boxShadow: '0 1px 4px rgba(245, 158, 11, 0.2)',
+                                  boxShadow: '0 2px 6px rgba(245, 158, 11, 0.35)',
                                   userSelect: 'none',
                                   WebkitTapHighlightColor: 'rgba(245, 158, 11, 0.3)',
                                 }}
                                 title="Vedi chi ha brindato"
                               >
-                                <span className="material-symbols-outlined" style={{ fontSize: '14px', color: '#D97706' }}>
+                                <span className="material-symbols-outlined" style={{ fontSize: '13px', color: '#FFFFFF' }}>
                                   sports_bar
                                 </span>
                                 <span>{likesCount === 1 ? '1 brindisi' : `${likesCount} brindisi`}</span>
