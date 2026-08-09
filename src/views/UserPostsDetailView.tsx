@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { StarRating } from '../components/StarRating';
 import { formatBeerTitle, getBasePoints, getUniqueParticipantPosts } from '../beers';
-import { BrindisiSummary } from '../components/BrindisiSummary';
 import { ReportPostModal } from '../components/ReportPostModal';
 import { LikersBottomSheetModal } from '../components/LikersBottomSheetModal';
 

@@ -275,7 +275,6 @@ export const PublicProfileView: React.FC<PublicProfileViewProps> = ({
           {(() => {
             const cleanNick = (username || '').split('@')[0];
             const rawDisp = displayName && !displayName.includes('@') ? displayName : cleanNick;
-            const hasDistinctDisplayName = Boolean(displayName && !displayName.includes('@') && displayName.toLowerCase().trim() !== cleanNick.toLowerCase());
 
             return (
               <>
@@ -294,7 +293,6 @@ export const PublicProfileView: React.FC<PublicProfileViewProps> = ({
         {(() => {
           const cleanNick = (username || '').split('@')[0];
           const rawDisp = displayName && !displayName.includes('@') ? displayName : cleanNick;
-          const hasDistinctDisplayName = Boolean(displayName && !displayName.includes('@') && displayName.toLowerCase().trim() !== cleanNick.toLowerCase());
 
           return (
             <>

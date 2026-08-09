@@ -4,7 +4,6 @@ import { db } from '../firebase';
 import { FoamBubbles } from '../components/FoamBubbles';
 import { getBasePoints, formatBeerTitle } from '../beers';
 import { StarRating } from '../components/StarRating';
-import { BrindisiSummary } from '../components/BrindisiSummary';
 import { ReportPostModal } from '../components/ReportPostModal';
 import type { PokedexEntry } from '../components/TrophyGrid';
 import { getSeenStories, isUserStoryUnseen } from '../utils/stories';
