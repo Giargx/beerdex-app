@@ -756,22 +756,16 @@ export default function App() {
     setDragOffset(0);
   };
 
-  // iOS-style Interactive Edge Swipe Back with underlying page peek
+  // iOS-style Edge Swipe Back for subpages & settings drawer
   const edgeStartX = useRef<number>(0);
   const edgeStartY = useRef<number>(0);
   const isEdgeSwiping = useRef<boolean>(false);
-  const [edgeSwipeOffset, setEdgeSwipeOffset] = useState<number>(0);
-  const [isEdgeDragging, setIsEdgeDragging] = useState<boolean>(false);
 
   useEffect(() => {
     const mainTabs = ['page-home', 'page-explore', 'page-leaderboard', 'page-social', 'page-profile'];
     const isSubPage = !mainTabs.includes(currentPage) || settingsOpen;
 
-    if (!isSubPage) {
-      setEdgeSwipeOffset(0);
-      setIsEdgeDragging(false);
-      return;
-    }
+    if (!isSubPage) return;
 
     const handleTouchStart = (e: TouchEvent) => {
       if (e.touches[0].clientX <= 45) {
@@ -792,10 +786,8 @@ export default function App() {
       const diffX = currentX - edgeStartX.current;
       const diffY = currentY - edgeStartY.current;
 
-      if (diffX > 8 && diffX > Math.abs(diffY)) {
+      if (diffX > 10 && diffX > Math.abs(diffY)) {
         isEdgeSwiping.current = true;
-        setIsEdgeDragging(true);
-        setEdgeSwipeOffset(Math.max(0, diffX));
       }
     };
 
@@ -804,33 +796,23 @@ export default function App() {
       const currentX = e.changedTouches[0].clientX;
       const diffX = currentX - edgeStartX.current;
 
-      if (isEdgeSwiping.current && diffX > 80) {
-        // Complete swipe animation off screen
-        setEdgeSwipeOffset(window.innerWidth || 375);
-        setTimeout(() => {
-          if (settingsOpen) {
-            setSettingsOpen(false);
-          } else if (currentPage === 'page-public-profile') {
-            navigateTo(pubProfileBackPage || 'page-leaderboard');
-          } else if (currentPage === 'page-user-posts-detail') {
-            navigateTo(detailViewBackPage || 'page-profile');
-          } else if (currentPage === 'page-map-view') {
-            navigateTo(subPageBackPage || 'page-home');
-          } else if (currentPage === 'page-friends') {
-            navigateTo(subPageBackPage || 'page-home');
-          } else if (currentPage === 'page-rules') {
-            navigateTo(subPageBackPage || 'page-home');
-          } else if (currentPage === 'page-admin') {
-            const backTarget = (subPageBackPage && subPageBackPage !== 'page-admin' && subPageBackPage !== 'page-public-profile') ? subPageBackPage : 'page-profile';
-            navigateTo(backTarget);
-          }
-          setEdgeSwipeOffset(0);
-          setIsEdgeDragging(false);
-        }, 160);
-      } else {
-        // Snap back to zero
-        setEdgeSwipeOffset(0);
-        setIsEdgeDragging(false);
+      if (isEdgeSwiping.current && diffX > 35) {
+        if (settingsOpen) {
+          setSettingsOpen(false);
+        } else if (currentPage === 'page-public-profile') {
+          navigateTo(pubProfileBackPage || 'page-leaderboard');
+        } else if (currentPage === 'page-user-posts-detail') {
+          navigateTo(detailViewBackPage || 'page-profile');
+        } else if (currentPage === 'page-map-view') {
+          navigateTo(subPageBackPage || 'page-home');
+        } else if (currentPage === 'page-friends') {
+          navigateTo(subPageBackPage || 'page-home');
+        } else if (currentPage === 'page-rules') {
+          navigateTo(subPageBackPage || 'page-home');
+        } else if (currentPage === 'page-admin') {
+          const backTarget = (subPageBackPage && subPageBackPage !== 'page-admin' && subPageBackPage !== 'page-public-profile') ? subPageBackPage : 'page-profile';
+          navigateTo(backTarget);
+        }
       }
 
       edgeStartX.current = 0;
@@ -848,33 +830,6 @@ export default function App() {
       document.removeEventListener('touchend', handleTouchEnd);
     };
   }, [currentPage, settingsOpen, pubProfileBackPage, detailViewBackPage, subPageBackPage]);
-
-  const getSubpageStyle = (pageName: string): React.CSSProperties | undefined => {
-    if (edgeSwipeOffset > 0 && currentPage === pageName) {
-      return {
-        transform: `translateX(${edgeSwipeOffset}px)`,
-        transition: isEdgeDragging ? 'none' : 'transform 0.16s cubic-bezier(0.16, 1, 0.3, 1)',
-        boxShadow: '-12px 0 36px rgba(15, 23, 42, 0.25)',
-        position: 'relative',
-        zIndex: 100,
-        background: '#FFFFFF',
-        minHeight: '100vh',
-      };
-    }
-    return undefined;
-  };
-
-  const getMainContentStyle = (): React.CSSProperties | undefined => {
-    if (edgeSwipeOffset > 0) {
-      const progress = Math.min(1, edgeSwipeOffset / (window.innerWidth || 375));
-      return {
-        transform: `translateX(${-30 + progress * 30}px)`,
-        opacity: 0.8 + progress * 0.2,
-        transition: isEdgeDragging ? 'none' : 'all 0.16s ease-out',
-      };
-    }
-    return undefined;
-  };
 
   // Tag Requests (Sblocco in Compagnia) State & Listeners
   const [myTagRequests, setMyTagRequests] = useState<TagRequestItem[]>([]);
@@ -4261,7 +4216,7 @@ export default function App() {
       )}
 
       {/* MAIN CONTAINER CONTENT VIEW */}
-      <div className="main-content" style={getMainContentStyle()}>
+      <div className="main-content">
         {/* Main 5 Tabs Horizontal Slider */}
         <div className={`page-view ${isMainTab ? 'active' : ''}`}>
           <div className="main-tabs-wrapper">
@@ -4442,7 +4397,7 @@ export default function App() {
         </div>
 
         {/* Page Public Profile */}
-        <div className={`page-view ${currentPage === 'page-public-profile' ? 'active' : ''}`} style={getSubpageStyle('page-public-profile')}>
+        <div className={`page-view ${currentPage === 'page-public-profile' ? 'active' : ''}`}>
           {currentPage === 'page-public-profile' ? (
             <PublicProfileView
               username={pubProfileUser}
@@ -4487,7 +4442,7 @@ export default function App() {
         </div>
 
         {/* Page Map */}
-        <div className={`page-view ${currentPage === 'page-map-view' ? 'active' : ''}`} style={getSubpageStyle('page-map-view')}>
+        <div className={`page-view ${currentPage === 'page-map-view' ? 'active' : ''}`}>
           {currentPage === 'page-map-view' && (
             <div id="page-map-view">
               <header className="hero" style={{ position: 'relative' }}>
@@ -4531,7 +4486,7 @@ export default function App() {
         </div>
 
         {/* Page Friends Manager */}
-        <div className={`page-view ${currentPage === 'page-friends' ? 'active' : ''}`} style={getSubpageStyle('page-friends')}>
+        <div className={`page-view ${currentPage === 'page-friends' ? 'active' : ''}`}>
           {currentPage === 'page-friends' ? (
             <FriendsView
               myFriendsList={myFriendsList}
@@ -4552,12 +4507,12 @@ export default function App() {
         </div>
 
         {/* Page Rules */}
-        <div className={`page-view ${currentPage === 'page-rules' ? 'active' : ''}`} style={getSubpageStyle('page-rules')}>
+        <div className={`page-view ${currentPage === 'page-rules' ? 'active' : ''}`}>
           {currentPage === 'page-rules' ? <RulesView onBack={() => navigateTo(subPageBackPage || 'page-home')} /> : null}
         </div>
 
         {/* Page User Posts Detail */}
-        <div className={`page-view ${currentPage === 'page-user-posts-detail' ? 'active' : ''}`} style={getSubpageStyle('page-user-posts-detail')}>
+        <div className={`page-view ${currentPage === 'page-user-posts-detail' ? 'active' : ''}`}>
           {currentPage === 'page-user-posts-detail' ? (
             <UserPostsDetailView
               username={detailViewUser}
@@ -4587,7 +4542,7 @@ export default function App() {
         </div>
 
         {/* Page Admin Panel */}
-        <div className={`page-view ${currentPage === 'page-admin' ? 'active' : ''}`} style={getSubpageStyle('page-admin')}>
+        <div className={`page-view ${currentPage === 'page-admin' ? 'active' : ''}`}>
           {currentPage === 'page-admin' ? (
             <AdminView
               onBack={() => {

@@ -319,7 +319,6 @@ export const StoryEditorModal: React.FC<StoryEditorModalProps> = ({
     if (audioPreviewRef.current) {
       audioPreviewRef.current.pause();
     }
-    playClinkSound();
     onPublishStory({
       mediaUrl: capturedMediaUrl,
       isVideo,
@@ -806,16 +805,21 @@ export const StoryEditorModal: React.FC<StoryEditorModalProps> = ({
         <div
           style={{
             position: 'absolute',
-            bottom: '120px',
+            bottom: 0,
             left: 0,
             right: 0,
             zIndex: 150,
             display: 'flex',
             gap: '12px',
             overflowX: 'auto',
-            padding: '12px 20px',
+            padding: '16px 20px calc(16px + env(safe-area-inset-bottom, 16px)) 20px',
             touchAction: 'pan-x',
-            background: 'linear-gradient(0deg, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0) 100%)',
+            background: 'rgba(15, 23, 42, 0.95)',
+            backdropFilter: 'blur(16px)',
+            WebkitBackdropFilter: 'blur(16px)',
+            borderTop: '1px solid rgba(255,255,255,0.15)',
+            boxShadow: '0 -8px 30px rgba(0,0,0,0.6)',
+            WebkitOverflowScrolling: 'touch',
           }}
         >
           {INSTA_FILTERS.map((f) => {
@@ -898,40 +902,24 @@ export const StoryEditorModal: React.FC<StoryEditorModalProps> = ({
                 <img src={track.coverUrl} alt={track.title} style={{ width: '44px', height: '44px', borderRadius: '12px', objectFit: 'cover' }} />
                 <div style={{ flex: 1 }}>
                   <div style={{ color: '#FFFFFF', fontSize: '14px', fontWeight: 800 }}>{track.title}</div>
-                  <div style={{ color: '#94A3B8', fontSize: '12px', fontWeight: 500 }}>{track.artist}</div>
+                  <div style={{ color: '#94A3B8', fontSize: '12px' }}>{track.artist}</div>
                 </div>
-                <span className="material-symbols-outlined" style={{ color: '#FDE047', fontSize: '24px' }}>play_circle</span>
+                {selectedMusic?.id === track.id && (
+                  <span className="material-symbols-outlined" style={{ color: '#F59E0B' }}>check_circle</span>
+                )}
               </div>
             ))}
           </div>
 
-          {/* Custom SoundCloud / Audio Link Input */}
+          {/* Custom Audio URL Input */}
           <div style={{ borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: '14px' }}>
-            <div style={{ color: '#94A3B8', fontSize: '12px', fontWeight: 700, marginBottom: '8px', textTransform: 'uppercase' }}>
-              🔗 Inserisci Link Audio SoundCloud / MP3 Personalizzato
+            <div style={{ color: '#94A3B8', fontSize: '12px', fontWeight: 700, marginBottom: '8px' }}>
+              Oppure incolla il link audio (.mp3):
             </div>
-            <input
-              type="text"
-              placeholder="Nome brano / artista..."
-              value={customSearchQuery}
-              onChange={(e) => setCustomSearchQuery(e.target.value)}
-              style={{
-                width: '100%',
-                padding: '10px 14px',
-                borderRadius: '12px',
-                border: '1px solid rgba(255,255,255,0.2)',
-                background: 'rgba(0,0,0,0.4)',
-                color: '#FFF',
-                fontSize: '13px',
-                outline: 'none',
-                marginBottom: '8px',
-                boxSizing: 'border-box',
-              }}
-            />
             <div style={{ display: 'flex', gap: '8px' }}>
               <input
                 type="text"
-                placeholder="https://... (URL file Audio/SoundCloud MP3)"
+                placeholder="https://.../music.mp3"
                 value={customAudioUrl}
                 onChange={(e) => setCustomAudioUrl(e.target.value)}
                 style={{
@@ -1106,13 +1094,13 @@ export const StoryEditorModal: React.FC<StoryEditorModalProps> = ({
         </div>
       )}
 
-      {/* 5. TASTO PUBBLICA ICONA IN BASSO A DESTRA (Solo se c'è foto/video) */}
+      {/* 5. TASTO PUBBLICA ICONA IN BASSO A DESTRA (Posizionato più in alto per essere ergonomico) */}
       {capturedMediaUrl && !showTextInput && (
         <button
           onClick={handlePublish}
           style={{
             position: 'absolute',
-            bottom: 'calc(env(safe-area-inset-bottom, 28px) + 28px)',
+            bottom: showFiltersPicker ? 'calc(env(safe-area-inset-bottom, 20px) + 95px)' : 'calc(env(safe-area-inset-bottom, 24px) + 85px)',
             right: '20px',
             width: '58px',
             height: '58px',
@@ -1125,8 +1113,8 @@ export const StoryEditorModal: React.FC<StoryEditorModalProps> = ({
             justifyContent: 'center',
             boxShadow: '0 8px 24px rgba(16, 185, 129, 0.65)',
             cursor: 'pointer',
-            zIndex: 180,
-            transition: 'transform 0.15s ease',
+            zIndex: 200,
+            transition: 'all 0.2s ease',
           }}
           title="Pubblica Storia"
         >
