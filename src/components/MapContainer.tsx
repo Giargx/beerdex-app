@@ -31,6 +31,8 @@ export const MapContainer: React.FC<MapContainerProps> = ({
   const userMarkerRef = useRef<L.Marker | null>(null);
   const accuracyCircleRef = useRef<L.Circle | null>(null);
 
+  const currentCoordsRef = useRef<[number, number] | null>(null);
+
   useEffect(() => {
     if (!mapRef.current) return;
 
@@ -64,6 +66,7 @@ export const MapContainer: React.FC<MapContainerProps> = ({
 
       // Automatic High-Precision GPS Lock with Real-Time Accuracy Refinement
       if (navigator.geolocation) {
+        let isFirstFix = true;
         let bestAccuracy = Infinity;
 
         const watchId = navigator.geolocation.watchPosition(
@@ -71,43 +74,44 @@ export const MapContainer: React.FC<MapContainerProps> = ({
             const lat = pos.coords.latitude;
             const lng = pos.coords.longitude;
             const accuracy = pos.coords.accuracy || 0;
+            currentCoordsRef.current = [lat, lng];
 
             if (mapInstance.current) {
-              // Always refine view when better accuracy is acquired
-              if (accuracy < bestAccuracy || bestAccuracy === Infinity) {
+              // Center map on first fix or when significantly better accuracy is acquired
+              if (isFirstFix || (accuracy < bestAccuracy && accuracy <= 100)) {
+                isFirstFix = false;
                 bestAccuracy = accuracy;
-
                 mapInstance.current.setView([lat, lng], 16);
+              }
 
-                // Update Accuracy Circle
-                if (accuracyCircleRef.current) {
-                  accuracyCircleRef.current.setLatLng([lat, lng]);
-                  accuracyCircleRef.current.setRadius(Math.min(accuracy, 250));
-                } else {
-                  accuracyCircleRef.current = L.circle([lat, lng], {
-                    radius: Math.min(accuracy, 250),
-                    color: '#4285F4',
-                    fillColor: '#4285F4',
-                    fillOpacity: 0.12,
-                    weight: 1,
-                  }).addTo(mapInstance.current);
-                }
+              // Google Maps Blue Location Pin - ALWAYS update position
+              const userIcon = L.divIcon({
+                html: '<div style="background:#4285F4; width:18px; height:18px; border-radius:50%; border:3px solid #FFFFFF; box-shadow:0 0 10px rgba(66,133,244,0.8);"></div>',
+                className: 'user-loc-icon',
+                iconSize: [24, 24],
+                iconAnchor: [12, 12],
+              });
 
-                // Google Maps Blue Location Pin
-                const userIcon = L.divIcon({
-                  html: '<div style="background:#4285F4; width:18px; height:18px; border-radius:50%; border:3px solid #FFFFFF; box-shadow:0 0 10px rgba(66,133,244,0.8);"></div>',
-                  className: 'user-loc-icon',
-                  iconSize: [24, 24],
-                  iconAnchor: [12, 12],
-                });
+              if (userMarkerRef.current) {
+                userMarkerRef.current.setLatLng([lat, lng]);
+              } else {
+                userMarkerRef.current = L.marker([lat, lng], { icon: userIcon })
+                  .addTo(mapInstance.current)
+                  .bindPopup("<b style='font-family:inherit;'>📍 La tua Posizione (Google Maps)</b>");
+              }
 
-                if (userMarkerRef.current) {
-                  userMarkerRef.current.setLatLng([lat, lng]);
-                } else {
-                  userMarkerRef.current = L.marker([lat, lng], { icon: userIcon })
-                    .addTo(mapInstance.current)
-                    .bindPopup("<b style='font-family:inherit;'>📍 La tua Posizione (Google Maps)</b>");
-                }
+              // ALWAYS update Accuracy Circle
+              if (accuracyCircleRef.current) {
+                accuracyCircleRef.current.setLatLng([lat, lng]);
+                accuracyCircleRef.current.setRadius(Math.min(accuracy, 250));
+              } else {
+                accuracyCircleRef.current = L.circle([lat, lng], {
+                  radius: Math.min(accuracy, 250),
+                  color: '#4285F4',
+                  fillColor: '#4285F4',
+                  fillOpacity: 0.12,
+                  weight: 1,
+                }).addTo(mapInstance.current);
               }
             }
           },
@@ -181,5 +185,51 @@ export const MapContainer: React.FC<MapContainerProps> = ({
     }
   }, [isActive, posts, currentUserNick]);
 
-  return <div ref={mapRef} id="mapContainer" style={{ width: '100%', height: '100%' }}></div>;
+  const handleRecenter = () => {
+    if (currentCoordsRef.current && mapInstance.current) {
+      mapInstance.current.setView(currentCoordsRef.current, 16);
+    } else if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          const lat = pos.coords.latitude;
+          const lng = pos.coords.longitude;
+          currentCoordsRef.current = [lat, lng];
+          if (mapInstance.current) {
+            mapInstance.current.setView([lat, lng], 16);
+          }
+        },
+        (err) => console.error("Error getting location:", err),
+        { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+      );
+    }
+  };
+
+  return (
+    <div style={{ position: 'relative', width: '100%', height: '100%' }}>
+      <div ref={mapRef} id="mapContainer" style={{ width: '100%', height: '100%' }}></div>
+      <button
+        onClick={handleRecenter}
+        style={{
+          position: 'absolute',
+          bottom: '24px',
+          right: '16px',
+          zIndex: 1000,
+          backgroundColor: '#FFFFFF',
+          color: '#4285F4',
+          border: 'none',
+          borderRadius: '50%',
+          width: '48px',
+          height: '48px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          boxShadow: '0 3px 10px rgba(0,0,0,0.25)',
+          cursor: 'pointer',
+        }}
+        title="Ricentra sulla mia posizione"
+      >
+        <span className="material-symbols-outlined" style={{ fontSize: '24px' }}>my_location</span>
+      </button>
+    </div>
+  );
 };
