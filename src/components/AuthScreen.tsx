@@ -270,7 +270,6 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ isOpen, onAuthSuccess, s
               height: 'auto',
               maxHeight: '120px',
               objectFit: 'contain',
-              filter: 'drop-shadow(0 4px 12px rgba(0, 0, 0, 0.15))',
             }}
           />
         </div>

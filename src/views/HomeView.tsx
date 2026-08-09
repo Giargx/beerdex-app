@@ -1053,7 +1053,11 @@ export const HomeView: React.FC<HomeViewProps> = ({
               }}
             >
               {recentCommunityPosts.map((p) => {
-                const isCheered = cheeredPosts[p.postId];
+                const userLower = (currentUserNick || '').toLowerCase();
+                const isCheered = Boolean(
+                  cheeredPosts[p.postId] ||
+                  (p.likes && (p.likes[currentUserNick] || p.likes[userLower]))
+                );
                 const timeAgo = formatRelativeTime(p.time);
                 return (
                   <div key={p.postId} style={{
