@@ -1444,6 +1444,16 @@ export default function App() {
               );
               const targetKey = existingMatchingKey || uId;
 
+              // Extract rating from existingDex or post.ratings/post.rating
+              const existingRating =
+                existingDex[targetKey]?.rating ||
+                (existingMatchingKey ? existingDex[existingMatchingKey]?.rating : undefined) ||
+                (Object.values(existingDex).find(
+                  (e: any) => e && (stripStr(e.brand) === stripStr(post.brand) || (e.photo && post.photo && e.photo === post.photo)) && e.rating > 0
+                ) as any)?.rating ||
+                post.ratings?.[username] ||
+                (isAuthor ? post.rating : undefined);
+
               if (!existingDex[targetKey] && !dexUpdates[targetKey]) {
                 dexUpdates[targetKey] = {
                   photo: post.photo || '',
@@ -1453,7 +1463,12 @@ export default function App() {
                   brand: canonicalB,
                   variant: canonicalV,
                   timestamp: post.time || Date.now(),
+                  ...(existingRating ? { rating: existingRating } : {}),
                 };
+                needsDexUpdate = true;
+              } else if (existingDex[targetKey] && existingRating && !existingDex[targetKey].rating) {
+                // Restore missing rating to pokedex profile entry!
+                dexUpdates[`${targetKey}/rating`] = existingRating;
                 needsDexUpdate = true;
               }
             }
@@ -3113,31 +3128,56 @@ export default function App() {
   const handleRateBeer = async (brand: string, variant: string, rating: number) => {
     if (!currentUserNick) return;
     try {
-      const uniqueId = `${brand}-${variant}`;
-      await update(ref(db, `pokedex_profiles/${currentUserNick}/${uniqueId}`), { rating });
+      const canonicalB = formatBeerTitle(brand);
+      const canonicalV = formatBeerTitle(variant);
+      const uniqueId = `${canonicalB}-${canonicalV}`;
+      const normBrand = stripStr(brand);
+      const normVariant = stripStr(variant);
+
+      const pokedexSnap = await get(ref(db, `pokedex_profiles/${currentUserNick}`));
+      const updatesObj: Record<string, any> = {};
+
+      updatesObj[`pokedex_profiles/${currentUserNick}/${uniqueId}/rating`] = rating;
+
+      if (pokedexSnap.exists()) {
+        const pData = pokedexSnap.val();
+        Object.keys(pData).forEach((pKey) => {
+          const entry = pData[pKey];
+          if (entry) {
+            const eBrand = stripStr(entry.brand || (pKey.includes('-') ? pKey.split('-')[0] : pKey));
+            const eVariant = stripStr(entry.variant || (pKey.includes('-') ? pKey.split('-').slice(1).join('-') : 'Classica'));
+            if ((eBrand === normBrand && eVariant === normVariant) || pKey === `${brand}-${variant}`) {
+              updatesObj[`pokedex_profiles/${currentUserNick}/${pKey}/rating`] = rating;
+            }
+          }
+        });
+      }
 
       const postsSnap = await get(ref(db, 'social_timeline'));
       if (postsSnap.exists()) {
         const postsData = postsSnap.val();
-        const updatesObj: Record<string, any> = {};
         Object.entries(postsData).forEach(([postId, p]: [string, any]) => {
-          if (p && p.brand === brand && p.variant === variant) {
-            const isParticipant =
-              p.user === currentUserNick ||
-              (Array.isArray(p.taggedFriends) && p.taggedFriends.includes(currentUserNick)) ||
-              (typeof p.taggedFriend === 'string' && p.taggedFriend.includes(currentUserNick));
+          if (p) {
+            const pBrand = stripStr(p.brand);
+            const pVariant = stripStr(p.variant);
+            const isMatch = (pBrand === normBrand && pVariant === normVariant) || (p.brand === brand && p.variant === variant);
 
-            if (isParticipant) {
-              updatesObj[`social_timeline/${postId}/ratings/${currentUserNick}`] = rating;
-              if (p.user === currentUserNick) {
-                updatesObj[`social_timeline/${postId}/rating`] = rating;
+            if (isMatch) {
+              const isParticipant = isUserParticipantInPost(p, currentUserNick);
+
+              if (isParticipant) {
+                updatesObj[`social_timeline/${postId}/ratings/${currentUserNick}`] = rating;
+                if (p.user && p.user.toLowerCase() === currentUserNick.toLowerCase()) {
+                  updatesObj[`social_timeline/${postId}/rating`] = rating;
+                }
               }
             }
           }
         });
-        if (Object.keys(updatesObj).length > 0) {
-          await update(ref(db), updatesObj);
-        }
+      }
+
+      if (Object.keys(updatesObj).length > 0) {
+        await update(ref(db), updatesObj);
       }
     } catch (err) {
       console.error("Error rating beer:", err);
