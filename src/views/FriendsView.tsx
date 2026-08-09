@@ -17,6 +17,15 @@ interface FriendsViewProps {
   onBack?: () => void;
 }
 
+const cleanUsername = (str?: string): string => {
+  if (!str) return '';
+  const trimmed = str.trim();
+  if (trimmed.includes('@')) {
+    return trimmed.split('@')[0];
+  }
+  return trimmed;
+};
+
 export const FriendsView: React.FC<FriendsViewProps> = ({
   myFriendsList = [],
   myReceivedRequests = [],
@@ -39,8 +48,8 @@ export const FriendsView: React.FC<FriendsViewProps> = ({
     if (!searchQuery.trim()) return list;
     const q = searchQuery.toLowerCase().trim();
     return list.filter((user) => {
-      const name = (globalDisplayNames[user] || '').toLowerCase();
-      const nick = user.toLowerCase();
+      const name = (cleanUsername(globalDisplayNames[user]) || '').toLowerCase();
+      const nick = cleanUsername(user).toLowerCase();
       return name.includes(q) || nick.includes(q);
     });
   };
@@ -251,7 +260,9 @@ export const FriendsView: React.FC<FriendsViewProps> = ({
               ) : (
                 filterList(myReceivedRequests).map((sender) => {
                   const av = globalAvatars[sender];
-                  const disp = globalDisplayNames[sender] || sender;
+                  const rawDisp = globalDisplayNames[sender] || sender;
+                  const disp = cleanUsername(rawDisp);
+                  const cleanNick = cleanUsername(sender);
                   return (
                     <div
                       key={sender}
@@ -295,7 +306,7 @@ export const FriendsView: React.FC<FriendsViewProps> = ({
                             }}
                           >
                             {av ? (
-                              <img src={av} alt={sender} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                              <img src={av} alt={cleanNick} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                             ) : (
                               <span className="material-symbols-outlined" style={{ fontSize: '24px', color: '#64748B' }}>
                                 person
@@ -306,7 +317,7 @@ export const FriendsView: React.FC<FriendsViewProps> = ({
 
                         <div style={{ overflow: 'hidden' }}>
                           <div style={{ fontSize: '14px', fontWeight: 800, color: '#0F172A', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{disp}</div>
-                          <div style={{ fontSize: '11px', color: '#64748B', fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>@{sender}</div>
+                          <div style={{ fontSize: '11px', color: '#64748B', fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>@{cleanNick}</div>
                         </div>
                       </div>
 

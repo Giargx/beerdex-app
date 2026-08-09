@@ -272,43 +272,61 @@ export const PublicProfileView: React.FC<PublicProfileViewProps> = ({
             zIndex: 2,
           }}
         >
-          {avatar ? (
-            <img src={avatar} alt={username} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-          ) : (
-            <span style={{ fontSize: '32px', fontWeight: 900, color: 'var(--primary-dark)', textTransform: 'uppercase' }}>
-              {(displayName || username).charAt(0).toUpperCase()}
-            </span>
-          )}
+          {(() => {
+            const cleanNick = (username || '').split('@')[0];
+            const rawDisp = displayName && !displayName.includes('@') ? displayName : cleanNick;
+            const hasDistinctDisplayName = Boolean(displayName && !displayName.includes('@') && displayName.toLowerCase().trim() !== cleanNick.toLowerCase());
+
+            return (
+              <>
+                {avatar ? (
+                  <img src={avatar} alt={cleanNick} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                ) : (
+                  <span style={{ fontSize: '32px', fontWeight: 900, color: 'var(--primary-dark)', textTransform: 'uppercase' }}>
+                    {rawDisp.charAt(0).toUpperCase()}
+                  </span>
+                )}
+              </>
+            );
+          })()}
         </div>
         
-        <h1 id="pubProfileName" style={{ margin: '5px 0', position: 'relative', zIndex: 2, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
-          <span>{displayName ? displayName : username}</span>
-          {['gargo', 'forne02', 'aviatore'].includes((username || '').toLowerCase()) && (
-            <span
-              style={{
-                background: 'linear-gradient(135deg, #EF4444 0%, #B91C1C 100%)',
-                color: 'white',
-                fontSize: '11px',
-                fontWeight: 900,
-                padding: '3px 8px',
-                borderRadius: '8px',
-                letterSpacing: '0.5px',
-                boxShadow: '0 2px 6px rgba(239, 68, 68, 0.4)',
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '4px'
-              }}
-            >
-              <span className="material-symbols-outlined" style={{ fontSize: '13px' }}>admin_panel_settings</span>
-              ADMIN
-            </span>
-          )}
-        </h1>
-        {displayName && (
-          <div style={{ fontSize: '14px', color: 'var(--text-muted)', fontWeight: '500', marginBottom: '5px', position: 'relative', zIndex: 2 }}>
-            @{username}
-          </div>
-        )}
+        {(() => {
+          const cleanNick = (username || '').split('@')[0];
+          const rawDisp = displayName && !displayName.includes('@') ? displayName : cleanNick;
+          const hasDistinctDisplayName = Boolean(displayName && !displayName.includes('@') && displayName.toLowerCase().trim() !== cleanNick.toLowerCase());
+
+          return (
+            <>
+              <h1 id="pubProfileName" style={{ margin: '5px 0', position: 'relative', zIndex: 2, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+                <span>{rawDisp}</span>
+                {['gargo', 'forne02', 'aviatore'].includes((username || '').toLowerCase()) && (
+                  <span
+                    style={{
+                      background: 'linear-gradient(135deg, #EF4444 0%, #B91C1C 100%)',
+                      color: 'white',
+                      fontSize: '11px',
+                      fontWeight: 900,
+                      padding: '3px 8px',
+                      borderRadius: '8px',
+                      letterSpacing: '0.5px',
+                      boxShadow: '0 2px 6px rgba(239, 68, 68, 0.4)',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '4px'
+                    }}
+                  >
+                    <span className="material-symbols-outlined" style={{ fontSize: '13px' }}>admin_panel_settings</span>
+                    ADMIN
+                  </span>
+                )}
+              </h1>
+              <div style={{ fontSize: '14px', color: 'var(--text-muted)', fontWeight: '500', marginBottom: '5px', position: 'relative', zIndex: 2 }}>
+                @{cleanNick}
+              </div>
+            </>
+          );
+        })()}
         <p id="pubProfileRank" style={{ fontWeight: 'bold', color: 'var(--dark)', opacity: 0.7, position: 'relative', zIndex: 2, margin: '5px 0' }}>
           {rankTitle}
         </p>

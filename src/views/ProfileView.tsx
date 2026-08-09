@@ -313,18 +313,27 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
                 color: 'var(--text-muted)',
               }}
             >
-              {avatar ? (
-                <img
-                  src={avatar}
-                  alt={currentUserNick}
-                  style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                  onContextMenu={(e) => e.preventDefault()}
-                />
-              ) : (
-                <span style={{ fontSize: '38px', fontWeight: 900, color: 'var(--primary-dark)', textTransform: 'uppercase' }}>
-                  {(currentUserDisplayName || currentUserNick).charAt(0).toUpperCase()}
-                </span>
-              )}
+              {(() => {
+            const cleanNick = (currentUserNick || '').split('@')[0];
+            const rawDisp = currentUserDisplayName && !currentUserDisplayName.includes('@') ? currentUserDisplayName : cleanNick;
+
+            return (
+              <>
+                {avatar ? (
+                  <img
+                    src={avatar}
+                    alt={rawDisp}
+                    style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                    onContextMenu={(e) => e.preventDefault()}
+                  />
+                ) : (
+                  <span style={{ fontSize: '38px', fontWeight: 900, color: 'var(--primary-dark)', textTransform: 'uppercase' }}>
+                    {rawDisp.charAt(0).toUpperCase()}
+                  </span>
+                )}
+              </>
+            );
+          })()}
             </div>
             {onChangeAvatar && (
               <button
@@ -366,17 +375,31 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
           </div>
 
           <div id="settingsUserBoxContent">
-            <div style={{ fontSize: '12px', letterSpacing: '1px', color: roleColor, marginBottom: '5px', fontWeight: 'bold' }}>
-              {roleText}
-            </div>
-            <div style={{ fontSize: '26px', color: 'var(--dark)', fontWeight: 900, marginBottom: '2px' }}>
-              {currentUserDisplayName ? currentUserDisplayName : currentUserNick}
-            </div>
-            {currentUserDisplayName && (
-              <div style={{ fontSize: '14px', color: 'var(--text-muted)', fontWeight: 500, marginBottom: '8px' }}>
-                @{currentUserNick}
-              </div>
-            )}
+            {(() => {
+              const cleanNick = (currentUserNick || '').split('@')[0];
+              const rawDisp = currentUserDisplayName && !currentUserDisplayName.includes('@') ? currentUserDisplayName : cleanNick;
+              const hasDistinctDisplayName = Boolean(currentUserDisplayName && !currentUserDisplayName.includes('@') && currentUserDisplayName.toLowerCase().trim() !== cleanNick.toLowerCase());
+
+              return (
+                <>
+                  <div style={{ fontSize: '12px', letterSpacing: '1px', color: roleColor, marginBottom: '5px', fontWeight: 'bold' }}>
+                    {roleText}
+                  </div>
+                  <div style={{ fontSize: '26px', color: 'var(--dark)', fontWeight: 900, marginBottom: '2px' }}>
+                    {rawDisp}
+                  </div>
+                  {hasDistinctDisplayName ? (
+                    <div style={{ fontSize: '14px', color: 'var(--text-muted)', fontWeight: 500, marginBottom: '8px' }}>
+                      @{cleanNick}
+                    </div>
+                  ) : (
+                    <div style={{ fontSize: '14px', color: 'var(--text-muted)', fontWeight: 500, marginBottom: '8px' }}>
+                      @{cleanNick}
+                    </div>
+                  )}
+                </>
+              );
+            })()}
             <div className="user-rank-title" style={{ marginBottom: 0, fontSize: '13px', padding: '5px 12px', display: 'inline-block' }}>
               {rankTitle}
             </div>

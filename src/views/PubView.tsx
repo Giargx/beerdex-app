@@ -1160,42 +1160,72 @@ export const PubView: React.FC<PubViewProps> = ({
                       justifyContent: 'space-between',
                     }}
                   >
-                    <button
-                      className={`btn-like ${isLiked ? 'liked' : ''}`}
-                      title={isLiked ? 'Rimuovi brindisi' : 'Brinda'}
-                      onClick={(e) => {
-                        const imgContainer = e.currentTarget.closest('.post-card')?.querySelector('.post-image-container') as HTMLElement;
-                        if (!isLiked && imgContainer) {
-                          triggerCinAnimation(imgContainer);
-                        }
-                        onToggleLike(post.postId, imgContainer);
-                      }}
-                      style={{
-                        width: '42px',
-                        height: '42px',
-                        borderRadius: '50%',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        border: isLiked ? 'none' : '1px solid #CBD5E1',
-                        background: isLiked ? 'linear-gradient(135deg, #F59E0B 0%, #D97706 100%)' : '#F8FAFC',
-                        color: isLiked ? '#FFFFFF' : '#64748B',
-                        boxShadow: isLiked ? '0 4px 14px rgba(245, 158, 11, 0.45)' : 'none',
-                        cursor: 'pointer',
-                        transition: 'transform 0.15s ease, background 0.2s ease, box-shadow 0.2s ease',
-                      }}
-                    >
-                      <span
-                        className="material-symbols-outlined"
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <button
+                        className={`btn-like ${isLiked ? 'liked' : ''}`}
+                        title={isLiked ? 'Rimuovi brindisi' : 'Brinda'}
+                        onClick={(e) => {
+                          const imgContainer = e.currentTarget.closest('.post-card')?.querySelector('.post-image-container') as HTMLElement;
+                          if (!isLiked && imgContainer) {
+                            triggerCinAnimation(imgContainer);
+                          }
+                          onToggleLike(post.postId, imgContainer);
+                        }}
                         style={{
-                          fontSize: '22px',
-                          color: isLiked ? '#FFFFFF' : '#F59E0B',
-                          filter: isLiked ? 'drop-shadow(0 2px 4px rgba(0,0,0,0.25))' : 'none',
+                          width: '42px',
+                          height: '42px',
+                          borderRadius: '50%',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          border: isLiked ? 'none' : '1px solid #CBD5E1',
+                          background: isLiked ? 'linear-gradient(135deg, #F59E0B 0%, #D97706 100%)' : '#F8FAFC',
+                          color: isLiked ? '#FFFFFF' : '#64748B',
+                          boxShadow: isLiked ? '0 4px 14px rgba(245, 158, 11, 0.45)' : 'none',
+                          cursor: 'pointer',
+                          transition: 'transform 0.15s ease, background 0.2s ease, box-shadow 0.2s ease',
                         }}
                       >
-                        sports_bar
-                      </span>
-                    </button>
+                        <span
+                          className="material-symbols-outlined"
+                          style={{
+                            fontSize: '22px',
+                            color: isLiked ? '#FFFFFF' : '#F59E0B',
+                            filter: isLiked ? 'drop-shadow(0 2px 4px rgba(0,0,0,0.25))' : 'none',
+                          }}
+                        >
+                          sports_bar
+                        </span>
+                      </button>
+
+                      {/* Brindisi count badge next to beer emoji */}
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setActiveLikersPost(post);
+                        }}
+                        style={{
+                          background: likesCount > 0 ? '#FEF3C7' : '#F8FAFC',
+                          color: likesCount > 0 ? '#B45309' : '#64748B',
+                          border: likesCount > 0 ? '1px solid #FDE68A' : '1px solid #E2E8F0',
+                          borderRadius: '20px',
+                          padding: '5px 12px',
+                          fontSize: '13px',
+                          fontWeight: 800,
+                          cursor: 'pointer',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '4px',
+                          boxShadow: likesCount > 0 ? '0 2px 6px rgba(245, 158, 11, 0.18)' : 'none',
+                          transition: 'all 0.15s ease',
+                          WebkitTapHighlightColor: 'rgba(245, 158, 11, 0.3)',
+                        }}
+                        title="Vedi chi ha brindato"
+                      >
+                        <span>{likesCount}</span>
+                      </button>
+                    </div>
 
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                       <button
@@ -1216,17 +1246,6 @@ export const PubView: React.FC<PubViewProps> = ({
                         </span>
                       </button>
                     </div>
-                  </div>
-
-                  {/* Likers Summary with Avatars */}
-                  <div onClick={() => setActiveLikersPost(post)} style={{ cursor: 'pointer' }}>
-                    <BrindisiSummary
-                      likes={post.likes}
-                      currentUserNick={currentUserNick}
-                      globalDisplayNames={globalDisplayNames}
-                      globalAvatars={globalAvatars}
-                      onOpenPublicProfile={onOpenPublicProfile}
-                    />
                   </div>
 
                   {/* Clear Structural Card Division: Dedicated Beer Info Box & Caption */}

@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useEffect } from 'react';
+import { createPortal } from 'react-dom';
 
 interface LikersBottomSheetModalProps {
   isOpen: boolean;
@@ -9,6 +10,15 @@ interface LikersBottomSheetModalProps {
   onOpenPublicProfile: (username: string) => void;
 }
 
+const cleanUsername = (str?: string): string => {
+  if (!str) return '';
+  const trimmed = str.trim();
+  if (trimmed.includes('@')) {
+    return trimmed.split('@')[0];
+  }
+  return trimmed;
+};
+
 export const LikersBottomSheetModal: React.FC<LikersBottomSheetModalProps> = ({
   isOpen,
   onClose,
@@ -17,24 +27,46 @@ export const LikersBottomSheetModal: React.FC<LikersBottomSheetModalProps> = ({
   globalAvatars = {},
   onOpenPublicProfile,
 }) => {
+  useEffect(() => {
+    if (isOpen) {
+      const originalOverflow = document.body.style.overflow;
+      document.body.style.overflow = 'hidden';
+      return () => {
+        document.body.style.overflow = originalOverflow;
+      };
+    }
+  }, [isOpen]);
+
   if (!isOpen) return null;
 
   const likerNicks = Object.keys(likes).filter((nick) => Boolean(likes[nick]));
 
-  return (
+  const modalContent = (
     <div
       onClick={onClose}
+      onTouchEnd={(e) => {
+        if (e.target === e.currentTarget) {
+          onClose();
+        }
+      }}
       style={{
         position: 'fixed',
-        inset: 0,
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        width: '100vw',
+        height: '100vh',
         background: 'rgba(15, 23, 42, 0.65)',
         backdropFilter: 'blur(6px)',
         WebkitBackdropFilter: 'blur(6px)',
-        zIndex: 22000,
+        zIndex: 999999,
         display: 'flex',
         flexDirection: 'column',
         justifyContent: 'flex-end',
         animation: 'fadeIn 0.2s ease-out',
+        touchAction: 'manipulation',
+        WebkitTapHighlightColor: 'transparent',
       }}
     >
       <div
@@ -42,13 +74,14 @@ export const LikersBottomSheetModal: React.FC<LikersBottomSheetModalProps> = ({
         style={{
           background: '#FFFFFF',
           borderRadius: '28px 28px 0 0',
-          padding: '16px 20px 32px 20px',
-          maxHeight: '75vh',
+          padding: '16px 20px calc(28px + env(safe-area-inset-bottom, 16px)) 20px',
+          maxHeight: '80vh',
           display: 'flex',
           flexDirection: 'column',
-          boxShadow: '0 -10px 40px rgba(0,0,0,0.2)',
+          boxShadow: '0 -10px 40px rgba(0,0,0,0.25)',
           animation: 'slideUp 0.25s cubic-bezier(0.16, 1, 0.3, 1)',
           boxSizing: 'border-box',
+          WebkitOverflowScrolling: 'touch',
         }}
       >
         {/* Pull Handle Indicator */}
@@ -66,6 +99,7 @@ export const LikersBottomSheetModal: React.FC<LikersBottomSheetModalProps> = ({
           </div>
           <button
             onClick={onClose}
+            type="button"
             style={{
               background: '#F1F5F9',
               border: 'none',
@@ -84,7 +118,7 @@ export const LikersBottomSheetModal: React.FC<LikersBottomSheetModalProps> = ({
         </div>
 
         {/* User Accounts List */}
-        <div style={{ overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '10px', paddingRight: '2px' }}>
+        <div style={{ overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '10px', paddingRight: '2px', WebkitOverflowScrolling: 'touch' }}>
           {likerNicks.length === 0 ? (
             <p style={{ textAlign: 'center', color: '#94A3B8', fontSize: '14px', margin: '20px 0' }}>
               Nessun brindisi per ora. Sii il primo a brindare! 🍺
@@ -93,7 +127,9 @@ export const LikersBottomSheetModal: React.FC<LikersBottomSheetModalProps> = ({
             likerNicks.map((nick) => {
               const uKey = nick.toLowerCase();
               const av = globalAvatars[nick] || globalAvatars[uKey];
-              const disp = globalDisplayNames?.[nick] || globalDisplayNames?.[uKey] || nick;
+              const rawDisp = globalDisplayNames?.[nick] || globalDisplayNames?.[uKey] || nick;
+              const disp = cleanUsername(rawDisp);
+              const cleanNick = cleanUsername(nick);
 
               return (
                 <div
@@ -112,6 +148,7 @@ export const LikersBottomSheetModal: React.FC<LikersBottomSheetModalProps> = ({
                     border: '1px solid #F1F5F9',
                     cursor: 'pointer',
                     transition: 'all 0.15s ease',
+                    WebkitTapHighlightColor: 'rgba(245, 158, 11, 0.2)',
                   }}
                 >
                   <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
@@ -142,7 +179,7 @@ export const LikersBottomSheetModal: React.FC<LikersBottomSheetModalProps> = ({
                         {disp}
                       </div>
                       <div style={{ fontSize: '12px', color: '#64748B', fontWeight: 600 }}>
-                        @{nick}
+                        @{cleanNick}
                       </div>
                     </div>
                   </div>
@@ -158,4 +195,7 @@ export const LikersBottomSheetModal: React.FC<LikersBottomSheetModalProps> = ({
       </div>
     </div>
   );
+
+  return createPortal(modalContent, document.body);
 };
+

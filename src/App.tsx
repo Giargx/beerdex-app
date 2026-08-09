@@ -1748,6 +1748,11 @@ export default function App() {
         'users_display_names',
         'privacy_settings',
         'user_privacy',
+        'user_notifications',
+        'user_brand_medals',
+        'user_trophies',
+        'score_breakdowns',
+        'unlocked_trophies',
       ];
 
       for (const nodeName of topLevelUserNodes) {
@@ -1827,13 +1832,36 @@ export default function App() {
         });
       }
 
-      // 7. Rimuovi i post dell'utente dalla social_timeline
+      // 7. Rimuovi i post dell'utente e i suoi like/rating dagli ALTRI post in social_timeline
       const timelineSnap = await get(ref(db, 'social_timeline'));
       if (timelineSnap.exists()) {
         timelineSnap.forEach((child) => {
           const p = child.val();
-          if (p && p.user && p.user.toLowerCase() === targetLower) {
-            updates[`social_timeline/${child.key}`] = null;
+          if (p) {
+            if (p.user && p.user.toLowerCase() === targetLower) {
+              updates[`social_timeline/${child.key}`] = null;
+            } else {
+              if (p.likes && typeof p.likes === 'object') {
+                Object.keys(p.likes).forEach((likeUser) => {
+                  if (likeUser.toLowerCase() === targetLower) {
+                    updates[`social_timeline/${child.key}/likes/${likeUser}`] = null;
+                  }
+                });
+              }
+              if (p.ratings && typeof p.ratings === 'object') {
+                Object.keys(p.ratings).forEach((rateUser) => {
+                  if (rateUser.toLowerCase() === targetLower) {
+                    updates[`social_timeline/${child.key}/ratings/${rateUser}`] = null;
+                  }
+                });
+              }
+              if (Array.isArray(p.taggedFriends)) {
+                const filtered = p.taggedFriends.filter((t: string) => t && t.toLowerCase() !== targetLower);
+                if (filtered.length !== p.taggedFriends.length) {
+                  updates[`social_timeline/${child.key}/taggedFriends`] = filtered;
+                }
+              }
+            }
           }
         });
       }
@@ -1860,10 +1888,33 @@ export default function App() {
         });
       }
 
+      // 10. Rimuovi proposte birra inviate dall'utente
+      const proposalsSnap = await get(ref(db, 'beer_proposals'));
+      if (proposalsSnap.exists()) {
+        proposalsSnap.forEach((child) => {
+          const prop = child.val();
+          if (
+            prop &&
+            (
+              (prop.proposedBy && prop.proposedBy.toLowerCase() === targetLower) ||
+              (prop.user && prop.user.toLowerCase() === targetLower)
+            )
+          ) {
+            updates[`beer_proposals/${child.key}`] = null;
+          }
+        });
+      }
+
       // Esegui la cancellazione atomica su Firebase Realtime Database
       await update(ref(db), updates);
 
-      showAlert(`Il profilo dell'utente @${targetUsername} è stato definitivamente eliminato da Firebase. Tutte le sue relazioni di amicizia, post e dati associati sono stati rimossi.`, 'Profilo Eliminato');
+      // Aggiorna immediatamente lo stato locale per nascondere subito l'utente eliminato
+      setMyFriendsList((prev) => prev.filter((f) => f.toLowerCase() !== targetLower));
+      setMyReceivedRequests((prev) => prev.filter((r) => r.toLowerCase() !== targetLower));
+      setMySentRequests((prev) => prev.filter((s) => s.toLowerCase() !== targetLower));
+      setMyRejectedRequests((prev) => prev.filter((r) => r.toLowerCase() !== targetLower));
+
+      showAlert(`Il profilo dell'utente @${targetUsername} è stato definitivamente eliminato da Firebase. Tutte le sue relazioni di amicizia, richieste, post e dati associati sono stati rimossi.`, 'Profilo Eliminato');
 
       if (currentPage === 'page-public-profile' && pubProfileUser && pubProfileUser.toLowerCase() === targetLower) {
         navigateTo('page-home');
