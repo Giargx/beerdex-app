@@ -361,17 +361,12 @@ export const PubView: React.FC<PubViewProps> = ({
             const userLower = (currentUserNick || '').toLowerCase();
             const myAvatar = globalAvatars[currentUserNick] || globalAvatars[userLower];
             
-            // Fail-proof index search for current user's story
-            let myStoryIdx = storyPosts.findIndex(
+            const myStories = storyPosts.filter(
               (s) => s && s.user && (s.user.toLowerCase() === userLower || s.user === currentUserNick)
             );
 
-            // Fallback: If story was published, open the story feed starting at index 0
-            if (myStoryIdx === -1 && storyPosts.length > 0) {
-              myStoryIdx = 0;
-            }
-
-            const hasMyStory = myStoryIdx !== -1;
+            const hasMyStory = myStories.length > 0;
+            const hasUnseenMyStory = hasMyStory && isUserStoryUnseen(myStories, seenStoriesSet);
 
             return (
               <div
@@ -401,9 +396,11 @@ export const PubView: React.FC<PubViewProps> = ({
                     height: '60px',
                     borderRadius: '50%',
                     padding: '3px',
-                    background: hasMyStory
+                    background: hasUnseenMyStory
                       ? 'linear-gradient(45deg, #F59E0B, #E67E22, #EC4899)'
-                      : '#CBD5E1',
+                      : hasMyStory
+                      ? '#CBD5E1'
+                      : '#E2E8F0',
                     boxShadow: '0 4px 10px rgba(0,0,0,0.1)',
                   }}
                 >
@@ -1197,33 +1194,25 @@ export const PubView: React.FC<PubViewProps> = ({
                         </span>
                       </button>
 
-                      {/* Brindisi count badge next to beer emoji */}
-                      <button
-                        type="button"
+                      {/* Brindisi count next to beer emoji (no background) */}
+                      <span
                         onClick={(e) => {
                           e.stopPropagation();
                           setActiveLikersPost(post);
                         }}
                         style={{
-                          background: likesCount > 0 ? '#FEF3C7' : '#F8FAFC',
-                          color: likesCount > 0 ? '#B45309' : '#64748B',
-                          border: likesCount > 0 ? '1px solid #FDE68A' : '1px solid #E2E8F0',
-                          borderRadius: '20px',
-                          padding: '5px 12px',
-                          fontSize: '13px',
+                          fontSize: '15px',
                           fontWeight: 800,
+                          color: '#334155',
                           cursor: 'pointer',
-                          display: 'inline-flex',
-                          alignItems: 'center',
-                          gap: '4px',
-                          boxShadow: likesCount > 0 ? '0 2px 6px rgba(245, 158, 11, 0.18)' : 'none',
-                          transition: 'all 0.15s ease',
-                          WebkitTapHighlightColor: 'rgba(245, 158, 11, 0.3)',
+                          padding: '0 4px',
+                          userSelect: 'none',
+                          WebkitTapHighlightColor: 'rgba(245, 158, 11, 0.2)',
                         }}
                         title="Vedi chi ha brindato"
                       >
-                        <span>{likesCount}</span>
-                      </button>
+                        {likesCount}
+                      </span>
                     </div>
 
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>

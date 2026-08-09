@@ -1,6 +1,18 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
+import { ref, onValue, set } from 'firebase/database';
+import { db } from '../firebase';
 import { POPULAR_MUSIC_TRACKS } from './StoryEditorModal';
 import { markStorySeen } from '../utils/stories';
+
+const cleanUsername = (str?: string): string => {
+  if (!str) return '';
+  const trimmed = str.trim();
+  if (trimmed.includes('@')) {
+    return trimmed.split('@')[0];
+  }
+  return trimmed;
+};
 
 export interface StoryPost {
   postId: string;
@@ -56,6 +68,8 @@ export const StoryViewerModal: React.FC<StoryViewerModalProps> = ({
   const [isPaused, setIsPaused] = useState<boolean>(false);
   const [isFlipping, setIsFlipping] = useState<boolean>(false);
   const [isMuted, setIsMuted] = useState<boolean>(false);
+  const [showViewersModal, setShowViewersModal] = useState<boolean>(false);
+  const [storyViewersMap, setStoryViewersMap] = useState<Record<string, number>>({});
 
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
@@ -80,9 +94,23 @@ export const StoryViewerModal: React.FC<StoryViewerModalProps> = ({
       const sId = currentStory.postId || (currentStory as any).id || (currentStory as any).time;
       if (sId) {
         markStorySeen(String(sId));
+
+        // Registra la visualizzazione nel Realtime DB
+        if (currentUserNick) {
+          set(ref(db, `pub_stories_views/${sId}/${currentUserNick}`), Date.now()).catch(() => {});
+        }
+
+        // Ascolta in tempo reale chi ha visto la storia
+        const unsubscribe = onValue(ref(db, `pub_stories_views/${sId}`), (snap) => {
+          setStoryViewersMap(snap.val() || {});
+        });
+
+        return () => unsubscribe();
       }
+    } else {
+      setStoryViewersMap({});
     }
-  }, [isOpen, currentIndex, currentStory]);
+  }, [isOpen, currentIndex, currentStory, currentUserNick]);
 
   let currentAudioUrl = '';
 
@@ -454,38 +482,70 @@ export const StoryViewerModal: React.FC<StoryViewerModalProps> = ({
                 )}
 
                 {currentStory && (currentStory.user || '').toLowerCase() === (currentUserNick || '').toLowerCase() && (
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setIsPaused(true);
-                      if (window.confirm('Vuoi eliminare definitivamente questa storia?')) {
-                        if (onDeleteStory) {
-                          onDeleteStory(currentStory.postId);
+                  <>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setIsPaused(true);
+                        setShowViewersModal(true);
+                      }}
+                      style={{
+                        background: 'rgba(0, 0, 0, 0.55)',
+                        backdropFilter: 'blur(8px)',
+                        border: '1px solid rgba(255, 255, 255, 0.25)',
+                        color: '#FFFFFF',
+                        borderRadius: '20px',
+                        padding: '5px 12px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '4px',
+                        cursor: 'pointer',
+                        fontSize: '12px',
+                        fontWeight: 800,
+                        boxShadow: '0 2px 8px rgba(0,0,0,0.3)',
+                        WebkitTapHighlightColor: 'transparent',
+                      }}
+                      title="Chi ha visto la storia"
+                    >
+                      <span className="material-symbols-outlined" style={{ fontSize: '16px', color: '#F59E0B' }}>
+                        visibility
+                      </span>
+                      <span>{Object.keys(storyViewersMap).length}</span>
+                    </button>
+
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setIsPaused(true);
+                        if (window.confirm('Vuoi eliminare definitivamente questa storia?')) {
+                          if (onDeleteStory) {
+                            onDeleteStory(currentStory.postId);
+                          }
                         }
-                      }
-                      setIsPaused(false);
-                    }}
-                    style={{
-                      background: 'rgba(239, 68, 68, 0.85)',
-                      backdropFilter: 'blur(8px)',
-                      border: '1px solid rgba(255, 255, 255, 0.3)',
-                      color: '#FFFFFF',
-                      borderRadius: '50%',
-                      width: '34px',
-                      height: '34px',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      cursor: 'pointer',
-                      boxShadow: '0 4px 12px rgba(239, 68, 68, 0.4)',
-                      WebkitTapHighlightColor: 'transparent',
-                    }}
-                    title="Elimina Storia"
-                  >
-                    <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>
-                      delete
-                    </span>
-                  </button>
+                        setIsPaused(false);
+                      }}
+                      style={{
+                        background: 'rgba(239, 68, 68, 0.85)',
+                        backdropFilter: 'blur(8px)',
+                        border: '1px solid rgba(255, 255, 255, 0.3)',
+                        color: '#FFFFFF',
+                        borderRadius: '50%',
+                        width: '34px',
+                        height: '34px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        cursor: 'pointer',
+                        boxShadow: '0 4px 12px rgba(239, 68, 68, 0.4)',
+                        WebkitTapHighlightColor: 'transparent',
+                      }}
+                      title="Elimina Storia"
+                    >
+                      <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>
+                        delete
+                      </span>
+                    </button>
+                  </>
                 )}
 
                 <button
@@ -642,6 +702,161 @@ export const StoryViewerModal: React.FC<StoryViewerModalProps> = ({
         </div>
       </div>
     </div>
+
+    {/* Story Viewers Bottom Sheet Modal */}
+    {showViewersModal && createPortal(
+      <div
+        onClick={() => {
+          setShowViewersModal(false);
+          setIsPaused(false);
+        }}
+        onTouchStart={(e) => e.stopPropagation()}
+        onTouchMove={(e) => e.stopPropagation()}
+        style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          width: '100vw',
+          height: '100vh',
+          background: 'rgba(15, 23, 42, 0.75)',
+          backdropFilter: 'blur(6px)',
+          WebkitBackdropFilter: 'blur(6px)',
+          zIndex: 9999999,
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'flex-end',
+          touchAction: 'none',
+          pointerEvents: 'auto',
+        }}
+      >
+        <div
+          onClick={(e) => e.stopPropagation()}
+          onTouchStart={(e) => e.stopPropagation()}
+          onTouchMove={(e) => e.stopPropagation()}
+          style={{
+            background: '#FFFFFF',
+            borderRadius: '28px 28px 0 0',
+            padding: '16px 20px calc(28px + env(safe-area-inset-bottom, 16px)) 20px',
+            maxHeight: '75vh',
+            display: 'flex',
+            flexDirection: 'column',
+            boxShadow: '0 -10px 40px rgba(0,0,0,0.3)',
+            WebkitOverflowScrolling: 'touch',
+          }}
+        >
+          <div style={{ width: '40px', height: '4px', background: '#CBD5E1', borderRadius: '4px', margin: '0 auto 14px auto' }} />
+
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px', paddingBottom: '12px', borderBottom: '1px solid #F1F5F9' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span className="material-symbols-outlined" style={{ fontSize: '24px', color: '#F59E0B' }}>
+                visibility
+              </span>
+              <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 900, color: '#0F172A' }}>
+                Visualizzazioni storia ({Object.keys(storyViewersMap).length})
+              </h3>
+            </div>
+            <button
+              onClick={() => {
+                setShowViewersModal(false);
+                setIsPaused(false);
+              }}
+              type="button"
+              style={{
+                background: '#F1F5F9',
+                border: 'none',
+                borderRadius: '50%',
+                width: '32px',
+                height: '32px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                cursor: 'pointer',
+                color: '#64748B',
+              }}
+            >
+              <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>close</span>
+            </button>
+          </div>
+
+          <div style={{ overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '10px', WebkitOverflowScrolling: 'touch' }}>
+            {Object.keys(storyViewersMap).length === 0 ? (
+              <p style={{ textAlign: 'center', color: '#94A3B8', fontSize: '14px', margin: '20px 0' }}>
+                Nessuna visualizzazione ancora per questa storia.
+              </p>
+            ) : (
+              Object.keys(storyViewersMap).map((viewerNick) => {
+                const uKey = viewerNick.toLowerCase();
+                const av = globalAvatars[viewerNick] || globalAvatars[uKey];
+                const rawDisp = globalDisplayNames?.[viewerNick] || globalDisplayNames?.[uKey] || viewerNick;
+                const disp = cleanUsername(rawDisp);
+                const cleanNick = cleanUsername(viewerNick);
+
+                return (
+                  <div
+                    key={viewerNick}
+                    onClick={() => {
+                      setShowViewersModal(false);
+                      onClose();
+                      onOpenPublicProfile(viewerNick);
+                    }}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      padding: '10px 14px',
+                      borderRadius: '16px',
+                      background: '#F8FAFC',
+                      border: '1px solid #F1F5F9',
+                      cursor: 'pointer',
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                      <div
+                        style={{
+                          width: '42px',
+                          height: '42px',
+                          borderRadius: '50%',
+                          overflow: 'hidden',
+                          background: 'linear-gradient(135deg, #F59E0B, #D97706)',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          color: '#FFFFFF',
+                          fontWeight: 900,
+                          fontSize: '18px',
+                          flexShrink: 0,
+                        }}
+                      >
+                        {av ? (
+                          <img src={av} alt={disp} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                        ) : (
+                          disp.charAt(0).toUpperCase()
+                        )}
+                      </div>
+                      <div>
+                        <div style={{ fontSize: '14px', fontWeight: 800, color: '#0F172A' }}>
+                          {disp}
+                        </div>
+                        <div style={{ fontSize: '12px', color: '#64748B', fontWeight: 600 }}>
+                          @{cleanNick}
+                        </div>
+                      </div>
+                    </div>
+
+                    <span className="material-symbols-outlined" style={{ color: '#CBD5E1', fontSize: '20px' }}>
+                      chevron_right
+                    </span>
+                  </div>
+                );
+              })
+            )}
+          </div>
+        </div>
+      </div>,
+      document.body
+    )}
     </>
   );
 };

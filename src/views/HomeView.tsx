@@ -530,22 +530,6 @@ export const HomeView: React.FC<HomeViewProps> = ({
               position: 'relative',
             }}
           >
-            {/* Soft Ambient Golden Aura */}
-            <div
-              style={{
-                position: 'absolute',
-                top: '50%',
-                left: '50%',
-                transform: 'translate(-50%, -50%)',
-                width: '300px',
-                height: '140px',
-                background: 'radial-gradient(ellipse at center, rgba(245, 158, 11, 0.35) 0%, rgba(217, 119, 6, 0.1) 60%, rgba(15, 23, 42, 0) 80%)',
-                borderRadius: '50%',
-                pointerEvents: 'none',
-                filter: 'blur(16px)',
-              }}
-            />
-
             <img
               src="/pop-it-logo.png"
               alt="POP IT"
@@ -558,7 +542,6 @@ export const HomeView: React.FC<HomeViewProps> = ({
                 display: 'block',
                 position: 'relative',
                 zIndex: 2,
-                filter: 'drop-shadow(0 4px 20px rgba(255, 179, 0, 0.75))',
               }}
             />
           </div>

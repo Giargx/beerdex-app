@@ -44,6 +44,8 @@ export const LikersBottomSheetModal: React.FC<LikersBottomSheetModalProps> = ({
   const modalContent = (
     <div
       onClick={onClose}
+      onTouchStart={(e) => e.stopPropagation()}
+      onTouchMove={(e) => e.stopPropagation()}
       onTouchEnd={(e) => {
         if (e.target === e.currentTarget) {
           onClose();
@@ -65,12 +67,15 @@ export const LikersBottomSheetModal: React.FC<LikersBottomSheetModalProps> = ({
         flexDirection: 'column',
         justifyContent: 'flex-end',
         animation: 'fadeIn 0.2s ease-out',
-        touchAction: 'manipulation',
+        touchAction: 'none',
+        pointerEvents: 'auto',
         WebkitTapHighlightColor: 'transparent',
       }}
     >
       <div
         onClick={(e) => e.stopPropagation()}
+        onTouchStart={(e) => e.stopPropagation()}
+        onTouchMove={(e) => e.stopPropagation()}
         style={{
           background: '#FFFFFF',
           borderRadius: '28px 28px 0 0',

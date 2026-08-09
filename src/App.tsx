@@ -811,6 +811,9 @@ export default function App() {
           navigateTo(subPageBackPage || 'page-home');
         } else if (currentPage === 'page-rules') {
           navigateTo(subPageBackPage || 'page-home');
+        } else if (currentPage === 'page-admin') {
+          const backTarget = (subPageBackPage && subPageBackPage !== 'page-admin' && subPageBackPage !== 'page-public-profile') ? subPageBackPage : 'page-profile';
+          navigateTo(backTarget);
         }
       }
 
@@ -4530,7 +4533,10 @@ export default function App() {
         <div className={`page-view ${currentPage === 'page-admin' ? 'active' : ''}`}>
           {currentPage === 'page-admin' ? (
             <AdminView
-              onBack={() => navigateTo(subPageBackPage || 'page-profile')}
+              onBack={() => {
+                const backTarget = (subPageBackPage && subPageBackPage !== 'page-admin' && subPageBackPage !== 'page-public-profile') ? subPageBackPage : 'page-profile';
+                navigateTo(backTarget);
+              }}
               initialTab={adminModalTab}
               proposals={beerProposals}
               onAcceptProposal={handleAcceptProposal}

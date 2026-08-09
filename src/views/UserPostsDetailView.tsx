@@ -614,33 +614,25 @@ export const UserPostsDetailView: React.FC<UserPostsDetailViewProps> = ({
                         </span>
                       </button>
 
-                      {/* Brindisi count badge next to beer emoji */}
-                      <button
-                        type="button"
+                      {/* Brindisi count next to beer emoji (no background) */}
+                      <span
                         onClick={(e) => {
                           e.stopPropagation();
                           setActiveLikersPost(post);
                         }}
                         style={{
-                          background: likesCount > 0 ? '#FEF3C7' : '#F8FAFC',
-                          color: likesCount > 0 ? '#B45309' : '#64748B',
-                          border: likesCount > 0 ? '1px solid #FDE68A' : '1px solid #E2E8F0',
-                          borderRadius: '20px',
-                          padding: '5px 12px',
-                          fontSize: '13px',
+                          fontSize: '15px',
                           fontWeight: 800,
+                          color: '#334155',
                           cursor: 'pointer',
-                          display: 'inline-flex',
-                          alignItems: 'center',
-                          gap: '4px',
-                          boxShadow: likesCount > 0 ? '0 2px 6px rgba(245, 158, 11, 0.18)' : 'none',
-                          transition: 'all 0.15s ease',
-                          WebkitTapHighlightColor: 'rgba(245, 158, 11, 0.3)',
+                          padding: '0 4px',
+                          userSelect: 'none',
+                          WebkitTapHighlightColor: 'rgba(245, 158, 11, 0.2)',
                         }}
                         title="Vedi chi ha brindato"
                       >
-                        <span>{likesCount}</span>
-                      </button>
+                        {likesCount}
+                      </span>
                     </div>
                     
                     {/* Bookmark Button */}
