@@ -16,6 +16,7 @@ interface Post {
   isShared: boolean;
   isStory?: boolean;
   taggedFriend: string | null;
+  likes?: Record<string, boolean>;
 }
 
 interface HomeViewProps {
