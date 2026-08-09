@@ -45,7 +45,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
   currentUserDisplayName,
   currentUserAvatar,
   posts,
-  leaderboardScores,
+  leaderboardScores: _leaderboardScores,
   myFriendsList = [],
   myReceivedRequests = [],
   onNavigate,
@@ -205,7 +205,6 @@ export const HomeView: React.FC<HomeViewProps> = ({
   const lastPost = myPosts.length > 0 ? [...myPosts].sort((a, b) => b.time - a.time)[0] : null;
 
   // Catalog total count
-  const catalogList = allBeersCatalog.length > 0 ? allBeersCatalog : beers;
   const totalVariants = catalogList.reduce((acc, b) => acc + (Array.isArray(b?.variants) ? b.variants.length : 1), 0);
   const isDioDellaBirra = totalUnlockedCount >= totalVariants;
 

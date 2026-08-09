@@ -46,7 +46,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
   isAdminUser,
   myPokedex = {},
   globalAvatars = {},
-  leaderboardScores = {},
+  leaderboardScores: _leaderboardScores = {},
   onToggleSettings,
   onDeleteVariant,
   getUserRankTitle,

@@ -42,7 +42,7 @@ export const PublicProfileView: React.FC<PublicProfileViewProps> = ({
   username = '',
   displayName,
   pokedex = {},
-  score = 0,
+  score: _score = 0,
   avatar,
   onBack,
   getUserRankTitle,
@@ -1023,7 +1023,7 @@ export const PublicProfileView: React.FC<PublicProfileViewProps> = ({
               <div style={{ background: 'var(--white)', padding: '15px', borderRadius: '16px', border: '1px solid var(--gray)', boxShadow: 'var(--card-shadow)', textAlign: 'center' }}>
                 <span className="material-symbols-outlined" style={{ fontSize: '28px', color: 'var(--gold)' }}>sports_bar</span>
                 <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '5px', textTransform: 'uppercase' }}>Punti Totali</div>
-                <div style={{ fontSize: '20px', fontWeight: 900, color: 'var(--dark)', marginTop: '2px' }}>{score}</div>
+                <div style={{ fontSize: '20px', fontWeight: 900, color: 'var(--dark)', marginTop: '2px' }}>{displayScore}</div>
               </div>
             </div>
 
