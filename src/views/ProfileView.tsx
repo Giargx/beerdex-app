@@ -4,6 +4,7 @@ import type { PokedexEntry } from '../components/TrophyGrid';
 import { beers, getBeerType, formatBeerTitle, getUniqueParticipantPosts, resolvePokedexEntryBeer, type Beer } from '../beers';
 import { StarRating } from '../components/StarRating';
 import { ScoreBreakdownCard } from '../components/ScoreBreakdownCard';
+import { calculateScoreBreakdown } from '../utils/score';
 
 interface ProfileViewProps {
   currentUserNick: string;
@@ -93,14 +94,14 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
   const [variantsOpen, setVariantsOpen] = useState<boolean>(false);
   const [selectedStyleFilter, setSelectedStyleFilter] = useState<string | null>(null);
 
-  const score = (leaderboardScores && leaderboardScores[currentUserNick]) || 0;
+  const myPosts = getUniqueParticipantPosts(posts, currentUserNick);
+  const breakdown = calculateScoreBreakdown(myPokedex, myPosts, catalog);
+  const score = breakdown.total;
   const rankTitle = typeof getUserRankTitle === 'function' ? getUserRankTitle(score, Object.keys(myPokedex || {}).length) : '';
   const avatar = (globalAvatars && globalAvatars[currentUserNick]) || undefined;
 
   const roleText = isAdminUser ? "ADMIN" : "UTENTE";
   const roleColor = isAdminUser ? "var(--danger)" : "var(--text-muted)";
-
-  const myPosts = getUniqueParticipantPosts(posts, currentUserNick);
 
   // ----------------- CALCULATE STATS -----------------
   const pokedexEntries = Object.values(myPokedex || {}).filter((entry) => entry && typeof entry === 'object');

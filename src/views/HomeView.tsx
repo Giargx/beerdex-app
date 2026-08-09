@@ -3,6 +3,7 @@ import { FoamBubbles } from '../components/FoamBubbles';
 import { beers, formatBeerTitle, getUniqueParticipantPosts } from '../beers';
 import { getEventMedals } from '../components/TrophyGrid';
 import { playClinkSound } from '../utils/audio';
+import { calculateScoreBreakdown } from '../utils/score';
 
 interface Post {
   postId: string;
@@ -195,7 +196,9 @@ export const HomeView: React.FC<HomeViewProps> = ({
     ? Object.keys(myPokedex).length
     : new Set(myPosts.map(p => p.brand + ' - ' + p.variant)).size;
 
-  const totalPoints = leaderboardScores[currentUserNick] || 0;
+  const catalogList = allBeersCatalog.length > 0 ? allBeersCatalog : beers;
+  const userParticipantPosts = getUniqueParticipantPosts(posts, currentUserNick);
+  const totalPoints = calculateScoreBreakdown(myPokedex, userParticipantPosts, catalogList).total;
   const rankLabel = getUserRankTitle(totalPoints, totalUnlockedCount);
 
   // Get last beer unlocked by user

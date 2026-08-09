@@ -634,30 +634,6 @@ export const UserPostsDetailView: React.FC<UserPostsDetailViewProps> = ({
                     </button>
                   </div>
 
-                  {/* Brindisi Count underneath Like Icon - Click opens Likers Bottom Sheet ("tendina da sotto") */}
-                  <div
-                    onClick={() => setActiveLikersPost(post)}
-                    style={{
-                      padding: '2px 16px 6px 16px',
-                      fontSize: '13px',
-                      fontWeight: 800,
-                      color: 'var(--dark, #0F172A)',
-                      cursor: 'pointer',
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: '4px',
-                      width: 'fit-content',
-                    }}
-                    title="Vedi chi ha brindato"
-                  >
-                    <span>
-                      {likesCount === 1 ? '1 brindisi' : `${likesCount} brindisi`}
-                    </span>
-                    <span className="material-symbols-outlined" style={{ fontSize: '16px', color: '#94A3B8' }}>
-                      keyboard_arrow_down
-                    </span>
-                  </div>
-
                   {/* Likers Summary */}
                   <div onClick={() => setActiveLikersPost(post)} style={{ cursor: 'pointer' }}>
                     <BrindisiSummary
@@ -707,11 +683,42 @@ export const UserPostsDetailView: React.FC<UserPostsDetailViewProps> = ({
                             marginTop: '4px',
                           }}
                         >
-                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '4px' }}>
-                            <div style={{ fontSize: '14px', fontWeight: 900, color: '#0F172A', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '4px', flexWrap: 'wrap', gap: '6px' }}>
+                            <div style={{ fontSize: '14px', fontWeight: 900, color: '#0F172A', display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
                               <span style={{ fontSize: '18px' }}>🍺</span>
                               <span>{formatBeerTitle(post.brand)}</span>
                               <span style={{ fontSize: '13px', fontWeight: 600, color: '#64748B' }}>({formatBeerTitle(post.variant)})</span>
+
+                              {/* Brindisi count next to the beer, no arrow dropdown, clicking number opens likers sheet */}
+                              <span
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setActiveLikersPost(post);
+                                }}
+                                style={{
+                                  cursor: 'pointer',
+                                  background: 'linear-gradient(135deg, #FEF3C7 0%, #FDE68A 100%)',
+                                  color: '#D97706',
+                                  border: '1px solid #FCD34D',
+                                  borderRadius: '12px',
+                                  padding: '2px 8px',
+                                  fontSize: '12px',
+                                  fontWeight: 800,
+                                  display: 'inline-flex',
+                                  alignItems: 'center',
+                                  gap: '4px',
+                                  marginLeft: '4px',
+                                  boxShadow: '0 1px 4px rgba(245, 158, 11, 0.2)',
+                                  userSelect: 'none',
+                                  WebkitTapHighlightColor: 'rgba(245, 158, 11, 0.3)',
+                                }}
+                                title="Vedi chi ha brindato"
+                              >
+                                <span className="material-symbols-outlined" style={{ fontSize: '14px', color: '#D97706' }}>
+                                  sports_bar
+                                </span>
+                                <span>{likesCount === 1 ? '1 brindisi' : `${likesCount} brindisi`}</span>
+                              </span>
                             </div>
                             <span
                               className="pts-tag"

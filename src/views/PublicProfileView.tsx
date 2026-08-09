@@ -6,6 +6,7 @@ import { beers, getBeerType, formatBeerTitle, getUniqueParticipantPosts, resolve
 import type { Beer } from '../beers';
 import { StarRating } from '../components/StarRating';
 import { ScoreBreakdownCard } from '../components/ScoreBreakdownCard';
+import { calculateScoreBreakdown } from '../utils/score';
 
 interface PublicProfileViewProps {
   username: string;
@@ -93,11 +94,14 @@ export const PublicProfileView: React.FC<PublicProfileViewProps> = ({
   const safePosts = Array.isArray(posts) ? posts : [];
   const safeUser = username || '';
 
+  const myPosts = getUniqueParticipantPosts(safePosts, safeUser);
+  const breakdown = calculateScoreBreakdown(safePokedex, myPosts, safeCatalog);
+  const displayScore = breakdown.total;
+
   const rankTitle = typeof getUserRankTitle === 'function'
-    ? getUserRankTitle(score || 0, Object.keys(safePokedex).length)
+    ? getUserRankTitle(displayScore, Object.keys(safePokedex).length)
     : 'Bevitore';
 
-  const myPosts = getUniqueParticipantPosts(safePosts, safeUser);
   const totalUnlocked = Object.keys(safePokedex).length;
 
   // Rating Stats Calculation for Public Profile
@@ -510,7 +514,7 @@ export const PublicProfileView: React.FC<PublicProfileViewProps> = ({
             <div style={{ fontSize: '10px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: 600 }}>Post</div>
           </div>
           <div style={{ textAlign: 'center', flex: '1', borderLeft: '1px solid rgba(0,0,0,0.1)', borderRight: '1px solid rgba(0,0,0,0.1)' }}>
-            <div style={{ fontWeight: 900, fontSize: '18px', color: 'var(--dark)' }}>{score}</div>
+            <div style={{ fontWeight: 900, fontSize: '18px', color: 'var(--dark)' }}>{displayScore}</div>
             <div style={{ fontSize: '10px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: 600 }}>Punti</div>
           </div>
           <div style={{ textAlign: 'center', flex: '1' }}>
