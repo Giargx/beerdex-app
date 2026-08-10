@@ -951,8 +951,6 @@ export default function App() {
       showAlert(
         type === 'location'
           ? 'Hai disattivato i permessi di Posizione per POP IT nelle impostazioni del dispositivo.'
-          : type === 'camera'
-          ? 'Hai disattivato i permessi della Fotocamera per POP IT nelle impostazioni del dispositivo.'
           : 'Hai disattivato i permessi per le Foto per POP IT nelle impostazioni del dispositivo.',
         'Permesso non concesso'
       );

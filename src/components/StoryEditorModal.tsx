@@ -1,5 +1,4 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { playPopSound } from '../utils/audio';
 
 export interface StoryFilter {
   id: string;
@@ -82,7 +81,6 @@ export const StoryEditorModal: React.FC<StoryEditorModalProps> = ({
   const [capturedMediaUrl, setCapturedMediaUrl] = useState<string | null>(null);
   const [isVideo, setIsVideo] = useState<boolean>(false);
   const [facingMode, setFacingMode] = useState<'user' | 'environment'>('environment');
-  const [isCameraActive, setIsCameraActive] = useState<boolean>(false);
   const [isRecordingVideo, setIsRecordingVideo] = useState<boolean>(false);
   const [recordingSeconds, setRecordingSeconds] = useState<number>(0);
 
@@ -161,11 +159,9 @@ export const StoryEditorModal: React.FC<StoryEditorModalProps> = ({
         videoRef.current.srcObject = stream;
         videoRef.current.play().catch(() => {});
       }
-      setIsCameraActive(true);
       try { localStorage.setItem('beerdex_camera_permission', 'always'); } catch {}
     } catch (e) {
       console.warn("Camera fallback to file upload:", e);
-      setIsCameraActive(false);
     }
   };
 
@@ -174,15 +170,9 @@ export const StoryEditorModal: React.FC<StoryEditorModalProps> = ({
       mediaStreamRef.current.getTracks().forEach((t) => t.stop());
       mediaStreamRef.current = null;
     }
-    setIsCameraActive(false);
-  };
-
-  const toggleCameraFacing = () => {
-    setFacingMode((prev) => (prev === 'user' ? 'environment' : 'user'));
   };
 
   const captureLivePhoto = () => {
-    playPopSound();
     if (!videoRef.current) return;
     const v = videoRef.current;
     const canvas = document.createElement('canvas');
@@ -268,7 +258,6 @@ export const StoryEditorModal: React.FC<StoryEditorModalProps> = ({
       if (ev.target?.result) {
         stopCamera();
         setCapturedMediaUrl(ev.target.result as string);
-        playPopSound();
       }
     };
     reader.readAsDataURL(file);
