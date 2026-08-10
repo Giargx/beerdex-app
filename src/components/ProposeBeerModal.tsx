@@ -381,6 +381,7 @@ export const ProposeBeerModal: React.FC<ProposeBeerModalProps> = ({
                     type="file"
                     accept="image/*"
                     capture="environment"
+                    onClick={() => { try { localStorage.setItem('beerdex_camera_permission', 'always'); } catch {} }}
                     onChange={handlePhotoSelect}
                     style={{ display: 'none' }}
                   />

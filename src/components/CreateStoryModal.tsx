@@ -151,6 +151,7 @@ export const CreateStoryModal: React.FC<CreateStoryModalProps> = ({
         accept="image/*"
         capture="environment"
         style={{ display: 'none' }}
+        onClick={() => { try { localStorage.setItem('beerdex_camera_permission', 'always'); } catch {} }}
         onChange={handleFileChange}
       />
 

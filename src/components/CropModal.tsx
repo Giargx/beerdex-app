@@ -241,11 +241,11 @@ export const CropModal: React.FC<CropModalProps> = ({
         </div>
 
         <div style={{ display: 'flex', gap: '10px' }}>
-          <button className="btn-main" onClick={handleConfirmCrop} style={{ flex: 1, justifyContent: 'center' }}>
-            Salva
-          </button>
           <button className="btn-secondary" onClick={onCancel} style={{ flex: 1, justifyContent: 'center' }}>
             Annulla
+          </button>
+          <button className="btn-main" onClick={handleConfirmCrop} style={{ flex: 1, justifyContent: 'center' }}>
+            Salva
           </button>
         </div>
       </div>

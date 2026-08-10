@@ -3586,7 +3586,9 @@ export default function App() {
               <button 
                 className="btn-main" 
                 onClick={() => {
-                  document.getElementById('storyCaptureCamera')?.click();
+                  requestPermission('camera', () => {
+                    document.getElementById('storyCaptureCamera')?.click();
+                  });
                 }}
                 style={{ 
                   display: 'flex', 
@@ -3647,7 +3649,9 @@ export default function App() {
               <button 
                 className="btn-main" 
                 onClick={() => {
-                  document.getElementById('beerCaptureCamera')?.click();
+                  requestPermission('camera', () => {
+                    document.getElementById('beerCaptureCamera')?.click();
+                  });
                 }}
                 style={{ 
                   display: 'flex', 
@@ -3823,7 +3827,10 @@ export default function App() {
             <button
               className="btn-main"
               onClick={() => {
-                document.getElementById('avatarInputCamera')?.click();
+                requestPermission('camera', () => {
+                  setAvatarSelectorOpen(false);
+                  document.getElementById('avatarInputCamera')?.click();
+                });
               }}
               style={{ width: '100%', justifyContent: 'center', marginBottom: '10px', gap: '8px' }}
             >
