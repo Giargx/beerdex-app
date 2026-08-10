@@ -366,6 +366,9 @@ export function mergeBeers(staticBeers: Beer[] = beers, customBeers?: any): Beer
         const existing = mergedMap.get(matchedCanonical)!;
         if (!Array.isArray(existing.variants)) existing.variants = ['Classica'];
         if (!existing.variantTypes) existing.variantTypes = {};
+        if (cb.rarity) {
+          existing.rarity = cb.rarity;
+        }
         cbVariants.forEach((v: string) => {
           const normV = stripStr(v);
           const alreadyExists = existing.variants.some((ev) => stripStr(ev) === normV);

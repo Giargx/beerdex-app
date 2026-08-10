@@ -190,7 +190,6 @@ export const ProposeBeerModal: React.FC<ProposeBeerModalProps> = ({
       beerType: beerType as "bionda" | "rossa" | "scura" | "bianca" | "ipa",
       country: effectiveCountry,
       regione: effectiveCountry.toLowerCase() === 'italia' && regione !== 'Tutte' ? regione : undefined,
-      rarity: 'comune', // Impostata dagli Admin in fase di accettazione
       desc: desc.trim() || `Birra ${formattedBrand} (${formattedVariant})`,
       photo: photoBase64,
       isVariantProposal: !!existingBeer,

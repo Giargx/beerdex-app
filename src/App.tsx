@@ -1589,7 +1589,7 @@ export default function App() {
         beerType: proposalData.beerType,
         country: proposalData.country,
         regione: proposalData.regione || null,
-        rarity: proposalData.rarity,
+        rarity: proposalData.rarity || null, // La rarità viene decisa direttamente dall'Admin
         desc: proposalData.desc || null,
         photo: proposalData.photo,
         proposedBy: currentUserNick,
@@ -1653,13 +1653,14 @@ export default function App() {
       const isVariant = proposal.isVariantProposal ?? false;
       const bonusPoints = proposal.bonusPoints ?? (isVariant ? 1 : 2);
       const beerType = proposal.beerType || 'bionda';
+      const chosenRarity = proposal.rarity || 'comune';
 
-      // 1. Save new custom beer to catalog in Firebase DB
+      // 1. Save new custom beer to catalog in Firebase DB with Admin-chosen rarity
       const newCustomBeer: Beer = {
         brand: formattedBrand,
         country: formattedCountry,
         flag: getCountryFlag(formattedCountry),
-        rarity: proposal.rarity,
+        rarity: chosenRarity,
         desc: proposal.desc || `Birra ${formattedBrand} (${formattedVariant})`,
         variants: [formattedVariant],
         barcodes: [],
@@ -1669,6 +1670,21 @@ export default function App() {
         newCustomBeer.regione = proposal.regione;
       }
       await set(ref(db, `custom_beers/${proposal.proposalId}`), newCustomBeer);
+
+      // Aggiorna la rarità su TUTTI gli altri custom_beers per lo stesso brand in Firebase Realtime Database
+      const customSnap = await get(ref(db, 'custom_beers'));
+      if (customSnap.exists()) {
+        const cVal = customSnap.val();
+        const customUpdates: Record<string, any> = {};
+        for (const cKey in cVal) {
+          if (cVal[cKey] && cVal[cKey].brand && cVal[cKey].brand.toLowerCase() === formattedBrand.toLowerCase()) {
+            customUpdates[`custom_beers/${cKey}/rarity`] = chosenRarity;
+          }
+        }
+        if (Object.keys(customUpdates).length > 0) {
+          await update(ref(db), customUpdates);
+        }
+      }
 
       // 2. Determine all participants (proposer + tagged friends)
       const rawParticipants = [proposal.proposedBy, ...(proposal.taggedFriends || [])].filter(Boolean);
@@ -1725,7 +1741,7 @@ export default function App() {
         variant: formattedVariant,
         country: formattedCountry,
         regione: proposal.regione || null,
-        rarity: proposal.rarity,
+        rarity: chosenRarity,
         desc: proposal.desc || null,
         status: 'accepted',
         isVariantProposal: isVariant,
