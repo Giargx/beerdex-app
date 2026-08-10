@@ -340,8 +340,10 @@ export const StoryEditorModal: React.FC<StoryEditorModalProps> = ({
         position: 'fixed',
         top: 0,
         left: 0,
-        width: '100vw',
-        height: '100vh',
+        right: 0,
+        bottom: 0,
+        width: '100%',
+        height: '100%',
         backgroundColor: '#000000',
         zIndex: 999999,
         display: 'flex',
@@ -524,20 +526,26 @@ export const StoryEditorModal: React.FC<StoryEditorModalProps> = ({
         </div>
       </div>
 
-      {/* 2. MAIN VIEWFINDER & MEDIA CANVAS */}
+      {/* 2. MAIN VIEWFINDER & MEDIA CANVAS (Assicura 100% di copertura dello schermo senza lasciare spazi in alto) */}
       <div
         style={{
-          width: '100vw',
-          height: '100vh',
-          position: 'relative',
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          width: '100%',
+          height: '100%',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
           background: '#000000',
+          overflow: 'hidden',
+          zIndex: 1,
         }}
       >
         {/* LIVE CAMERA VIEW */}
-        {!capturedMediaUrl && (
+        {!capturedMediaUrl && isCameraActive && (
           <video
             ref={videoRef}
             autoPlay
@@ -545,6 +553,9 @@ export const StoryEditorModal: React.FC<StoryEditorModalProps> = ({
             muted
             onClick={handleCameraTap}
             style={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
               width: '100%',
               height: '100%',
               objectFit: 'cover',
@@ -556,7 +567,53 @@ export const StoryEditorModal: React.FC<StoryEditorModalProps> = ({
           />
         )}
 
-        {/* CAPTURED PHOTO / VIDEO PREVIEW */}
+        {/* FALLBACK CAMERA PROMPT (Quando la fotocamera WebRTC è bloccata o su iOS) */}
+        {!capturedMediaUrl && !isCameraActive && (
+          <div
+            onClick={() => fileInputRef.current?.click()}
+            style={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              width: '100%',
+              height: '100%',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              background: 'radial-gradient(circle at center, #1E293B 0%, #0F172A 100%)',
+              color: '#FFFFFF',
+              cursor: 'pointer',
+              padding: '24px',
+              textAlign: 'center',
+              boxSizing: 'border-box',
+            }}
+          >
+            <div
+              style={{
+                width: '76px',
+                height: '76px',
+                borderRadius: '50%',
+                background: 'rgba(245, 158, 11, 0.2)',
+                border: '2px solid #F59E0B',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                marginBottom: '18px',
+                color: '#F59E0B',
+                boxShadow: '0 0 24px rgba(245, 158, 11, 0.4)',
+              }}
+            >
+              <span className="material-symbols-outlined" style={{ fontSize: '40px' }}>photo_camera</span>
+            </div>
+            <div style={{ fontSize: '19px', fontWeight: 900, marginBottom: '8px' }}>Scatta Foto con la Fotocamera</div>
+            <div style={{ fontSize: '13px', color: '#94A3B8', maxWidth: '300px', lineHeight: 1.4 }}>
+              Tocca qui per aprire la fotocamera del tuo smartphone e scattare la foto per la tua Storia
+            </div>
+          </div>
+        )}
+
+        {/* CAPTURED PHOTO / VIDEO PREVIEW (Copre al 100% lo schermo da bordo a bordo) */}
         {capturedMediaUrl && (
           <>
             {isVideo ? (
@@ -566,6 +623,9 @@ export const StoryEditorModal: React.FC<StoryEditorModalProps> = ({
                 loop
                 playsInline
                 style={{
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
                   width: '100%',
                   height: '100%',
                   objectFit: 'cover',
@@ -578,6 +638,9 @@ export const StoryEditorModal: React.FC<StoryEditorModalProps> = ({
                 src={capturedMediaUrl}
                 alt="Anteprima storia"
                 style={{
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
                   width: '100%',
                   height: '100%',
                   objectFit: 'cover',
@@ -1018,10 +1081,14 @@ export const StoryEditorModal: React.FC<StoryEditorModalProps> = ({
           <div style={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <button
               onClick={() => {
-                if (!isRecordingVideo) {
-                  captureLivePhoto();
+                if (isCameraActive) {
+                  if (!isRecordingVideo) {
+                    captureLivePhoto();
+                  } else {
+                    stopVideoRecording();
+                  }
                 } else {
-                  stopVideoRecording();
+                  fileInputRef.current?.click();
                 }
               }}
               onMouseDown={() => {
