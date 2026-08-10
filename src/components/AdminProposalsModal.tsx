@@ -117,32 +117,36 @@ export const AdminProposalsModal: React.FC<AdminProposalsModalProps> = ({
   };
 
   const updateField = (proposalId: string, field: string, value: any) => {
-    setEditedDataMap((prev) => ({
-      ...prev,
-      [proposalId]: {
-        ...(prev[proposalId] || {
-          brand: '',
-          variant: '',
-          beerType: 'bionda',
-          country: 'Italia',
-          regione: 'Tutte',
-          rarity: 'comune',
-          desc: '',
-        }),
-        [field]: value,
-      },
-    }));
+    setEditedDataMap((prev) => {
+      const item = proposals.find((p) => p.proposalId === proposalId);
+      const existing = prev[proposalId] || {
+        brand: formatBeerTitle(item?.brand || ''),
+        variant: formatBeerTitle(item?.variant || ''),
+        beerType: item?.beerType || 'bionda',
+        country: item?.country || 'Non specificata',
+        regione: item?.regione || 'Tutte',
+        rarity: item?.rarity || 'comune',
+        desc: item?.desc || '',
+      };
+      return {
+        ...prev,
+        [proposalId]: {
+          ...existing,
+          [field]: value,
+        },
+      };
+    });
   };
 
   const handleAcceptClick = (item: BeerProposalItem) => {
     const edit = editedDataMap[item.proposalId];
-    const rawBrand = edit ? edit.brand : item.brand;
-    const rawVariant = edit ? edit.variant : item.variant;
-    const rawBeerType = edit ? edit.beerType : item.beerType;
-    const rawCountry = edit ? edit.country : item.country;
-    const rawRegione = edit ? edit.regione : item.regione;
-    const rawRarity = edit ? edit.rarity : item.rarity;
-    const rawDesc = edit ? edit.desc : item.desc;
+    const rawBrand = edit?.brand ?? item.brand;
+    const rawVariant = edit?.variant ?? item.variant;
+    const rawBeerType = edit?.beerType ?? item.beerType;
+    const rawCountry = edit?.country ?? item.country;
+    const rawRegione = edit?.regione ?? item.regione;
+    const rawRarity = edit?.rarity ?? item.rarity;
+    const rawDesc = edit?.desc ?? item.desc;
 
     const formattedBrand = formatBeerTitle(rawBrand.trim());
     const formattedVariant = formatBeerTitle(rawVariant.trim());
@@ -996,6 +1000,109 @@ export const AdminProposalsModal: React.FC<AdminProposalsModalProps> = ({
                       </div>
                     </div>
 
+                    {/* ALWAYS VISIBLE ADMIN RARITY SELECTOR */}
+                    <div
+                      style={{
+                        background: '#F8FAFC',
+                        border: '1px solid #CBD5E1',
+                        borderRadius: '14px',
+                        padding: '10px 12px',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: '6px',
+                        textAlign: 'left',
+                      }}
+                    >
+                      <div
+                        style={{
+                          fontSize: '11px',
+                          fontWeight: 800,
+                          color: '#475569',
+                          textTransform: 'uppercase',
+                          letterSpacing: '0.5px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                        }}
+                      >
+                        <span style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                          <span className="material-symbols-outlined" style={{ fontSize: '17px', color: '#F59E0B' }}>workspace_premium</span>
+                          Rarità Decisa dall'Admin:
+                        </span>
+                        <span style={{ fontSize: '11px', color: '#0F172A', fontWeight: 900, textTransform: 'capitalize' }}>
+                          {currentData.rarity === 'rara' ? '👑 Rara (5 pt)' : currentData.rarity === 'media' ? '🔵 Media (2 pt)' : '🟢 Comune (1 pt)'}
+                        </span>
+                      </div>
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '6px' }}>
+                        <button
+                          type="button"
+                          onClick={() => updateField(item.proposalId, 'rarity', 'comune')}
+                          style={{
+                            padding: '9px 6px',
+                            borderRadius: '10px',
+                            border: currentData.rarity === 'comune' ? '2px solid #22C55E' : '1px solid #CBD5E1',
+                            background: currentData.rarity === 'comune' ? '#DCFCE7' : '#FFFFFF',
+                            color: currentData.rarity === 'comune' ? '#15803D' : '#64748B',
+                            fontWeight: 800,
+                            fontSize: '12px',
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            gap: '4px',
+                            boxShadow: currentData.rarity === 'comune' ? '0 2px 8px rgba(34, 197, 94, 0.25)' : 'none',
+                            transition: 'all 0.15s ease',
+                          }}
+                        >
+                          🟢 Comune (1 pt)
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => updateField(item.proposalId, 'rarity', 'media')}
+                          style={{
+                            padding: '9px 6px',
+                            borderRadius: '10px',
+                            border: currentData.rarity === 'media' ? '2px solid #0284C7' : '1px solid #CBD5E1',
+                            background: currentData.rarity === 'media' ? '#E0F2FE' : '#FFFFFF',
+                            color: currentData.rarity === 'media' ? '#0369A1' : '#64748B',
+                            fontWeight: 800,
+                            fontSize: '12px',
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            gap: '4px',
+                            boxShadow: currentData.rarity === 'media' ? '0 2px 8px rgba(2, 132, 199, 0.25)' : 'none',
+                            transition: 'all 0.15s ease',
+                          }}
+                        >
+                          🔵 Media (2 pt)
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => updateField(item.proposalId, 'rarity', 'rara')}
+                          style={{
+                            padding: '9px 6px',
+                            borderRadius: '10px',
+                            border: currentData.rarity === 'rara' ? '2px solid #D97706' : '1px solid #CBD5E1',
+                            background: currentData.rarity === 'rara' ? '#FEF3C7' : '#FFFFFF',
+                            color: currentData.rarity === 'rara' ? '#B45309' : '#64748B',
+                            fontWeight: 800,
+                            fontSize: '12px',
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            gap: '4px',
+                            boxShadow: currentData.rarity === 'rara' ? '0 2px 8px rgba(217, 119, 6, 0.25)' : 'none',
+                            transition: 'all 0.15s ease',
+                          }}
+                        >
+                          👑 Rara (5 pt)
+                        </button>
+                      </div>
+                    </div>
+
                     {/* EDITABLE FORM FOR ADMIN */}
                     {isEditing && (
                       <div style={{ background: '#FFFDF5', border: '1px dashed #F59E0B', borderRadius: '12px', padding: '12px', marginTop: '4px', textAlign: 'left' }}>
@@ -1038,7 +1145,7 @@ export const AdminProposalsModal: React.FC<AdminProposalsModalProps> = ({
                           </div>
                         </div>
 
-                        <div style={{ display: 'grid', gridTemplateColumns: currentData.country.trim().toLowerCase() === 'italia' ? '1fr 1fr 1fr' : '1fr 1fr', gap: '8px', marginBottom: '8px' }}>
+                        <div style={{ display: 'grid', gridTemplateColumns: currentData.country.trim().toLowerCase() === 'italia' ? '1fr 1fr' : '1fr', gap: '8px', marginBottom: '8px' }}>
                           <div>
                             <label style={{ fontSize: '11px', fontWeight: 'bold', display: 'block', marginBottom: '2px' }}>Nazione</label>
                             <input
@@ -1065,19 +1172,6 @@ export const AdminProposalsModal: React.FC<AdminProposalsModalProps> = ({
                               </select>
                             </div>
                           )}
-
-                          <div>
-                            <label style={{ fontSize: '11px', fontWeight: 'bold', display: 'block', marginBottom: '2px' }}>Rarità</label>
-                            <select
-                              value={currentData.rarity}
-                              onChange={(e) => updateField(item.proposalId, 'rarity', e.target.value as any)}
-                              style={{ width: '100%', padding: '6px', fontSize: '12px', borderRadius: '8px' }}
-                            >
-                              <option value="comune">Comune (1 pt)</option>
-                              <option value="media">Media (2 pt)</option>
-                              <option value="rara">Rara (5 pt)</option>
-                            </select>
-                          </div>
                         </div>
 
                         <div>

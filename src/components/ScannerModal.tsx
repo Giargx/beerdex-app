@@ -579,17 +579,58 @@ export const ScannerModal: React.FC<ScannerModalProps> = ({
           )}
         </div>
 
-        <hr style={{ border: 0, borderTop: '1px solid var(--gray)', margin: '20px 0' }} />
+        <hr style={{ border: 0, borderTop: '1px solid var(--gray)', margin: '18px 0' }} />
         <p style={{ fontSize: '12px', color: 'var(--dark)', fontWeight: 'bold', marginTop: 0, textAlign: 'center' }}>
-          Stai bevendo una birra alla spina?
+          La birra non ha il codice a barre?
         </p>
-        <button
-          className="btn-secondary"
-          onClick={handleDraftBypass}
-          style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', textAlign: 'center', padding: '12px', marginTop: '5px', cursor: 'pointer', width: '100%', boxSizing: 'border-box' }}
-        >
-          <span className="material-symbols-outlined">local_drink</span> È alla spina (Salta Scanner)
-        </button>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '6px' }}>
+          <button
+            className="btn-secondary"
+            onClick={handleDraftBypass}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '8px',
+              textAlign: 'center',
+              padding: '11px',
+              cursor: 'pointer',
+              width: '100%',
+              boxSizing: 'border-box',
+              fontSize: '12px',
+              fontWeight: 700,
+              background: '#F8FAFC',
+              border: '1px solid #CBD5E1',
+              color: '#334155',
+            }}
+          >
+            <span className="material-symbols-outlined" style={{ fontSize: '18px', color: '#D97706' }}>local_drink</span>
+            È alla spina (Salta Barcode)
+          </button>
+          <button
+            className="btn-secondary"
+            onClick={handleDraftBypass}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '8px',
+              textAlign: 'center',
+              padding: '11px',
+              cursor: 'pointer',
+              width: '100%',
+              boxSizing: 'border-box',
+              fontSize: '12px',
+              fontWeight: 700,
+              background: '#FEF3C7',
+              border: '1px solid #FCD34D',
+              color: '#92400E',
+            }}
+          >
+            <span className="material-symbols-outlined" style={{ fontSize: '18px', color: '#B45309' }}>wine_bar</span>
+            Bottiglia Artigianale / Senza Codice
+          </button>
+        </div>
 
         {/* Cancel button */}
         <button
