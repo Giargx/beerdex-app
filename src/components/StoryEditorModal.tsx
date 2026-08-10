@@ -397,7 +397,7 @@ export const StoryEditorModal: React.FC<StoryEditorModalProps> = ({
 
         {/* Studio Tools Bar */}
         <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
-          {capturedMediaUrl ? (
+          {capturedMediaUrl && (
             /* AFTER PHOTO CAPTURE: SHOW EDITING TOOLS (Riscatta, Aa, Filtri, Musica) */
             <>
               {/* Tasto Riprova Foto/Video */}
@@ -499,29 +499,6 @@ export const StoryEditorModal: React.FC<StoryEditorModalProps> = ({
                 <span className="material-symbols-outlined" style={{ fontSize: '22px' }}>music_note</span>
               </button>
             </>
-          ) : (
-            /* BEFORE PHOTO CAPTURE: ONLY SHOW FLIP CAMERA BUTTON */
-            isCameraActive && (
-              <button
-                onClick={toggleCameraFacing}
-                style={{
-                  background: 'rgba(0, 0, 0, 0.45)',
-                  border: '1px solid rgba(255, 255, 255, 0.25)',
-                  color: '#FFFFFF',
-                  borderRadius: '50%',
-                  width: '42px',
-                  height: '42px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  cursor: 'pointer',
-                  backdropFilter: 'blur(8px)',
-                }}
-                title="Gira fotocamera"
-              >
-                <span className="material-symbols-outlined" style={{ fontSize: '22px' }}>flip_camera_ios</span>
-              </button>
-            )
           )}
         </div>
       </div>
@@ -544,8 +521,8 @@ export const StoryEditorModal: React.FC<StoryEditorModalProps> = ({
           zIndex: 1,
         }}
       >
-        {/* LIVE CAMERA VIEW */}
-        {!capturedMediaUrl && isCameraActive && (
+        {/* LIVE CAMERA VIEW (Sempre presente per scattare istantaneamente la foto) */}
+        {!capturedMediaUrl && (
           <video
             ref={videoRef}
             autoPlay
@@ -565,52 +542,6 @@ export const StoryEditorModal: React.FC<StoryEditorModalProps> = ({
               cursor: 'pointer',
             }}
           />
-        )}
-
-        {/* FALLBACK CAMERA PROMPT (Quando la fotocamera WebRTC è bloccata o su iOS) */}
-        {!capturedMediaUrl && !isCameraActive && (
-          <div
-            onClick={() => fileInputRef.current?.click()}
-            style={{
-              position: 'absolute',
-              top: 0,
-              left: 0,
-              width: '100%',
-              height: '100%',
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              justifyContent: 'center',
-              background: 'radial-gradient(circle at center, #1E293B 0%, #0F172A 100%)',
-              color: '#FFFFFF',
-              cursor: 'pointer',
-              padding: '24px',
-              textAlign: 'center',
-              boxSizing: 'border-box',
-            }}
-          >
-            <div
-              style={{
-                width: '76px',
-                height: '76px',
-                borderRadius: '50%',
-                background: 'rgba(245, 158, 11, 0.2)',
-                border: '2px solid #F59E0B',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                marginBottom: '18px',
-                color: '#F59E0B',
-                boxShadow: '0 0 24px rgba(245, 158, 11, 0.4)',
-              }}
-            >
-              <span className="material-symbols-outlined" style={{ fontSize: '40px' }}>photo_camera</span>
-            </div>
-            <div style={{ fontSize: '19px', fontWeight: 900, marginBottom: '8px' }}>Scatta Foto con la Fotocamera</div>
-            <div style={{ fontSize: '13px', color: '#94A3B8', maxWidth: '300px', lineHeight: 1.4 }}>
-              Tocca qui per aprire la fotocamera del tuo smartphone e scattare la foto per la tua Storia
-            </div>
-          </div>
         )}
 
         {/* CAPTURED PHOTO / VIDEO PREVIEW (Copre al 100% lo schermo da bordo a bordo) */}
@@ -1081,14 +1012,10 @@ export const StoryEditorModal: React.FC<StoryEditorModalProps> = ({
           <div style={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <button
               onClick={() => {
-                if (isCameraActive) {
-                  if (!isRecordingVideo) {
-                    captureLivePhoto();
-                  } else {
-                    stopVideoRecording();
-                  }
+                if (!isRecordingVideo) {
+                  captureLivePhoto();
                 } else {
-                  fileInputRef.current?.click();
+                  stopVideoRecording();
                 }
               }}
               onMouseDown={() => {

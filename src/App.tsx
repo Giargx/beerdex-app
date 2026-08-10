@@ -938,6 +938,12 @@ export default function App() {
       ? 'beerdex_camera_permission'
       : 'beerdex_gallery_permission';
 
+    if (type === 'camera') {
+      try { localStorage.setItem(permKey, 'always'); } catch {}
+      onGranted();
+      return;
+    }
+
     const stored = localStorage.getItem(permKey);
     if (stored === 'always' || stored === 'while_using' || stored === 'granted') {
       onGranted();
