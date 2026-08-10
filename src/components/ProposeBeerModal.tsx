@@ -73,7 +73,7 @@ export const ProposeBeerModal: React.FC<ProposeBeerModalProps> = ({
         (b) => b && b.brand && b.brand.trim().toLowerCase() === searchBrand.toLowerCase()
       );
       if (matched) {
-        setCountry(matched.country || 'Italia');
+        setCountry(matched.country || '');
         setRegione(matched.regione || 'Tutte');
         setDesc(matched.desc || '');
       } else {
@@ -88,14 +88,11 @@ export const ProposeBeerModal: React.FC<ProposeBeerModalProps> = ({
   useEffect(() => {
     if (!isOpen) return;
     if (existingBeer) {
-      if (existingBeer.country) setCountry(existingBeer.country);
-      if (existingBeer.regione) setRegione(existingBeer.regione);
-      else setRegione('Tutte');
-      if (existingBeer.desc) setDesc(existingBeer.desc);
-    } else if (!initialBrandSearch) {
-      setDesc('');
+      if (existingBeer.country && !country) setCountry(existingBeer.country);
+      if (existingBeer.regione && regione === 'Tutte') setRegione(existingBeer.regione);
+      if (existingBeer.desc && !desc) setDesc(existingBeer.desc);
     }
-  }, [brand, existingBeer, isOpen, initialBrandSearch]);
+  }, [brand, existingBeer, isOpen]);
 
   if (!isOpen) return null;
 
@@ -312,56 +309,59 @@ export const ProposeBeerModal: React.FC<ProposeBeerModalProps> = ({
             </div>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: country.trim().toLowerCase() === 'italia' ? '1fr 1fr' : '1fr', gap: '10px', marginBottom: '12px' }}>
+          {/* Nazione & Regione */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '14px' }}>
             <div>
               <label style={{ fontSize: '12px', fontWeight: 'bold', color: 'var(--dark)', display: 'block', marginBottom: '4px' }}>
-                Nazione {existingBeer ? '' : '*'}
+                Nazione di Provenienza *
               </label>
               <input
                 type="text"
-                placeholder="Scrivi nazione (es. Giappone, Italia, Germania...)"
+                placeholder="es. Italia, Germania, Belgio, Giappone..."
                 value={country}
                 onChange={(e) => setCountry(e.target.value)}
-                disabled={!!existingBeer}
+                disabled={!!existingBeer && !!existingBeer.country}
                 style={{
                   width: '100%',
-                  padding: '12px',
+                  padding: '12px 14px',
                   borderRadius: '12px',
                   border: '1px solid var(--gray)',
-                  opacity: existingBeer ? 0.8 : 1,
-                  background: existingBeer ? '#F1F5F9' : 'white',
-                  cursor: existingBeer ? 'not-allowed' : 'text',
+                  fontSize: '13px',
+                  fontWeight: 600,
+                  opacity: existingBeer && existingBeer.country ? 0.8 : 1,
+                  background: existingBeer && existingBeer.country ? '#F1F5F9' : 'white',
+                  cursor: existingBeer && existingBeer.country ? 'not-allowed' : 'text',
                   boxSizing: 'border-box',
                   margin: 0,
                 }}
               />
             </div>
 
-            {country.trim().toLowerCase() === 'italia' && (
+            {(!country.trim() || country.trim().toLowerCase() === 'italia') && (
               <div>
                 <label style={{ fontSize: '12px', fontWeight: 'bold', color: 'var(--dark)', display: 'block', marginBottom: '4px' }}>
-                  Regione (opzionale)
+                  Regione Italiana (opzionale)
                 </label>
                 <select
                   value={regione}
                   onChange={(e) => setRegione(e.target.value)}
-                  disabled={!!existingBeer}
                   style={{
                     width: '100%',
-                    padding: '12px',
+                    padding: '12px 14px',
                     borderRadius: '12px',
                     border: '1px solid var(--gray)',
-                    opacity: existingBeer ? 0.8 : 1,
-                    background: existingBeer ? '#F1F5F9' : 'white',
-                    appearance: 'none',
-                    WebkitAppearance: 'none',
-                    MozAppearance: 'none',
-                    cursor: existingBeer ? 'not-allowed' : 'pointer',
+                    background: 'white',
+                    fontSize: '13px',
+                    fontWeight: 600,
+                    color: 'var(--dark)',
+                    boxSizing: 'border-box',
+                    margin: 0,
+                    cursor: 'pointer',
                   }}
                 >
-                  <option value="Tutte">Nessuna specifica</option>
+                  <option value="Tutte">Nessuna specifica / Tutta Italia</option>
                   {ItalianRegions.map((reg) => (
-                    <option key={reg} value={reg}>{reg}</option>
+                    <option key={reg} value={reg}>📍 {reg}</option>
                   ))}
                 </select>
               </div>
