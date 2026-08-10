@@ -357,15 +357,15 @@ export const StoryEditorModal: React.FC<StoryEditorModalProps> = ({
       <div
         style={{
           position: 'absolute',
-          top: 'env(safe-area-inset-top, 16px)',
+          top: 0,
           left: 0,
           right: 0,
-          padding: '12px 18px',
+          padding: 'calc(env(safe-area-inset-top, 16px) + 8px) 18px 12px 18px',
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center',
-          zIndex: 100,
-          background: 'linear-gradient(180deg, rgba(0,0,0,0.75) 0%, rgba(0,0,0,0) 100%)',
+          zIndex: 300,
+          background: 'linear-gradient(180deg, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0) 100%)',
         }}
       >
         {/* Top Left Close X */}
@@ -393,129 +393,133 @@ export const StoryEditorModal: React.FC<StoryEditorModalProps> = ({
           <span className="material-symbols-outlined" style={{ fontSize: '24px' }}>close</span>
         </button>
 
-        {/* Studio Tools Bar (Riscatta Icona, Aa, Filter, Music, Flip) */}
+        {/* Studio Tools Bar */}
         <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
-          {/* Tasto Riscatta Icona in Alto a Destra (Solo se c'è foto/video) */}
-          {capturedMediaUrl && (
-            <button
-              onClick={() => {
-                setCapturedMediaUrl(null);
-                setIsVideo(false);
-                startCamera();
-              }}
-              style={{
-                background: 'rgba(0, 0, 0, 0.45)',
-                border: '1px solid rgba(255, 255, 255, 0.25)',
-                color: '#FFFFFF',
-                borderRadius: '50%',
-                width: '42px',
-                height: '42px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                cursor: 'pointer',
-                backdropFilter: 'blur(8px)',
-              }}
-              title="Riscatta foto/video"
-            >
-              <span className="material-symbols-outlined" style={{ fontSize: '22px' }}>refresh</span>
-            </button>
-          )}
+          {capturedMediaUrl ? (
+            /* AFTER PHOTO CAPTURE: SHOW EDITING TOOLS (Riscatta, Aa, Filtri, Musica) */
+            <>
+              {/* Tasto Riprova Foto/Video */}
+              <button
+                onClick={() => {
+                  setCapturedMediaUrl(null);
+                  setIsVideo(false);
+                  startCamera();
+                }}
+                style={{
+                  background: 'rgba(0, 0, 0, 0.45)',
+                  border: '1px solid rgba(255, 255, 255, 0.25)',
+                  color: '#FFFFFF',
+                  borderRadius: '50%',
+                  width: '42px',
+                  height: '42px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  cursor: 'pointer',
+                  backdropFilter: 'blur(8px)',
+                }}
+                title="Riprova foto/video"
+              >
+                <span className="material-symbols-outlined" style={{ fontSize: '22px' }}>refresh</span>
+              </button>
 
-          {/* Text Overlay Tool (Aa) */}
-          <button
-            onClick={() => {
-              setShowTextInput(!showTextInput);
-              setShowFiltersPicker(false);
-              setShowMusicPicker(false);
-            }}
-            style={{
-              background: showTextInput ? '#F59E0B' : 'rgba(0, 0, 0, 0.45)',
-              border: '1px solid rgba(255, 255, 255, 0.25)',
-              color: '#FFFFFF',
-              borderRadius: '50%',
-              width: '42px',
-              height: '42px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              cursor: 'pointer',
-              backdropFilter: 'blur(8px)',
-              fontWeight: 900,
-              fontSize: '16px',
-            }}
-          >
-            Aa
-          </button>
+              {/* Text Overlay Tool (Aa) */}
+              <button
+                onClick={() => {
+                  setShowTextInput(!showTextInput);
+                  setShowFiltersPicker(false);
+                  setShowMusicPicker(false);
+                }}
+                style={{
+                  background: showTextInput ? '#F59E0B' : 'rgba(0, 0, 0, 0.45)',
+                  border: '1px solid rgba(255, 255, 255, 0.25)',
+                  color: '#FFFFFF',
+                  borderRadius: '50%',
+                  width: '42px',
+                  height: '42px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  cursor: 'pointer',
+                  backdropFilter: 'blur(8px)',
+                  fontWeight: 900,
+                  fontSize: '16px',
+                }}
+              >
+                Aa
+              </button>
 
-          {/* Instagram Filters Tool (✨) */}
-          <button
-            onClick={() => {
-              setShowFiltersPicker(!showFiltersPicker);
-              setShowTextInput(false);
-              setShowMusicPicker(false);
-            }}
-            style={{
-              background: showFiltersPicker ? '#F59E0B' : 'rgba(0, 0, 0, 0.45)',
-              border: '1px solid rgba(255, 255, 255, 0.25)',
-              color: '#FFFFFF',
-              borderRadius: '50%',
-              width: '42px',
-              height: '42px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              cursor: 'pointer',
-              backdropFilter: 'blur(8px)',
-            }}
-          >
-            <span className="material-symbols-outlined" style={{ fontSize: '22px' }}>auto_awesome</span>
-          </button>
+              {/* Instagram Filters Tool (✨) */}
+              <button
+                onClick={() => {
+                  setShowFiltersPicker(!showFiltersPicker);
+                  setShowTextInput(false);
+                  setShowMusicPicker(false);
+                }}
+                style={{
+                  background: showFiltersPicker ? '#F59E0B' : 'rgba(0, 0, 0, 0.45)',
+                  border: '1px solid rgba(255, 255, 255, 0.25)',
+                  color: '#FFFFFF',
+                  borderRadius: '50%',
+                  width: '42px',
+                  height: '42px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  cursor: 'pointer',
+                  backdropFilter: 'blur(8px)',
+                }}
+              >
+                <span className="material-symbols-outlined" style={{ fontSize: '22px' }}>auto_awesome</span>
+              </button>
 
-          {/* SoundCloud & Music Track Finder (🎵) */}
-          <button
-            onClick={() => {
-              setShowMusicPicker(!showMusicPicker);
-              setShowTextInput(false);
-              setShowFiltersPicker(false);
-            }}
-            style={{
-              background: selectedMusic ? '#FDE047' : 'rgba(0, 0, 0, 0.45)',
-              border: '1px solid rgba(255, 255, 255, 0.25)',
-              color: selectedMusic ? '#0F172A' : '#FFFFFF',
-              borderRadius: '50%',
-              width: '42px',
-              height: '42px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              cursor: 'pointer',
-              backdropFilter: 'blur(8px)',
-            }}
-          >
-            <span className="material-symbols-outlined" style={{ fontSize: '22px' }}>music_note</span>
-          </button>
-
-          {/* Flip Camera Facing (Front/Back) */}
-          {!capturedMediaUrl && isCameraActive && (
-            <button
-              onClick={toggleCameraFacing}
-              style={{
-                background: 'rgba(0, 0, 0, 0.45)',
-                border: '1px solid rgba(255, 255, 255, 0.25)',
-                color: '#FFFFFF',
-                borderRadius: '50%',
-                width: '42px',
-                height: '42px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                cursor: 'pointer',
-                backdropFilter: 'blur(8px)',
-              }}
-            >
-              <span className="material-symbols-outlined" style={{ fontSize: '22px' }}>flip_camera_ios</span>
-            </button>
+              {/* SoundCloud & Music Track Finder (🎵) */}
+              <button
+                onClick={() => {
+                  setShowMusicPicker(!showMusicPicker);
+                  setShowTextInput(false);
+                  setShowFiltersPicker(false);
+                }}
+                style={{
+                  background: selectedMusic ? '#FDE047' : 'rgba(0, 0, 0, 0.45)',
+                  border: '1px solid rgba(255, 255, 255, 0.25)',
+                  color: selectedMusic ? '#0F172A' : '#FFFFFF',
+                  borderRadius: '50%',
+                  width: '42px',
+                  height: '42px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  cursor: 'pointer',
+                  backdropFilter: 'blur(8px)',
+                }}
+              >
+                <span className="material-symbols-outlined" style={{ fontSize: '22px' }}>music_note</span>
+              </button>
+            </>
+          ) : (
+            /* BEFORE PHOTO CAPTURE: ONLY SHOW FLIP CAMERA BUTTON */
+            isCameraActive && (
+              <button
+                onClick={toggleCameraFacing}
+                style={{
+                  background: 'rgba(0, 0, 0, 0.45)',
+                  border: '1px solid rgba(255, 255, 255, 0.25)',
+                  color: '#FFFFFF',
+                  borderRadius: '50%',
+                  width: '42px',
+                  height: '42px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  cursor: 'pointer',
+                  backdropFilter: 'blur(8px)',
+                }}
+                title="Gira fotocamera"
+              >
+                <span className="material-symbols-outlined" style={{ fontSize: '22px' }}>flip_camera_ios</span>
+              </button>
+            )
           )}
         </div>
       </div>
@@ -586,49 +590,32 @@ export const StoryEditorModal: React.FC<StoryEditorModalProps> = ({
         )}
 
         {/* DIRECT IN-CANVAS TEXT EDITING (Nessun pop-up, scrivi direttamente sulla storia!) */}
-        {showTextInput ? (
-          <textarea
-            ref={textInputRef}
-            placeholder="Scrivi sulla storia..."
-            value={overlayText}
-            onChange={(e) => setOverlayText(e.target.value)}
-            rows={2}
-            style={{
-              position: 'absolute',
-              top: '42%',
-              left: '50%',
-              transform: 'translate(-50%, -50%)',
-              width: '88%',
-              textAlign: 'center',
-              padding: textStyle === 'badge' ? '12px 20px' : '8px 12px',
-              borderRadius: textStyle === 'badge' ? '16px' : '0',
-              background: textStyle === 'badge' ? 'rgba(0, 0, 0, 0.75)' : 'transparent',
-              backdropFilter: textStyle === 'badge' ? 'blur(10px)' : 'none',
-              color: textColor,
-              fontSize: '26px',
-              fontWeight: 900,
-              textShadow: textStyle === 'neon' ? `0 0 16px ${textColor}, 0 0 28px ${textColor}` : '0 2px 10px rgba(0,0,0,0.9)',
-              zIndex: 140,
-              border: 'none',
-              outline: 'none',
-              resize: 'none',
-              fontFamily: 'inherit',
-              lineHeight: 1.2,
-            }}
-          />
-        ) : (
-          /* DISPLAY READONLY TEXT OVERLAY WHEN NOT EDITING */
-          overlayText && (
+        {showTextInput && (
+          <>
+            {/* Backdrop to dismiss text editing when tapping anywhere outside */}
             <div
-              onClick={() => setShowTextInput(true)}
+              onClick={() => setShowTextInput(false)}
+              style={{
+                position: 'absolute',
+                inset: 0,
+                zIndex: 130,
+                background: 'rgba(0, 0, 0, 0.45)',
+              }}
+            />
+            <textarea
+              ref={textInputRef}
+              placeholder="Scrivi sulla storia..."
+              value={overlayText}
+              onChange={(e) => setOverlayText(e.target.value)}
+              rows={2}
               style={{
                 position: 'absolute',
                 top: '42%',
                 left: '50%',
                 transform: 'translate(-50%, -50%)',
-                maxWidth: '88%',
+                width: '88%',
                 textAlign: 'center',
-                padding: textStyle === 'badge' ? '10px 20px' : '6px 12px',
+                padding: textStyle === 'badge' ? '12px 20px' : '8px 12px',
                 borderRadius: textStyle === 'badge' ? '16px' : '0',
                 background: textStyle === 'badge' ? 'rgba(0, 0, 0, 0.75)' : 'transparent',
                 backdropFilter: textStyle === 'badge' ? 'blur(10px)' : 'none',
@@ -636,14 +623,43 @@ export const StoryEditorModal: React.FC<StoryEditorModalProps> = ({
                 fontSize: '26px',
                 fontWeight: 900,
                 textShadow: textStyle === 'neon' ? `0 0 16px ${textColor}, 0 0 28px ${textColor}` : '0 2px 10px rgba(0,0,0,0.9)',
-                zIndex: 80,
-                wordBreak: 'break-word',
-                cursor: 'pointer',
+                zIndex: 140,
+                border: 'none',
+                outline: 'none',
+                resize: 'none',
+                fontFamily: 'inherit',
+                lineHeight: 1.2,
               }}
-            >
-              {overlayText}
-            </div>
-          )
+            />
+          </>
+        )}
+
+        {!showTextInput && overlayText && (
+          /* DISPLAY READONLY TEXT OVERLAY WHEN NOT EDITING */
+          <div
+            onClick={() => setShowTextInput(true)}
+            style={{
+              position: 'absolute',
+              top: '42%',
+              left: '50%',
+              transform: 'translate(-50%, -50%)',
+              maxWidth: '88%',
+              textAlign: 'center',
+              padding: textStyle === 'badge' ? '10px 20px' : '6px 12px',
+              borderRadius: textStyle === 'badge' ? '16px' : '0',
+              background: textStyle === 'badge' ? 'rgba(0, 0, 0, 0.75)' : 'transparent',
+              backdropFilter: textStyle === 'badge' ? 'blur(10px)' : 'none',
+              color: textColor,
+              fontSize: '26px',
+              fontWeight: 900,
+              textShadow: textStyle === 'neon' ? `0 0 16px ${textColor}, 0 0 28px ${textColor}` : '0 2px 10px rgba(0,0,0,0.9)',
+              zIndex: 80,
+              wordBreak: 'break-word',
+              cursor: 'pointer',
+            }}
+          >
+            {overlayText}
+          </div>
         )}
 
         {/* FLOATING MUSIC BADGE OVERLAY */}
@@ -799,25 +815,26 @@ export const StoryEditorModal: React.FC<StoryEditorModalProps> = ({
         </div>
       )}
 
-      {/* FILTER CAROUSEL OVERLAY */}
-      {showFiltersPicker && (
+      {/* FILTER CAROUSEL OVERLAY (Appare solo dopo aver scattato la foto/video e posizionato più in alto) */}
+      {showFiltersPicker && capturedMediaUrl && (
         <div
           style={{
             position: 'absolute',
-            bottom: 0,
-            left: 0,
-            right: 0,
-            zIndex: 150,
+            bottom: '100px',
+            left: '16px',
+            right: '16px',
+            zIndex: 250,
             display: 'flex',
-            gap: '12px',
+            gap: '10px',
             overflowX: 'auto',
-            padding: '16px 20px calc(16px + env(safe-area-inset-bottom, 16px)) 20px',
+            padding: '12px 16px',
             touchAction: 'pan-x',
-            background: 'rgba(15, 23, 42, 0.95)',
-            backdropFilter: 'blur(16px)',
-            WebkitBackdropFilter: 'blur(16px)',
-            borderTop: '1px solid rgba(255,255,255,0.15)',
-            boxShadow: '0 -8px 30px rgba(0,0,0,0.6)',
+            background: 'rgba(15, 23, 42, 0.94)',
+            backdropFilter: 'blur(20px)',
+            WebkitBackdropFilter: 'blur(20px)',
+            borderRadius: '24px',
+            border: '1px solid rgba(255, 255, 255, 0.2)',
+            boxShadow: '0 8px 32px rgba(0,0,0,0.7)',
             WebkitOverflowScrolling: 'touch',
           }}
         >
@@ -829,11 +846,11 @@ export const StoryEditorModal: React.FC<StoryEditorModalProps> = ({
                 onClick={() => setSelectedFilter(f.id)}
                 style={{
                   flexShrink: 0,
-                  background: isSelected ? 'linear-gradient(135deg, #F59E0B, #D97706)' : 'rgba(0, 0, 0, 0.65)',
-                  border: isSelected ? '2.5px solid #FFFFFF' : '1px solid rgba(255,255,255,0.3)',
+                  background: isSelected ? 'linear-gradient(135deg, #F59E0B, #D97706)' : 'rgba(255, 255, 255, 0.1)',
+                  border: isSelected ? '2px solid #FFFFFF' : '1px solid rgba(255,255,255,0.2)',
                   color: '#FFFFFF',
-                  borderRadius: '20px',
-                  padding: '10px 18px',
+                  borderRadius: '18px',
+                  padding: '8px 16px',
                   cursor: 'pointer',
                   display: 'flex',
                   alignItems: 'center',

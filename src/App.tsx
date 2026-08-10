@@ -939,7 +939,7 @@ export default function App() {
       : 'beerdex_gallery_permission';
 
     const stored = localStorage.getItem(permKey);
-    if (stored === 'always' || stored === 'while_using') {
+    if (stored === 'always' || stored === 'while_using' || stored === 'granted') {
       onGranted();
     } else if (stored === 'denied') {
       showAlert(
@@ -962,11 +962,12 @@ export default function App() {
       ? 'beerdex_camera_permission'
       : 'beerdex_gallery_permission';
 
-    localStorage.setItem(permKey, choice);
+    const savedValue = (choice === 'always' || choice === 'while_using') ? 'always' : 'denied';
+    try { localStorage.setItem(permKey, savedValue); } catch {}
     const callback = permissionModalState.onGranted;
     setPermissionModalState((prev) => ({ ...prev, isOpen: false }));
 
-    if ((choice === 'always' || choice === 'while_using') && callback) {
+    if (savedValue === 'always' && callback) {
       callback();
     }
   };
