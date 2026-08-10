@@ -81,7 +81,7 @@ export const StoryEditorModal: React.FC<StoryEditorModalProps> = ({
   // Media State
   const [capturedMediaUrl, setCapturedMediaUrl] = useState<string | null>(null);
   const [isVideo, setIsVideo] = useState<boolean>(false);
-  const [facingMode, setFacingMode] = useState<'user' | 'environment'>('user');
+  const [facingMode, setFacingMode] = useState<'user' | 'environment'>('environment');
   const [isCameraActive, setIsCameraActive] = useState<boolean>(false);
   const [isRecordingVideo, setIsRecordingVideo] = useState<boolean>(false);
   const [recordingSeconds, setRecordingSeconds] = useState<number>(0);
@@ -148,11 +148,11 @@ export const StoryEditorModal: React.FC<StoryEditorModalProps> = ({
       try {
         stream = await navigator.mediaDevices.getUserMedia({
           video: { facingMode: { ideal: facingMode } },
-          audio: true,
+          audio: false,
         });
-      } catch (_audioErr) {
+      } catch (_err) {
         stream = await navigator.mediaDevices.getUserMedia({
-          video: { facingMode: { ideal: facingMode } },
+          video: true,
           audio: false,
         });
       }

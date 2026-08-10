@@ -1919,14 +1919,34 @@ export default function App() {
         });
       }
 
-      // 7. Rimuovi i post dell'utente e i suoi like/rating dagli ALTRI post in social_timeline
+      // 7. Gestisci i post dell'utente in social_timeline: se il post ha amici taggati, trasferisci la titolarità per mantenere i loro punti e sblocchi
       const timelineSnap = await get(ref(db, 'social_timeline'));
+      const friendsToRecalculate = new Set<string>();
+
       if (timelineSnap.exists()) {
         timelineSnap.forEach((child) => {
           const p = child.val();
           if (p) {
             if (p.user && p.user.toLowerCase() === targetLower) {
-              updates[`social_timeline/${child.key}`] = null;
+              const remainingTagged = Array.from(
+                new Set([
+                  ...(Array.isArray(p.taggedFriends) ? p.taggedFriends : []),
+                  ...(p.taggedFriend ? p.taggedFriend.split(',').map((s: string) => s.trim()) : []),
+                ])
+              ).filter((f: any) => f && typeof f === 'string' && f.toLowerCase() !== targetLower);
+
+              if (remainingTagged.length > 0) {
+                const newAuthor = remainingTagged[0];
+                const newOtherTagged = remainingTagged.slice(1);
+                updates[`social_timeline/${child.key}/user`] = newAuthor;
+                updates[`social_timeline/${child.key}/taggedFriends`] = newOtherTagged;
+                updates[`social_timeline/${child.key}/taggedFriend`] = newOtherTagged.length > 0 ? newOtherTagged.join(', ') : null;
+                updates[`social_timeline/${child.key}/isShared`] = newOtherTagged.length > 0;
+
+                remainingTagged.forEach((f) => friendsToRecalculate.add(f));
+              } else {
+                updates[`social_timeline/${child.key}`] = null;
+              }
             } else {
               if (p.likes && typeof p.likes === 'object') {
                 Object.keys(p.likes).forEach((likeUser) => {
@@ -1994,6 +2014,11 @@ export default function App() {
 
       // Esegui la cancellazione atomica su Firebase Realtime Database
       await update(ref(db), updates);
+
+      // Ricalcola il punteggio per tutti gli amici taggati nei post condivisi salvati
+      for (const friendNick of friendsToRecalculate) {
+        await recalculateTotalScore(friendNick);
+      }
 
       // Aggiorna immediatamente lo stato locale per nascondere subito l'utente eliminato
       setMyFriendsList((prev) => prev.filter((f) => f.toLowerCase() !== targetLower));
