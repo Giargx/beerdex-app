@@ -34,19 +34,19 @@ export const PermissionModal: React.FC<PermissionModalProps> = ({ isOpen, type, 
   };
 
   const getTitle = () => {
-    if (isLocation) return 'Attiva la Posizione';
-    if (isCamera) return 'Attiva la Fotocamera';
-    return 'Accedi alla Galleria';
+    if (isLocation) return 'Autorizza Posizione GPS';
+    if (isCamera) return 'Autorizza Fotocamera';
+    return 'Autorizza Galleria Foto';
   };
 
   const getDesc = () => {
     if (isLocation) {
-      return 'Ti serve per verificare se ti trovi nella nazione o regione d\'origine della birra e sbloccare i punti Shiny doppi!';
+      return 'Consenti l\'accesso alla posizione per verificare la nazione d\'origine della birra e sbloccare i punti Shiny doppi.';
     }
     if (isCamera) {
-      return 'Abilita la fotocamera per scattare le foto alle tue birre, scansionare codici a barre e condividere Storie al pub con i tuoi amici.';
+      return 'Consenti a POP IT l\'accesso alla fotocamera per scattare le foto alle tue birre, scansionare i codici a barre al pub e condividere le tue Storie con i tuoi amici.';
     }
-    return 'Seleziona le foto dei tuoi boccali direttamente dalla galleria dello smartphone per aggiungerle alla tua collezione.';
+    return 'Consenti l\'accesso alla galleria per selezionare e caricare le foto dei tuoi boccali direttamente dal tuo dispositivo.';
   };
 
   return (
@@ -90,39 +90,21 @@ export const PermissionModal: React.FC<PermissionModalProps> = ({ isOpen, type, 
           {getDesc()}
         </p>
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
           <button
             className="btn-main"
             onClick={() => onChoice('always')}
-            style={{ width: '100%', margin: 0, justifyContent: 'center', fontSize: '14px' }}
+            style={{ width: '100%', margin: 0, justifyContent: 'center', fontSize: '14px', gap: '8px' }}
           >
-            <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>verified</span>
-            Consenti per sempre
-          </button>
-
-          <button
-            className="btn-secondary"
-            onClick={() => onChoice('while_using')}
-            style={{ width: '100%', margin: 0, justifyContent: 'center', fontSize: '13px' }}
-          >
-            <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>schedule</span>
-            Solo mentre usi l'app
+            <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>verified</span>
+            Consenti e Salva per Sempre
           </button>
 
           <button
             type="button"
+            className="btn-secondary"
             onClick={() => onChoice('denied')}
-            style={{
-              background: 'transparent',
-              border: 'none',
-              color: 'var(--danger)',
-              padding: '10px',
-              fontSize: '13px',
-              fontWeight: 700,
-              cursor: 'pointer',
-              marginTop: '4px',
-              fontFamily: 'inherit',
-            }}
+            style={{ width: '100%', margin: 0, justifyContent: 'center', fontSize: '13px', background: '#F1F5F9', color: 'var(--dark)', borderColor: '#CBD5E1' }}
           >
             Annulla
           </button>
