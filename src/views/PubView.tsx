@@ -2,7 +2,7 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { ref, onValue } from 'firebase/database';
 import { db } from '../firebase';
 import { FoamBubbles } from '../components/FoamBubbles';
-import { getBasePoints, formatBeerTitle } from '../beers';
+import { getBasePoints, getBeerRarity, formatBeerTitle, type Beer } from '../beers';
 import { StarRating } from '../components/StarRating';
 import { ReportPostModal } from '../components/ReportPostModal';
 import type { PokedexEntry } from '../components/TrophyGrid';
@@ -22,6 +22,7 @@ interface Post {
   taggedFriend: string | null;
   likes?: Record<string, boolean>;
   rating?: number;
+  rarity?: string;
 }
 
 interface PubViewProps {
@@ -34,6 +35,7 @@ interface PubViewProps {
   myPokedex?: Record<string, PokedexEntry>;
   allPokedexProfiles?: Record<string, Record<string, PokedexEntry>>;
   globalUserPrivacy?: Record<string, boolean>;
+  allBeersCatalog?: Beer[];
   onRateBeer?: (brand: string, variant: string, rating: number) => void;
   onOpenRatingModal?: (brand: string, variant: string, photo?: string) => void;
   onToggleLike: (postId: string, cardElement: HTMLElement | null) => void;
@@ -57,6 +59,7 @@ export const PubView: React.FC<PubViewProps> = ({
   myPokedex,
   allPokedexProfiles,
   globalUserPrivacy,
+  allBeersCatalog,
   onRateBeer,
   onOpenRatingModal,
   onToggleLike,
@@ -685,31 +688,47 @@ export const PubView: React.FC<PubViewProps> = ({
               const av1 = globalAvatars[user1];
               const disp1 = globalDisplayNames?.[user1] || user1;
 
-              // Calculate points received upon unlocking
-              const basePts = getBasePoints(post.brand, post.variant);
+              // Calculate points received upon unlocking with Admin chosen rarity
+              const postRarity = getBeerRarity(post.brand, post.variant, allBeersCatalog, (post as any).rarity);
+              const basePts = getBasePoints(post.brand, post.variant, allBeersCatalog, (post as any).rarity);
               let earnedPts = basePts;
               if (post.isShiny) earnedPts *= 2;
 
               const pointsBadge = (
-                <span
-                  className="pts-tag"
-                  style={{
-                    color: 'white',
-                    fontWeight: 800,
-                    fontSize: '11px',
-                    background: post.isShiny
-                      ? 'linear-gradient(135deg, #F59E0B, #D97706)'
-                      : 'linear-gradient(135deg, #E67E22, #D35400)',
-                    padding: '3px 8px',
-                    borderRadius: '12px',
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: '3px',
-                    boxShadow: '0 2px 6px rgba(230, 126, 34, 0.3)',
-                    verticalAlign: 'middle',
-                  }}
-                >
-                  +{earnedPts} pt
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', verticalAlign: 'middle' }}>
+                  <span
+                    className="pts-tag"
+                    style={{
+                      color: 'white',
+                      fontWeight: 800,
+                      fontSize: '11px',
+                      background: post.isShiny
+                        ? 'linear-gradient(135deg, #F59E0B, #D97706)'
+                        : 'linear-gradient(135deg, #E67E22, #D35400)',
+                      padding: '3px 8px',
+                      borderRadius: '12px',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '3px',
+                      boxShadow: '0 2px 6px rgba(230, 126, 34, 0.3)',
+                    }}
+                  >
+                    +{earnedPts} pt
+                  </span>
+                  <span
+                    style={{
+                      fontSize: '10px',
+                      fontWeight: 800,
+                      padding: '2px 7px',
+                      borderRadius: '10px',
+                      textTransform: 'uppercase',
+                      background: postRarity === 'rara' ? '#FEF3C7' : postRarity === 'media' ? '#E0F2FE' : '#F1F5F9',
+                      color: postRarity === 'rara' ? '#B45309' : postRarity === 'media' ? '#0369A1' : '#475569',
+                      border: postRarity === 'rara' ? '1px solid #FDE68A' : postRarity === 'media' ? '1px solid #BAE6FD' : '1px solid #E2E8F0',
+                    }}
+                  >
+                    {postRarity}
+                  </span>
                 </span>
               );
 
@@ -1082,7 +1101,7 @@ export const PubView: React.FC<PubViewProps> = ({
                   {/* Post Image Container */}
                   <div
                     className="post-image-container"
-                    style={{ position: 'relative', overflow: 'hidden', width: '100%', display: 'block', background: '#0F172A' }}
+                    style={{ position: 'relative', overflow: 'hidden', width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#0F172A', maxHeight: '550px' }}
                   >
                     {/* Shiny Ribbon Badge */}
                     {post.isShiny && (
@@ -1142,7 +1161,7 @@ export const PubView: React.FC<PubViewProps> = ({
                       onDoubleClick={(e) => handlePostDoubleTap(post.postId, e)}
                       onContextMenu={(e) => e.preventDefault()}
                       draggable={false}
-                      style={{ display: 'block', width: '100%', objectFit: 'cover' }}
+                      style={{ display: 'block', width: '100%', height: 'auto', maxHeight: '550px', objectFit: 'contain', background: '#0F172A' }}
                     />
                   </div>
 

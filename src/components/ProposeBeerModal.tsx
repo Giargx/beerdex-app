@@ -9,7 +9,7 @@ export interface BeerProposalData {
   beerType: "bionda" | "rossa" | "scura" | "bianca" | "ipa";
   country: string;
   regione?: string;
-  rarity: "comune" | "media" | "rara";
+  rarity?: "comune" | "media" | "rara";
   desc?: string;
   photo: string;
   isVariantProposal?: boolean;

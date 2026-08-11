@@ -1703,6 +1703,7 @@ export default function App() {
           isShared: isSharedGroup,
           proposalBonus: bonusPoints,
           proposalType: isVariant ? 'variant' : 'brand',
+          rarity: chosenRarity,
         };
         await set(ref(db, `pokedex_profiles/${userNick}/${uniqueId}`), pokedexEntry);
         await recalculateTotalScore(userNick);
@@ -1733,6 +1734,7 @@ export default function App() {
         proposalBonus: bonusPoints,
         taggedFriend: taggedFriendStr,
         taggedFriends: taggedFriendsList,
+        rarity: chosenRarity,
       });
 
       // 5. Update proposal status to accepted in DB
@@ -4465,6 +4467,7 @@ export default function App() {
                     myPokedex={myPokedex}
                     allPokedexProfiles={allPokedexProfiles}
                     globalUserPrivacy={globalUserPrivacy}
+                    allBeersCatalog={allBeersCatalog}
                     onRateBeer={handleRateBeer}
                     onOpenRatingModal={handleOpenRatingForBeer}
                     onToggleLike={handleToggleLike}

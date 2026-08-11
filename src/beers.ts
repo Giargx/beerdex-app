@@ -419,25 +419,52 @@ export function calculateCompositeRarity(params: RarityScoreParams): "comune" | 
   return "rara";
 }
 
-export function getBasePoints(brandName: string, variantName: string, allBeersCatalog: Beer[] = beers): number {
+export function getBeerRarity(
+  brandName: string,
+  _variantName?: string,
+  allBeersCatalog: Beer[] = beers,
+  postRarity?: string
+): 'comune' | 'media' | 'rara' {
+  if (postRarity === 'media' || postRarity === 'rara' || postRarity === 'comune') {
+    return postRarity;
+  }
+  const safeCatalog = Array.isArray(allBeersCatalog) && allBeersCatalog.length > 0 ? allBeersCatalog : beers;
+  const normTarget = stripStr(brandName);
+  const beer = safeCatalog.find(b => b && b.brand && (b.brand === brandName || stripStr(b.brand) === normTarget || normTarget.includes(stripStr(b.brand)) || stripStr(b.brand).includes(normTarget)));
+  if (beer && beer.rarity) {
+    return beer.rarity;
+  }
+  return 'comune';
+}
+
+export function getBasePoints(
+  brandName: string,
+  variantName: string,
+  allBeersCatalog: Beer[] = beers,
+  postRarity?: string
+): number {
+  if (postRarity === 'rara') return 5;
+  if (postRarity === 'media') return 2;
+  if (postRarity === 'comune') return 1;
+
   let base = 1;
-  const safeCatalog = Array.isArray(allBeersCatalog) ? allBeersCatalog : beers;
+  const safeCatalog = Array.isArray(allBeersCatalog) && allBeersCatalog.length > 0 ? allBeersCatalog : beers;
   const normTarget = stripStr(brandName);
   const beer = safeCatalog.find(b => b && b.brand && (b.brand === brandName || stripStr(b.brand) === normTarget || normTarget.includes(stripStr(b.brand)) || stripStr(b.brand).includes(normTarget)));
   if (beer) {
-    if (beer.rarity === "media") base = 2;
-    if (beer.rarity === "rara") base = 5;
+    if (beer.rarity === 'media') base = 2;
+    if (beer.rarity === 'rara') base = 5;
   }
   // All mass-market commercial variants (e.g. Ichnusa Non Filtrata, Moretti, Peroni, Raffo) return 1 base point (Comune).
   // Special reserve editions:
-  if (brandName === "Peroni" && variantName.includes("Gran Riserva")) return 2;
-  if (brandName === "Poretti" && (variantName === "7 Luppoli" || variantName === "8 Luppoli" || variantName === "Le 9 Luppoli (IPA)")) return 2;
+  if (brandName === 'Peroni' && variantName.includes('Gran Riserva')) return 2;
+  if (brandName === 'Poretti' && (variantName === '7 Luppoli' || variantName === '8 Luppoli' || variantName === 'Le 9 Luppoli (IPA)')) return 2;
 
   return base;
 }
 
-export function getBeerPoints(brandName: string, variantName: string, isShiny: boolean, _isShared?: boolean, allBeersCatalog: Beer[] = beers): number {
-  let base = getBasePoints(brandName, variantName, allBeersCatalog);
+export function getBeerPoints(brandName: string, variantName: string, isShiny: boolean, _isShared?: boolean, allBeersCatalog: Beer[] = beers, postRarity?: string): number {
+  let base = getBasePoints(brandName, variantName, allBeersCatalog, postRarity);
   if (isShiny) base *= 2;
   return base;
 }
@@ -594,7 +621,10 @@ export function resolvePokedexEntryBeer(
   if (!variant) variant = 'Classica';
 
   const rawRarity = String(
-    foundBeer?.rarity || (entry && typeof entry === 'object' ? (entry.rarity || entry.beer?.rarity) : '') || 'comune'
+    (entry && typeof entry === 'object' && entry.rarity) ||
+    foundBeer?.rarity ||
+    (entry && typeof entry === 'object' ? entry.beer?.rarity : '') ||
+    'comune'
   ).toLowerCase().trim();
 
   let rarity: 'comune' | 'media' | 'rara' = 'comune';

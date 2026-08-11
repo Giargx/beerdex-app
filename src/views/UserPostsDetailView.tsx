@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { StarRating } from '../components/StarRating';
-import { formatBeerTitle, getBasePoints, getUniqueParticipantPosts } from '../beers';
+import { formatBeerTitle, getBasePoints, getBeerRarity, getUniqueParticipantPosts, type Beer } from '../beers';
 import { ReportPostModal } from '../components/ReportPostModal';
 import { LikersBottomSheetModal } from '../components/LikersBottomSheetModal';
 
@@ -10,6 +10,7 @@ interface UserPostsDetailViewProps {
   avatar: string | undefined;
   posts: any[];
   currentUserNick: string;
+  allBeersCatalog?: Beer[];
   onToggleLike: (postId: string, imageContainer: HTMLElement | null) => void;
   onBack: () => void;
   initialPostId: string;
@@ -30,6 +31,7 @@ export const UserPostsDetailView: React.FC<UserPostsDetailViewProps> = ({
   avatar,
   posts,
   currentUserNick,
+  allBeersCatalog,
   onToggleLike,
   onBack,
   initialPostId,
@@ -222,7 +224,8 @@ export const UserPostsDetailView: React.FC<UserPostsDetailViewProps> = ({
                 month: 'long',
                 year: 'numeric'
               });
-              const basePts = getBasePoints(post.brand, post.variant);
+              const postRarity = getBeerRarity(post.brand, post.variant, allBeersCatalog, post.rarity);
+              const basePts = getBasePoints(post.brand, post.variant, allBeersCatalog, post.rarity);
               let earnedPts = basePts;
               if (post.isShiny) earnedPts *= 2;
 
@@ -525,7 +528,7 @@ export const UserPostsDetailView: React.FC<UserPostsDetailViewProps> = ({
                   </div>
 
                   {/* Card Photo */}
-                  <div className="post-image-container" style={{ position: 'relative', overflow: 'hidden', width: '100%', display: 'block', background: '#F8FAFC' }}>
+                  <div className="post-image-container" style={{ position: 'relative', overflow: 'hidden', width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#0F172A', maxHeight: '550px' }}>
                     {(() => {
                       const isPostShared = Boolean(
                         post.isShared ||
@@ -571,6 +574,7 @@ export const UserPostsDetailView: React.FC<UserPostsDetailViewProps> = ({
                       onDoubleClick={(e) => handlePostDoubleTap(post.postId, e)}
                       onContextMenu={(e) => e.preventDefault()}
                       draggable={false}
+                      style={{ display: 'block', width: '100%', height: 'auto', maxHeight: '550px', objectFit: 'contain', background: '#0F172A' }}
                     />
                   </div>
 

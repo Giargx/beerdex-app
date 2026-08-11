@@ -948,19 +948,20 @@ header.hero p {
 
 .post-image-container { 
     width: 100%; 
-    background: #000000; 
+    background: #0f172a; 
     overflow: hidden; 
     display: flex; 
     align-items: center; 
     justify-content: center; 
     position: relative; 
+    max-height: 550px;
 }
 .post-image { 
     width: 100%; 
-    height: 400px; 
-    max-height: 60vh; 
-    object-fit: cover; 
-    background: #000000; 
+    height: auto; 
+    max-height: 550px; 
+    object-fit: contain; 
+    background: #0f172a; 
     display: block; 
     border-bottom: none; 
     -webkit-touch-callout: none; 
@@ -1296,7 +1297,7 @@ header.hero p {
     .settings-content { padding: 60px 16px 100px 16px !important; }
     .post-card { margin-bottom: 12px !important; }
     .post-user, .post-time { margin-left: 10px !important; }
-    .post-image { height: 350px !important; max-height: 48vh !important; object-fit: cover !important; background: #F8FAFC !important; }
+    .post-image { height: auto !important; max-height: 550px !important; object-fit: contain !important; background: #0f172a !important; }
     .post-caption { font-size: 13px !important; padding: 6px 12px 12px 12px !important; }
     .post-time { flex-wrap: wrap !important; }
     
