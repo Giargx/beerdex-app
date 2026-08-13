@@ -469,6 +469,34 @@ export function getBeerPoints(brandName: string, variantName: string, isShiny: b
   return base;
 }
 
+export function getPostParticipants(post: any): string[] {
+  if (!post || !post.user) return [];
+  const author = post.user.trim();
+  const authorLower = author.toLowerCase();
+
+  const rawList: string[] = [
+    ...(Array.isArray(post.taggedFriends) ? post.taggedFriends : []),
+    ...(typeof post.taggedFriend === 'string' ? post.taggedFriend.split(',') : []),
+  ];
+
+  const distinctFriends: string[] = [];
+  const seen = new Set<string>();
+  seen.add(authorLower);
+
+  rawList.forEach((item) => {
+    if (typeof item === 'string') {
+      const clean = item.trim();
+      const lower = clean.toLowerCase();
+      if (clean && lower !== 'null' && lower !== 'undefined' && !seen.has(lower)) {
+        seen.add(lower);
+        distinctFriends.push(clean);
+      }
+    }
+  });
+
+  return [author, ...distinctFriends];
+}
+
 export function isUserParticipantInPost(post: any, username: string): boolean {
   if (!post || !username) return false;
   const userLower = username.toLowerCase();

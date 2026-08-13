@@ -2,7 +2,7 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { ref, onValue } from 'firebase/database';
 import { db } from '../firebase';
 import { FoamBubbles } from '../components/FoamBubbles';
-import { getBasePoints, getBeerRarity, formatBeerTitle, type Beer } from '../beers';
+import { formatBeerTitle, getBeerRarity, getBasePoints, getPostParticipants, type Beer } from '../beers';
 import { StarRating } from '../components/StarRating';
 import { ReportPostModal } from '../components/ReportPostModal';
 import type { PokedexEntry } from '../components/TrophyGrid';
@@ -151,15 +151,9 @@ export const PubView: React.FC<PubViewProps> = ({
     const seenSessions = new Set<string>();
 
     accessible.forEach((post) => {
-      let participants: string[] = [post.user];
-      if (Array.isArray((post as any).taggedFriends)) {
-        participants.push(...(post as any).taggedFriends.filter(Boolean));
-      } else if (post.taggedFriend) {
-        participants.push(...post.taggedFriend.split(',').map((s) => s.trim()).filter(Boolean));
-      }
-      participants = Array.from(new Set(participants)).sort();
+      const participants = getPostParticipants(post);
 
-      if (post.isShared || participants.length > 1) {
+      if (participants.length > 1) {
         const timeGroup = Math.floor(post.time / (10 * 60 * 1000));
         const sessionKey = `${participants.join('::')}::${post.brand}::${post.variant}::${timeGroup}`;
         const photoKey = post.photo ? `${participants.join('::')}::${post.photo}` : '';
@@ -747,11 +741,9 @@ export const PubView: React.FC<PubViewProps> = ({
                 (typeof post.rating === 'number' && post.rating > 0 ? post.rating : 0) ||
                 (authorPokedex?.[`${post.brand}-${post.variant}`]?.rating || 0);
 
-              const isPostShared = Boolean(
-                post.isShared ||
-                (post.taggedFriend && post.taggedFriend.trim() !== '') ||
-                (Array.isArray((post as any).taggedFriends) && (post as any).taggedFriends.filter(Boolean).length > 0)
-              );
+              const allParticipants = getPostParticipants(post);
+              const isShared = allParticipants.length > 1;
+              const isPostShared = isShared;
 
               return (
                 <div
@@ -780,15 +772,6 @@ export const PubView: React.FC<PubViewProps> = ({
                     }}
                   >
                     {(() => {
-                      const allParticipants: string[] = Array.from(
-                        new Set([
-                          post.user,
-                          ...(Array.isArray((post as any).taggedFriends) ? (post as any).taggedFriends.filter(Boolean) : []),
-                          ...(post.taggedFriend ? post.taggedFriend.split(',').map((s: string) => s.trim()).filter(Boolean) : []),
-                        ])
-                      );
-
-                      const isShared = allParticipants.length > 1;
                       const displayedAvatars = allParticipants.slice(0, 3);
                       const extraCount = allParticipants.length - 3;
 
@@ -1259,13 +1242,7 @@ export const PubView: React.FC<PubViewProps> = ({
                   {/* Clear Structural Card Division: Dedicated Beer Info Box & Caption */}
                   <div className="post-caption" style={{ padding: '0 16px 16px 16px' }}>
                     {(() => {
-                      const allParticipants: string[] = Array.from(
-                        new Set([
-                          post.user,
-                          ...(Array.isArray((post as any).taggedFriends) ? (post as any).taggedFriends.filter(Boolean) : []),
-                          ...(post.taggedFriend ? post.taggedFriend.split(',').map((s: string) => s.trim()).filter(Boolean) : []),
-                        ])
-                      );
+                      const allParticipants = getPostParticipants(post);
 
                       const participantRatings = allParticipants.map((partNick) => {
                         const name = globalDisplayNames?.[partNick] || partNick;
@@ -1553,13 +1530,7 @@ export const PubView: React.FC<PubViewProps> = ({
             </div>
 
             {(() => {
-              const parts: string[] = Array.from(
-                new Set([
-                  selectedParticipantsPost.user,
-                  ...(Array.isArray((selectedParticipantsPost as any).taggedFriends) ? (selectedParticipantsPost as any).taggedFriends.filter(Boolean) : []),
-                  ...(selectedParticipantsPost.taggedFriend ? selectedParticipantsPost.taggedFriend.split(',').map((s: string) => s.trim()).filter(Boolean) : []),
-                ])
-              );
+              const parts = getPostParticipants(selectedParticipantsPost);
 
               return (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>

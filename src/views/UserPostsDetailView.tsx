@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { StarRating } from '../components/StarRating';
-import { formatBeerTitle, getBasePoints, getUniqueParticipantPosts, type Beer } from '../beers';
+import { formatBeerTitle, getBasePoints, getUniqueParticipantPosts, getPostParticipants, type Beer } from '../beers';
 import { ReportPostModal } from '../components/ReportPostModal';
 import { LikersBottomSheetModal } from '../components/LikersBottomSheetModal';
 
@@ -239,14 +239,7 @@ export const UserPostsDetailView: React.FC<UserPostsDetailViewProps> = ({
                   {/* Card Header: Dual/Multi Avatars for Shared Drinks or Single Avatar */}
                   <div className="post-header" style={{ padding: '12px 16px' }}>
                     {(() => {
-                      const allParticipants: string[] = Array.from(
-                        new Set([
-                          post.user,
-                          ...(Array.isArray((post as any).taggedFriends) ? (post as any).taggedFriends.filter(Boolean) : []),
-                          ...(post.taggedFriend ? post.taggedFriend.split(',').map((s: string) => s.trim()).filter(Boolean) : []),
-                        ])
-                      );
-
+                      const allParticipants = getPostParticipants(post);
                       const isShared = allParticipants.length > 1;
                       const displayedAvatars = allParticipants.slice(0, 3);
                       const extraCount = allParticipants.length - 3;
@@ -530,11 +523,8 @@ export const UserPostsDetailView: React.FC<UserPostsDetailViewProps> = ({
                   {/* Card Photo */}
                   <div className="post-image-container" style={{ position: 'relative', overflow: 'hidden', width: '100%', aspectRatio: '9 / 16', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#0F172A' }}>
                     {(() => {
-                      const isPostShared = Boolean(
-                        post.isShared ||
-                        (post.taggedFriend && post.taggedFriend.trim() !== '') ||
-                        (Array.isArray((post as any).taggedFriends) && (post as any).taggedFriends.filter(Boolean).length > 0)
-                      );
+                      const allParticipants = getPostParticipants(post);
+                      const isPostShared = allParticipants.length > 1;
                       const authorPokedex = allPokedexProfiles?.[post.user];
                       const effectiveRating =
                         (typeof post.rating === 'number' && post.rating > 0 ? post.rating : 0) ||
@@ -662,19 +652,8 @@ export const UserPostsDetailView: React.FC<UserPostsDetailViewProps> = ({
                   {/* Beer info detail banner & caption (matching PubView 1:1) */}
                   <div className="post-caption" style={{ padding: '0 16px 16px 16px' }}>
                     {(() => {
-                      const allParticipants: string[] = Array.from(
-                        new Set([
-                          post.user,
-                          ...(Array.isArray((post as any).taggedFriends) ? (post as any).taggedFriends.filter(Boolean) : []),
-                          ...(post.taggedFriend ? post.taggedFriend.split(',').map((s: string) => s.trim()).filter(Boolean) : []),
-                        ])
-                      );
-
-                      const isPostShared = Boolean(
-                        post.isShared ||
-                        (post.taggedFriend && post.taggedFriend.trim() !== '') ||
-                        (Array.isArray((post as any).taggedFriends) && (post as any).taggedFriends.filter(Boolean).length > 0)
-                      );
+                      const allParticipants = getPostParticipants(post);
+                      const isPostShared = allParticipants.length > 1;
 
                       const participantRatings = allParticipants.map((partNick) => {
                         const name = globalDisplayNames?.[partNick] || partNick;
@@ -942,13 +921,7 @@ export const UserPostsDetailView: React.FC<UserPostsDetailViewProps> = ({
             </div>
 
             {(() => {
-              const allParticipants: string[] = Array.from(
-                new Set([
-                  selectedParticipantsPost.user,
-                  ...(Array.isArray(selectedParticipantsPost.taggedFriends) ? selectedParticipantsPost.taggedFriends.filter(Boolean) : []),
-                  ...(selectedParticipantsPost.taggedFriend ? selectedParticipantsPost.taggedFriend.split(',').map((s: string) => s.trim()).filter(Boolean) : []),
-                ])
-              );
+              const allParticipants = getPostParticipants(selectedParticipantsPost);
 
               return (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
