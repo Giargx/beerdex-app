@@ -1606,7 +1606,7 @@ export default function App() {
         : '';
 
       showAlert(
-        `Proposta per "${proposalData.brand} - ${proposalData.variant}"${inCompagniaMsg} inviata agli admin! Se approvata, verrà aggiunta al catalogo, la sbloccherete nel Pokédex e riceverete i punti della birra + ${bonusPoints} Punti Bonus ciascuno!`,
+        `Proposta per "${proposalData.brand} - ${proposalData.variant}"${inCompagniaMsg} inviata agli admin! Se approvata, verrà aggiunta al catalogo, la sbloccherete nella vostra collezione e riceverete i punti della birra + ${bonusPoints} Punti Bonus ciascuno!`,
         'Proposta Inviata!'
       );
     } catch (err: any) {
@@ -1712,7 +1712,7 @@ export default function App() {
           const notifRef = push(ref(db, `user_notifications/${userNick}`));
           await set(notifRef, {
             title: 'Birra Approvata!',
-            message: `La birra "${formattedBrand} - ${formattedVariant}" proposta da @${proposal.proposedBy} in tua compagnia è stata approvata dagli Admin! L'hai sbloccata nel Pokédex con +${bonusPoints} Punti Bonus!`,
+            message: `La birra "${formattedBrand} - ${formattedVariant}" proposta da @${proposal.proposedBy} in tua compagnia è stata approvata dagli Admin! L'hai sbloccata nella tua collezione con +${bonusPoints} Punti Bonus!`,
             timestamp: Date.now(),
           });
         }
