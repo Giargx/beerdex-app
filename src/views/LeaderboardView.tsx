@@ -457,7 +457,7 @@ export const LeaderboardView: React.FC<LeaderboardViewProps> = ({
                         width: '54px',
                         height: '54px',
                         borderRadius: '50%',
-                        border: '3px solid #94A3B8',
+                        border: '3.5px solid #94A3B8',
                         overflow: 'hidden',
                         background: '#334155',
                         boxShadow: '0 4px 15px rgba(148, 163, 184, 0.4)'
@@ -477,6 +477,11 @@ export const LeaderboardView: React.FC<LeaderboardViewProps> = ({
                         transform: 'translateX(-50%)',
                         background: 'linear-gradient(135deg, #E2E8F0, #94A3B8)',
                         color: '#0F172A',
+                        fontWeight: 900,
+                        fontSize: '10px',
+                        padding: '2px 8px',
+                        borderRadius: '12px',
+                        boxShadow: '0 2px 6px rgba(148, 163, 184, 0.5)'
                       }}>
                         2°
                       </span>
