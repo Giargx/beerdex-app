@@ -46,7 +46,7 @@ export const UserPostsDetailView: React.FC<UserPostsDetailViewProps> = ({
   isFriend = false,
 }) => {
   const [selectedReportPost, setSelectedReportPost] = useState<any>(null);
-  const [selectedParticipantsPost, setSelectedParticipantsPost] = useState<any>(null);
+  const [openParticipantsPostId, setOpenParticipantsPostId] = useState<string | null>(null);
   const [activeLikersPost, setActiveLikersPost] = useState<any>(null);
   const [savedPostIds, setSavedPostIds] = useState<string[]>(() => {
     try {
@@ -249,16 +249,11 @@ export const UserPostsDetailView: React.FC<UserPostsDetailViewProps> = ({
                           {isShared ? (
                             /* Multi-Participant Avatar Stack */
                             <div
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setSelectedParticipantsPost(post);
-                              }}
                               style={{
                                 position: 'relative',
                                 display: 'inline-flex',
                                 alignItems: 'center',
                                 marginRight: '10px',
-                                cursor: 'pointer',
                               }}
                             >
                               {displayedAvatars.map((pNick, idx) => {
@@ -266,6 +261,11 @@ export const UserPostsDetailView: React.FC<UserPostsDetailViewProps> = ({
                                 return (
                                   <div
                                     key={pNick}
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      onOpenPublicProfile(pNick);
+                                    }}
+                                    title={`Vedi profilo di ${globalDisplayNames?.[pNick] || pNick}`}
                                     style={{
                                       width: '36px',
                                       height: '36px',
@@ -278,7 +278,6 @@ export const UserPostsDetailView: React.FC<UserPostsDetailViewProps> = ({
                                       marginLeft: idx > 0 ? '-12px' : '0',
                                       zIndex: 3 - idx,
                                       cursor: 'pointer',
-                                      pointerEvents: 'none',
                                     }}
                                   >
                                     <div
@@ -309,8 +308,9 @@ export const UserPostsDetailView: React.FC<UserPostsDetailViewProps> = ({
                                 <div
                                   onClick={(e) => {
                                     e.stopPropagation();
-                                    setSelectedParticipantsPost(post);
+                                    setOpenParticipantsPostId(openParticipantsPostId === post.postId ? null : post.postId);
                                   }}
+                                  title="Apri tendina partecipanti"
                                   style={{
                                     width: '32px',
                                     height: '32px',
@@ -326,6 +326,7 @@ export const UserPostsDetailView: React.FC<UserPostsDetailViewProps> = ({
                                     zIndex: 4,
                                     border: '2px solid #FFFFFF',
                                     boxShadow: '0 2px 6px rgba(0,0,0,0.2)',
+                                    cursor: 'pointer',
                                   }}
                                 >
                                   +{extraCount}
@@ -423,35 +424,41 @@ export const UserPostsDetailView: React.FC<UserPostsDetailViewProps> = ({
                                      >
                                        {globalDisplayNames?.[allParticipants[1]] || allParticipants[1]}
                                      </strong>
-                                      <span
-                                        className="clickable-user"
-                                        onClick={(e) => {
-                                          e.stopPropagation();
-                                          setSelectedParticipantsPost(post);
-                                        }}
-                                        style={{
-                                          background: 'rgba(245, 158, 11, 0.18)',
-                                          borderRadius: '12px',
-                                          padding: '3px 10px',
-                                          color: '#D97706',
-                                          fontSize: '12px',
-                                          fontWeight: 800,
-                                          cursor: 'pointer',
-                                          display: 'inline-flex',
-                                          alignItems: 'center',
-                                          gap: '2px',
-                                          marginLeft: '4px',
-                                          userSelect: 'none',
-                                          WebkitTapHighlightColor: 'rgba(245, 158, 11, 0.3)',
-                                          position: 'relative',
-                                          zIndex: 10,
-                                        }}
-                                      >
-                                        <span>e altri {allParticipants.length - 2}</span>
-                                        <span className="material-symbols-outlined" style={{ fontSize: '16px', pointerEvents: 'none' }}>
-                                          expand_more
-                                        </span>
-                                      </span>
+                                     <button
+                                       type="button"
+                                       onClick={(e) => {
+                                         e.stopPropagation();
+                                         setOpenParticipantsPostId(openParticipantsPostId === post.postId ? null : post.postId);
+                                       }}
+                                       style={{
+                                         background: openParticipantsPostId === post.postId ? '#F59E0B' : 'rgba(245, 158, 11, 0.15)',
+                                         color: openParticipantsPostId === post.postId ? '#FFFFFF' : '#D97706',
+                                         border: 'none',
+                                         borderRadius: '12px',
+                                         padding: '3px 10px',
+                                         fontSize: '12px',
+                                         fontWeight: 800,
+                                         cursor: 'pointer',
+                                         display: 'inline-flex',
+                                         alignItems: 'center',
+                                         gap: '2px',
+                                         marginLeft: '4px',
+                                         transition: 'all 0.15s ease',
+                                         boxShadow: openParticipantsPostId === post.postId ? '0 2px 8px rgba(245, 158, 11, 0.4)' : 'none',
+                                       }}
+                                     >
+                                       <span>e altri {allParticipants.length - 2}</span>
+                                       <span
+                                         className="material-symbols-outlined"
+                                         style={{
+                                           fontSize: '16px',
+                                           transform: openParticipantsPostId === post.postId ? 'rotate(180deg)' : 'rotate(0deg)',
+                                           transition: 'transform 0.2s ease',
+                                         }}
+                                       >
+                                         expand_more
+                                       </span>
+                                     </button>
                                    </>
                                  )}
                               </div>
@@ -464,6 +471,124 @@ export const UserPostsDetailView: React.FC<UserPostsDetailViewProps> = ({
                                 {postUserDisplayName}
                               </div>
                             )}
+                          </div>
+                        </div>
+                      );
+                    })()}
+
+                    {/* Menu a Tendina Partecipanti */}
+                    {(() => {
+                      const allParticipants = getPostParticipants(post);
+                      if (openParticipantsPostId !== post.postId) return null;
+
+                      return (
+                        <div
+                          style={{
+                            background: '#F8FAFC',
+                            borderTop: '1px solid #E2E8F0',
+                            borderBottom: '1px solid #E2E8F0',
+                            padding: '12px 16px',
+                            animation: 'fadeIn 0.15s ease-out',
+                          }}
+                        >
+                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
+                            <div style={{ fontSize: '11px', fontWeight: 900, color: '#64748B', letterSpacing: '0.5px', textTransform: 'uppercase', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                              <span>🍻</span>
+                              <span>Partecipanti al Brindisi ({allParticipants.length})</span>
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => setOpenParticipantsPostId(null)}
+                              style={{ background: 'transparent', border: 'none', color: '#94A3B8', cursor: 'pointer', padding: '2px', display: 'flex', alignItems: 'center' }}
+                            >
+                              <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>close</span>
+                            </button>
+                          </div>
+
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                            {allParticipants.map((pNick) => {
+                              const pAv = globalAvatars[pNick] || (pNick === username ? avatar : undefined);
+                              const disp = globalDisplayNames?.[pNick] || pNick;
+                              const isAuthor = pNick === post.user;
+                              const postRating = (post as any).ratings && typeof (post as any).ratings[pNick] === 'number' ? (post as any).ratings[pNick] : 0;
+                              const userPokedex = allPokedexProfiles?.[pNick];
+                              const dexRating = userPokedex?.[`${post.brand}-${post.variant}`]?.rating || 0;
+                              const fallbackRating = isAuthor && typeof post.rating === 'number' ? post.rating : 0;
+                              const pRating = postRating || dexRating || fallbackRating || 0;
+
+                              return (
+                                <div
+                                  key={pNick}
+                                  onClick={() => {
+                                    setOpenParticipantsPostId(null);
+                                    onOpenPublicProfile(pNick);
+                                  }}
+                                  style={{
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'space-between',
+                                    padding: '8px 12px',
+                                    borderRadius: '12px',
+                                    background: '#FFFFFF',
+                                    border: '1px solid #E2E8F0',
+                                    cursor: 'pointer',
+                                    transition: 'background 0.15s ease',
+                                  }}
+                                >
+                                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                    <div
+                                      style={{
+                                        width: '32px',
+                                        height: '32px',
+                                        borderRadius: '50%',
+                                        overflow: 'hidden',
+                                        background: '#E2E8F0',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        border: '1.5px solid #F59E0B',
+                                        flexShrink: 0,
+                                      }}
+                                    >
+                                      {pAv ? (
+                                        <img src={pAv} alt={disp} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                      ) : (
+                                        <span style={{ fontSize: '14px', fontWeight: 900, color: '#D97706', textTransform: 'uppercase' }}>
+                                          {disp.charAt(0).toUpperCase()}
+                                        </span>
+                                      )}
+                                    </div>
+                                    <div style={{ display: 'flex', flexDirection: 'column' }}>
+                                      <div style={{ fontSize: '13px', fontWeight: 800, color: '#0F172A', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                        <span>{disp}</span>
+                                        {isAuthor && (
+                                          <span
+                                            style={{
+                                              fontSize: '9px',
+                                              background: 'linear-gradient(135deg, #F59E0B, #D97706)',
+                                              color: 'white',
+                                              padding: '1px 6px',
+                                              borderRadius: '8px',
+                                              fontWeight: 900,
+                                            }}
+                                          >
+                                            Creatore
+                                          </span>
+                                        )}
+                                      </div>
+                                      <span style={{ fontSize: '11px', color: '#64748B' }}>@{pNick}</span>
+                                    </div>
+                                  </div>
+
+                                  {pRating > 0 && (
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '4px', background: 'rgba(245, 158, 11, 0.1)', padding: '2px 8px', borderRadius: '10px' }}>
+                                      <StarRating rating={pRating} readOnly size={12} />
+                                      <span style={{ fontSize: '11px', fontWeight: 800, color: '#B45309' }}>{pRating.toFixed(1)}</span>
+                                    </div>
+                                  )}
+                                </div>
+                              );
+                            })}
                           </div>
                         </div>
                       );
@@ -877,140 +1002,7 @@ export const UserPostsDetailView: React.FC<UserPostsDetailViewProps> = ({
         }}
       />
 
-      {/* Participants List Modal */}
-      {selectedParticipantsPost && (
-        <div
-          onClick={() => setSelectedParticipantsPost(null)}
-          style={{
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            background: 'rgba(15, 23, 42, 0.65)',
-            backdropFilter: 'blur(4px)',
-            zIndex: 999999,
-            display: 'flex',
-            alignItems: 'flex-end',
-            justifyContent: 'center',
-            animation: 'fadeIn 0.2s ease-out',
-          }}
-        >
-          <div
-            onClick={(e) => e.stopPropagation()}
-            style={{
-              width: '100%',
-              maxWidth: '500px',
-              background: '#FFFFFF',
-              borderTopLeftRadius: '24px',
-              borderTopRightRadius: '24px',
-              padding: '24px 20px',
-              maxHeight: '80vh',
-              overflowY: 'auto',
-              boxShadow: '0 -10px 40px rgba(0,0,0,0.2)',
-              animation: 'slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
-            }}
-          >
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', borderBottom: '1px solid #E2E8F0', paddingBottom: '12px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <span style={{ fontSize: '22px' }}>🍻</span>
-                <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 900, color: '#0F172A' }}>
-                  Partecipanti al Brindisi
-                </h3>
-              </div>
-              <button
-                onClick={() => setSelectedParticipantsPost(null)}
-                style={{ background: '#F1F5F9', border: 'none', borderRadius: '50%', width: '32px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: '#64748B' }}
-              >
-                <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>close</span>
-              </button>
-            </div>
 
-            {(() => {
-              const allParticipants = getPostParticipants(selectedParticipantsPost);
-
-              return (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                  {allParticipants.map((pNick) => {
-                    const disp = globalDisplayNames?.[pNick] || pNick;
-                    const av = globalAvatars?.[pNick] || (pNick === username ? avatar : undefined);
-                    const isAuthor = pNick === selectedParticipantsPost.user;
-
-                    return (
-                      <div
-                        key={pNick}
-                        onClick={() => {
-                          setSelectedParticipantsPost(null);
-                          onOpenPublicProfile(pNick);
-                        }}
-                        style={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'space-between',
-                          padding: '12px 14px',
-                          borderRadius: '16px',
-                          background: '#F8FAFC',
-                          border: '1px solid #E2E8F0',
-                          cursor: 'pointer',
-                        }}
-                      >
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                          <div
-                            style={{
-                              width: '42px',
-                              height: '42px',
-                              borderRadius: '50%',
-                              overflow: 'hidden',
-                              background: '#E2E8F0',
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              border: '2px solid #FFFFFF',
-                              boxShadow: '0 2px 6px rgba(0,0,0,0.1)',
-                            }}
-                          >
-                            {av ? (
-                              <img src={av} alt={disp} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                            ) : (
-                              <span style={{ fontSize: '18px', fontWeight: 900, color: '#334155', textTransform: 'uppercase' }}>
-                                {disp.charAt(0).toUpperCase()}
-                              </span>
-                            )}
-                          </div>
-                          <div>
-                            <div style={{ fontSize: '14px', fontWeight: 800, color: '#0F172A', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                              <span>{disp}</span>
-                              {isAuthor && (
-                                <span
-                                  style={{
-                                    fontSize: '10px',
-                                    background: 'linear-gradient(135deg, #F59E0B, #D97706)',
-                                    color: 'white',
-                                    padding: '2px 8px',
-                                    borderRadius: '10px',
-                                    fontWeight: 800,
-                                  }}
-                                >
-                                  Creatore
-                                </span>
-                              )}
-                            </div>
-                            <div style={{ fontSize: '12px', color: '#64748B', fontWeight: 500 }}>@{pNick}</div>
-                          </div>
-                        </div>
-
-                        <span className="material-symbols-outlined" style={{ color: '#94A3B8', fontSize: '20px' }}>
-                          chevron_right
-                        </span>
-                      </div>
-                    );
-                  })}
-                </div>
-              );
-            })()}
-          </div>
-        </div>
-      )}
 
       {/* Likers Bottom Sheet Modal */}
       <LikersBottomSheetModal
