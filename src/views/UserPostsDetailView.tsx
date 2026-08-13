@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { StarRating } from '../components/StarRating';
-import { formatBeerTitle, getBasePoints, getBeerRarity, getUniqueParticipantPosts, type Beer } from '../beers';
+import { formatBeerTitle, getBasePoints, getUniqueParticipantPosts, type Beer } from '../beers';
 import { ReportPostModal } from '../components/ReportPostModal';
 import { LikersBottomSheetModal } from '../components/LikersBottomSheetModal';
 
@@ -224,7 +224,6 @@ export const UserPostsDetailView: React.FC<UserPostsDetailViewProps> = ({
                 month: 'long',
                 year: 'numeric'
               });
-              const postRarity = getBeerRarity(post.brand, post.variant, allBeersCatalog, post.rarity);
               const basePts = getBasePoints(post.brand, post.variant, allBeersCatalog, post.rarity);
               let earnedPts = basePts;
               if (post.isShiny) earnedPts *= 2;
@@ -257,12 +256,9 @@ export const UserPostsDetailView: React.FC<UserPostsDetailViewProps> = ({
                           {isShared ? (
                             /* Multi-Participant Avatar Stack */
                             <div
-                              onClick={() => {
-                                if (allParticipants.length > 3) {
-                                  setSelectedParticipantsPost(post);
-                                } else {
-                                  onOpenPublicProfile(allParticipants[0]);
-                                }
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setSelectedParticipantsPost(post);
                               }}
                               style={{
                                 position: 'relative',
@@ -439,7 +435,11 @@ export const UserPostsDetailView: React.FC<UserPostsDetailViewProps> = ({
                                       {globalDisplayNames?.[allParticipants[1]] || allParticipants[1]}
                                     </strong>
                                     <button
-                                      onClick={() => setSelectedParticipantsPost(post)}
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        e.preventDefault();
+                                        setSelectedParticipantsPost(post);
+                                      }}
                                       style={{
                                         background: 'rgba(245, 158, 11, 0.15)',
                                         border: 'none',
@@ -451,7 +451,7 @@ export const UserPostsDetailView: React.FC<UserPostsDetailViewProps> = ({
                                         cursor: 'pointer',
                                       }}
                                     >
-                                      e altri {extraCount}
+                                      e altri {allParticipants.length - 2}
                                     </button>
                                   </>
                                 )}
@@ -528,7 +528,7 @@ export const UserPostsDetailView: React.FC<UserPostsDetailViewProps> = ({
                   </div>
 
                   {/* Card Photo */}
-                  <div className="post-image-container" style={{ position: 'relative', overflow: 'hidden', width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#0F172A', maxHeight: '550px' }}>
+                  <div className="post-image-container" style={{ position: 'relative', overflow: 'hidden', width: '100%', aspectRatio: '9 / 16', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#0F172A' }}>
                     {(() => {
                       const isPostShared = Boolean(
                         post.isShared ||
@@ -574,7 +574,7 @@ export const UserPostsDetailView: React.FC<UserPostsDetailViewProps> = ({
                       onDoubleClick={(e) => handlePostDoubleTap(post.postId, e)}
                       onContextMenu={(e) => e.preventDefault()}
                       draggable={false}
-                      style={{ display: 'block', width: '100%', height: 'auto', maxHeight: '550px', objectFit: 'contain', background: '#0F172A' }}
+                      style={{ display: 'block', width: '100%', height: '100%', objectFit: 'cover', background: '#0F172A' }}
                     />
                   </div>
 
@@ -904,7 +904,7 @@ export const UserPostsDetailView: React.FC<UserPostsDetailViewProps> = ({
             bottom: 0,
             background: 'rgba(15, 23, 42, 0.65)',
             backdropFilter: 'blur(4px)',
-            zIndex: 1000,
+            zIndex: 999999,
             display: 'flex',
             alignItems: 'flex-end',
             justifyContent: 'center',

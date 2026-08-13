@@ -2504,25 +2504,12 @@ export default function App() {
       img.onload = () => {
         try {
           const canvas = document.createElement('canvas');
-          const MAX_SIZE = 750; // Risoluzione ultra-ottimizzata per leggibilità e memoria minima
-          let width = img.width;
-          let height = img.height;
+          // Formato standard 9:16 per i post (720x1280)
+          const TARGET_WIDTH = 720;
+          const TARGET_HEIGHT = 1280;
 
-          // Ridimensionamento proporzionale senza ritaglio (mantiene l'aspect ratio originale)
-          if (width > height) {
-            if (width > MAX_SIZE) {
-              height = Math.round((height * MAX_SIZE) / width);
-              width = MAX_SIZE;
-            }
-          } else {
-            if (height > MAX_SIZE) {
-              width = Math.round((width * MAX_SIZE) / height);
-              height = MAX_SIZE;
-            }
-          }
-
-          canvas.width = width;
-          canvas.height = height;
+          canvas.width = TARGET_WIDTH;
+          canvas.height = TARGET_HEIGHT;
           const ctx = canvas.getContext('2d');
           if (!ctx) {
             hideAlert();
@@ -2530,8 +2517,27 @@ export default function App() {
             return;
           }
 
-          ctx.drawImage(img, 0, 0, width, height);
-          const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.65);
+          // 1. Sfondo sfocato derivato dall'immagine per le foto non native 9:16
+          const bgScale = Math.max(TARGET_WIDTH / img.width, TARGET_HEIGHT / img.height);
+          const bgW = img.width * bgScale;
+          const bgH = img.height * bgScale;
+          const bgX = (TARGET_WIDTH - bgW) / 2;
+          const bgY = (TARGET_HEIGHT - bgH) / 2;
+
+          ctx.save();
+          ctx.filter = 'blur(25px) brightness(0.55)';
+          ctx.drawImage(img, bgX, bgY, bgW, bgH);
+          ctx.restore();
+
+          // 2. Disegna l'immagine originale intera e centrata (nessun ritaglio)
+          const scale = Math.min(TARGET_WIDTH / img.width, TARGET_HEIGHT / img.height);
+          const drawW = img.width * scale;
+          const drawH = img.height * scale;
+          const drawX = (TARGET_WIDTH - drawW) / 2;
+          const drawY = (TARGET_HEIGHT - drawH) / 2;
+
+          ctx.drawImage(img, drawX, drawY, drawW, drawH);
+          const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.70);
 
           const proceedWithUpload = (safetyOk: boolean, reason?: string) => {
             if (!safetyOk) {
@@ -2746,30 +2752,37 @@ export default function App() {
         img.onload = () => {
           try {
             const canvas = document.createElement('canvas');
-            const MAX_SIZE = 750;
-            let width = img.width;
-            let height = img.height;
-            if (width > height) {
-              if (width > MAX_SIZE) {
-                height = Math.round((height * MAX_SIZE) / width);
-                width = MAX_SIZE;
-              }
-            } else {
-              if (height > MAX_SIZE) {
-                width = Math.round((width * MAX_SIZE) / height);
-                height = MAX_SIZE;
-              }
-            }
-            canvas.width = width;
-            canvas.height = height;
+            const TARGET_WIDTH = 720;
+            const TARGET_HEIGHT = 1280;
+
+            canvas.width = TARGET_WIDTH;
+            canvas.height = TARGET_HEIGHT;
             const ctx = canvas.getContext('2d');
             if (!ctx) {
               hideAlert();
               showAlert("Errore durante la creazione dell'immagine.", "Errore");
               return;
             }
-            ctx.drawImage(img, 0, 0, width, height);
-            const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.65);
+
+            const bgScale = Math.max(TARGET_WIDTH / img.width, TARGET_HEIGHT / img.height);
+            const bgW = img.width * bgScale;
+            const bgH = img.height * bgScale;
+            const bgX = (TARGET_WIDTH - bgW) / 2;
+            const bgY = (TARGET_HEIGHT - bgH) / 2;
+
+            ctx.save();
+            ctx.filter = 'blur(25px) brightness(0.55)';
+            ctx.drawImage(img, bgX, bgY, bgW, bgH);
+            ctx.restore();
+
+            const scale = Math.min(TARGET_WIDTH / img.width, TARGET_HEIGHT / img.height);
+            const drawW = img.width * scale;
+            const drawH = img.height * scale;
+            const drawX = (TARGET_WIDTH - drawW) / 2;
+            const drawY = (TARGET_HEIGHT - drawH) / 2;
+
+            ctx.drawImage(img, drawX, drawY, drawW, drawH);
+            const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.70);
 
             checkImageSafety(compressedDataUrl)
               .then(async (safety) => {

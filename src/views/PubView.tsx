@@ -797,12 +797,9 @@ export const PubView: React.FC<PubViewProps> = ({
                           {isShared ? (
                             /* Multi-Participant Avatar Stack */
                             <div
-                              onClick={() => {
-                                if (allParticipants.length > 3) {
-                                  setSelectedParticipantsPost(post);
-                                } else {
-                                  onOpenPublicProfile(allParticipants[0]);
-                                }
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setSelectedParticipantsPost(post);
                               }}
                               style={{
                                 position: 'relative',
@@ -995,7 +992,11 @@ export const PubView: React.FC<PubViewProps> = ({
                                       {globalDisplayNames?.[allParticipants[1]] || allParticipants[1]}
                                     </strong>
                                     <button
-                                      onClick={() => setSelectedParticipantsPost(post)}
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        e.preventDefault();
+                                        setSelectedParticipantsPost(post);
+                                      }}
                                       style={{
                                         background: 'rgba(245, 158, 11, 0.15)',
                                         border: 'none',
@@ -1101,7 +1102,7 @@ export const PubView: React.FC<PubViewProps> = ({
                   {/* Post Image Container */}
                   <div
                     className="post-image-container"
-                    style={{ position: 'relative', overflow: 'hidden', width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#0F172A', maxHeight: '550px' }}
+                    style={{ position: 'relative', overflow: 'hidden', width: '100%', aspectRatio: '9 / 16', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#0F172A' }}
                   >
                     {/* Shiny Ribbon Badge */}
                     {post.isShiny && (
@@ -1161,7 +1162,7 @@ export const PubView: React.FC<PubViewProps> = ({
                       onDoubleClick={(e) => handlePostDoubleTap(post.postId, e)}
                       onContextMenu={(e) => e.preventDefault()}
                       draggable={false}
-                      style={{ display: 'block', width: '100%', height: 'auto', maxHeight: '550px', objectFit: 'contain', background: '#0F172A' }}
+                      style={{ display: 'block', width: '100%', height: '100%', objectFit: 'cover', background: '#0F172A' }}
                     />
                   </div>
 
@@ -1496,7 +1497,7 @@ export const PubView: React.FC<PubViewProps> = ({
             background: 'rgba(15, 23, 42, 0.65)',
             backdropFilter: 'blur(8px)',
             WebkitBackdropFilter: 'blur(8px)',
-            zIndex: 29000,
+            zIndex: 999999,
             display: 'flex',
             alignItems: 'flex-end',
             justifyContent: 'center',
