@@ -396,58 +396,65 @@ export const UserPostsDetailView: React.FC<UserPostsDetailViewProps> = ({
                           <div style={{ marginLeft: '4px' }}>
                             {isShared ? (
                               <div style={{ fontSize: '14px', fontWeight: 800, color: '#0F172A', display: 'flex', alignItems: 'center', gap: '4px', flexWrap: 'wrap' }}>
-                                {allParticipants.length <= 3 ? (
-                                  allParticipants.map((pNick, idx) => (
-                                    <React.Fragment key={pNick}>
-                                      <strong
-                                        className="clickable-user"
-                                        onClick={() => onOpenPublicProfile(pNick)}
-                                        style={{ cursor: 'pointer' }}
-                                      >
-                                        {globalDisplayNames?.[pNick] || pNick}
-                                      </strong>
-                                      {idx < allParticipants.length - 2 && <span>,</span>}
-                                      {idx === allParticipants.length - 2 && <span style={{ color: '#D97706', fontWeight: 700 }}>e</span>}
-                                    </React.Fragment>
-                                  ))
-                                ) : (
-                                  <>
-                                    <strong
-                                      className="clickable-user"
-                                      onClick={() => onOpenPublicProfile(allParticipants[0])}
-                                      style={{ cursor: 'pointer' }}
-                                    >
-                                      {globalDisplayNames?.[allParticipants[0]] || allParticipants[0]}
-                                    </strong>
-                                    <span>,</span>
-                                    <strong
-                                      className="clickable-user"
-                                      onClick={() => onOpenPublicProfile(allParticipants[1])}
-                                      style={{ cursor: 'pointer' }}
-                                    >
-                                      {globalDisplayNames?.[allParticipants[1]] || allParticipants[1]}
-                                    </strong>
-                                    <button
-                                      onClick={(e) => {
-                                        e.stopPropagation();
-                                        e.preventDefault();
-                                        setSelectedParticipantsPost(post);
-                                      }}
-                                      style={{
-                                        background: 'rgba(245, 158, 11, 0.15)',
-                                        border: 'none',
-                                        borderRadius: '12px',
-                                        padding: '2px 8px',
-                                        color: '#D97706',
-                                        fontSize: '12px',
-                                        fontWeight: 800,
-                                        cursor: 'pointer',
-                                      }}
-                                    >
-                                      e altri {allParticipants.length - 2}
-                                    </button>
-                                  </>
-                                )}
+                                {allParticipants.length <= 2 ? (
+                                   allParticipants.map((pNick, idx) => (
+                                     <React.Fragment key={pNick}>
+                                       <strong
+                                         className="clickable-user"
+                                         onClick={() => onOpenPublicProfile(pNick)}
+                                         style={{ cursor: 'pointer' }}
+                                       >
+                                         {globalDisplayNames?.[pNick] || pNick}
+                                       </strong>
+                                       {idx === 0 && <span style={{ color: '#D97706', fontWeight: 700, margin: '0 4px' }}>e</span>}
+                                     </React.Fragment>
+                                   ))
+                                 ) : (
+                                   <>
+                                     <strong
+                                       className="clickable-user"
+                                       onClick={() => onOpenPublicProfile(allParticipants[0])}
+                                       style={{ cursor: 'pointer' }}
+                                     >
+                                       {globalDisplayNames?.[allParticipants[0]] || allParticipants[0]}
+                                     </strong>
+                                     <span>, </span>
+                                     <strong
+                                       className="clickable-user"
+                                       onClick={() => onOpenPublicProfile(allParticipants[1])}
+                                       style={{ cursor: 'pointer' }}
+                                     >
+                                       {globalDisplayNames?.[allParticipants[1]] || allParticipants[1]}
+                                     </strong>
+                                     <button
+                                       type="button"
+                                       onClick={(e) => {
+                                         e.stopPropagation();
+                                         e.preventDefault();
+                                         setSelectedParticipantsPost(post);
+                                       }}
+                                       style={{
+                                         background: 'rgba(245, 158, 11, 0.15)',
+                                         border: 'none',
+                                         borderRadius: '12px',
+                                         padding: '2px 8px',
+                                         color: '#D97706',
+                                         fontSize: '12px',
+                                         fontWeight: 800,
+                                         cursor: 'pointer',
+                                         display: 'inline-flex',
+                                         alignItems: 'center',
+                                         gap: '2px',
+                                         marginLeft: '4px',
+                                       }}
+                                     >
+                                       <span>e altri {allParticipants.length - 2}</span>
+                                       <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>
+                                         expand_more
+                                       </span>
+                                     </button>
+                                   </>
+                                 )}
                               </div>
                             ) : (
                               <div
