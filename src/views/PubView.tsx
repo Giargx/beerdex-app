@@ -809,6 +809,7 @@ export const PubView: React.FC<PubViewProps> = ({
                                       marginLeft: idx > 0 ? '-12px' : '0',
                                       zIndex: 3 - idx,
                                       cursor: 'pointer',
+                                      pointerEvents: 'none',
                                     }}
                                   >
                                     <div
@@ -969,33 +970,35 @@ export const PubView: React.FC<PubViewProps> = ({
                                      >
                                        {globalDisplayNames?.[allParticipants[1]] || allParticipants[1]}
                                      </strong>
-                                     <button
-                                       type="button"
-                                       onClick={(e) => {
-                                         e.stopPropagation();
-                                         e.preventDefault();
-                                         setSelectedParticipantsPost(post);
-                                       }}
-                                       style={{
-                                         background: 'rgba(245, 158, 11, 0.15)',
-                                         border: 'none',
-                                         borderRadius: '12px',
-                                         padding: '2px 8px',
-                                         color: '#B45309',
-                                         fontSize: '12px',
-                                         fontWeight: 800,
-                                         cursor: 'pointer',
-                                         display: 'inline-flex',
-                                         alignItems: 'center',
-                                         gap: '2px',
-                                         marginLeft: '4px',
-                                       }}
-                                     >
-                                       <span>e altri {allParticipants.length - 2}</span>
-                                       <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>
-                                         expand_more
-                                       </span>
-                                     </button>
+                                     <span
+                                        className="clickable-user"
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          setSelectedParticipantsPost(post);
+                                        }}
+                                        style={{
+                                          background: 'rgba(245, 158, 11, 0.18)',
+                                          borderRadius: '12px',
+                                          padding: '3px 10px',
+                                          color: '#B45309',
+                                          fontSize: '12px',
+                                          fontWeight: 800,
+                                          cursor: 'pointer',
+                                          display: 'inline-flex',
+                                          alignItems: 'center',
+                                          gap: '2px',
+                                          marginLeft: '4px',
+                                          userSelect: 'none',
+                                          WebkitTapHighlightColor: 'rgba(245, 158, 11, 0.3)',
+                                          position: 'relative',
+                                          zIndex: 10,
+                                        }}
+                                      >
+                                        <span>e altri {allParticipants.length - 2}</span>
+                                        <span className="material-symbols-outlined" style={{ fontSize: '16px', pointerEvents: 'none' }}>
+                                          expand_more
+                                        </span>
+                                      </span>
                                    </>
                                  )}
                               </div>
