@@ -62,7 +62,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
   onOpenUserStory,
   onSendFeedback,
 }) => {
-  const [timedEvent, setTimedEvent] = useState<{ name: string; desc: string } | null>(null);
+  const [activeEvents, setActiveEvents] = useState<Array<{ name: string; desc: string }>>([]);
   const [cheersToast, setCheersToast] = useState<string | null>(null);
   const [cheeredPosts, setCheeredPosts] = useState<Record<string, boolean>>({});
 
@@ -147,49 +147,58 @@ export const HomeView: React.FC<HomeViewProps> = ({
     const winterStart = new Date(currentYear - 1, 11, 21);
     const winterEnd = new Date(currentYear, 2, 20, 23, 59, 59);
 
+    const activeList: Array<{ name: string; desc: string }> = [];
+
+    // 1. Short / Holiday Events (Checked independently)
     if (now >= ferragostoStart && now <= ferragostoEnd) {
-      setTimedEvent({
+      activeList.push({
         name: "Ferragosto",
         desc: "Festa di Ferragosto! Sblocca 1 birra per il brindisi estivo e vinci +3 punti!",
       });
-    } else if (now >= oktoberfestStart && now <= oktoberfestEnd) {
-      setTimedEvent({
+    }
+    if (now >= oktoberfestStart && now <= oktoberfestEnd) {
+      activeList.push({
         name: "Oktoberfest",
         desc: "Sfida Oktoberfest! Sblocca 3 birre tedesche durante le 3 settimane dell'evento per +5 punti!",
       });
-    } else if (now >= patrizioStart && now <= patrizioEnd) {
-      setTimedEvent({
+    }
+    if (now >= patrizioStart && now <= patrizioEnd) {
+      activeList.push({
         name: "San Patrizio",
         desc: "Festa di San Patrizio! Sblocca 1 birra irlandese/scozzese o scura per +3 punti!",
       });
-    } else if (now >= pasquettaStart && now <= pasquettaEnd) {
-      setTimedEvent({
+    }
+    if (now >= pasquettaStart && now <= pasquettaEnd) {
+      activeList.push({
         name: "Pasquetta",
         desc: "Pasquetta al pub! Sblocca 1 birra belga o bionda per +3 punti!",
       });
-    } else if (now >= summerStart && now <= summerEnd) {
-      setTimedEvent({
+    }
+
+    // 2. Seasonal Events (Active concurrently with holiday events)
+    if (now >= summerStart && now <= summerEnd) {
+      activeList.push({
         name: "Estate",
         desc: `Sfida Estate ${currentYear}! Sblocca 10 birre Bionde o IPA entro il 22 Settembre per +10 punti!`,
       });
     } else if (now >= autumnStart && now <= autumnEnd) {
-      setTimedEvent({
+      activeList.push({
         name: "Autunno",
         desc: `Sfida Autunno ${currentYear}! Sblocca 10 birre Rosse, IPA o Tedesche entro il 20 Dicembre per +10 punti!`,
       });
     } else if (now >= springStart && now <= springEnd) {
-      setTimedEvent({
+      activeList.push({
         name: "Primavera",
         desc: `Sfida Primavera ${currentYear}! Sblocca 10 birre Bianche entro il 20 Giugno per +10 punti!`,
       });
     } else if (now >= winterStart && now <= winterEnd) {
-      setTimedEvent({
+      activeList.push({
         name: "Inverno",
         desc: `Sfida Inverno ${currentYear}! Sblocca 10 birre Scure o Rosse entro il 20 Marzo per +10 punti!`,
       });
-    } else {
-      setTimedEvent(null);
     }
+
+    setActiveEvents(activeList);
   }, []);
 
   const myPosts = posts.filter((p) => p && p.user === currentUserNick && !p.isStory && p.brand !== 'Storia del Pub');
@@ -258,23 +267,34 @@ export const HomeView: React.FC<HomeViewProps> = ({
     let targetKeywords: string[] = [];
     let seasonLabel = 'Consigliata per la stagione';
 
-    if (timedEvent) {
-      if (timedEvent.name === 'San Patrizio') {
+    const holidayEvt = activeEvents.find(e => e.name === 'Ferragosto' || e.name === 'San Patrizio' || e.name === 'Oktoberfest' || e.name === 'Pasquetta');
+    const seasonEvt = activeEvents.find(e => e.name === 'Estate' || e.name === 'Autunno' || e.name === 'Primavera' || e.name === 'Inverno');
+
+    if (holidayEvt) {
+      if (holidayEvt.name === 'San Patrizio') {
         targetKeywords = ['irlanda', 'scozia', 'scura', 'stout', 'kilkenny', 'guinness'];
         seasonLabel = 'Consigliata per San Patrizio 🍀';
-      } else if (timedEvent.name === 'Oktoberfest') {
+      } else if (holidayEvt.name === 'Oktoberfest') {
         targetKeywords = ['germania', 'tedesca', 'marzen', 'bock', 'paulaner', 'augustiner', 'franziskaner'];
         seasonLabel = 'Consigliata per Oktoberfest 🍺';
-      } else if (timedEvent.name === 'Estate' || timedEvent.name === 'Ferragosto') {
+      } else if (holidayEvt.name === 'Ferragosto') {
+        targetKeywords = ['bionda', 'lager', 'ipa', 'pils', 'corona', 'heineken', 'peroni', 'moretti', 'ichnusa', 'session'];
+        seasonLabel = 'Consigliata per Ferragosto 🍉 (Brindisi Estivo)';
+      } else if (holidayEvt.name === 'Pasquetta') {
+        targetKeywords = ['bianca', 'blanche', 'weiss', 'weizen', 'saison', 'hoegaarden', 'franziskaner'];
+        seasonLabel = 'Consigliata per Pasquetta 🐰';
+      }
+    } else if (seasonEvt) {
+      if (seasonEvt.name === 'Estate') {
         targetKeywords = ['bionda', 'lager', 'ipa', 'pils', 'corona', 'heineken', 'peroni', 'moretti', 'ichnusa', 'session'];
         seasonLabel = 'Consigliata per l\'Estate ☀️ (Bionda/IPA)';
-      } else if (timedEvent.name === 'Autunno') {
+      } else if (seasonEvt.name === 'Autunno') {
         targetKeywords = ['rossa', 'ipa', 'amber', 'marzen', 'doppelbock', 'menabrea', 'ceres', 'duvel'];
         seasonLabel = 'Consigliata per l\'Autunno 🍂';
-      } else if (timedEvent.name === 'Primavera' || timedEvent.name === 'Pasquetta') {
+      } else if (seasonEvt.name === 'Primavera') {
         targetKeywords = ['bianca', 'blanche', 'weiss', 'weizen', 'saison', 'hoegaarden', 'franziskaner'];
         seasonLabel = 'Consigliata per la Primavera 🌸';
-      } else if (timedEvent.name === 'Inverno') {
+      } else if (seasonEvt.name === 'Inverno') {
         targetKeywords = ['scura', 'stout', 'porter', 'rossa', 'bock', 'chimay', 'leffe', 'guinness', 'affligem'];
         seasonLabel = 'Consigliata per l\'Inverno ❄️';
       }
@@ -322,13 +342,11 @@ export const HomeView: React.FC<HomeViewProps> = ({
   const featuredBeer = featuredBeerData.beer;
 
   // Timed Event Progress Calculation (aligned 100% with TrophyGrid & score rules)
-  const getEventProgress = () => {
-    if (!timedEvent) return null;
-
+  const getSingleEventProgress = (eventName: string) => {
     const myParticipantPosts = getUniqueParticipantPosts(posts, currentUserNick);
     const catalogList = allBeersCatalog.length > 0 ? allBeersCatalog : beers;
     const eventMedals = getEventMedals(myParticipantPosts, catalogList);
-    const activeMedal = eventMedals.find((m) => m.name.toLowerCase().includes(timedEvent.name.toLowerCase()));
+    const activeMedal = eventMedals.find((m) => m.name.toLowerCase().includes(eventName.toLowerCase()));
     if (!activeMedal) return null;
 
     const current = activeMedal.currentCount ?? 0;
@@ -337,8 +355,6 @@ export const HomeView: React.FC<HomeViewProps> = ({
 
     return { current, target, pct };
   };
-
-  const eventProgress = getEventProgress();
 
   // Relative time formatter helper
   const formatRelativeTime = (timestamp: number) => {
@@ -398,8 +414,8 @@ export const HomeView: React.FC<HomeViewProps> = ({
   };
 
   // Timed Event Banner Styles configuration
-  const getEventConfig = () => {
-    if (!timedEvent) {
+  const getEventConfig = (event?: { name: string; desc: string }) => {
+    if (!event) {
       return {
         background: 'linear-gradient(135deg, #1E293B 0%, #0F172A 100%)',
         border: '1px solid rgba(255, 255, 255, 0.1)',
@@ -412,7 +428,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
       };
     }
 
-    if (timedEvent.name === "San Patrizio") {
+    if (event.name === "San Patrizio") {
       return {
         background: 'linear-gradient(135deg, #065F46 0%, #047857 100%)',
         border: '1px solid rgba(16, 185, 129, 0.3)',
@@ -421,24 +437,11 @@ export const HomeView: React.FC<HomeViewProps> = ({
         descColor: '#E6FDF4',
         iconColor: '#34D399',
         icon: 'eco',
-        badge: '🍀 EVENTO ATTIVO'
+        badge: '🍀 FESTIVITÀ ATTIVA'
       };
     }
 
-    if (timedEvent.name === "Estate") {
-      return {
-        background: 'linear-gradient(135deg, #D97706 0%, #92400E 100%)',
-        border: '1px solid rgba(245, 158, 11, 0.3)',
-        color: '#FFFFFF',
-        titleColor: '#FDE68A',
-        descColor: '#FEF3C7',
-        iconColor: '#F59E0B',
-        icon: 'wb_sunny',
-        badge: '☀️ SFIDA STAGIONALE ATTIVA'
-      };
-    }
-
-    if (timedEvent.name === "Ferragosto") {
+    if (event.name === "Ferragosto") {
       return {
         background: 'linear-gradient(135deg, #DC2626 0%, #991B1B 100%)',
         border: '1px solid rgba(239, 68, 68, 0.3)',
@@ -451,7 +454,20 @@ export const HomeView: React.FC<HomeViewProps> = ({
       };
     }
 
-    if (timedEvent.name === "Oktoberfest") {
+    if (event.name === "Pasquetta") {
+      return {
+        background: 'linear-gradient(135deg, #4338CA 0%, #312E81 100%)',
+        border: '1px solid rgba(99, 102, 241, 0.3)',
+        color: '#FFFFFF',
+        titleColor: '#C7D2FE',
+        descColor: '#EEF2FF',
+        iconColor: '#818CF8',
+        icon: 'egg',
+        badge: '🐰 FESTIVITÀ ATTIVA'
+      };
+    }
+
+    if (event.name === "Oktoberfest") {
       return {
         background: 'linear-gradient(135deg, #B45309 0%, #78350F 100%)',
         border: '1px solid rgba(245, 158, 11, 0.3)',
@@ -461,6 +477,58 @@ export const HomeView: React.FC<HomeViewProps> = ({
         iconColor: '#F59E0B',
         icon: 'sports_bar',
         badge: '🍺 EVENTO ATTIVO'
+      };
+    }
+
+    if (event.name === "Estate") {
+      return {
+        background: 'linear-gradient(135deg, #D97706 0%, #92400E 100%)',
+        border: '1px solid rgba(245, 158, 11, 0.3)',
+        color: '#FFFFFF',
+        titleColor: '#FDE68A',
+        descColor: '#FEF3C7',
+        iconColor: '#F59E0B',
+        icon: 'wb_sunny',
+        badge: '☀️ SFIDA STAGIONALE'
+      };
+    }
+
+    if (event.name === "Autunno") {
+      return {
+        background: 'linear-gradient(135deg, #C2410C 0%, #7C2D12 100%)',
+        border: '1px solid rgba(234, 88, 12, 0.3)',
+        color: '#FFFFFF',
+        titleColor: '#FFEDD5',
+        descColor: '#FFF7ED',
+        iconColor: '#FB923C',
+        icon: 'yard',
+        badge: '🍂 SFIDA STAGIONALE'
+      };
+    }
+
+    if (event.name === "Primavera") {
+      return {
+        background: 'linear-gradient(135deg, #059669 0%, #064E3B 100%)',
+        border: '1px solid rgba(16, 185, 129, 0.3)',
+        color: '#FFFFFF',
+        titleColor: '#A7F3D0',
+        descColor: '#ECFDF5',
+        iconColor: '#34D399',
+        icon: 'local_florist',
+        badge: '🌸 SFIDA STAGIONALE'
+      };
+    }
+
+    if (event.name === "Inverno") {
+      return {
+        background: 'linear-gradient(135deg, #1E40AF 0%, #172554 100%)',
+        border: '1px solid rgba(59, 130, 246, 0.3)',
+        color: '#FFFFFF',
+        titleColor: '#BFDBFE',
+        descColor: '#EFF6FF',
+        iconColor: '#60A5FA',
+        icon: 'ac_unit',
+        badge: '❄️ SFIDA STAGIONALE'
       };
     }
 
@@ -774,122 +842,193 @@ export const HomeView: React.FC<HomeViewProps> = ({
           </button>
         </div>
 
-        {/* DYNAMIC TIMED EVENT BANNER */}
-        <div 
-          className="dashboard-event" 
-          id="dashEventBox"
-          style={{
-            background: eventConfig.background,
-            border: eventConfig.border,
-            padding: '20px',
-            borderRadius: '24px',
-            marginBottom: '25px',
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '12px',
-            textAlign: 'left',
-            boxShadow: timedEvent ? '0 10px 25px rgba(180, 83, 9, 0.2)' : '0 4px 15px rgba(15, 23, 42, 0.05)',
-            position: 'relative',
-            overflow: 'hidden'
-          }}
-        >
-          {/* Top Row: Icon aligned alongside first lines (Title + Badge + Active Header) */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-            <div style={{ 
-              color: eventConfig.iconColor,
-              background: timedEvent ? 'rgba(255, 255, 255, 0.15)' : 'rgba(255, 179, 0, 0.15)',
-              padding: '12px',
-              borderRadius: '18px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              flexShrink: 0
-            }}>
-              <span className="material-symbols-outlined" style={{ fontSize: '32px' }}>
-                {eventConfig.icon}
-              </span>
-            </div>
+        {/* DYNAMIC TIMED EVENT BANNERS (SUPPORTS MULTIPLE ACTIVE EVENTS CONCURRENTLY) */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', marginBottom: '25px' }}>
+          {activeEvents.length > 0 ? (
+            activeEvents.map((evt) => {
+              const cfg = getEventConfig(evt);
+              const progress = getSingleEventProgress(evt.name);
 
-            <div style={{ flex: 1 }}>
-              <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
-                <h4 style={{ margin: 0, color: eventConfig.titleColor, fontSize: '13px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                  Evento Speciale
-                </h4>
-                {eventConfig.badge && (
-                  <span style={{
-                    background: 'rgba(255, 255, 255, 0.25)',
-                    color: '#FFFFFF',
-                    fontSize: '9px',
-                    fontWeight: 'bold',
-                    padding: '2px 8px',
-                    borderRadius: '20px',
-                    letterSpacing: '0.5px',
-                    backdropFilter: 'blur(4px)',
-                    whiteSpace: 'nowrap'
-                  }}>
-                    {eventConfig.badge}
-                  </span>
-                )}
-              </div>
-              {timedEvent && (
-                <div style={{ fontSize: '16px', fontWeight: 900, color: '#FFFFFF' }}>
-                  {timedEvent.name} ATTIVO!
-                </div>
-              )}
-            </div>
-          </div>
+              return (
+                <div
+                  key={evt.name}
+                  className="dashboard-event"
+                  id={`dashEventBox-${evt.name.toLowerCase()}`}
+                  style={{
+                    background: cfg.background,
+                    border: cfg.border,
+                    padding: '20px',
+                    borderRadius: '24px',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '12px',
+                    textAlign: 'left',
+                    boxShadow: '0 10px 25px rgba(0, 0, 0, 0.15)',
+                    position: 'relative',
+                    overflow: 'hidden',
+                  }}
+                >
+                  {/* Top Row: Icon aligned alongside Title + Badge */}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+                    <div
+                      style={{
+                        color: cfg.iconColor,
+                        background: 'rgba(255, 255, 255, 0.15)',
+                        padding: '12px',
+                        borderRadius: '18px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        flexShrink: 0,
+                      }}
+                    >
+                      <span className="material-symbols-outlined" style={{ fontSize: '32px' }}>
+                        {cfg.icon}
+                      </span>
+                    </div>
 
-          {/* Full Width Description & Progress Bar */}
-          {timedEvent ? (
-            <div style={{ width: '100%' }}>
-              <p style={{ margin: 0, fontSize: '13px', color: eventConfig.descColor, lineHeight: '1.45' }}>
-                {timedEvent.desc}
-              </p>
-
-              {eventProgress && (
-                <div style={{
-                  marginTop: '12px',
-                  width: '100%',
-                  boxSizing: 'border-box',
-                  background: 'rgba(0, 0, 0, 0.25)',
-                  padding: '12px 16px',
-                  borderRadius: '16px',
-                  backdropFilter: 'blur(6px)',
-                  border: '1px solid rgba(255, 255, 255, 0.15)',
-                }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px', fontSize: '12px', fontWeight: 800 }}>
-                    <span style={{ color: eventConfig.titleColor }}>Progresso Sfida Attuale</span>
-                    <span style={{
-                      color: '#FFFFFF',
-                      background: eventProgress.current >= eventProgress.target ? '#10B981' : 'rgba(255,255,255,0.25)',
-                      padding: '3px 10px',
-                      borderRadius: '12px',
-                      fontSize: '11px',
-                      fontWeight: 800,
-                    }}>
-                      {eventProgress.current} / {eventProgress.target} Birre Sbloccate ({eventProgress.pct}%)
-                    </span>
+                    <div style={{ flex: 1 }}>
+                      <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+                        <h4
+                          style={{
+                            margin: 0,
+                            color: cfg.titleColor,
+                            fontSize: '13px',
+                            fontWeight: 800,
+                            textTransform: 'uppercase',
+                            letterSpacing: '0.5px',
+                          }}
+                        >
+                          Evento Speciale
+                        </h4>
+                        {cfg.badge && (
+                          <span
+                            style={{
+                              background: 'rgba(255, 255, 255, 0.25)',
+                              color: '#FFFFFF',
+                              fontSize: '9px',
+                              fontWeight: 'bold',
+                              padding: '2px 8px',
+                              borderRadius: '20px',
+                              letterSpacing: '0.5px',
+                              backdropFilter: 'blur(4px)',
+                              whiteSpace: 'nowrap',
+                            }}
+                          >
+                            {cfg.badge}
+                          </span>
+                        )}
+                      </div>
+                      <div style={{ fontSize: '16px', fontWeight: 900, color: '#FFFFFF' }}>
+                        {evt.name.toUpperCase()} ATTIVO!
+                      </div>
+                    </div>
                   </div>
-                  <div style={{ width: '100%', height: '10px', background: 'rgba(255, 255, 255, 0.2)', borderRadius: '5px', overflow: 'hidden' }}>
-                    <div style={{
-                      width: `${eventProgress.pct}%`,
-                      height: '100%',
-                      background: eventProgress.current >= eventProgress.target
-                        ? 'linear-gradient(90deg, #10B981, #34D399)'
-                        : 'linear-gradient(90deg, #F59E0B, #FBBF24)',
-                      borderRadius: '5px',
-                      transition: 'width 0.4s ease',
-                    }} />
+
+                  {/* Full Width Description & Progress Bar */}
+                  <div style={{ width: '100%' }}>
+                    <p style={{ margin: 0, fontSize: '13px', color: cfg.descColor, lineHeight: '1.45' }}>
+                      {evt.desc}
+                    </p>
+
+                    {progress && (
+                      <div
+                        style={{
+                          marginTop: '12px',
+                          width: '100%',
+                          boxSizing: 'border-box',
+                          background: 'rgba(0, 0, 0, 0.25)',
+                          padding: '12px 16px',
+                          borderRadius: '16px',
+                          backdropFilter: 'blur(6px)',
+                          border: '1px solid rgba(255, 255, 255, 0.15)',
+                        }}
+                      >
+                        <div
+                          style={{
+                            display: 'flex',
+                            justifyContent: 'space-between',
+                            alignItems: 'center',
+                            marginBottom: '8px',
+                            fontSize: '12px',
+                            fontWeight: 800,
+                          }}
+                        >
+                          <span style={{ color: cfg.titleColor }}>Progresso Sfida</span>
+                          <span
+                            style={{
+                              color: '#FFFFFF',
+                              background: progress.current >= progress.target ? '#10B981' : 'rgba(255,255,255,0.25)',
+                              padding: '3px 10px',
+                              borderRadius: '12px',
+                              fontSize: '11px',
+                              fontWeight: 800,
+                            }}
+                          >
+                            {progress.current} / {progress.target} Birre Sbloccate ({progress.pct}%)
+                          </span>
+                        </div>
+                        <div style={{ width: '100%', height: '10px', background: 'rgba(255, 255, 255, 0.2)', borderRadius: '5px', overflow: 'hidden' }}>
+                          <div
+                            style={{
+                              width: `${progress.pct}%`,
+                              height: '100%',
+                              background:
+                                progress.current >= progress.target
+                                  ? 'linear-gradient(90deg, #10B981, #34D399)'
+                                  : 'linear-gradient(90deg, #F59E0B, #FBBF24)',
+                              borderRadius: '5px',
+                              transition: 'width 0.4s ease',
+                            }}
+                          />
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
-              )}
-            </div>
+              );
+            })
           ) : (
-            <p style={{ margin: 0, fontSize: '13px', color: eventConfig.descColor, lineHeight: '1.4' }}>
-              <strong>Nessun evento attivo in questo momento</strong>
-              <br />
-              Prossimi eventi: San Patrizio (Marzo) e Oktoberfest (Settembre/Ottobre).
-            </p>
+            <div
+              className="dashboard-event"
+              id="dashEventBox"
+              style={{
+                background: 'linear-gradient(135deg, #1E293B 0%, #0F172A 100%)',
+                border: '1px solid rgba(255, 255, 255, 0.1)',
+                padding: '20px',
+                borderRadius: '24px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '14px',
+                textAlign: 'left',
+                boxShadow: '0 4px 15px rgba(15, 23, 42, 0.05)',
+              }}
+            >
+              <div
+                style={{
+                  color: '#FFB300',
+                  background: 'rgba(255, 179, 0, 0.15)',
+                  padding: '12px',
+                  borderRadius: '18px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  flexShrink: 0,
+                }}
+              >
+                <span className="material-symbols-outlined" style={{ fontSize: '32px' }}>
+                  calendar_month
+                </span>
+              </div>
+              <div>
+                <h4 style={{ margin: 0, color: '#F8FAFC', fontSize: '13px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                  Nessun evento attivo
+                </h4>
+                <p style={{ margin: '4px 0 0 0', fontSize: '13px', color: '#94A3B8', lineHeight: '1.4' }}>
+                  Prossimi eventi: San Patrizio (Marzo), Pasquetta (Aprile), Estate (Giugno-Settembre), Ferragosto (14-16 Agosto) e Oktoberfest (Settembre-Ottobre).
+                </p>
+              </div>
+            </div>
           )}
         </div>
 
