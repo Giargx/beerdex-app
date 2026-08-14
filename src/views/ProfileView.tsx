@@ -188,8 +188,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
       totalRatedBeers += 1;
       totalRatingSum += entry.rating;
 
-      const { brand, variant } = resolvePokedexEntryBeer(key, entry, catalog);
-      const beerType = getBeerType(brand, variant);
+      const { brand, variant, beerType } = resolvePokedexEntryBeer(key, entry, catalog);
 
       if (styleStats[beerType]) {
         styleStats[beerType].sum += entry.rating;
@@ -1466,12 +1465,10 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
 
               Object.entries(myPokedex || {}).forEach(([key, entry]) => {
                 if (!entry) return;
-                const b = ((entry as any).brand || key.split('-')[0] || '').trim();
-                const v = ((entry as any).variant || key.split('-').slice(1).join('-') || '').trim();
+                const { brand: b, variant: v, beerType } = resolvePokedexEntryBeer(key, entry, catalog);
                 if (!b || !v) return;
 
                 if (selectedStyleFilter) {
-                  const beerType = getBeerType(b, v);
                   if (beerType !== selectedStyleFilter) return;
                 }
 

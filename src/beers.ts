@@ -181,16 +181,38 @@ export function stripStr(str?: string | null): string {
 
 export function getBeerType(brandName: string, variantName: string, allBeersCatalog?: Beer[]): "rossa" | "scura" | "bianca" | "ipa" | "bionda" {
   const safeCatalog = (allBeersCatalog && Array.isArray(allBeersCatalog) && allBeersCatalog.length > 0) ? allBeersCatalog : beers;
-  const beer = safeCatalog.find(b => b && b.brand && (b.brand.toLowerCase() === (brandName || '').toLowerCase() || formatBeerTitle(b.brand) === formatBeerTitle(brandName || '')));
+  const normBrand = stripStr(brandName);
+  const beer = safeCatalog.find(b => b && b.brand && (
+    stripStr(b.brand) === normBrand ||
+    b.brand.toLowerCase() === (brandName || '').toLowerCase() ||
+    formatBeerTitle(b.brand) === formatBeerTitle(brandName || '') ||
+    normalizeStr(b.brand) === normalizeStr(brandName || '')
+  ));
+
   if (beer) {
-    if (beer.variantTypes && variantName && beer.variantTypes[variantName]) {
-      return beer.variantTypes[variantName];
+    if (beer.variantTypes && variantName) {
+      if (beer.variantTypes[variantName]) {
+        return beer.variantTypes[variantName];
+      }
+      const normV = stripStr(variantName);
+      const matchedKey = Object.keys(beer.variantTypes).find(k => 
+        stripStr(k) === normV || 
+        normalizeStr(k) === normalizeStr(variantName) ||
+        k.toLowerCase() === variantName.toLowerCase()
+      );
+      if (matchedKey && beer.variantTypes[matchedKey]) {
+        return beer.variantTypes[matchedKey];
+      }
     }
     if (beer.beerType) {
       return beer.beerType;
     }
   }
-  if (!variantName || typeof variantName !== 'string') return "bionda";
+
+  if (!variantName || typeof variantName !== 'string') {
+    return beer?.beerType || "bionda";
+  }
+
   const vLower = variantName.toLowerCase();
   if (vLower.includes("rossa") || vLower.includes("rouge") || vLower.includes("red") || vLower.includes("cherry") || vLower.includes("porpora") || vLower.includes("amber") || vLower.includes("ambrata") || vLower.includes("rituel") || vLower.includes("kriek")) {
     return "rossa";
@@ -204,7 +226,7 @@ export function getBeerType(brandName: string, variantName: string, allBeersCata
   if (vLower.includes("ipa") || vLower.includes("ippa") || vLower.includes("guerrilla") || vLower.includes("taranta") || vLower.includes("elvis") || vLower.includes("wingman") || vLower.includes("neipa")) {
     return "ipa";
   }
-  return "bionda"; 
+  return beer?.beerType || "bionda"; 
 }
 
 export function getCountryFlag(country?: string): string {
@@ -379,12 +401,18 @@ export function mergeBeers(staticBeers: Beer[] = beers, customBeers?: any): Beer
             existing.variantTypes![v] = cbType;
           }
         });
+        if (cb.variantTypes && typeof cb.variantTypes === 'object') {
+          Object.assign(existing.variantTypes, cb.variantTypes);
+        }
       } else {
         const varTypesObj: Record<string, any> = {};
         if (cbType) {
           cbVariants.forEach((v: string) => {
             if (v) varTypesObj[v] = cbType;
           });
+        }
+        if (cb.variantTypes && typeof cb.variantTypes === 'object') {
+          Object.assign(varTypesObj, cb.variantTypes);
         }
         mergedMap.set(cbBrand, {
           brand: cbBrand,
@@ -419,140 +447,76 @@ export function calculateCompositeRarity(params: RarityScoreParams): "comune" | 
   return "rara";
 }
 
-export function getBeerRarity(
-  brandName: string,
-  _variantName?: string,
-  allBeersCatalog: Beer[] = beers,
-  postRarity?: string
-): 'comune' | 'media' | 'rara' {
-  if (postRarity === 'media' || postRarity === 'rara' || postRarity === 'comune') {
-    return postRarity;
+export function getBasePoints(brandName: string, variantName: string = 'Classica', allBeersCatalog: Beer[] = beers, postRarity?: string): number {
+  if (postRarity) {
+    const pRarity = postRarity.toLowerCase().trim();
+    if (pRarity === 'rara' || pRarity === 'rare' || pRarity === 'raro') return 5;
+    if (pRarity === 'media' || pRarity === 'medium' || pRarity === 'medio') return 2;
+    if (pRarity === 'comune') return 1;
   }
+
   const safeCatalog = Array.isArray(allBeersCatalog) && allBeersCatalog.length > 0 ? allBeersCatalog : beers;
-  const normTarget = stripStr(brandName);
-  const beer = safeCatalog.find(b => b && b.brand && (b.brand === brandName || stripStr(b.brand) === normTarget || normTarget.includes(stripStr(b.brand)) || stripStr(b.brand).includes(normTarget)));
-  if (beer && beer.rarity) {
-    return beer.rarity;
-  }
-  return 'comune';
-}
+  const beer = safeCatalog.find(
+    (b) => b && b.brand && (
+      b.brand.toLowerCase() === (brandName || '').toLowerCase() ||
+      formatBeerTitle(b.brand) === formatBeerTitle(brandName || '') ||
+      stripStr(b.brand) === stripStr(brandName || '')
+    )
+  );
+  if (!beer) return 1;
 
-export function getBasePoints(
-  brandName: string,
-  variantName: string,
-  allBeersCatalog: Beer[] = beers,
-  postRarity?: string
-): number {
-  if (postRarity === 'rara') return 5;
-  if (postRarity === 'media') return 2;
-  if (postRarity === 'comune') return 1;
-
-  let base = 1;
-  const safeCatalog = Array.isArray(allBeersCatalog) && allBeersCatalog.length > 0 ? allBeersCatalog : beers;
-  const normTarget = stripStr(brandName);
-  const beer = safeCatalog.find(b => b && b.brand && (b.brand === brandName || stripStr(b.brand) === normTarget || normTarget.includes(stripStr(b.brand)) || stripStr(b.brand).includes(normTarget)));
-  if (beer) {
-    if (beer.rarity === 'media') base = 2;
-    if (beer.rarity === 'rara') base = 5;
-  }
-  // All mass-market commercial variants (e.g. Ichnusa Non Filtrata, Moretti, Peroni, Raffo) return 1 base point (Comune).
-  // Special reserve editions:
-  if (brandName === 'Peroni' && variantName.includes('Gran Riserva')) return 2;
-  if (brandName === 'Poretti' && (variantName === '7 Luppoli' || variantName === '8 Luppoli' || variantName === 'Le 9 Luppoli (IPA)')) return 2;
-
-  return base;
+  const r = (beer.rarity || 'comune').toLowerCase().trim();
+  if (r === 'rara' || r === 'rare' || r === 'raro') return 5;
+  if (r === 'media' || r === 'medium' || r === 'medio') return 2;
+  return 1;
 }
 
 export function getBeerPoints(brandName: string, variantName: string, isShiny: boolean, _isShared?: boolean, allBeersCatalog: Beer[] = beers, postRarity?: string): number {
   let base = getBasePoints(brandName, variantName, allBeersCatalog, postRarity);
-  if (isShiny) base *= 2;
+  if (isShiny) {
+    base *= 2;
+  }
   return base;
-}
-
-export function getPostParticipants(post: any): string[] {
-  if (!post || !post.user) return [];
-  const author = post.user.trim();
-  const authorLower = author.toLowerCase();
-
-  const rawList: string[] = [
-    ...(Array.isArray(post.taggedFriends) ? post.taggedFriends : []),
-    ...(typeof post.taggedFriend === 'string' ? post.taggedFriend.split(',') : []),
-  ];
-
-  const distinctFriends: string[] = [];
-  const seen = new Set<string>();
-  seen.add(authorLower);
-
-  rawList.forEach((item) => {
-    if (typeof item === 'string') {
-      const clean = item.trim();
-      const lower = clean.toLowerCase();
-      if (clean && lower !== 'null' && lower !== 'undefined' && !seen.has(lower)) {
-        seen.add(lower);
-        distinctFriends.push(clean);
-      }
-    }
-  });
-
-  return [author, ...distinctFriends];
 }
 
 export function isUserParticipantInPost(post: any, username: string): boolean {
   if (!post || !username) return false;
-  const userLower = username.toLowerCase();
-
-  // Author check
-  if (post.user && post.user.toLowerCase() === userLower) {
-    return true;
+  const uLower = username.toLowerCase().trim();
+  if (post.user && post.user.toLowerCase().trim() === uLower) return true;
+  if (Array.isArray(post.taggedFriends)) {
+    return post.taggedFriends.some((f: any) => typeof f === 'string' && f.toLowerCase().trim() === uLower);
   }
-
-  // taggedFriends array check
-  if (Array.isArray(post.taggedFriends) && post.taggedFriends.some((f: any) => typeof f === 'string' && f.toLowerCase() === userLower)) {
-    return true;
+  if (typeof post.taggedFriend === 'string' && post.taggedFriend.trim()) {
+    const friendList = post.taggedFriend.split(',').map((f: string) => f.trim().toLowerCase());
+    return friendList.includes(uLower);
   }
-
-  // taggedFriend string check (could be single name or comma-separated names)
-  if (post.taggedFriend && typeof post.taggedFriend === 'string') {
-    const friends = post.taggedFriend.split(',').map((s: string) => s.trim().toLowerCase());
-    if (friends.includes(userLower)) {
-      return true;
-    }
-  }
-
   return false;
 }
 
 export function getUniqueParticipantPosts(posts: any[], username: string): any[] {
   if (!Array.isArray(posts) || !username) return [];
-
-  const userLower = username.toLowerCase();
-
-  // 1. Filter posts where user is author or tagged, AND exclude isStory posts
-  const rawParticipantPosts = posts.filter(
-    (p) => p && !p.isStory && p.brand !== 'Storia del Pub' && isUserParticipantInPost(p, userLower)
-  );
-
-  // 2. Deduplicate posts that belong to the same session or photo
-  const uniquePosts: any[] = [];
+  const uLower = username.toLowerCase().trim();
   const seenSessions = new Set<string>();
+  const uniquePosts: any[] = [];
 
-  rawParticipantPosts.forEach((post) => {
-    // Unique session key based on brand, variant, photo, and time within 3 minutes window
-    const roundedTime = Math.floor((post.time || 0) / (180 * 1000));
-    const participants = [
-      post.user,
-      ...(Array.isArray(post.taggedFriends) ? post.taggedFriends : []),
-      ...(post.taggedFriend && typeof post.taggedFriend === 'string' ? post.taggedFriend.split(',').map((s: string) => s.trim()) : []),
-    ]
-      .filter(Boolean)
-      .map((u: string) => u.toLowerCase())
-      .sort();
+  posts.forEach((post) => {
+    if (!isUserParticipantInPost(post, uLower)) return;
 
-    const sessionKey = `${post.brand}::${post.variant}::${roundedTime}::${participants.join('::')}`;
-    const photoKey = post.photo ? `${post.brand}::${post.variant}::${post.photo}` : '';
+    const postUser = (post.user || '').toLowerCase().trim();
+    const isOwner = postUser === uLower;
+
+    const timeBucket = post.time ? Math.floor(post.time / (1000 * 60 * 10)) : 0;
+    const authorGroup = post.taggedFriends && Array.isArray(post.taggedFriends)
+      ? [post.user, ...post.taggedFriends].sort().join('-')
+      : (post.taggedFriend ? [post.user, post.taggedFriend].sort().join('-') : post.user);
+
+    const bNorm = stripStr(post.brand);
+    const vNorm = stripStr(post.variant);
+    const sessionKey = `sess-${authorGroup}-${bNorm}-${vNorm}-${timeBucket}`;
+    const photoKey = post.photo ? `photo-${post.photo.slice(-50)}` : null;
 
     if (seenSessions.has(sessionKey) || (photoKey && seenSessions.has(photoKey))) {
-      return; // Skip duplicate post for the same shared drinking session
+      return;
     }
 
     seenSessions.add(sessionKey);
@@ -569,6 +533,7 @@ export interface ResolvedPokedexBeer {
   variant: string;
   rarity: 'comune' | 'media' | 'rara';
   country: string;
+  beerType: "rossa" | "scura" | "bianca" | "ipa" | "bionda";
 }
 
 export function resolvePokedexEntryBeer(
@@ -585,7 +550,7 @@ export function resolvePokedexEntryBeer(
   // 1. Match by entry.brand if present
   if (entryBrand) {
     foundBeer = safeCatalog.find(
-      (b) => b && (b.brand === entryBrand || normalizeStr(b.brand) === normalizeStr(entryBrand))
+      (b) => b && (b.brand === entryBrand || normalizeStr(b.brand) === normalizeStr(entryBrand) || stripStr(b.brand) === stripStr(entryBrand))
     );
   }
 
@@ -606,7 +571,8 @@ export function resolvePokedexEntryBeer(
         (v) =>
           `${b.brand}-${v}` === key ||
           `${formatBeerTitle(b.brand)}-${formatBeerTitle(v)}` === key ||
-          `${normalizeStr(b.brand)}-${normalizeStr(v)}` === normalizeStr(key)
+          `${normalizeStr(b.brand)}-${normalizeStr(v)}` === normalizeStr(key) ||
+          `${stripStr(b.brand)}-${stripStr(v)}` === stripStr(key)
       );
     });
   }
@@ -666,6 +632,8 @@ export function resolvePokedexEntryBeer(
 
   const country = foundBeer?.country || (entry && typeof entry === 'object' ? (entry.country || entry.beer?.country) : '') || 'Italia';
 
-  return { beer: foundBeer, brand, variant, rarity, country };
-}
+  const rawBeerType = (entry && typeof entry === 'object' && entry.beerType) ? entry.beerType : undefined;
+  const beerType = rawBeerType || (foundBeer ? getBeerType(foundBeer.brand, variant, safeCatalog) : getBeerType(brand, variant, safeCatalog));
 
+  return { beer: foundBeer, brand, variant, rarity, country, beerType };
+}

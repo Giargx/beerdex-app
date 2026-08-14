@@ -54,9 +54,17 @@ export const ProposeBeerModal: React.FC<ProposeBeerModalProps> = ({
   const [errorMessage, setErrorMessage] = useState('');
 
   // Check if current brand input matches an existing brand in catalog
-  const existingBeer = (allBeersCatalog || []).find(
-    (b) => b && b.brand && b.brand.trim().toLowerCase() === brand.trim().toLowerCase()
-  );
+  const strippedBrand = brand.trim() ? stripStr(brand) : '';
+  const existingBeer = strippedBrand
+    ? (allBeersCatalog || []).find(
+        (b) =>
+          b &&
+          b.brand &&
+          (stripStr(b.brand) === strippedBrand ||
+            b.brand.trim().toLowerCase() === brand.trim().toLowerCase() ||
+            formatBeerTitle(b.brand) === formatBeerTitle(brand))
+      )
+    : undefined;
 
   useEffect(() => {
     if (isOpen) {
@@ -69,9 +77,17 @@ export const ProposeBeerModal: React.FC<ProposeBeerModalProps> = ({
       setSelectedTaggedFriends([]);
       setErrorMessage('');
 
-      const matched = (allBeersCatalog || []).find(
-        (b) => b && b.brand && b.brand.trim().toLowerCase() === searchBrand.toLowerCase()
-      );
+      const strippedSearch = searchBrand ? stripStr(searchBrand) : '';
+      const matched = strippedSearch
+        ? (allBeersCatalog || []).find(
+            (b) =>
+              b &&
+              b.brand &&
+              (stripStr(b.brand) === strippedSearch ||
+                b.brand.trim().toLowerCase() === searchBrand.toLowerCase())
+          )
+        : undefined;
+
       if (matched) {
         setCountry(matched.country || '');
         setRegione(matched.regione || 'Tutte');
@@ -206,7 +222,9 @@ export const ProposeBeerModal: React.FC<ProposeBeerModalProps> = ({
     'Trentino-Alto Adige', 'Umbria', "Valle d'Aosta", 'Veneto'
   ];
 
-  const isBrandLocked = !!existingBeer;
+  const isBrandLocked = !!(initialBrandSearch && initialBrandSearch.trim() && (allBeersCatalog || []).some(
+    (b) => b && b.brand && stripStr(b.brand) === stripStr(initialBrandSearch)
+  ));
 
   return (
     <div className="auth-modal" style={{ zIndex: 19000, padding: '20px 10px 70px 10px', boxSizing: 'border-box', overflowY: 'auto' }}>
@@ -230,6 +248,40 @@ export const ProposeBeerModal: React.FC<ProposeBeerModalProps> = ({
         <p style={{ color: 'var(--text-muted)', fontSize: '13px', marginBottom: '16px', textAlign: 'center', lineHeight: 1.4 }}>
           Gli admin valuteranno la tua proposta. Se approvata, la birra entrerà nel catalogo e sbloccherai un <strong>Bonus di +2 Punti</strong> (nuova marca) o <strong>+1 Punto</strong> (nuova variante)!
         </p>
+
+        {/* Dynamic Real-time Proposal Type & Points Indicator */}
+        {brand.trim().length > 0 && (
+          <div
+            style={{
+              fontSize: '12px',
+              fontWeight: 700,
+              padding: '8px 12px',
+              borderRadius: '12px',
+              marginBottom: '14px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              background: existingBeer ? '#E0F2FE' : '#FEF3C7',
+              color: existingBeer ? '#0369A1' : '#92400E',
+              border: existingBeer ? '1px solid #BAE6FD' : '1px solid #FDE68A',
+            }}
+          >
+            <span className="material-symbols-outlined" style={{ fontSize: '20px', flexShrink: 0 }}>
+              {existingBeer ? 'lightbulb' : 'auto_awesome'}
+            </span>
+            <div style={{ lineHeight: 1.3 }}>
+              {existingBeer ? (
+                <>
+                  Marca <strong>{existingBeer.brand}</strong> presente: proposta come <strong>Nuova Variante (+1 Pt Bonus)</strong>
+                </>
+              ) : (
+                <>
+                  Nuova marca non a catalogo: proposta come <strong>Nuova Marca (+2 Pt Bonus)</strong>
+                </>
+              )}
+            </div>
+          </div>
+        )}
 
         {errorMessage && (
           <div style={{ background: '#FEE2E2', border: '1px solid #EF4444', color: '#B91C1C', padding: '10px 14px', borderRadius: '12px', fontSize: '13px', marginBottom: '14px', textAlign: 'center' }}>

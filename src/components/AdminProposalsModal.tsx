@@ -107,6 +107,8 @@ export const AdminProposalsModal: React.FC<AdminProposalsModalProps> = ({
           regione: item.regione || 'Tutte',
           rarity: item.rarity || 'comune',
           desc: item.desc || '',
+          isVariantProposal: !!item.isVariantProposal,
+          bonusPoints: item.bonusPoints ?? (item.isVariantProposal ? 1 : 2),
         },
       }));
     }
@@ -127,13 +129,19 @@ export const AdminProposalsModal: React.FC<AdminProposalsModalProps> = ({
         regione: item?.regione || 'Tutte',
         rarity: item?.rarity || 'comune',
         desc: item?.desc || '',
+        isVariantProposal: !!item?.isVariantProposal,
+        bonusPoints: item?.bonusPoints ?? (item?.isVariantProposal ? 1 : 2),
       };
+      const updated = {
+        ...existing,
+        [field]: value,
+      };
+      if (field === 'isVariantProposal') {
+        updated.bonusPoints = value ? 1 : 2;
+      }
       return {
         ...prev,
-        [proposalId]: {
-          ...existing,
-          [field]: value,
-        },
+        [proposalId]: updated,
       };
     });
   };
@@ -147,6 +155,8 @@ export const AdminProposalsModal: React.FC<AdminProposalsModalProps> = ({
     const rawRegione = edit?.regione ?? item.regione;
     const rawRarity = edit?.rarity ?? item.rarity;
     const rawDesc = edit?.desc ?? item.desc;
+    const rawIsVariant = edit?.isVariantProposal !== undefined ? edit.isVariantProposal : !!item.isVariantProposal;
+    const rawBonusPoints = edit?.bonusPoints !== undefined ? edit.bonusPoints : (item.bonusPoints ?? (rawIsVariant ? 1 : 2));
 
     const formattedBrand = formatBeerTitle(rawBrand.trim());
     const formattedVariant = formatBeerTitle(rawVariant.trim());
@@ -161,8 +171,8 @@ export const AdminProposalsModal: React.FC<AdminProposalsModalProps> = ({
       regione: formattedCountry.toLowerCase() === 'italia' && rawRegione && rawRegione !== 'Tutte' ? rawRegione : undefined,
       rarity: rawRarity,
       desc: rawDesc && rawDesc.trim() ? rawDesc.trim() : `Birra ${formattedBrand} (${formattedVariant})`,
-      isVariantProposal: item.isVariantProposal,
-      bonusPoints: item.bonusPoints ?? (item.isVariantProposal ? 1 : 2),
+      isVariantProposal: rawIsVariant,
+      bonusPoints: rawBonusPoints,
     };
 
     onAcceptProposal(finalProposal);
@@ -874,10 +884,13 @@ export const AdminProposalsModal: React.FC<AdminProposalsModalProps> = ({
                 const currentData = editedDataMap[item.proposalId] || {
                   brand: formatBeerTitle(item.brand),
                   variant: formatBeerTitle(item.variant),
+                  beerType: item.beerType || 'bionda',
                   country: item.country || 'Non specificata',
                   regione: item.regione || 'Tutte',
                   rarity: item.rarity || 'comune',
                   desc: item.desc || '',
+                  isVariantProposal: !!item.isVariantProposal,
+                  bonusPoints: item.bonusPoints ?? (item.isVariantProposal ? 1 : 2),
                 };
 
                 return (
@@ -968,18 +981,18 @@ export const AdminProposalsModal: React.FC<AdminProposalsModalProps> = ({
                             fontWeight: 800,
                             padding: '2px 8px',
                             borderRadius: '12px',
-                            background: item.isVariantProposal ? '#E0F2FE' : '#FEF3C7',
-                            color: item.isVariantProposal ? '#0369A1' : '#B45309',
-                            border: item.isVariantProposal ? '1px solid #BAE6FD' : '1px solid #FDE68A',
+                            background: currentData.isVariantProposal ? '#E0F2FE' : '#FEF3C7',
+                            color: currentData.isVariantProposal ? '#0369A1' : '#B45309',
+                            border: currentData.isVariantProposal ? '1px solid #BAE6FD' : '1px solid #FDE68A',
                           }}>
-                            {item.isVariantProposal ? '💡 Nuova Variante (+1 Pt Bonus)' : '✨ Nuova Marca (+2 Pt Bonus)'}
+                            {currentData.isVariantProposal ? '💡 Nuova Variante (+1 Pt Bonus)' : '✨ Nuova Marca (+2 Pt Bonus)'}
                           </span>
                         </div>
                         <div style={{ fontSize: '14px', fontWeight: 'bold', color: 'var(--dark)', display: 'flex', alignItems: 'center', gap: '6px' }}>
                           {currentData.variant}
                           {currentData.beerType && (
                             <span style={{ fontSize: '11px', background: '#F1F5F9', color: '#475569', padding: '1px 6px', borderRadius: '8px', textTransform: 'capitalize', fontWeight: 600 }}>
-                              {currentData.beerType}
+                              {currentData.beerType === 'rossa' ? '🔴 Rossa' : currentData.beerType === 'scura' ? '🌑 Scura' : currentData.beerType === 'bianca' ? '⚪ Bianca' : currentData.beerType === 'ipa' ? '🌿 IPA' : '🍺 Bionda'}
                             </span>
                           )}
                         </div>
@@ -1110,6 +1123,45 @@ export const AdminProposalsModal: React.FC<AdminProposalsModalProps> = ({
                           <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>tune</span>
                           Modifica / Completa Campi Proposta prima di Approvare:
                         </div>
+
+                        <div style={{ marginBottom: '8px' }}>
+                          <label style={{ fontSize: '11px', fontWeight: 'bold', display: 'block', marginBottom: '2px' }}>Tipo Proposta</label>
+                          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px' }}>
+                            <button
+                              type="button"
+                              onClick={() => updateField(item.proposalId, 'isVariantProposal', false)}
+                              style={{
+                                padding: '6px',
+                                borderRadius: '8px',
+                                border: !currentData.isVariantProposal ? '2px solid #F59E0B' : '1px solid #CBD5E1',
+                                background: !currentData.isVariantProposal ? '#FEF3C7' : '#FFFFFF',
+                                color: !currentData.isVariantProposal ? '#B45309' : '#64748B',
+                                fontWeight: 800,
+                                fontSize: '11px',
+                                cursor: 'pointer',
+                              }}
+                            >
+                              ✨ Nuova Marca (+2 pt)
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => updateField(item.proposalId, 'isVariantProposal', true)}
+                              style={{
+                                padding: '6px',
+                                borderRadius: '8px',
+                                border: currentData.isVariantProposal ? '2px solid #0284C7' : '1px solid #CBD5E1',
+                                background: currentData.isVariantProposal ? '#E0F2FE' : '#FFFFFF',
+                                color: currentData.isVariantProposal ? '#0369A1' : '#64748B',
+                                fontWeight: 800,
+                                fontSize: '11px',
+                                cursor: 'pointer',
+                              }}
+                            >
+                              💡 Nuova Variante (+1 pt)
+                            </button>
+                          </div>
+                        </div>
+
                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px', marginBottom: '8px' }}>
                           <div>
                             <label style={{ fontSize: '11px', fontWeight: 'bold', display: 'block', marginBottom: '2px' }}>Marca / Birrificio</label>
@@ -1201,7 +1253,7 @@ export const AdminProposalsModal: React.FC<AdminProposalsModalProps> = ({
                         }}
                       >
                         <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>check_circle</span>
-                        Accetta (+{item.isVariantProposal ? '1' : '2'}pt a @{item.proposedBy})
+                        Accetta (+{currentData.isVariantProposal ? (currentData.bonusPoints || 1) : (currentData.bonusPoints || 2)}pt a @{item.proposedBy})
                       </button>
                       <button
                         className="btn-secondary"

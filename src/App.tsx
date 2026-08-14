@@ -1131,16 +1131,15 @@ export default function App() {
       const updates: Record<string, any> = {};
       let needsUpdate = false;
 
-      // 1. Clean up duplicate custom_beers entries in Firebase
+      // 1. Clean up duplicate/corrupted legacy custom_beers entries in Firebase
       const customSnap = await get(ref(db, 'custom_beers'));
       if (customSnap.exists()) {
         const customData = customSnap.val();
         Object.entries(customData).forEach(([cKey, cVal]: [string, any]) => {
           if (cVal && cVal.brand) {
             const normCBrand = normalizeStr(cVal.brand);
-            const isStaticMatch = beers.some((b) => normalizeStr(b.brand) === normCBrand) ||
-              normCBrand.includes('deforest') || normCBrand.includes('baiadeforest') || normCBrand.includes('abbay');
-            if (isStaticMatch) {
+            const isLegacyDeforest = normCBrand.includes('deforest') || normCBrand.includes('baiadeforest');
+            if (isLegacyDeforest) {
               updates[`custom_beers/${cKey}`] = null;
               needsUpdate = true;
             }
@@ -1663,6 +1662,9 @@ export default function App() {
         rarity: chosenRarity,
         desc: proposal.desc || `Birra ${formattedBrand} (${formattedVariant})`,
         variants: [formattedVariant],
+        variantTypes: {
+          [formattedVariant]: beerType,
+        },
         barcodes: [],
         beerType: beerType,
       };
@@ -1704,6 +1706,7 @@ export default function App() {
           proposalBonus: bonusPoints,
           proposalType: isVariant ? 'variant' : 'brand',
           rarity: chosenRarity,
+          beerType: beerType,
         };
         await set(ref(db, `pokedex_profiles/${userNick}/${uniqueId}`), pokedexEntry);
         await recalculateTotalScore(userNick);
@@ -1735,6 +1738,7 @@ export default function App() {
         taggedFriend: taggedFriendStr,
         taggedFriends: taggedFriendsList,
         rarity: chosenRarity,
+        beerType: beerType,
       });
 
       // 5. Update proposal status to accepted in DB
@@ -1744,6 +1748,7 @@ export default function App() {
         country: formattedCountry,
         regione: proposal.regione || null,
         rarity: chosenRarity,
+        beerType: beerType,
         desc: proposal.desc || null,
         status: 'accepted',
         isVariantProposal: isVariant,
@@ -1777,32 +1782,60 @@ export default function App() {
       'Elimina Marca dal Catalogo',
       async () => {
         try {
+          const targetStrip = stripStr(brandName);
+          const updates: Record<string, any> = {};
+          const affectedUsers = new Set<string>();
+
+          // 1. Remove from custom_beers
           const snap = await get(ref(db, 'custom_beers'));
           if (snap.exists()) {
             const data = snap.val();
-            const updates: Record<string, null> = {};
             Object.entries(data).forEach(([key, val]: [string, any]) => {
-              if (val && val.brand && val.brand.toLowerCase() === brandName.toLowerCase()) {
+              if (val && val.brand && stripStr(val.brand) === targetStrip) {
                 updates[`custom_beers/${key}`] = null;
               }
             });
-            if (Object.keys(updates).length > 0) {
-              await update(ref(db), updates);
-            }
           }
 
+          // 2. Remove matching proposals
           const propSnap = await get(ref(db, 'beer_proposals'));
           if (propSnap.exists()) {
             const propData = propSnap.val();
-            const propUpdates: Record<string, null> = {};
             Object.entries(propData).forEach(([key, val]: [string, any]) => {
-              if (val && val.brand && val.brand.toLowerCase() === brandName.toLowerCase() && val.status === 'accepted') {
-                propUpdates[`beer_proposals/${key}`] = null;
+              if (val && val.brand && stripStr(val.brand) === targetStrip) {
+                updates[`beer_proposals/${key}`] = null;
+                if (val.proposedBy) affectedUsers.add(val.proposedBy);
+                if (Array.isArray(val.taggedFriends)) {
+                  val.taggedFriends.forEach((f: string) => f && affectedUsers.add(f));
+                }
               }
             });
-            if (Object.keys(propUpdates).length > 0) {
-              await update(ref(db), propUpdates);
-            }
+          }
+
+          // 3. Clean orphaned pokedex entries for this brand
+          const allPokedexSnap = await get(ref(db, 'pokedex_profiles'));
+          if (allPokedexSnap.exists()) {
+            const allPokedex = allPokedexSnap.val();
+            Object.entries(allPokedex).forEach(([userNick, userEntries]: [string, any]) => {
+              if (userEntries && typeof userEntries === 'object') {
+                Object.entries(userEntries).forEach(([entryKey, entryVal]: [string, any]) => {
+                  const entryBrand = (entryVal && entryVal.brand) || (entryKey.includes('-') ? entryKey.split('-')[0] : entryKey);
+                  if (stripStr(entryBrand) === targetStrip) {
+                    updates[`pokedex_profiles/${userNick}/${entryKey}`] = null;
+                    affectedUsers.add(userNick);
+                  }
+                });
+              }
+            });
+          }
+
+          if (Object.keys(updates).length > 0) {
+            await update(ref(db), updates);
+          }
+
+          // 4. Recalculate scores for affected users
+          for (const uNick of affectedUsers) {
+            await recalculateTotalScore(uNick);
           }
 
           showAlert(`La marca "${brandName}" è stata eliminata dal catalogo con successo!`, 'Marca Eliminata');

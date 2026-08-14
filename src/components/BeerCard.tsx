@@ -151,7 +151,9 @@ export const BeerCard: React.FC<BeerCardProps> = ({
             const entry = matchingKey ? safePokedex[matchingKey] : undefined;
             const hasPhoto = entry !== undefined;
             const specificPts = getBasePoints(beer.brand, variant);
-            const typeKey = getBeerType(beer.brand, variant);
+            const typeKey = (beer.variantTypes && (beer.variantTypes[variant] || Object.entries(beer.variantTypes).find(([k]) => stripStr(k) === normVar)?.[1])) ||
+                            beer.beerType ||
+                            getBeerType(beer.brand, variant);
 
             return (
               <div key={uniqueId} className={`variant-item variant-type-${typeKey}`} onClick={(e) => e.stopPropagation()}>
