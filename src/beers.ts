@@ -447,7 +447,38 @@ export function calculateCompositeRarity(params: RarityScoreParams): "comune" | 
   return "rara";
 }
 
-export function getBasePoints(brandName: string, variantName: string = 'Classica', allBeersCatalog: Beer[] = beers, postRarity?: string): number {
+export function getBeerRarity(brandName: string, _variantName?: string | Beer[], allBeersCatalog?: Beer[] | string, postRarity?: string): "comune" | "media" | "rara" {
+  let catalog: Beer[] = beers;
+  let customRarity: string | undefined = postRarity;
+
+  if (Array.isArray(_variantName)) {
+    catalog = _variantName;
+    if (typeof allBeersCatalog === 'string') customRarity = allBeersCatalog;
+  } else if (Array.isArray(allBeersCatalog)) {
+    catalog = allBeersCatalog;
+  }
+
+  if (customRarity) {
+    const pRarity = customRarity.toLowerCase().trim();
+    if (pRarity === 'rara' || pRarity === 'rare' || pRarity === 'raro') return 'rara';
+    if (pRarity === 'media' || pRarity === 'medium' || pRarity === 'medio') return 'media';
+    if (pRarity === 'comune') return 'comune';
+  }
+  const safeCatalog = Array.isArray(catalog) && catalog.length > 0 ? catalog : beers;
+  const beer = safeCatalog.find(
+    (b) => b && b.brand && (
+      b.brand.toLowerCase() === (brandName || '').toLowerCase() ||
+      formatBeerTitle(b.brand) === formatBeerTitle(brandName || '') ||
+      stripStr(b.brand) === stripStr(brandName || '')
+    )
+  );
+  const r = (beer?.rarity || 'comune').toLowerCase().trim();
+  if (r === 'rara' || r === 'rare' || r === 'raro') return 'rara';
+  if (r === 'media' || r === 'medium' || r === 'medio') return 'media';
+  return 'comune';
+}
+
+export function getBasePoints(brandName: string, _variantName: string = 'Classica', allBeersCatalog: Beer[] = beers, postRarity?: string): number {
   if (postRarity) {
     const pRarity = postRarity.toLowerCase().trim();
     if (pRarity === 'rara' || pRarity === 'rare' || pRarity === 'raro') return 5;
@@ -479,6 +510,34 @@ export function getBeerPoints(brandName: string, variantName: string, isShiny: b
   return base;
 }
 
+export function getPostParticipants(post: any): string[] {
+  if (!post || typeof post !== 'object') return [];
+  const participants = new Set<string>();
+
+  if (post.user && typeof post.user === 'string' && post.user.trim()) {
+    participants.add(post.user.trim());
+  }
+
+  if (Array.isArray(post.taggedFriends)) {
+    post.taggedFriends.forEach((f: any) => {
+      if (typeof f === 'string' && f.trim()) {
+        participants.add(f.trim());
+      }
+    });
+  }
+
+  if (typeof post.taggedFriend === 'string' && post.taggedFriend.trim()) {
+    post.taggedFriend.split(',').forEach((f: string) => {
+      const trimmed = f.trim();
+      if (trimmed) {
+        participants.add(trimmed);
+      }
+    });
+  }
+
+  return Array.from(participants);
+}
+
 export function isUserParticipantInPost(post: any, username: string): boolean {
   if (!post || !username) return false;
   const uLower = username.toLowerCase().trim();
@@ -501,9 +560,6 @@ export function getUniqueParticipantPosts(posts: any[], username: string): any[]
 
   posts.forEach((post) => {
     if (!isUserParticipantInPost(post, uLower)) return;
-
-    const postUser = (post.user || '').toLowerCase().trim();
-    const isOwner = postUser === uLower;
 
     const timeBucket = post.time ? Math.floor(post.time / (1000 * 60 * 10)) : 0;
     const authorGroup = post.taggedFriends && Array.isArray(post.taggedFriends)

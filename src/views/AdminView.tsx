@@ -139,8 +139,6 @@ export const AdminView: React.FC<AdminViewProps> = ({
     regione: string;
     rarity: "comune" | "media" | "rara";
     desc: string;
-    isVariantProposal: boolean;
-    bonusPoints: number;
   }>>({});
 
   const pendingProposals = (proposals || []).filter((p) => p && p.status === 'pending');
@@ -161,8 +159,6 @@ export const AdminView: React.FC<AdminViewProps> = ({
           regione: item.regione || 'Tutte',
           rarity: item.rarity || 'comune',
           desc: item.desc || '',
-          isVariantProposal: item.isVariantProposal ?? false,
-          bonusPoints: item.bonusPoints ?? (item.isVariantProposal ? 1 : 2),
         },
       }));
     }
@@ -173,66 +169,48 @@ export const AdminView: React.FC<AdminViewProps> = ({
   };
 
   const updateField = (proposalId: string, field: string, value: any) => {
-    setEditedDataMap((prev) => {
-      const item = proposals.find((p) => p.proposalId === proposalId);
-      const existing = prev[proposalId] || {
-        brand: formatBeerTitle(item?.brand || ''),
-        variant: formatBeerTitle(item?.variant || ''),
-        beerType: item?.beerType || 'bionda',
-        country: item?.country || 'Non specificata',
-        regione: item?.regione || 'Tutte',
-        rarity: item?.rarity || 'comune',
-        desc: item?.desc || '',
-        isVariantProposal: item?.isVariantProposal ?? false,
-        bonusPoints: item?.bonusPoints ?? (item?.isVariantProposal ? 1 : 2),
-      };
-      const updated = {
-        ...existing,
+    setEditedDataMap((prev) => ({
+      ...prev,
+      [proposalId]: {
+        ...(prev[proposalId] || {
+          brand: '',
+          variant: '',
+          beerType: 'bionda',
+          country: 'Italia',
+          regione: 'Tutte',
+          rarity: 'comune',
+          desc: '',
+        }),
         [field]: value,
-      };
-      if (field === 'isVariantProposal') {
-        updated.bonusPoints = value ? 1 : 2;
-      }
-      return {
-        ...prev,
-        [proposalId]: updated,
-      };
-    });
-  };
-
-  const getCurrentData = (item: BeerProposalItem) => {
-    const edit = editedDataMap[item.proposalId];
-    return {
-      brand: edit?.brand !== undefined ? edit.brand : formatBeerTitle(item.brand),
-      variant: edit?.variant !== undefined ? edit.variant : formatBeerTitle(item.variant),
-      beerType: edit?.beerType !== undefined ? edit.beerType : (item.beerType || 'bionda'),
-      country: edit?.country !== undefined ? edit.country : (item.country || 'Non specificata'),
-      regione: edit?.regione !== undefined ? edit.regione : (item.regione || 'Tutte'),
-      rarity: edit?.rarity !== undefined ? edit.rarity : (item.rarity || 'comune'),
-      desc: edit?.desc !== undefined ? edit.desc : (item.desc || ''),
-      isVariantProposal: edit?.isVariantProposal !== undefined ? edit.isVariantProposal : (item.isVariantProposal ?? false),
-      bonusPoints: edit?.bonusPoints !== undefined ? edit.bonusPoints : (item.bonusPoints ?? (item.isVariantProposal ? 1 : 2)),
-    };
+      },
+    }));
   };
 
   const handleAcceptClick = (item: BeerProposalItem) => {
-    const current = getCurrentData(item);
+    const edit = editedDataMap[item.proposalId];
+    const rawBrand = edit ? edit.brand : item.brand;
+    const rawVariant = edit ? edit.variant : item.variant;
+    const rawBeerType = edit ? edit.beerType : item.beerType;
+    const rawCountry = edit ? edit.country : item.country;
+    const rawRegione = edit ? edit.regione : item.regione;
+    const rawRarity = edit ? edit.rarity : item.rarity;
+    const rawDesc = edit ? edit.desc : item.desc;
 
-    const formattedBrand = formatBeerTitle(current.brand.trim());
-    const formattedVariant = formatBeerTitle(current.variant.trim());
-    const formattedCountry = formatBeerTitle((current.country || 'Non specificata').trim());
+    const formattedBrand = formatBeerTitle(rawBrand.trim());
+    const formattedVariant = formatBeerTitle(rawVariant.trim());
+    const formattedCountry = formatBeerTitle((rawCountry || 'Non specificata').trim());
 
     const finalProposal: BeerProposalItem = {
       ...item,
       brand: formattedBrand,
       variant: formattedVariant,
-      beerType: (current.beerType as any) || 'bionda',
+      beerType: (rawBeerType as any) || 'bionda',
       country: formattedCountry,
-      regione: formattedCountry.toLowerCase() === 'italia' && current.regione && current.regione !== 'Tutte' ? current.regione : undefined,
-      rarity: (current.rarity as any) || 'comune',
-      desc: current.desc && current.desc.trim() ? current.desc.trim() : `Birra ${formattedBrand} (${formattedVariant})`,
-      isVariantProposal: current.isVariantProposal,
-      bonusPoints: current.bonusPoints,
+      regione: formattedCountry.toLowerCase() === 'italia' && rawRegione && rawRegione !== 'Tutte' ? rawRegione : undefined,
+      rarity: rawRarity,
+      desc: rawDesc && rawDesc.trim() ? rawDesc.trim() : `Birra ${formattedBrand} (${formattedVariant})`,
+      isVariantProposal: item.isVariantProposal,
+  bonusPoints: item.bonusPoints ?? (item.isVariantProposal ? 1 : 2),
     };
 
     onAcceptProposal(finalProposal);
@@ -839,201 +817,6 @@ export const AdminView: React.FC<AdminViewProps> = ({
                         display: 'flex',
                         flexDirection: 'column',
                         gap: '12px',
->
-                          {pill.label}
-                        </button>
-                      ))}
-                    </div>
-
-                    {filtered.length === 0 ? (
-                      <div style={{ textAlign: 'center', padding: '30px 20px', color: '#94A3B8', fontSize: '13px', background: '#F8FAFC', borderRadius: '16px', border: '1px dashed #CBD5E1' }}>
-                        Nessun utente corrisponde ai filtri selezionati.
-                      </div>
-                    ) : (
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                        {visibleUsers.map((user) => {
-                          const isRecalculating = recalculatingUserMap[user.nick];
-                          const rankTitle = getUserRankTitleText(user.score);
-                          return (
-                            <div
-                              key={user.nick}
-                              style={{
-                                background: '#FFFFFF',
-                                border: '1px solid #E2E8F0',
-                                borderRadius: '16px',
-                                padding: '12px 14px',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'space-between',
-                                gap: '12px',
-                                boxShadow: '0 2px 8px rgba(0,0,0,0.02)',
-                                transition: 'transform 0.2s ease, box-shadow 0.2s ease',
-                              }}
-                            >
-                              <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flex: 1, minWidth: 0 }}>
-                                <div style={{ width: '44px', height: '44px', borderRadius: '50%', background: '#F1F5F9', border: '2px solid #E2E8F0', overflow: 'hidden', flexShrink: 0 }}>
-                                  {user.avatar ? (
-                                    <img src={user.avatar} alt={user.nick} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                                  ) : (
-                                    <span className="material-symbols-outlined" style={{ fontSize: '26px', color: '#94A3B8', width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>person</span>
-                                  )}
-                                </div>
-                                <div style={{ textAlign: 'left', overflow: 'hidden' }}>
-                                  <div style={{ fontWeight: 800, fontSize: '14px', color: '#0F172A', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                                    {user.displayName}
-                                  </div>
-                                  <div style={{ fontSize: '11px', color: '#64748B', display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap', marginTop: '1px' }}>
-                                    <span>@{user.nick}</span>
-                                    <span style={{ fontSize: '10px', background: '#F1F5F9', padding: '1px 6px', borderRadius: '8px', color: '#475569', fontWeight: 700 }}>
-                                      {rankTitle}
-                                    </span>
-                                  </div>
-                                  <div style={{ fontSize: '11px', color: '#D97706', fontWeight: 800, marginTop: '3px', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                                    <span className="material-symbols-outlined" style={{ fontSize: '13px', color: '#F59E0B' }}>star</span>
-                                    {user.score} PT • {user.unlockedCount} sblocchi
-                                  </div>
-                                </div>
-                              </div>
-
-                              <div style={{ display: 'flex', gap: '6px', flexShrink: 0, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
-                                {onOpenPublicProfile && (
-                                  <button
-                                    onClick={() => onOpenPublicProfile(user.nick)}
-                                    title="Visualizza Profilo"
-                                    style={{
-                                      border: '1px solid #CBD5E1',
-                                      background: '#F8FAFC',
-                                      borderRadius: '10px',
-                                      padding: '7px 10px',
-                                      fontSize: '11px',
-                                      fontWeight: 800,
-                                      color: '#334155',
-                                      cursor: 'pointer',
-                                      display: 'flex',
-                                      alignItems: 'center',
-                                      gap: '4px',
-                                    }}
-                                  >
-                                    <span className="material-symbols-outlined" style={{ fontSize: '15px' }}>visibility</span>
-                                    <span className="admin-btn-label">Profilo</span>
-                                  </button>
-                                )}
-
-                                {onRecalculateUserScore && (
-                                  <button
-                                    onClick={() => handleRecalculateSingle(user.nick)}
-                                    disabled={isRecalculating}
-                                    title="Ricalcola Punti e Medaglie per questo utente"
-                                    style={{
-                                      border: '1px solid #BFDBFE',
-                                      background: isRecalculating ? '#EFF6FF' : '#DBEAFE',
-                                      borderRadius: '10px',
-                                      padding: '7px 10px',
-                                      fontSize: '11px',
-                                      fontWeight: 800,
-                                      color: '#1D4ED8',
-                                      cursor: isRecalculating ? 'wait' : 'pointer',
-                                      display: 'flex',
-                                      alignItems: 'center',
-                                      gap: '4px',
-                                      opacity: isRecalculating ? 0.7 : 1,
-                                    }}
-                                  >
-                                    <span className={`material-symbols-outlined ${isRecalculating ? 'spin' : ''}`} style={{ fontSize: '15px' }}>
-                                      sync
-                                    </span>
-                                    <span className="admin-btn-label">{isRecalculating ? '...' : 'Ricalcola'}</span>
-                                  </button>
-                                )}
-
-                                {onDeleteUserProfile && (
-                                  <button
-                                    onClick={() => {
-                                      if (window.confirm(`⚠️ ATTENZIONE ADMIN:\n\nSei sicuro di voler eliminare DEFINITIVAMENTE il profilo dell'utente @${user.nick} dal database?\n\nVerranno rimossi in modo permanente tutti i suoi sblocchi, punteggi e dati associati.`)) {
-                                        onDeleteUserProfile(user.nick);
-                                      }
-                                    }}
-                                    title="Elimina Profilo Utente"
-                                    style={{
-                                      border: '1px solid #FCA5A5',
-                                      background: '#FEF2F2',
-                                      borderRadius: '10px',
-                                      padding: '7px 10px',
-                                      fontSize: '11px',
-                                      fontWeight: 800,
-                                      color: '#DC2626',
-                                      cursor: 'pointer',
-                                      display: 'flex',
-                                      alignItems: 'center',
-                                      gap: '4px',
-                                    }}
-                                  >
-                                    <span className="material-symbols-outlined" style={{ fontSize: '15px' }}>delete_forever</span>
-                                    <span className="admin-btn-label">Elimina</span>
-                                  </button>
-                                )}
-                              </div>
-                            </div>
-                          );
-                        })}
-
-                        {visibleUsers.length < filtered.length && (
-                          <div style={{ textAlign: 'center', marginTop: '8px' }}>
-                            <button
-                              onClick={() => setUserPageLimit((prev) => prev + 15)}
-                              style={{
-                                padding: '10px 20px',
-                                borderRadius: '14px',
-                                border: '1px solid #CBD5E1',
-                                background: '#F1F5F9',
-                                color: '#334155',
-                                fontSize: '12px',
-                                fontWeight: 800,
-                                cursor: 'pointer',
-                              }}
-                            >
-                              Mostra altri {Math.min(15, filtered.length - visibleUsers.length)} utenti ({visibleUsers.length}/{filtered.length})
-                            </button>
-                          </div>
-                        )}
-                      </div>
-                    )}
-                  </>
-                );
-              })()}
-            </div>
-          ) : activeTab === 'feedback' ? (
-            feedbacksList.length === 0 ? (
-              <div style={{ textAlign: 'center', padding: '40px 20px', color: 'var(--text-muted)' }}>
-                <span className="material-symbols-outlined" style={{ fontSize: '48px', marginBottom: '10px', color: '#10B981' }}>rate_review</span>
-                <p style={{ margin: 0, fontWeight: 'bold' }}>Nessun consiglio o segnalazione al momento</p>
-                <p style={{ fontSize: '12px', marginTop: '4px' }}>I consigli e i feedback inviati dagli utenti appariranno qui.</p>
-              </div>
-            ) : (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-                {feedbacksList.map((fb: any) => {
-                  const fbUser = fb.user || 'Anonimo';
-                  const fbDisp = globalDisplayNames[fbUser] || fbUser;
-                  const fbAvat = globalAvatars[fbUser];
-                  const dateStr = new Date(fb.timestamp || Date.now()).toLocaleDateString('it-IT', {
-                    day: 'numeric',
-                    month: 'short',
-                    hour: '2-digit',
-                    minute: '2-digit',
-                  });
-                  const isRead = fb.status === 'read';
-
-                  return (
-                    <div
-                      key={fb.feedbackId || fb.timestamp}
-                      style={{
-                        background: isRead ? '#F8FAFC' : '#ECFDF5',
-                        border: isRead ? '1px solid #E2E8F0' : '1px solid #A7F3D0',
-                        borderRadius: '18px',
-                        padding: '16px',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        gap: '12px',
                         boxShadow: '0 2px 10px rgba(0,0,0,0.02)',
                       }}
                     >
@@ -1234,293 +1017,209 @@ export const AdminView: React.FC<AdminViewProps> = ({
                 })}
               </div>
             )
-          ) : activeTab === 'proposals' ? (
-            pendingProposals.length === 0 ? (
-              <div style={{ textAlign: 'center', padding: '40px 20px', color: 'var(--text-muted)' }}>
-                <span className="material-symbols-outlined" style={{ fontSize: '48px', marginBottom: '10px', color: '#10B981' }}>check_circle</span>
-                <p style={{ margin: 0, fontSize: '14px', fontWeight: 800 }}>Nessuna proposta pendente al momento.</p>
-                <p style={{ fontSize: '12px', marginTop: '4px' }}>Le nuove birre e varianti proposte dagli utenti appariranno qui per l'approvazione.</p>
-              </div>
-            ) : (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                {pendingProposals.map((item) => {
-                  const authorAvatar = globalAvatars[item.proposedBy];
-                  const authorName = globalDisplayNames[item.proposedBy] || item.proposedBy;
-                  const dateStr = new Date(item.timestamp).toLocaleDateString('it-IT', {
-                    day: 'numeric',
-                    month: 'short',
-                    hour: '2-digit',
-                    minute: '2-digit',
-                  });
+          ) : pendingProposals.length === 0 ? (
+            <div style={{ textAlign: 'center', padding: '40px 20px', color: 'var(--text-muted)' }}>
+              <span className="material-symbols-outlined" style={{ fontSize: '48px', marginBottom: '10px', color: '#10B981' }}>check_circle</span>
+              <p style={{ margin: 0, fontSize: '14px', fontWeight: 800 }}>Nessuna proposta pendente al momento.</p>
+              <p style={{ fontSize: '12px', marginTop: '4px' }}>Le nuove birre e varianti proposte dagli utenti appariranno qui per l'approvazione.</p>
+            </div>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              {pendingProposals.map((item) => {
+                const authorAvatar = globalAvatars[item.proposedBy];
+                const authorName = globalDisplayNames[item.proposedBy] || item.proposedBy;
+                const dateStr = new Date(item.timestamp).toLocaleDateString('it-IT', {
+                  day: 'numeric',
+                  month: 'short',
+                  hour: '2-digit',
+                  minute: '2-digit',
+                });
 
-                  const isEditing = !!showEditMap[item.proposalId];
-                  const currentData = getCurrentData(item);
+                const isEditing = !!showEditMap[item.proposalId];
+                const currentData = editedDataMap[item.proposalId] || {
+                  brand: formatBeerTitle(item.brand),
+                  variant: formatBeerTitle(item.variant),
+                  country: item.country || 'Non specificata',
+                  regione: item.regione || 'Tutte',
+                  rarity: item.rarity || 'comune',
+                  desc: item.desc || '',
+                };
 
-                  return (
-                    <div
-                      key={item.proposalId}
-                      style={{
-                        background: 'var(--white)',
-                        border: isEditing ? '2px solid #F59E0B' : '1px solid #E2E8F0',
-                        borderRadius: '18px',
-                        padding: '18px',
-                        boxShadow: '0 4px 16px rgba(0,0,0,0.03)',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        gap: '14px',
-                      }}
-                    >
-                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                          <div style={{ width: '36px', height: '36px', borderRadius: '50%', overflow: 'hidden', background: '#e2e8f0', border: '1px solid #CBD5E1' }}>
-                            {authorAvatar ? (
-                              <img src={authorAvatar} alt={item.proposedBy} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                            ) : (
-                              <span className="material-symbols-outlined" style={{ fontSize: '22px', margin: '7px' }}>person</span>
-                            )}
-                          </div>
-                          <div style={{ textAlign: 'left' }}>
-                            <div style={{ fontSize: '13px', fontWeight: 800, color: 'var(--dark)' }}>@{authorName}</div>
-                            <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Proposta il {dateStr}</div>
-                          </div>
+                return (
+                  <div
+                    key={item.proposalId}
+                    style={{
+                      background: 'var(--white)',
+                      border: isEditing ? '2px solid #F59E0B' : '1px solid #E2E8F0',
+                      borderRadius: '18px',
+                      padding: '18px',
+                      boxShadow: '0 4px 16px rgba(0,0,0,0.03)',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: '14px',
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                        <div style={{ width: '36px', height: '36px', borderRadius: '50%', overflow: 'hidden', background: '#e2e8f0', border: '1px solid #CBD5E1' }}>
+                          {authorAvatar ? (
+                            <img src={authorAvatar} alt={item.proposedBy} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                          ) : (
+                            <span className="material-symbols-outlined" style={{ fontSize: '22px', margin: '7px' }}>person</span>
+                          )}
                         </div>
-                        <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
-                          <button
-                            onClick={() => toggleEdit(item)}
-                            style={{
-                              background: isEditing ? '#FEF3C7' : '#F1F5F9',
-                              color: isEditing ? '#D97706' : '#475569',
-                              border: '1px solid ' + (isEditing ? '#FDE68A' : '#CBD5E1'),
-                              borderRadius: '10px',
-                              padding: '6px 12px',
-                              fontSize: '11px',
-                              fontWeight: 800,
-                              cursor: 'pointer',
-                              display: 'flex',
-                              alignItems: 'center',
-                              gap: '4px',
-                            }}
-                          >
-                            <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>edit</span>
-                            {isEditing ? 'Chiudi' : 'Modifica'}
-                          </button>
+                        <div style={{ textAlign: 'left' }}>
+                          <div style={{ fontSize: '13px', fontWeight: 800, color: 'var(--dark)' }}>@{authorName}</div>
+                          <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Proposta il {dateStr}</div>
                         </div>
                       </div>
-
-                      <div style={{ display: 'flex', gap: '14px', alignItems: 'center' }}>
-                        {item.photo ? (
-                          <img
-                            src={item.photo}
-                            alt={item.brand}
-                            style={{ width: '90px', height: '90px', borderRadius: '14px', objectFit: 'cover', border: '1px solid #E2E8F0' }}
-                          />
-                        ) : (
-                          <div style={{ width: '90px', height: '90px', borderRadius: '14px', background: '#F1F5F9', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                            <span className="material-symbols-outlined" style={{ fontSize: '36px', color: 'var(--text-muted)' }}>sports_bar</span>
-                          </div>
-                        )}
-
-                        {!isEditing ? (
-                          <div style={{ textAlign: 'left', flex: 1 }}>
-                            <div style={{ display: 'flex', gap: '6px', alignItems: 'center', marginBottom: '4px', flexWrap: 'wrap' }}>
-                              <span style={{
-                                fontSize: '11px',
-                                fontWeight: 800,
-                                padding: '2px 8px',
-                                borderRadius: '10px',
-                                background: currentData.isVariantProposal ? '#E0F2FE' : '#FEF3C7',
-                                color: currentData.isVariantProposal ? '#0369A1' : '#B45309',
-                                border: currentData.isVariantProposal ? '1px solid #BAE6FD' : '1px solid #FDE68A',
-                              }}>
-                                {currentData.isVariantProposal ? '💡 Nuova Variante (+1 Pt)' : '✨ Nuova Marca (+2 Pt)'}
-                              </span>
-                              {currentData.beerType && (
-                                <span style={{ fontSize: '11px', background: '#F1F5F9', color: '#475569', padding: '2px 8px', borderRadius: '10px', textTransform: 'capitalize', fontWeight: 700, border: '1px solid #E2E8F0' }}>
-                                  {currentData.beerType === 'rossa' ? '🔴 Rossa' : currentData.beerType === 'scura' ? '🌑 Scura' : currentData.beerType === 'bianca' ? '⚪ Bianca' : currentData.beerType === 'ipa' ? '🌿 IPA' : '🍺 Bionda'}
-                                </span>
-                              )}
-                            </div>
-                            <h4 style={{ margin: '0 0 2px 0', fontSize: '17px', color: 'var(--dark)', fontWeight: 900 }}>
-                              {formatBeerTitle(currentData.brand)}
-                            </h4>
-                            <p style={{ margin: 0, fontSize: '14px', color: 'var(--primary-dark)', fontWeight: 800 }}>
-                              {formatBeerTitle(currentData.variant)}
-                            </p>
-                            <div style={{ display: 'flex', gap: '6px', margin: '8px 0 0 0', flexWrap: 'wrap' }}>
-                              <span style={{ fontSize: '10px', background: '#FEF3C7', color: '#D97706', padding: '3px 10px', borderRadius: '12px', fontWeight: 800 }}>
-                                Rarità: {currentData.rarity || 'comune'}
-                              </span>
-                              <span style={{ fontSize: '10px', background: '#F1F5F9', color: '#475569', padding: '3px 10px', borderRadius: '12px', fontWeight: 700 }}>
-                                {currentData.country || 'Italia'} {currentData.country?.trim().toLowerCase() === 'italia' && currentData.regione && currentData.regione !== 'Tutte' ? `(${currentData.regione})` : ''}
-                              </span>
-                            </div>
-                            {currentData.desc && (
-                              <div style={{ fontSize: '12px', color: 'var(--dark)', marginTop: '6px', fontStyle: 'italic', background: '#F8FAFC', padding: '4px 8px', borderRadius: '6px' }}>
-                                "{currentData.desc}"
-                              </div>
-                            )}
-                          </div>
-                        ) : (
-                          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                            <div>
-                              <label style={{ fontSize: '11px', fontWeight: 'bold', display: 'block', marginBottom: '2px', textAlign: 'left' }}>Tipo Proposta</label>
-                              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px' }}>
-                                <button
-                                  type="button"
-                                  onClick={() => updateField(item.proposalId, 'isVariantProposal', false)}
-                                  style={{
-                                    padding: '6px',
-                                    borderRadius: '8px',
-                                    border: !currentData.isVariantProposal ? '2px solid #F59E0B' : '1px solid #CBD5E1',
-                                    background: !currentData.isVariantProposal ? '#FEF3C7' : '#FFFFFF',
-                                    color: !currentData.isVariantProposal ? '#B45309' : '#64748B',
-                                    fontWeight: 800,
-                                    fontSize: '11px',
-                                    cursor: 'pointer',
-                                  }}
-                                >
-                                  ✨ Nuova Marca (+2 pt)
-                                </button>
-                                <button
-                                  type="button"
-                                  onClick={() => updateField(item.proposalId, 'isVariantProposal', true)}
-                                  style={{
-                                    padding: '6px',
-                                    borderRadius: '8px',
-                                    border: currentData.isVariantProposal ? '2px solid #0284C7' : '1px solid #CBD5E1',
-                                    background: currentData.isVariantProposal ? '#E0F2FE' : '#FFFFFF',
-                                    color: currentData.isVariantProposal ? '#0369A1' : '#64748B',
-                                    fontWeight: 800,
-                                    fontSize: '11px',
-                                    cursor: 'pointer',
-                                  }}
-                                >
-                                  💡 Nuova Variante (+1 pt)
-                                </button>
-                              </div>
-                            </div>
-
-                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px' }}>
-                              <div>
-                                <label style={{ fontSize: '11px', fontWeight: 'bold', display: 'block', marginBottom: '2px', textAlign: 'left' }}>Marca Birra</label>
-                                <input
-                                  type="text"
-                                  value={currentData.brand}
-                                  onChange={(e) => updateField(item.proposalId, 'brand', e.target.value)}
-                                  placeholder="Marca Birra"
-                                  style={{ width: '100%', boxSizing: 'border-box', padding: '6px 8px', borderRadius: '8px', border: '1px solid #CBD5E1', fontSize: '12px', fontWeight: 800, outline: 'none', margin: 0 }}
-                                />
-                              </div>
-                              <div>
-                                <label style={{ fontSize: '11px', fontWeight: 'bold', display: 'block', marginBottom: '2px', textAlign: 'left' }}>Nome Variante</label>
-                                <input
-                                  type="text"
-                                  value={currentData.variant}
-                                  onChange={(e) => updateField(item.proposalId, 'variant', e.target.value)}
-                                  placeholder="Variante (es. Classica)"
-                                  style={{ width: '100%', boxSizing: 'border-box', padding: '6px 8px', borderRadius: '8px', border: '1px solid #CBD5E1', fontSize: '12px', outline: 'none', margin: 0 }}
-                                />
-                              </div>
-                            </div>
-
-                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px' }}>
-                              <div>
-                                <label style={{ fontSize: '11px', fontWeight: 'bold', display: 'block', marginBottom: '2px', textAlign: 'left' }}>Tipologia / Stile</label>
-                                <select
-                                  value={currentData.beerType || 'bionda'}
-                                  onChange={(e) => updateField(item.proposalId, 'beerType', e.target.value)}
-                                  style={{ width: '100%', boxSizing: 'border-box', padding: '6px 8px', borderRadius: '8px', border: '1px solid #CBD5E1', fontSize: '11px', fontWeight: 700, margin: 0 }}
-                                >
-                                  <option value="bionda">🍺 Bionda</option>
-                                  <option value="rossa">🔴 Rossa</option>
-                                  <option value="scura">🌑 Scura</option>
-                                  <option value="bianca">⚪ Bianca</option>
-                                  <option value="ipa">🌿 IPA</option>
-                                </select>
-                              </div>
-                              <div>
-                                <label style={{ fontSize: '11px', fontWeight: 'bold', display: 'block', marginBottom: '2px', textAlign: 'left' }}>Rarità</label>
-                                <select
-                                  value={currentData.rarity}
-                                  onChange={(e) => updateField(item.proposalId, 'rarity', e.target.value)}
-                                  style={{ width: '100%', boxSizing: 'border-box', padding: '6px 8px', borderRadius: '8px', border: '1px solid #CBD5E1', fontSize: '11px', fontWeight: 700, margin: 0 }}
-                                >
-                                  <option value="comune">🟢 Comune (1pt)</option>
-                                  <option value="media">🔵 Media (2pt)</option>
-                                  <option value="rara">👑 Rara (5pt)</option>
-                                </select>
-                              </div>
-                            </div>
-
-                            <div>
-                              <label style={{ fontSize: '11px', fontWeight: 'bold', display: 'block', marginBottom: '2px', textAlign: 'left' }}>Paese / Nazione</label>
-                              <input
-                                type="text"
-                                value={currentData.country}
-                                onChange={(e) => updateField(item.proposalId, 'country', e.target.value)}
-                                placeholder="es. Italia, Belgio..."
-                                style={{ width: '100%', boxSizing: 'border-box', padding: '6px 8px', borderRadius: '8px', border: '1px solid #CBD5E1', fontSize: '11px', margin: 0 }}
-                              />
-                            </div>
-                          </div>
-                        )}
-                      </div>
-
-                      <div style={{ display: 'flex', gap: '10px', marginTop: '4px' }}>
+                      <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
                         <button
-                          className="btn-main"
-                          onClick={() => handleAcceptClick(item)}
+                          onClick={() => toggleEdit(item)}
                           style={{
-                            flex: 1,
-                            margin: 0,
-                            padding: '12px',
-                            fontSize: '13px',
-                            background: 'linear-gradient(135deg, #10B981 0%, #059669 100%)',
-                            boxShadow: '0 4px 14px rgba(16, 185, 129, 0.3)',
-                            border: 'none',
-                            borderRadius: '12px',
-                            color: '#FFFFFF',
+                            background: isEditing ? '#FEF3C7' : '#F1F5F9',
+                            color: isEditing ? '#D97706' : '#475569',
+                            border: '1px solid ' + (isEditing ? '#FDE68A' : '#CBD5E1'),
+                            borderRadius: '10px',
+                            padding: '6px 12px',
+                            fontSize: '11px',
                             fontWeight: 800,
                             cursor: 'pointer',
                             display: 'flex',
                             alignItems: 'center',
-                            justifyContent: 'center',
-                            gap: '6px',
+                            gap: '4px',
                           }}
                         >
-                          <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>check_circle</span>
-                          Accetta (+{currentData.isVariantProposal ? (currentData.bonusPoints || 1) : (currentData.bonusPoints || 2)}pt a @{item.proposedBy})
-                        </button>
-                        <button
-                          className="btn-secondary"
-                          onClick={() => onRejectProposal(item.proposalId)}
-                          style={{
-                            flex: 1,
-                            margin: 0,
-                            padding: '12px',
-                            fontSize: '13px',
-                            color: '#EF4444',
-                            background: '#FEF2F2',
-                            border: '1px solid #FECACA',
-                            borderRadius: '12px',
-                            fontWeight: 800,
-                            cursor: 'pointer',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            gap: '6px',
-                          }}
-                        >
-                          <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>cancel</span>
-                          Rifiuta
+                          <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>edit</span>
+                          {isEditing ? 'Chiudi' : 'Modifica'}
                         </button>
                       </div>
                     </div>
-                  );
-                })}
-              </div>
-            )
-          ) : (
+
+                    <div style={{ display: 'flex', gap: '14px', alignItems: 'center' }}>
+                      {item.photo ? (
+                        <img
+                          src={item.photo}
+                          alt={item.brand}
+                          style={{ width: '90px', height: '90px', borderRadius: '14px', objectFit: 'cover', border: '1px solid #E2E8F0' }}
+                        />
+                      ) : (
+                        <div style={{ width: '90px', height: '90px', borderRadius: '14px', background: '#F1F5F9', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                          <span className="material-symbols-outlined" style={{ fontSize: '36px', color: 'var(--text-muted)' }}>sports_bar</span>
+                        </div>
+                      )}
+
+                      {!isEditing ? (
+                        <div style={{ textAlign: 'left', flex: 1 }}>
+                          <h4 style={{ margin: '0 0 2px 0', fontSize: '17px', color: 'var(--dark)', fontWeight: 900 }}>
+                            {formatBeerTitle(item.brand)}
+                          </h4>
+                          <p style={{ margin: 0, fontSize: '14px', color: 'var(--primary-dark)', fontWeight: 800 }}>
+                            {formatBeerTitle(item.variant)}
+                          </p>
+                          <div style={{ display: 'flex', gap: '6px', margin: '8px 0 0 0', flexWrap: 'wrap' }}>
+                            <span style={{ fontSize: '10px', background: '#FEF3C7', color: '#D97706', padding: '3px 10px', borderRadius: '12px', fontWeight: 800 }}>
+                              Rarità: {item.rarity || 'comune'}
+                            </span>
+                            <span style={{ fontSize: '10px', background: '#F1F5F9', color: '#475569', padding: '3px 10px', borderRadius: '12px', fontWeight: 700 }}>
+                              {item.country || 'Italia'}
+                            </span>
+                          </div>
+                        </div>
+                      ) : (
+                        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                          <input
+                            type="text"
+                            value={currentData.brand}
+                            onChange={(e) => updateField(item.proposalId, 'brand', e.target.value)}
+                            placeholder="Marca Birra"
+                            style={{ padding: '8px 12px', borderRadius: '10px', border: '1px solid #CBD5E1', fontSize: '13px', fontWeight: 800, outline: 'none' }}
+                          />
+                          <input
+                            type="text"
+                            value={currentData.variant}
+                            onChange={(e) => updateField(item.proposalId, 'variant', e.target.value)}
+                            placeholder="Variante (es. Classica)"
+                            style={{ padding: '8px 12px', borderRadius: '10px', border: '1px solid #CBD5E1', fontSize: '13px', outline: 'none' }}
+                          />
+                          <div style={{ display: 'flex', gap: '6px' }}>
+                            <select
+                              value={currentData.rarity}
+                              onChange={(e) => updateField(item.proposalId, 'rarity', e.target.value)}
+                              style={{ flex: 1, padding: '8px', borderRadius: '10px', border: '1px solid #CBD5E1', fontSize: '11px', fontWeight: 700 }}
+                            >
+                              <option value="comune">Comune (1pt)</option>
+                              <option value="media">Media (2pt)</option>
+                              <option value="rara">Rara (5pt)</option>
+                            </select>
+                            <input
+                              type="text"
+                              value={currentData.country}
+                              onChange={(e) => updateField(item.proposalId, 'country', e.target.value)}
+                              placeholder="Paese"
+                              style={{ flex: 1, padding: '8px', borderRadius: '10px', border: '1px solid #CBD5E1', fontSize: '11px' }}
+                            />
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
+                    <div style={{ display: 'flex', gap: '10px', marginTop: '4px' }}>
+                      <button
+                        className="btn-main"
+                        onClick={() => handleAcceptClick(item)}
+                        style={{
+                          flex: 1,
+                          margin: 0,
+                          padding: '12px',
+                          fontSize: '13px',
+                          background: 'linear-gradient(135deg, #10B981 0%, #059669 100%)',
+                          boxShadow: '0 4px 14px rgba(16, 185, 129, 0.3)',
+                          border: 'none',
+                          borderRadius: '12px',
+                          color: '#FFFFFF',
+                          fontWeight: 800,
+                          cursor: 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          gap: '6px',
+                        }}
+                      >
+                        <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>check_circle</span>
+                        Accetta (+{item.isVariantProposal ? '1' : '2'}pt a @{item.proposedBy})
+                      </button>
+                      <button
+                        className="btn-secondary"
+                        onClick={() => onRejectProposal(item.proposalId)}
+                        style={{
+                          flex: 1,
+                          margin: 0,
+                          padding: '12px',
+                          fontSize: '13px',
+                          color: '#EF4444',
+                          background: '#FEF2F2',
+                          border: '1px solid #FECACA',
+                          borderRadius: '12px',
+                          fontWeight: 800,
+                          cursor: 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          gap: '6px',
+                        }}
+                      >
+                        <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>cancel</span>
+                        Rifiuta
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
+          {activeTab === 'move_variant' && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '4px' }}>
                 <div style={{ width: '48px', height: '48px', borderRadius: '16px', background: 'linear-gradient(135deg, #EEF2FF, #E0E7FF)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#8B5CF6', boxShadow: '0 2px 10px rgba(139, 92, 246, 0.15)' }}>

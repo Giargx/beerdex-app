@@ -84,6 +84,8 @@ export const AdminProposalsModal: React.FC<AdminProposalsModalProps> = ({
     regione: string;
     rarity: "comune" | "media" | "rara";
     desc: string;
+    isVariantProposal?: boolean;
+    bonusPoints?: number;
   }>>({});
 
   React.useEffect(() => {

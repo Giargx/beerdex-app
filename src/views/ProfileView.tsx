@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
-import { TrophyGrid, getEventMedals } from '../components/TrophyGrid';
-import type { PokedexEntry } from '../components/TrophyGrid';
-import { beers, getBeerType, formatBeerTitle, getUniqueParticipantPosts, resolvePokedexEntryBeer, type Beer } from '../beers';
+import { TrophyGrid, getEventMedals, type PokedexEntry } from '../components/TrophyGrid';
+import { beers, formatBeerTitle, getUniqueParticipantPosts, resolvePokedexEntryBeer, type Beer } from '../beers';
 import { StarRating } from '../components/StarRating';
 import { ScoreBreakdownCard } from '../components/ScoreBreakdownCard';
 import { calculateScoreBreakdown } from '../utils/score';
@@ -188,7 +187,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
       totalRatedBeers += 1;
       totalRatingSum += entry.rating;
 
-      const { brand, variant, beerType } = resolvePokedexEntryBeer(key, entry, catalog);
+      const { beerType } = resolvePokedexEntryBeer(key, entry, catalog);
 
       if (styleStats[beerType]) {
         styleStats[beerType].sum += entry.rating;

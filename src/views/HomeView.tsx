@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { FoamBubbles } from '../components/FoamBubbles';
 import { beers, formatBeerTitle, getUniqueParticipantPosts } from '../beers';
 import { getEventMedals } from '../components/TrophyGrid';
@@ -62,7 +62,6 @@ export const HomeView: React.FC<HomeViewProps> = ({
   onOpenUserStory,
   onSendFeedback,
 }) => {
-  const [activeEvents, setActiveEvents] = useState<Array<{ name: string; desc: string }>>([]);
   const [cheersToast, setCheersToast] = useState<string | null>(null);
   const [cheeredPosts, setCheeredPosts] = useState<Record<string, boolean>>({});
 
@@ -95,7 +94,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
     return 'Buona serata al pub! 🌙';
   };
 
-  useEffect(() => {
+  const activeEvents = useMemo<Array<{ name: string; desc: string }>>(() => {
     const now = new Date();
     const currentYear = now.getFullYear();
 
@@ -118,33 +117,34 @@ export const HomeView: React.FC<HomeViewProps> = ({
     };
 
     // Short Events
-    const patrizioStart = new Date(currentYear, 2, 15);
+    const patrizioStart = new Date(currentYear, 2, 15, 0, 0, 0);
     const patrizioEnd = new Date(currentYear, 2, 21, 23, 59, 59);
 
     const easterDate = getEasterDate(currentYear);
     const pasquettaStart = new Date(easterDate);
     pasquettaStart.setDate(easterDate.getDate() - 1);
+    pasquettaStart.setHours(0, 0, 0, 0);
     const pasquettaEnd = new Date(easterDate);
     pasquettaEnd.setDate(easterDate.getDate() + 1);
     pasquettaEnd.setHours(23, 59, 59, 999);
 
-    const ferragostoStart = new Date(currentYear, 7, 14);
+    const ferragostoStart = new Date(currentYear, 7, 14, 0, 0, 0);
     const ferragostoEnd = new Date(currentYear, 7, 16, 23, 59, 59);
 
-    const oktoberfestStart = new Date(currentYear, 8, 16);
+    const oktoberfestStart = new Date(currentYear, 8, 16, 0, 0, 0);
     const oktoberfestEnd = new Date(currentYear, 9, 4, 23, 59, 59);
 
     // Seasonal Events
-    const springStart = new Date(currentYear, 2, 21);
+    const springStart = new Date(currentYear, 2, 21, 0, 0, 0);
     const springEnd = new Date(currentYear, 5, 20, 23, 59, 59);
 
-    const summerStart = new Date(currentYear, 5, 21);
+    const summerStart = new Date(currentYear, 5, 21, 0, 0, 0);
     const summerEnd = new Date(currentYear, 8, 22, 23, 59, 59);
 
-    const autumnStart = new Date(currentYear, 8, 23);
+    const autumnStart = new Date(currentYear, 8, 23, 0, 0, 0);
     const autumnEnd = new Date(currentYear, 11, 20, 23, 59, 59);
 
-    const winterStart = new Date(currentYear - 1, 11, 21);
+    const winterStart = new Date(currentYear - 1, 11, 21, 0, 0, 0);
     const winterEnd = new Date(currentYear, 2, 20, 23, 59, 59);
 
     const activeList: Array<{ name: string; desc: string }> = [];
@@ -198,7 +198,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
       });
     }
 
-    setActiveEvents(activeList);
+    return activeList;
   }, []);
 
   const myPosts = posts.filter((p) => p && p.user === currentUserNick && !p.isStory && p.brand !== 'Storia del Pub');
@@ -267,8 +267,8 @@ export const HomeView: React.FC<HomeViewProps> = ({
     let targetKeywords: string[] = [];
     let seasonLabel = 'Consigliata per la stagione';
 
-    const holidayEvt = activeEvents.find(e => e.name === 'Ferragosto' || e.name === 'San Patrizio' || e.name === 'Oktoberfest' || e.name === 'Pasquetta');
-    const seasonEvt = activeEvents.find(e => e.name === 'Estate' || e.name === 'Autunno' || e.name === 'Primavera' || e.name === 'Inverno');
+    const holidayEvt = activeEvents.find((e: { name: string }) => e.name === 'Ferragosto' || e.name === 'San Patrizio' || e.name === 'Oktoberfest' || e.name === 'Pasquetta');
+    const seasonEvt = activeEvents.find((e: { name: string }) => e.name === 'Estate' || e.name === 'Autunno' || e.name === 'Primavera' || e.name === 'Inverno');
 
     if (holidayEvt) {
       if (holidayEvt.name === 'San Patrizio') {
@@ -544,7 +544,6 @@ export const HomeView: React.FC<HomeViewProps> = ({
     };
   };
 
-  const eventConfig = getEventConfig();
   const greetingName = currentUserDisplayName ? currentUserDisplayName : currentUserNick;
 
   return (
@@ -845,7 +844,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
         {/* DYNAMIC TIMED EVENT BANNERS (SUPPORTS MULTIPLE ACTIVE EVENTS CONCURRENTLY) */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', marginBottom: '25px' }}>
           {activeEvents.length > 0 ? (
-            activeEvents.map((evt) => {
+            activeEvents.map((evt: { name: string; desc: string }) => {
               const cfg = getEventConfig(evt);
               const progress = getSingleEventProgress(evt.name);
 

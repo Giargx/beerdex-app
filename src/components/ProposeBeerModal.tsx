@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { formatBeerTitle, type Beer } from '../beers';
+import { formatBeerTitle, stripStr, type Beer } from '../beers';
 import { checkImageSafety } from '../utils/imageModeration';
 import { containsProfanity } from '../utils/textFilter';
 
