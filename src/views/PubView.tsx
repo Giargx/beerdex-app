@@ -1088,6 +1088,124 @@ export const PubView: React.FC<PubViewProps> = ({
                     )}
                   </div>
 
+                  {/* Menu a Tendina Partecipanti al Brindisi */}
+                  {(() => {
+                    if (openParticipantsPostId !== post.postId) return null;
+                    const allParticipants = getPostParticipants(post);
+
+                    return (
+                      <div
+                        style={{
+                          background: '#F8FAFC',
+                          borderTop: '1px solid #E2E8F0',
+                          borderBottom: '1px solid #E2E8F0',
+                          padding: '12px 16px',
+                          animation: 'fadeIn 0.15s ease-out',
+                        }}
+                      >
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
+                          <div style={{ fontSize: '11px', fontWeight: 900, color: '#64748B', letterSpacing: '0.5px', textTransform: 'uppercase', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                            <span>🍻</span>
+                            <span>Partecipanti al Brindisi ({allParticipants.length})</span>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => setOpenParticipantsPostId(null)}
+                            style={{ background: 'transparent', border: 'none', color: '#94A3B8', cursor: 'pointer', padding: '2px', display: 'flex', alignItems: 'center' }}
+                          >
+                            <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>close</span>
+                          </button>
+                        </div>
+
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                          {allParticipants.map((pNick) => {
+                            const pAv = globalAvatars[pNick];
+                            const disp = globalDisplayNames?.[pNick] || pNick;
+                            const isAuthor = pNick === post.user;
+                            const postRating = (post as any).ratings && typeof (post as any).ratings[pNick] === 'number' ? (post as any).ratings[pNick] : 0;
+                            const userPokedex = allPokedexProfiles?.[pNick];
+                            const dexRating = userPokedex?.[`${post.brand}-${post.variant}`]?.rating || 0;
+                            const fallbackRating = isAuthor && typeof post.rating === 'number' ? post.rating : 0;
+                            const pRating = postRating || dexRating || fallbackRating || 0;
+
+                            return (
+                              <div
+                                key={pNick}
+                                onClick={() => {
+                                  setOpenParticipantsPostId(null);
+                                  onOpenPublicProfile(pNick);
+                                }}
+                                style={{
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'space-between',
+                                  padding: '8px 12px',
+                                  borderRadius: '12px',
+                                  background: '#FFFFFF',
+                                  border: '1px solid #E2E8F0',
+                                  cursor: 'pointer',
+                                  transition: 'background 0.15s ease',
+                                }}
+                              >
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                  <div
+                                    style={{
+                                      width: '32px',
+                                      height: '32px',
+                                      borderRadius: '50%',
+                                      overflow: 'hidden',
+                                      background: '#E2E8F0',
+                                      display: 'flex',
+                                      alignItems: 'center',
+                                      justifyContent: 'center',
+                                      border: isAuthor ? '1.5px solid #F59E0B' : '1.5px solid #CBD5E1',
+                                      flexShrink: 0,
+                                    }}
+                                  >
+                                    {pAv ? (
+                                      <img src={pAv} alt={disp} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                    ) : (
+                                      <span style={{ fontSize: '14px', fontWeight: 900, color: '#D97706', textTransform: 'uppercase' }}>
+                                        {disp.charAt(0).toUpperCase()}
+                                      </span>
+                                    )}
+                                  </div>
+                                  <div style={{ display: 'flex', flexDirection: 'column', textAlign: 'left' }}>
+                                    <div style={{ fontSize: '13px', fontWeight: 800, color: '#0F172A', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                      <span>{disp}</span>
+                                      {isAuthor && (
+                                        <span
+                                          style={{
+                                            fontSize: '9px',
+                                            background: 'linear-gradient(135deg, #F59E0B, #D97706)',
+                                            color: 'white',
+                                            padding: '1px 6px',
+                                            borderRadius: '8px',
+                                            fontWeight: 900,
+                                          }}
+                                        >
+                                          Creatore
+                                        </span>
+                                      )}
+                                    </div>
+                                    <span style={{ fontSize: '11px', color: '#64748B' }}>@{pNick}</span>
+                                  </div>
+                                </div>
+
+                                {pRating > 0 && (
+                                  <div style={{ display: 'flex', alignItems: 'center', gap: '4px', background: 'rgba(245, 158, 11, 0.1)', padding: '2px 8px', borderRadius: '10px' }}>
+                                    <StarRating rating={pRating} readOnly size={12} />
+                                    <span style={{ fontSize: '11px', fontWeight: 800, color: '#B45309' }}>{pRating.toFixed(1)}</span>
+                                  </div>
+                                )}
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    );
+                  })()}
+
                   {/* Post Image Container */}
                   <div
                     className="post-image-container"
