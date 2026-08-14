@@ -2,7 +2,7 @@
 
 **POP IT** è una Progressive Web App (PWA) gamificata sviluppata in **React 19 + TypeScript + Vite**, pensata per tracciare, collezionare e condividere la propria passione per le birre in giro per il mondo o in compagnia degli amici.
 
-L'applicazione si sincronizza in tempo reale con **Firebase Realtime Database** per la gestione di utenti, autenticazione, bacheca social ("Al Pub"), sistema di amicizie, sblocco Pokédex e calcolo della classifica globale.
+L'applicazione si sincronizza in tempo reale con **Firebase Realtime Database** per la gestione di utenti, autenticazione, bacheca social ("Al Pub"), sistema di amicizie, storie a tempo, sblocco Pokédex e calcolo della classifica globale.
 
 ---
 
@@ -10,12 +10,15 @@ L'applicazione si sincronizza in tempo reale con **Firebase Realtime Database** 
 1. [Funzionalità Principali](#-funzionalit%C3%A0-principali)
 2. [Sistema dei Punti e Formula di Rarità](#-sistema-dei-punti-e-formula-di-rarit%C3%A0)
 3. [Algoritmo di Unificazione Card & Deduplicazione](#-algoritmo-di-unificazione-card--deduplicazione)
-4. [Catalogo Birre Globale](#-catalogo-birre-globale)
-5. [Scanner Anti-Cheat & Codici a Barre](#-scanner-anti-cheat--codici-a-barre)
-6. [Bevuta e Proposta in Compagnia](#-bevuta-e-proposta-in-compagnia)
-7. [Architettura e Struttura del Codice](#-architettura-e-struttura-del-codice)
-8. [Setup e Sviluppo Locale](#-setup-e-sviluppo-locale)
-9. [Linee Guida per i Collaboratori](#-linee-guida-per-i-collaboratori)
+4. [Bacheca Social, Post di Gruppo e Storie](#-bacheca-social-post-di-gruppo-e-storie)
+5. [Eventi Stagionali e Festività Simultanei](#-eventi-stagionali-e-festivit%C3%A0-simultanei)
+6. [Pannello di Amministrazione Globale (Admin Dashboard)](#-pannello-di-amministrazione-globale-admin-dashboard)
+7. [Catalogo Birre Globale](#-catalogo-birre-globale)
+8. [Scanner Anti-Cheat & Codici a Barre](#-scanner-anti-cheat--codici-a-barre)
+9. [Bevuta e Proposta in Compagnia](#-bevuta-e-proposta-in-compagnia)
+10. [Architettura e Struttura del Codice](#-architettura-e-struttura-del-codice)
+11. [Setup e Sviluppo Locale](#-setup-e-sviluppo-locale)
+12. [Linee Guida per i Collaboratori](#-linee-guida-per-i-collaboratori)
 
 ---
 
@@ -29,12 +32,12 @@ L'applicazione si sincronizza in tempo reale con **Firebase Realtime Database** 
 
 ### 📱 Navigazione Nativa & Gesture Swipe
 * **Slider a Scorrimento Fluido (Touch-Drag)**: Navigazione orizzontale fluida tra le 5 tab principali (*Home*, *Esplora*, *Classifica*, *Pub* e *Profilo*) tramite scorrimento del dito con snapping automatico.
-* **Scroll Reset & Safe Touch**: Il movimento verticale si resetta in cima alla pagina ad ogni cambio scheda. I caroselli orizzontali e le modali usano `stopPropagation` per prevenire lo swipe accidentale delle tab.
+* **Scroll Reset & Safe Touch**: Il movimento verticale si resetta in cima alla pagina ad ogni cambio scheda. I caroselli orizzontali, modali e schede da sotto usano `stopPropagation` per prevenire lo swipe accidentale delle tab.
 * **Pulsante "Indietro" Nativo**: Pulsante di navigazione unificato nell'intestazione per tornare alla vista precedente in modo intuitivo.
 
 ### 🖼️ Ingrandimento Foto Profilo (Long Press Zoom)
 * **Avatar Zooming**: Mantenendo premuto per più di 350ms su qualsiasi foto profilo (nel proprio profilo o in quelli pubblici/classifica), si apre un overlay modale in alta risoluzione dell'avatar.
-* **Compatibilità Universale**: Supporta URI `data:`, URL web `http/https` e immagini di sistema. Include una protezione a tempo per evitare la chiusura accidentale al rilascio del dito.
+* **Compatibilità Universale**: Supporta URI `data:`, URL web `http/https` e immagini di sistema con animazione fluida.
 
 ---
 
@@ -70,6 +73,7 @@ Ogni birra viene valutata assegnando da 1 a 3 punti a ciascuno dei seguenti **3 
 ### 🎁 Regole di Assegnazione Punti
 * **Prima Birra della Marca (Bonus Nuova Marca)**: Sbloccare la prima birra di un birrificio conferisce un **Bonus di +2 Punti** in aggiunta al valore della rarità.
 * **Nuova Variante dello stesso Brand**: Conferisce i punti corrispondenti alla rarità della variante sbloccata.
+* **Birre Shiny (Tappo Dorato)**: Le varianti sbloccate in modalità Shiny raddoppiano il punteggio base di sblocco (x2).
 * **Medaglia Completamento Brand ("Mastro [Brand]")**: Completare tutte le varianti di un brand nel catalogo assegna un **bonus di +3 Punti per ogni variante** del brand.
 * **Medaglie Evento (es. Festival / Eventi Stagionali)**: Sbloccate **esclusivamente** al raggiungimento del 100% dell'obiettivo (es. 10/10 birre richieste presenti nel Pokédex). Conferiscono **+10 Punti Bonus**. Se l'utente scende sotto il 100%, la medaglia e i 10 punti vengono automaticamente revocati.
 * **Deduplicazione Pokédex**: Registrare più bevute della stessa variante aggiunge i post alla timeline social, ma il Pokédex conteggia la variante una sola volta ai fini del punteggio.
@@ -80,16 +84,69 @@ Ogni birra viene valutata assegnando da 1 a 3 punti a ciascuno dei seguenti **3 
 
 Per evitare la creazione di card duplicate quando gli utenti propongono nuove birre o registrano marche con grafie leggermente diverse, l'app utilizza una logica avanzata di unificazione in `src/beers.ts`:
 
-1. **Normalizzazione stringhe (`normalizeStr`)**:
-   - Rimuove accenti, spazi extra, maiuscole e caratteri speciali.
+1. **Normalizzazione stringhe (`stripStr` e `formatBeerTitle`)**:
+   - Rimuove accenti, punteggiatura, spazi extra, maiuscole e caratteri speciali.
    - Es. `Abbaye De Forest`, `Abbaye de forest` e `Baia Deforest` vengono riconosciuti come lo stesso birrificio.
-2. **Matching Canonico & Alias in `mergeBeers`**:
-   - Le birre custom inviate dagli utenti o presenti nel database Firebase vengono automaticamente accorpate alla card ufficiale nel catalogo statico.
-   - Le varianti inviate dagli utenti (es. `Brune`, `Blonde`) vengono inserite nell'elenco varianti della card unificata.
+2. **Matching Canonico & Alias in `mergeBeers` / `mergeCustomBeersWithStatic`**:
+   - Le birre custom inviate dagli utenti o approvate su Firebase vengono automaticamente accorpate alla card ufficiale nel catalogo statico.
+   - Le varianti custom (es. `Brune`, `Triple`, `IPA`) vengono integrate nell'elenco varianti della card unificata con categoria e stile corretti.
 3. **Migrazione Automatica al Login**:
-   - Al caricamento dell'app, una funzione automatica (`cleanupAndMigrateCustomBeers`) scansiona il Pokédex e la timeline dell'utente, riconverte eventuali vecchie chiavi duplicate nella card unificata canonica e ricalcola il punteggio aggiornato senza che l'utente debba fare nulla o perda foto/punti.
-4. **Campo Marca Modificabile nelle Proposte**:
-   - Nella finestra *Proponi Nuova Birra*, il campo *"Marca / Birrificio"* pre-compila la ricerca dell'utente ma rimane **sempre modificabile** per birre non ancora presenti a catalogo, consentendo di correggere refusi o maiuscole. Se la marca esiste già, il campo si blocca per proporre una nuova variante.
+   - Al caricamento dell'app, `cleanupAndMigrateCustomBeers` scansiona il Pokédex e la timeline dell'utente, riconverte eventuali vecchie chiavi duplicate nella card unificata canonica e ricalcola il punteggio aggiornato.
+4. **Validazione Categorie Proposte**:
+   - Le birre proposte dagli utenti mantengono intatta la categoria selezionata (`bionda`, `rossa`, `scura`, `bianca`, `ipa`) sia in fase di revisione Admin che di inserimento nel catalogo ufficiale.
+
+---
+
+## 🍻 Bacheca Social, Post di Gruppo e Storie
+
+### 👥 Brindisi di Gruppo e Scheda Partecipanti (Bottom Sheet)
+* **Tag Amici Multipli**: I post caricati in compagnia supportano tag multipli di amici (`taggedFriends` e `taggedFriend`).
+* **Avatar Stack & Contatore Rapido**: L'intestazione del post mostra gli avatar dei primi amici con badge `+N` e il link *"e altri N"*.
+* **Scheda Partecipanti dal Basso**: Toccando il badge o il link, compare una scheda fluida dal basso (`selectedParticipantsPost`) che elenca tutti i partecipanti con avatar, badge *"Creatore"*, valutazione personale in stelle e collegamento diretto al rispettivo profilo pubblico.
+* **Scheda di chi ha Brindato (`LikersBottomSheetModal`)**: Cliccando sul contatore dei like, si apre la lista completa degli utenti che hanno stappato un brindisi.
+
+### 📸 Storie 24h & Camera In-App
+* Pubblicazione di storie visibili per 24 ore nella barra superiore del Pub.
+* Fotocamera in-app con switch frontale/posteriore e strumento di ritaglio (Crop) guidato.
+
+---
+
+## ☀️🎉 Eventi Stagionali e Festività Simultanei
+
+L'hub eventi in `HomeView.tsx` adotta un calcolo sincrono immediato (`useMemo`) che supporta la **presenza contemporanea di più eventi attivi**:
+
+* **Festività Speciali a Tempo Limitato**:
+  - 🏖️ **Ferragosto**: *14 - 16 Agosto* (Birre estive, fresche e leggere).
+  - 🍀 **San Patrizio**: *15 - 19 Marzo* (Stout, birre scure, birrifici irlandesi e scozzesi).
+  - 🍺 **Oktoberfest**: *15 Settembre - 5 Ottobre* (Märzen, Bock, birre tradizionali bavaresi).
+  - 🐣 **Pasquetta**: *Domenica di Pasqua + Lunedì dell'Angelo* (Birre da grigliata e compagnia).
+* **Eventi Stagionali Estesi**:
+  - ☀️ **Estate**: *21 Giugno - 22 Settembre*
+  - 🍂 **Autunno**: *23 Settembre - 21 Dicembre*
+  - ❄️ **Inverno**: *22 Dicembre - 20 Marzo*
+  - 🌸 **Primavera**: *21 Marzo - 20 Giugno*
+* **Visualizzazione Coesistente**: Quando una festività coincide con una stagione (es. *Ferragosto durante l'Estate*), la Home mostra entrambi i banner con grafiche dedicate, avanzamento verso la medaglia evento e birre suggerite specifiche.
+
+---
+
+## 🛡️ Pannello di Amministrazione Globale (Admin Dashboard)
+
+Accessibile esclusivamente dagli account amministratori (`isAdminUser`):
+
+1. **Gestione e Moderazione Utenti**:
+   - Elenco completo di tutti gli utenti registrati con statistiche di punteggio, sblocchi e grado al pub.
+   - Filtri veloci (*Tutti*, *🏆 Top >200pt*, *🌱 Novizi <50pt*, *🍺 >10 Birre*).
+   - Tasti di **"Ricalcola Punti"** per singolo utente o per l'intera community con banner di notifica.
+   - Eliminazione definitiva profili non conformi con rimozione a cascata dal DB.
+2. **Approvazione Proposte Birre & Nuove Varianti**:
+   - Visualizzazione foto, marca, variante, gradazione, categoria fermentativa e nazione.
+   - Calcolo automatico e trasparente dei punti bonus (**+2pt** per nuovo brand, **+1pt** per variante aggiuntiva di marca esistente).
+   - Possibilità di modificare al volo i dati prima dell'accettazione (nome, rarità, paese, stile).
+3. **Sposta Variante / Marca 🔄**:
+   - Re-indirizzamento di bevute caricate erroneamente da un utente verso la scheda canonica corretta del catalogo.
+4. **Segnalazioni Post & Feedback degli Utenti**:
+   - Gestione delle segnalazioni di post fake o non conformi con possibilità di rimozione.
+   - Lettura e archiviazione dei consigli e feedback inviati dagli utenti.
 
 ---
 
@@ -142,7 +199,7 @@ Il catalogo dell'app conta oltre **130 brand internazionali ed artigianali** con
   - Pulsante **"Condividi Profilo & Invita Amici 📲"** presente sia nel Profilo che nelle Impostazioni.
   - Generazione dinamica di **Link di Amicizia Diretti** (`?friend=USERNAME`) integrata con WhatsApp, Instagram e Web Share API.
   - **Integrazione QR Code**: QR Code dinamico generato al volo da inquadrare con la fotocamera al pub per aggiungere un amico sul posto.
-  - **Gestione Nuovi Utenti Non Registrati**: Se un amico apre il link senza avere l'app o l'account, viene memorizzato l'invito pendente. Alla registrazione o al login, l'amicizia viene stretta automaticamente!
+  - **Gestione Nuovi Utenti Non Registrati**: Se un amico apre il link senza avere l'account, alla registrazione o al login l'amicizia viene stretta automaticamente!
 
 ---
 
@@ -153,30 +210,38 @@ Progetto biraa/
 ├── src/
 │   ├── main.tsx                   # Entry point React
 │   ├── App.tsx                    # Componente principale, stato globale e sincronizzazione Firebase
-│   ├── beers.ts                   # Catalogo statico, formule di rarità, mergeBeers e helper
+│   ├── beers.ts                   # Catalogo statico, formule di rarità, getPostParticipants, merge e helper
 │   ├── firebase.ts                # Configurazione ed inizializzazione Firebase App & Realtime DB
 │   ├── components/
-│   │   ├── ProposeBeerModal.tsx   # Modale per la proposta di nuove birre e varianti
-│   │   ├── AdminProposalsModal.tsx# Dashboard di approvazione/rifiuto proposte per Admin
+│   │   ├── ProposeBeerModal.tsx   # Modale per la proposta di nuove birre e varianti con stile e tag amici
+│   │   ├── AdminProposalsModal.tsx# Dashboard di approvazione/rifiuto proposte con bonus dinamici
 │   │   ├── TrophyGrid.tsx         # Griglia medaglie e calcolo deterministico trofei evento
-│   │   ├── BeerScannerModal.tsx   # Modal scanner codici a barre + inserimento manuale
+│   │   ├── BeerScannerModal.tsx   # Modal scanner codici a barre + inserimento manuale anti-cheat
+│   │   ├── LikersBottomSheetModal.tsx # Scheda da sotto con chi ha brindato al post
+│   │   ├── StoryViewerModal.tsx   # Visualizzatore storie 24h
+│   │   ├── StoryEditorModal.tsx   # Creazione e pubblicazione storie con fotocamera
+│   │   ├── CropModal.tsx          # Ritaglio e resize immagini
 │   │   ├── Toast.tsx              # Notifiche e brindisi in tempo reale
 │   │   └── Navbar.tsx             # Navigation Bar inferiore e gestione tab
 │   ├── views/
-│   │   ├── HomeView.tsx           # Dashboard "Pub Luxury" & Hub Missioni
-│   │   ├── PokedexView.tsx        # Esplora catalogo, filtri e collezioni
+│   │   ├── HomeView.tsx           # Dashboard "Pub Luxury", eventi multipli & Hub Missioni
+│   │   ├── ExploreView.tsx        # Esplora catalogo, filtri per paese, stile e collezione
 │   │   ├── LeaderboardView.tsx    # Classifica globale utenti e gradi al bancone
-│   │   ├── PubView.tsx            # Bacheca social "Al Pub" (Timeline, post, brindisi, stories)
-│   │   ├── ProfileView.tsx        # Profilo utente personale, Pokédex sbloccato e statistiche
+│   │   ├── PubView.tsx            # Bacheca social "Al Pub" (Timeline, post di gruppo, brindisi, stories)
+│   │   ├── UserPostsDetailView.tsx# Dettaglio post utente e lista partecipanti
+│   │   ├── ProfileView.tsx        # Profilo utente personale, Pokédex sbloccato e statistiche stili
 │   │   ├── PublicProfileView.tsx  # Profilo pubblico degli altri utenti e confronto
-│   │   └── FriendsView.tsx        # Gestione amici, richieste inviate/ricevute
+│   │   ├── FriendsView.tsx        # Gestione amici, richieste inviate/ricevute
+│   │   └── AdminView.tsx          # Pannello di controllo Admin completo
 │   └── utils/
+│       ├── audio.ts               # Web Audio API per suoni di stappo e brindisi
+│       ├── score.ts               # Calcolo deterministico punteggi e statistiche
 │       ├── textFilter.ts          # Moderazione parole ed espressioni non appropriate
 │       └── imageModeration.ts     # Analisi di sicurezza sulle immagini caricate
 ├── public/                        # Asset statici, icona PWA e manifesto
 ├── package.json                   # Dipendenze del progetto (React 19, Vite, Firebase, Leaflet)
 ├── vite.config.ts                 # Configurazione build Vite
-└── README.md                      # Questo documento di contesto
+└── README.md                      # Questo manuale tecnico
 ```
 
 ---
