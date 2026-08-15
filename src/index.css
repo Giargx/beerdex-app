@@ -772,6 +772,114 @@ header.hero p {
 }
 .auth-toggle { font-size: 13px; color: var(--social-blue); cursor: pointer; margin-top: 16px; display: inline-block; text-decoration: underline; margin-right: 15px;}
 
+/* AUTH & REGISTRATION VALIDATION STYLES */
+.auth-field-wrapper {
+  text-align: left;
+  margin-bottom: 12px;
+  width: 100%;
+}
+.auth-field-label {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--dark);
+  margin-bottom: 4px;
+  padding: 0 2px;
+}
+.auth-input {
+  width: 100%;
+  padding: 13px 16px;
+  border: 1.5px solid var(--gray);
+  border-radius: 12px;
+  font-size: 14px;
+  box-sizing: border-box;
+  outline: none;
+  background: #F8FAFC;
+  transition: all 0.2s ease;
+  font-family: inherit;
+}
+.auth-input:focus {
+  border-color: var(--primary);
+  background: #FFFFFF;
+  box-shadow: 0 0 0 3px rgba(255, 111, 0, 0.15);
+}
+.auth-input.is-invalid {
+  border-color: #EF4444 !important;
+  background: #FEF2F2 !important;
+}
+.auth-input.is-invalid:focus {
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.15) !important;
+}
+.auth-input.is-valid {
+  border-color: #10B981 !important;
+  background: #F0FDF4 !important;
+}
+.auth-error-hint {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  color: #EF4444;
+  font-size: 11.5px;
+  font-weight: 600;
+  margin-top: 5px;
+  padding: 0 2px;
+  line-height: 1.35;
+}
+.auth-success-hint {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  color: #10B981;
+  font-size: 11.5px;
+  font-weight: 600;
+  margin-top: 5px;
+  padding: 0 2px;
+  line-height: 1.35;
+}
+.auth-pwd-criteria-box {
+  background: #F8FAFC;
+  border: 1px solid rgba(226, 232, 240, 0.9);
+  border-radius: 12px;
+  padding: 10px 12px;
+  margin-top: 8px;
+  margin-bottom: 6px;
+  text-align: left;
+}
+.auth-pwd-criteria-title {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 6px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.auth-pwd-criteria-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px 10px;
+}
+.auth-criteria-item {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: #94A3B8;
+  transition: all 0.2s ease;
+}
+.auth-criteria-item.met {
+  color: #10B981;
+}
+.auth-criteria-icon {
+  font-size: 15px !important;
+  font-weight: bold;
+}
+
 /* FRIENDS TABS */
 .tabs { display: flex; margin-bottom: 20px; background: rgba(15, 23, 42, 0.05); border-radius: 14px; overflow: hidden; padding: 4px; }
 .tab { 

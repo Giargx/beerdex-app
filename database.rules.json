@@ -3,12 +3,18 @@
     ".read": "auth != null",
     ".write": "auth != null",
     "usernames_emails": {
-      ".read": "auth != null",
+      ".read": true,
       "$nickname": {
         ".write": "auth != null"
       }
     },
     "users_directory": {
+      ".read": "auth != null",
+      "$uid": {
+        ".write": "auth != null && auth.uid === $uid"
+      }
+    },
+    "users_last_nickname_change": {
       ".read": "auth != null",
       "$uid": {
         ".write": "auth != null && auth.uid === $uid"
@@ -32,7 +38,59 @@
       ".read": "auth != null",
       ".write": "auth != null"
     },
+    "posts": {
+      ".read": "auth != null",
+      ".write": "auth != null"
+    },
+    "custom_beers": {
+      ".read": "auth != null",
+      ".write": "auth != null"
+    },
+    "beer_proposals": {
+      ".read": "auth != null",
+      ".write": "auth != null"
+    },
+    "app_feedback": {
+      ".read": "auth != null",
+      ".write": "auth != null"
+    },
+    "tag_requests": {
+      ".read": "auth != null",
+      ".write": "auth != null"
+    },
+    "user_notifications": {
+      ".read": "auth != null",
+      ".write": "auth != null"
+    },
+    "users_avatars": {
+      ".read": "auth != null",
+      ".write": "auth != null"
+    },
+    "users_display_names": {
+      ".read": "auth != null",
+      ".write": "auth != null"
+    },
+    "flagged_posts": {
+      ".read": "auth != null",
+      ".write": "auth != null"
+    },
     "users_friends": {
+      ".read": "auth != null",
+      ".write": "auth != null"
+    },
+    "friend_requests": {
+      ".read": "auth != null",
+      ".write": "auth != null"
+    },
+    "friend_requests_sent": {
+      ".read": "auth != null",
+      ".write": "auth != null"
+    },
+    "friend_requests_rejected": {
+      ".read": "auth != null",
+      ".write": "auth != null"
+    },
+    "user_brand_medals": {
       ".read": "auth != null",
       ".write": "auth != null"
     },
