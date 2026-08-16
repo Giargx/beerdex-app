@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { 
   signInWithEmailAndPassword, 
   createUserWithEmailAndPassword, 
+  updateProfile,
   sendPasswordResetEmail,
   verifyPasswordResetCode,
   confirmPasswordReset
@@ -53,19 +54,19 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ isOpen, onAuthSuccess, s
 
   // Real-time validation checks for Registration
   const trimmedNick = nickname.trim();
-  const trimmedMail = email.trim();
+  const normalizedMail = email.trim().toLowerCase();
   
   const isNickLenValid = trimmedNick.length >= 3;
-  const hasNickForbiddenChars = /[.#$\[\]/]/.test(trimmedNick);
+  const hasNickForbiddenChars = /[.#$\[\]/\s]/.test(trimmedNick);
   const isNickProfane = containsProfanity(trimmedNick);
   const isNickValid = isNickLenValid && !hasNickForbiddenChars && !isNickProfane;
 
-  const isEmailFormatValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmedMail);
+  const isEmailFormatValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizedMail);
 
   const isPwdLenValid = password.length >= 8;
   const isPwdUpperValid = /[A-Z]/.test(password);
   const isPwdNumValid = /\d/.test(password);
-  const isPwdSpecialValid = /[!?$%&]/.test(password);
+  const isPwdSpecialValid = /[^A-Za-z0-9]/.test(password);
   const isPwdValid = isPwdLenValid && isPwdUpperValid && isPwdNumValid && isPwdSpecialValid;
 
   const isConfirmValid = confirmPassword.length > 0 && confirmPassword === password;
@@ -74,7 +75,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ isOpen, onAuthSuccess, s
   const isNewPwdLenValid = newPassword.length >= 8;
   const isNewPwdUpperValid = /[A-Z]/.test(newPassword);
   const isNewPwdNumValid = /\d/.test(newPassword);
-  const isNewPwdSpecialValid = /[!?$%&]/.test(newPassword);
+  const isNewPwdSpecialValid = /[^A-Za-z0-9]/.test(newPassword);
   const isNewPwdValid = isNewPwdLenValid && isNewPwdUpperValid && isNewPwdNumValid && isNewPwdSpecialValid;
   const isConfirmNewValid = confirmNewPassword.length > 0 && confirmNewPassword === newPassword;
 
@@ -183,7 +184,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ isOpen, onAuthSuccess, s
         return;
       }
       if (hasNickForbiddenChars) {
-        showAlert("Il Nickname non può contenere punti (.) o simboli speciali come #, $, [, ], /", "Caratteri Non Ammessi");
+        showAlert("Il Nickname non può contenere spazi, punti (.) o simboli speciali (#, $, [, ], /)", "Caratteri Non Ammessi");
         return;
       }
       if (isNickProfane) {
@@ -191,7 +192,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ isOpen, onAuthSuccess, s
         return;
       }
 
-      if (!trimmedMail) {
+      if (!normalizedMail) {
         showAlert("Inserisci il tuo indirizzo Email!", "Campo Richiesto");
         return;
       }
@@ -206,7 +207,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ isOpen, onAuthSuccess, s
       }
       if (!isPwdValid) {
         showAlert(
-          "Il codice di stappo non rispetta tutti i requisiti:\n• Minimo 8 caratteri\n• Almeno 1 lettera MAIUSCOLA\n• Almeno 1 NUMERO\n• Almeno 1 carattere SPECIALE (! ? $ % &)",
+          "Il codice di stappo non rispetta tutti i requisiti:\n• Minimo 8 caratteri\n• Almeno 1 lettera MAIUSCOLA\n• Almeno 1 NUMERO\n• Almeno 1 carattere SPECIALE o SIMBOLO (! ? @ # $ % & *)",
           "Codice Incompleto"
         );
         return;
@@ -241,15 +242,22 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ isOpen, onAuthSuccess, s
         }
 
         // 3. Creazione account Firebase Auth (da qui in poi l'utente è autenticato)
-        const userCredential = await createUserWithEmailAndPassword(auth, trimmedMail, password);
+        const userCredential = await createUserWithEmailAndPassword(auth, normalizedMail, password);
         const uid = userCredential.user.uid;
         
-        // 4. Salvataggio directory, timestamp, mappa email e punteggio iniziale
+        // 4. Aggiorna subito il displayName nativo su Firebase Auth per evitare race conditions
+        try {
+          await updateProfile(userCredential.user, { displayName: trimmedNick });
+        } catch (profErr) {
+          console.warn("updateProfile non bloccante:", profErr);
+        }
+
+        // 5. Salvataggio directory, timestamp, mappa email e punteggio iniziale
         try {
           await Promise.all([
             set(ref(db, `users_directory/${uid}`), trimmedNick),
             set(ref(db, `users_last_nickname_change/${uid}`), Date.now()),
-            set(ref(db, `usernames_emails/${trimmedNick.toLowerCase()}`), trimmedMail),
+            set(ref(db, `usernames_emails/${trimmedNick.toLowerCase()}`), normalizedMail),
             set(ref(db, `leaderboard_scores/${trimmedNick}`), 0),
           ]);
         } catch (saveErr: any) {
@@ -296,7 +304,8 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ isOpen, onAuthSuccess, s
       setIsLoading(true);
       try {
         if (trimmedLoginId.includes('@')) {
-          await signInWithEmailAndPassword(auth, trimmedLoginId, password);
+          const normalizedLoginMail = trimmedLoginId.toLowerCase();
+          await signInWithEmailAndPassword(auth, normalizedLoginMail, password);
           onAuthSuccess("BENTORNATO! STAPPO IN CORSO...");
         } else {
           if (/[.#$\[\]/]/.test(trimmedLoginId)) {
@@ -313,7 +322,8 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ isOpen, onAuthSuccess, s
           }
 
           if (mappedEmail) {
-            await signInWithEmailAndPassword(auth, mappedEmail, password);
+            const normalizedLoginMail = mappedEmail.toLowerCase().trim();
+            await signInWithEmailAndPassword(auth, normalizedLoginMail, password);
             onAuthSuccess("BENTORNATO! STAPPO IN CORSO...");
           } else {
             showAlert("Nickname non trovato nei nostri archivi. Se ti sei registrato con un'email, prova ad accedere inserendo la tua Email.", "Login Fallito");
@@ -342,7 +352,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ isOpen, onAuthSuccess, s
     const len = pwd.length >= 8;
     const upper = /[A-Z]/.test(pwd);
     const num = /\d/.test(pwd);
-    const special = /[!?$%&]/.test(pwd);
+    const special = /[^A-Za-z0-9]/.test(pwd);
 
     return (
       <div className="auth-pwd-criteria-box">
@@ -373,7 +383,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ isOpen, onAuthSuccess, s
             <span className="material-symbols-outlined auth-criteria-icon">
               {special ? 'check_circle' : 'radio_button_unchecked'}
             </span>
-            1 Simbolo (! ? $ % &)
+            1 Simbolo o Speciale (!?@#$%&*)
           </div>
         </div>
       </div>
@@ -484,6 +494,9 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ isOpen, onAuthSuccess, s
                 placeholder="Es. Marco89 o marco@gmail.com"
                 value={resetInput}
                 onChange={(e) => setResetInput(e.target.value)}
+                autoCapitalize="none"
+                autoCorrect="off"
+                spellCheck={false}
               />
             </div>
 
@@ -533,6 +546,9 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ isOpen, onAuthSuccess, s
                       placeholder="Email o Nickname"
                       value={loginId}
                       onChange={(e) => setLoginId(e.target.value)}
+                      autoCapitalize="none"
+                      autoCorrect="off"
+                      spellCheck={false}
                     />
                     {submitted && !loginId.trim() && (
                       <div className="auth-error-hint">
@@ -551,6 +567,9 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ isOpen, onAuthSuccess, s
                         placeholder="Codice di stappo"
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
+                        autoCapitalize="none"
+                        autoCorrect="off"
+                        spellCheck={false}
                       />
                       <span
                         className="eye-icon material-symbols-outlined"
@@ -575,7 +594,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ isOpen, onAuthSuccess, s
                   <div className="auth-field-wrapper">
                     <div className="auth-field-label">
                       <span>Nickname</span>
-                      <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>min. 3 caratteri</span>
+                      <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>min. 3 caratteri, senza spazi</span>
                     </div>
                     <input
                       type="text"
@@ -591,6 +610,9 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ isOpen, onAuthSuccess, s
                       placeholder="Es. Marco89"
                       value={nickname}
                       onChange={(e) => setNickname(e.target.value)}
+                      autoCapitalize="none"
+                      autoCorrect="off"
+                      spellCheck={false}
                     />
                     {/* Inline Validation Hints for Nickname */}
                     {nickname && !isNickLenValid && (
@@ -602,7 +624,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ isOpen, onAuthSuccess, s
                     {nickname && hasNickForbiddenChars && (
                       <div className="auth-error-hint">
                         <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>cancel</span>
-                        Non usare punti (.), barre (/) o simboli (#, $, [, ])
+                        Non usare spazi, punti (.), barre (/) o simboli (#, $, [, ])
                       </div>
                     )}
                     {nickname && isNickProfane && (
@@ -644,6 +666,9 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ isOpen, onAuthSuccess, s
                       placeholder="nome@esempio.it"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
+                      autoCapitalize="none"
+                      autoCorrect="off"
+                      spellCheck={false}
                     />
                     {email && !isEmailFormatValid && (
                       <div className="auth-error-hint">
@@ -685,6 +710,9 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ isOpen, onAuthSuccess, s
                         placeholder="Crea codice di stappo"
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
+                        autoCapitalize="none"
+                        autoCorrect="off"
+                        spellCheck={false}
                       />
                       <span
                         className="eye-icon material-symbols-outlined"
@@ -725,6 +753,9 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ isOpen, onAuthSuccess, s
                         placeholder="Ripeti codice di stappo"
                         value={confirmPassword}
                         onChange={(e) => setConfirmPassword(e.target.value)}
+                        autoCapitalize="none"
+                        autoCorrect="off"
+                        spellCheck={false}
                       />
                       <span
                         className="eye-icon material-symbols-outlined"

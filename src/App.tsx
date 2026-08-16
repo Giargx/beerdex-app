@@ -73,7 +73,13 @@ export default function App() {
   const [detailViewBackPage, setDetailViewBackPage] = useState<string>('page-profile');
 
   // Age Verification & Auth States
-  const [ageGateOpen, setAgeGateOpen] = useState<boolean>(true);
+  const [ageGateOpen, setAgeGateOpen] = useState<boolean>(() => {
+    try {
+      return localStorage.getItem('beerdex_18plus') !== 'yes';
+    } catch {
+      return true;
+    }
+  });
   const [authOpen, setAuthOpen] = useState<boolean>(false);
   const [currentUser, setCurrentUser] = useState<any>(null);
   const [currentUserNick, setCurrentUserNick] = useState<string>('');
@@ -1071,44 +1077,52 @@ export default function App() {
       try {
         if (user) {
           setCurrentUser(user);
-          const email = user.email ? user.email.toLowerCase() : '';
+          const email = user.email ? user.email.toLowerCase().trim() : '';
           setCurrentUserEmail(email);
 
-          // Fetch Nickname (with retry to avoid race condition during registration)
-          let nickSnap = await get(ref(db, `users_directory/${user.uid}`));
-          let attempts = 0;
-          while (!nickSnap.exists() && attempts < 5) {
-            await new Promise((resolve) => setTimeout(resolve, 150));
-            nickSnap = await get(ref(db, `users_directory/${user.uid}`));
-            attempts++;
-          }
+          // Chiudi immediatamente il modal di autenticazione per evitare che l'utente rimanga bloccato sul login
+          setAuthOpen(false);
 
-          let nickname = '';
-          if (nickSnap.exists()) {
-            nickname = nickSnap.val();
-          } else {
-            const rawFallback = user.email ? user.email.split('@')[0] : 'Utente';
-            nickname = rawFallback.replace(/[.#$\[\]]/g, '_');
-            try {
-              await set(ref(db, `users_directory/${user.uid}`), nickname);
-              await set(ref(db, `usernames_emails/${nickname.toLowerCase()}`), email);
-            } catch (e) {
-              console.error("Errore salvataggio nickname fallback:", e);
+          // 1. Risolvi il Nickname: controlla prima il displayName nativo di Firebase Auth, poi users_directory, poi fallback
+          let nickname = user.displayName ? user.displayName.trim() : '';
+
+          if (!nickname) {
+            let nickSnap = await get(ref(db, `users_directory/${user.uid}`));
+            let attempts = 0;
+            while (!nickSnap.exists() && attempts < 5) {
+              await new Promise((resolve) => setTimeout(resolve, 150));
+              nickSnap = await get(ref(db, `users_directory/${user.uid}`));
+              attempts++;
+            }
+
+            if (nickSnap.exists()) {
+              nickname = nickSnap.val();
+            } else {
+              const rawFallback = user.email ? user.email.split('@')[0] : 'Utente';
+              nickname = rawFallback.replace(/[.#$\[\]/\s]/g, '_');
             }
           }
 
-          if (/[.#$\[\]]/.test(nickname)) {
+          if (/[.#$\[\]/]/.test(nickname)) {
             nickname = nickname.replace(/[.#$\[\]]/g, '_');
           }
           setCurrentUserNick(nickname);
+
+          // Sincronizza directory e mappa usernames_emails per garantire l'accesso futuro anche con Nickname
+          try {
+            await Promise.all([
+              set(ref(db, `users_directory/${user.uid}`), nickname),
+              set(ref(db, `usernames_emails/${nickname.toLowerCase()}`), email),
+            ]);
+          } catch (syncErr) {
+            console.warn("Sync nickname realtime db non bloccante:", syncErr);
+          }
 
           const adminNicknames = ['gargo', 'forne02', 'aviatore'];
           const isUserAdmin = email === 'barcello.luca02@gmail.com' || adminNicknames.includes((nickname || '').toLowerCase());
           setIsAdminUser(isUserAdmin);
 
-          setAuthOpen(false);
-
-          // Load Realtime Data
+          // Carica i dati Realtime
           setupRealtimeListeners(nickname);
         } else {
           setCurrentUser(null);
@@ -2550,20 +2564,8 @@ export default function App() {
             return;
           }
 
-          // 1. Sfondo sfocato derivato dall'immagine per le foto non native 9:16
-          const bgScale = Math.max(TARGET_WIDTH / img.width, TARGET_HEIGHT / img.height);
-          const bgW = img.width * bgScale;
-          const bgH = img.height * bgScale;
-          const bgX = (TARGET_WIDTH - bgW) / 2;
-          const bgY = (TARGET_HEIGHT - bgH) / 2;
-
-          ctx.save();
-          ctx.filter = 'blur(25px) brightness(0.55)';
-          ctx.drawImage(img, bgX, bgY, bgW, bgH);
-          ctx.restore();
-
-          // 2. Disegna l'immagine originale intera e centrata (nessun ritaglio)
-          const scale = Math.min(TARGET_WIDTH / img.width, TARGET_HEIGHT / img.height);
+          // Adatta automaticamente la foto riempiendo il formato 9:16 (720x1280) centrata e senza bande/sfocature
+          const scale = Math.max(TARGET_WIDTH / img.width, TARGET_HEIGHT / img.height);
           const drawW = img.width * scale;
           const drawH = img.height * scale;
           const drawX = (TARGET_WIDTH - drawW) / 2;
@@ -2797,18 +2799,8 @@ export default function App() {
               return;
             }
 
-            const bgScale = Math.max(TARGET_WIDTH / img.width, TARGET_HEIGHT / img.height);
-            const bgW = img.width * bgScale;
-            const bgH = img.height * bgScale;
-            const bgX = (TARGET_WIDTH - bgW) / 2;
-            const bgY = (TARGET_HEIGHT - bgH) / 2;
-
-            ctx.save();
-            ctx.filter = 'blur(25px) brightness(0.55)';
-            ctx.drawImage(img, bgX, bgY, bgW, bgH);
-            ctx.restore();
-
-            const scale = Math.min(TARGET_WIDTH / img.width, TARGET_HEIGHT / img.height);
+            // Adatta automaticamente la foto riempiendo il formato 9:16 (720x1280) centrata e senza bande/sfocature
+            const scale = Math.max(TARGET_WIDTH / img.width, TARGET_HEIGHT / img.height);
             const drawW = img.width * scale;
             const drawH = img.height * scale;
             const drawX = (TARGET_WIDTH - drawW) / 2;
@@ -3509,8 +3501,8 @@ export default function App() {
       showAlert("Il nuovo codice di stappo deve contenere almeno un NUMERO.");
       return;
     }
-    if (!/[!?$%&]/.test(newPassword)) {
-      showAlert("Il nuovo codice di stappo deve contenere almeno un carattere speciale tra ! ? $ % &");
+    if (!/[^A-Za-z0-9]/.test(newPassword)) {
+      showAlert("Il nuovo codice di stappo deve contenere almeno un carattere speciale o simbolo (es. ! ? @ # $ % & *).");
       return;
     }
 

@@ -170,6 +170,30 @@ export const PubView: React.FC<PubViewProps> = ({
     return uniquePosts;
   }, [posts, currentUserNick, myFriendsList, isAdminUser, searchQuery, globalDisplayNames, globalUserPrivacy]);
 
+  const [showOlderPosts, setShowOlderPosts] = useState<boolean>(false);
+
+  // Ordina i post visibili dal più recente al più vecchio
+  const sortedPosts = useMemo(() => {
+    return [...visiblePosts].sort((a, b) => (b.time || 0) - (a.time || 0));
+  }, [visiblePosts]);
+
+  // Suddivisione: ultimi 3 giorni (recenti) e precedenti (> 3 giorni)
+  const { recentPosts, olderPosts } = useMemo(() => {
+    const THREE_DAYS_MS = 3 * 24 * 60 * 60 * 1000;
+    const cutoff = Date.now() - THREE_DAYS_MS;
+    const recent: Post[] = [];
+    const older: Post[] = [];
+
+    for (const post of sortedPosts) {
+      if ((post.time || 0) >= cutoff) {
+        recent.push(post);
+      } else {
+        older.push(post);
+      }
+    }
+    return { recentPosts: recent, olderPosts: older };
+  }, [sortedPosts]);
+
   // Realtime subscription for Pub Stories
   const [pubStories, setPubStories] = useState<Record<string, any>>({});
 
@@ -639,44 +663,8 @@ export const PubView: React.FC<PubViewProps> = ({
       {/* Main Feed Container */}
       <div id="pubPostsFeed" className="social-page-container" style={{ maxWidth: '640px', margin: '16px auto 0 auto' }}>
         <div className="social-feed">
-          {visiblePosts.length === 0 ? (
-            <div
-              style={{
-                textAlign: 'center',
-                padding: '48px 24px',
-                background: '#FFFFFF',
-                borderRadius: '24px',
-                margin: '0 16px',
-                boxShadow: '0 10px 30px rgba(15, 23, 42, 0.05)',
-                border: '1px solid #F1F5F9',
-              }}
-            >
-              <div
-                style={{
-                  width: '64px',
-                  height: '64px',
-                  borderRadius: '50%',
-                  background: '#FEF3C7',
-                  color: '#D97706',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  margin: '0 auto 16px auto',
-                }}
-              >
-                <span className="material-symbols-outlined" style={{ fontSize: '32px' }}>sports_bar</span>
-              </div>
-              <h3 style={{ margin: '0 0 8px 0', color: '#0F172A', fontSize: '18px', fontWeight: 800 }}>
-                {searchQuery ? 'Nessun risultato trovato' : 'Nessun brindisi al bancone'}
-              </h3>
-              <p style={{ margin: 0, fontSize: '13px', color: '#64748B', lineHeight: '1.5' }}>
-                {searchQuery
-                  ? `Nessuna birra o amico corrisponde alla ricerca "${searchQuery}".`
-                  : 'I tuoi amici non hanno ancora pubblicato brindisi. Aggiungi altri amici o fai un bel brindisi!'}
-              </p>
-            </div>
-          ) : (
-            [...visiblePosts].reverse().map((post) => {
+          {(() => {
+            const renderPostCard = (post: Post) => {
               const isSaved = savedPostIds.includes(post.postId);
               const user1 = post.user;
               const av1 = globalAvatars[user1];
@@ -1570,8 +1558,256 @@ export const PubView: React.FC<PubViewProps> = ({
                   </div>
                 </div>
               );
-            })
-          )}
+            };
+
+            if (sortedPosts.length === 0) {
+              return (
+                <div
+                  style={{
+                    textAlign: 'center',
+                    padding: '48px 24px',
+                    background: '#FFFFFF',
+                    borderRadius: '24px',
+                    margin: '0 16px',
+                    boxShadow: '0 10px 30px rgba(15, 23, 42, 0.05)',
+                    border: '1px solid #F1F5F9',
+                  }}
+                >
+                  <div
+                    style={{
+                      width: '64px',
+                      height: '64px',
+                      borderRadius: '50%',
+                      background: '#FEF3C7',
+                      color: '#D97706',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      margin: '0 auto 16px auto',
+                    }}
+                  >
+                    <span className="material-symbols-outlined" style={{ fontSize: '32px' }}>sports_bar</span>
+                  </div>
+                  <h3 style={{ margin: '0 0 8px 0', color: '#0F172A', fontSize: '18px', fontWeight: 800 }}>
+                    {searchQuery ? 'Nessun risultato trovato' : 'Nessun brindisi al bancone'}
+                  </h3>
+                  <p style={{ margin: 0, fontSize: '13px', color: '#64748B', lineHeight: '1.5' }}>
+                    {searchQuery
+                      ? `Nessuna birra o amico corrisponde alla ricerca "${searchQuery}".`
+                      : 'I tuoi amici non hanno ancora pubblicato brindisi. Aggiungi altri amici o fai un bel brindisi!'}
+                  </p>
+                </div>
+              );
+            }
+
+            if (recentPosts.length === 0) {
+              return (
+                <div>
+                  {!showOlderPosts ? (
+                    <div
+                      style={{
+                        textAlign: 'center',
+                        padding: '40px 24px',
+                        background: '#FFFFFF',
+                        borderRadius: '24px',
+                        margin: '0 16px',
+                        boxShadow: '0 10px 30px rgba(15, 23, 42, 0.05)',
+                        border: '1px solid #F1F5F9',
+                      }}
+                    >
+                      <div
+                        style={{
+                          width: '60px',
+                          height: '60px',
+                          borderRadius: '50%',
+                          background: '#FEF3C7',
+                          color: '#D97706',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          margin: '0 auto 16px auto',
+                        }}
+                      >
+                        <span className="material-symbols-outlined" style={{ fontSize: '30px' }}>history_toggle_off</span>
+                      </div>
+                      <h3 style={{ margin: '0 0 8px 0', color: '#0F172A', fontSize: '18px', fontWeight: 800 }}>
+                        Nessun brindisi negli ultimi 3 giorni
+                      </h3>
+                      <p style={{ margin: '0 0 20px 0', fontSize: '13px', color: '#64748B', lineHeight: '1.5' }}>
+                        Non ci sono brindisi recenti negli ultimi 3 giorni, ma ci sono {olderPosts.length} {olderPosts.length === 1 ? 'post precedente' : 'post precedenti'} nel Pub.
+                      </p>
+                      <button
+                        type="button"
+                        onClick={() => setShowOlderPosts(true)}
+                        style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          gap: '8px',
+                          padding: '12px 24px',
+                          borderRadius: '16px',
+                          border: 'none',
+                          background: 'linear-gradient(135deg, #F59E0B 0%, #D97706 100%)',
+                          color: '#FFFFFF',
+                          fontSize: '14px',
+                          fontWeight: 800,
+                          cursor: 'pointer',
+                          boxShadow: '0 4px 14px rgba(245, 158, 11, 0.35)',
+                          transition: 'all 0.2s ease',
+                        }}
+                      >
+                        <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>history</span>
+                        Mostra {olderPosts.length} {olderPosts.length === 1 ? 'post precedente' : 'post precedenti'}
+                      </button>
+                    </div>
+                  ) : (
+                    <div>
+                      <div
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '12px',
+                          margin: '8px 16px 20px 16px',
+                        }}
+                      >
+                        <div style={{ flex: 1, height: '1px', background: '#E2E8F0' }} />
+                        <div
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '6px',
+                            padding: '6px 14px',
+                            background: '#F1F5F9',
+                            borderRadius: '20px',
+                            fontSize: '12px',
+                            fontWeight: 800,
+                            color: '#64748B',
+                            textTransform: 'uppercase',
+                            letterSpacing: '0.5px',
+                          }}
+                        >
+                          <span className="material-symbols-outlined" style={{ fontSize: '16px', color: '#D97706' }}>history</span>
+                          Post precedenti a 3 giorni fa ({olderPosts.length})
+                        </div>
+                        <div style={{ flex: 1, height: '1px', background: '#E2E8F0' }} />
+                      </div>
+                      {olderPosts.map(renderPostCard)}
+                      <div style={{ textAlign: 'center', padding: '24px 16px 40px 16px', color: '#94A3B8', fontSize: '13px', fontWeight: 600 }}>
+                        🍻 Hai raggiunto la fine dei brindisi!
+                      </div>
+                    </div>
+                  )}
+                </div>
+              );
+            }
+
+            return (
+              <div>
+                {recentPosts.map(renderPostCard)}
+
+                {olderPosts.length > 0 ? (
+                  !showOlderPosts ? (
+                    <div
+                      style={{
+                        textAlign: 'center',
+                        padding: '24px 20px',
+                        background: 'linear-gradient(180deg, rgba(255, 255, 255, 0.9) 0%, #FFFFFF 100%)',
+                        borderRadius: '24px',
+                        margin: '20px 16px 32px 16px',
+                        border: '1px solid #E2E8F0',
+                        boxShadow: '0 4px 20px rgba(15, 23, 42, 0.04)',
+                      }}
+                    >
+                      <div
+                        style={{
+                          width: '44px',
+                          height: '44px',
+                          borderRadius: '50%',
+                          background: '#FEF3C7',
+                          color: '#D97706',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          margin: '0 auto 12px auto',
+                        }}
+                      >
+                        <span className="material-symbols-outlined" style={{ fontSize: '24px' }}>history</span>
+                      </div>
+                      <div style={{ fontSize: '15px', fontWeight: 800, color: '#0F172A', marginBottom: '4px' }}>
+                        Hai visto tutti i brindisi degli ultimi 3 giorni
+                      </div>
+                      <p style={{ margin: '0 0 16px 0', fontSize: '13px', color: '#64748B' }}>
+                        Ci sono altri {olderPosts.length} {olderPosts.length === 1 ? 'post più vecchio' : 'post più vecchi'} nel Pub.
+                      </p>
+                      <button
+                        type="button"
+                        onClick={() => setShowOlderPosts(true)}
+                        style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          gap: '8px',
+                          padding: '12px 24px',
+                          borderRadius: '16px',
+                          border: 'none',
+                          background: 'linear-gradient(135deg, #F59E0B 0%, #D97706 100%)',
+                          color: '#FFFFFF',
+                          fontSize: '14px',
+                          fontWeight: 800,
+                          cursor: 'pointer',
+                          boxShadow: '0 4px 14px rgba(245, 158, 11, 0.35)',
+                          transition: 'all 0.2s ease',
+                        }}
+                      >
+                        <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>expand_more</span>
+                        Carica post precedenti ({olderPosts.length})
+                      </button>
+                    </div>
+                  ) : (
+                    <div>
+                      <div
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '12px',
+                          margin: '28px 16px 20px 16px',
+                        }}
+                      >
+                        <div style={{ flex: 1, height: '1px', background: '#E2E8F0' }} />
+                        <div
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '6px',
+                            padding: '6px 14px',
+                            background: '#F1F5F9',
+                            borderRadius: '20px',
+                            fontSize: '12px',
+                            fontWeight: 800,
+                            color: '#64748B',
+                            textTransform: 'uppercase',
+                            letterSpacing: '0.5px',
+                          }}
+                        >
+                          <span className="material-symbols-outlined" style={{ fontSize: '16px', color: '#D97706' }}>history</span>
+                          Post precedenti a 3 giorni fa ({olderPosts.length})
+                        </div>
+                        <div style={{ flex: 1, height: '1px', background: '#E2E8F0' }} />
+                      </div>
+                      {olderPosts.map(renderPostCard)}
+                      <div style={{ textAlign: 'center', padding: '24px 16px 40px 16px', color: '#94A3B8', fontSize: '13px', fontWeight: 600 }}>
+                        🍻 Hai raggiunto la fine dei brindisi!
+                      </div>
+                    </div>
+                  )
+                ) : (
+                  <div style={{ textAlign: 'center', padding: '24px 16px 40px 16px', color: '#94A3B8', fontSize: '13px', fontWeight: 600 }}>
+                    ✨ Sei in pari con tutti i brindisi degli ultimi 3 giorni!
+                  </div>
+                )}
+              </div>
+            );
+          })()}
         </div>
       </div>
 
