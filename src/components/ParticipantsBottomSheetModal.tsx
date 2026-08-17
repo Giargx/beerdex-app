@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { createPortal } from 'react-dom';
 import { StarRating } from './StarRating';
 import { getPostParticipants } from '../beers';
@@ -35,16 +35,6 @@ export const ParticipantsBottomSheetModal: React.FC<ParticipantsBottomSheetModal
   currentUserAvatar,
   currentUserNick,
 }) => {
-  useEffect(() => {
-    if (isOpen) {
-      const originalOverflow = document.body.style.overflow;
-      document.body.style.overflow = 'hidden';
-      return () => {
-        document.body.style.overflow = originalOverflow;
-      };
-    }
-  }, [isOpen]);
-
   if (!isOpen || !post) return null;
 
   const parts = getPostParticipants(post);
@@ -81,6 +71,7 @@ export const ParticipantsBottomSheetModal: React.FC<ParticipantsBottomSheetModal
         WebkitTapHighlightColor: 'transparent',
         overflow: 'hidden',
         overflowX: 'hidden',
+        overscrollBehavior: 'contain',
       }}
     >
       <div

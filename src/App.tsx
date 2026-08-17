@@ -713,20 +713,28 @@ export default function App() {
 
 
   // Main Tab Touch Swipe State & Handlers
+  const mainTabs = ['page-home', 'page-explore', 'page-leaderboard', 'page-social', 'page-profile'];
+  const activeIndex = mainTabs.indexOf(currentPage) !== -1 ? mainTabs.indexOf(currentPage) : 0;
+  const mainTabsSliderRef = useRef<HTMLDivElement>(null);
   const touchStartX = useRef<number>(0);
   const touchStartY = useRef<number>(0);
   const touchStartTime = useRef<number>(0);
   const isHorizontalSwipe = useRef<boolean | null>(null);
-  const [dragOffset, setDragOffset] = useState<number>(0);
-  const [isDragging, setIsDragging] = useState<boolean>(false);
+  const currentDragOffset = useRef<number>(0);
+
+  useEffect(() => {
+    if (mainTabsSliderRef.current) {
+      mainTabsSliderRef.current.style.transition = 'transform 0.28s cubic-bezier(0.25, 1, 0.5, 1)';
+      mainTabsSliderRef.current.style.transform = `translateX(-${activeIndex * 20}%)`;
+    }
+  }, [activeIndex]);
 
   const handleMainTouchStart = (e: React.TouchEvent) => {
     touchStartX.current = e.touches[0].clientX;
     touchStartY.current = e.touches[0].clientY;
     touchStartTime.current = Date.now();
     isHorizontalSwipe.current = null;
-    setIsDragging(false);
-    setDragOffset(0);
+    currentDragOffset.current = 0;
   };
 
   const handleMainTouchMove = (e: React.TouchEvent) => {
@@ -747,40 +755,44 @@ export default function App() {
     }
 
     if (isHorizontalSwipe.current === null) {
-      if (absX >= 6 && absX > absY * 0.7) {
+      if (absX >= 3 && absX > absY * 0.35) {
         isHorizontalSwipe.current = true;
-      } else if (absY >= 14 && absY > absX * 1.5) {
+      } else if (absY >= 10 && absY > absX * 1.4) {
         isHorizontalSwipe.current = false;
       }
     }
 
-    if (isHorizontalSwipe.current) {
-      setIsDragging(true);
-      setDragOffset(diffX);
+    if (isHorizontalSwipe.current && mainTabsSliderRef.current) {
+      currentDragOffset.current = diffX;
+      mainTabsSliderRef.current.style.transition = 'none';
+      mainTabsSliderRef.current.style.transform = `translateX(calc(-${activeIndex * 20}% + ${diffX}px))`;
     }
   };
 
   const handleMainTouchEnd = () => {
-    if ((isDragging || isHorizontalSwipe.current) && touchStartX.current !== 0) {
+    if (touchStartX.current !== 0) {
       const duration = Date.now() - touchStartTime.current;
-      const absOffset = Math.abs(dragOffset);
-      const isQuickFlick = duration < 350 && absOffset > 14;
-      const isNormalSwipe = absOffset > 24;
+      const offset = currentDragOffset.current;
+      const absOffset = Math.abs(offset);
+      const isQuickFlick = duration < 450 && absOffset > 8;
+      const isNormalSwipe = absOffset > 15;
       const mainTabs = ['page-home', 'page-explore', 'page-leaderboard', 'page-social', 'page-profile'];
       const currentIndex = mainTabs.indexOf(currentPage);
 
-      if ((isQuickFlick || isNormalSwipe) && dragOffset < 0 && currentIndex < mainTabs.length - 1) {
+      if ((isQuickFlick || isNormalSwipe) && offset < 0 && currentIndex < mainTabs.length - 1) {
         navigateTo(mainTabs[currentIndex + 1]);
-      } else if ((isQuickFlick || isNormalSwipe) && dragOffset > 0 && currentIndex > 0) {
+      } else if ((isQuickFlick || isNormalSwipe) && offset > 0 && currentIndex > 0) {
         navigateTo(mainTabs[currentIndex - 1]);
+      } else if (mainTabsSliderRef.current) {
+        mainTabsSliderRef.current.style.transition = 'transform 0.28s cubic-bezier(0.25, 1, 0.5, 1)';
+        mainTabsSliderRef.current.style.transform = `translateX(-${activeIndex * 20}%)`;
       }
     }
     touchStartX.current = 0;
     touchStartY.current = 0;
     touchStartTime.current = 0;
     isHorizontalSwipe.current = null;
-    setIsDragging(false);
-    setDragOffset(0);
+    currentDragOffset.current = 0;
   };
 
   // iOS-style Edge Swipe Back for subpages & settings drawer
@@ -3554,9 +3566,7 @@ export default function App() {
 
 
 
-  const mainTabs = ['page-home', 'page-explore', 'page-leaderboard', 'page-social', 'page-profile'];
   const isMainTab = mainTabs.includes(currentPage);
-  const activeIndex = mainTabs.indexOf(currentPage) !== -1 ? mainTabs.indexOf(currentPage) : 0;
 
   const handlePullToRefresh = async () => {
     try {
@@ -4421,12 +4431,12 @@ export default function App() {
         <div className={`page-view ${isMainTab ? 'active' : ''}`}>
           <div className="main-tabs-wrapper">
             <div
-              className={`main-tabs-slider-container ${isDragging ? 'is-transitioning' : ''}`}
+              ref={mainTabsSliderRef}
+              className="main-tabs-slider-container"
               style={{
-                transform: isDragging
-                  ? `translateX(calc(-${activeIndex * 20}% + ${dragOffset}px))`
-                  : `translateX(-${activeIndex * 20}%)`,
-                transition: isDragging ? 'none' : 'transform 0.28s cubic-bezier(0.25, 1, 0.5, 1)',
+                transform: `translateX(-${activeIndex * 20}%)`,
+                transition: 'transform 0.28s cubic-bezier(0.25, 1, 0.5, 1)',
+                touchAction: 'pan-y',
               }}
               onTouchStart={handleMainTouchStart}
               onTouchMove={handleMainTouchMove}

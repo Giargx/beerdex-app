@@ -267,6 +267,7 @@ select:focus {
     overflow-x: hidden !important;
     position: relative;
     box-sizing: border-box;
+    touch-action: pan-y;
 }
 
 .main-tabs-slider-container {
@@ -275,6 +276,7 @@ select:focus {
     align-items: flex-start;
     box-sizing: border-box;
     will-change: transform;
+    touch-action: pan-y;
 }
 
 .main-tab-slide {

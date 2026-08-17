@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { createPortal } from 'react-dom';
 
 interface LikersBottomSheetModalProps {
@@ -27,16 +27,6 @@ export const LikersBottomSheetModal: React.FC<LikersBottomSheetModalProps> = ({
   globalAvatars = {},
   onOpenPublicProfile,
 }) => {
-  useEffect(() => {
-    if (isOpen) {
-      const originalOverflow = document.body.style.overflow;
-      document.body.style.overflow = 'hidden';
-      return () => {
-        document.body.style.overflow = originalOverflow;
-      };
-    }
-  }, [isOpen]);
-
   if (!isOpen) return null;
 
   const likerNicks = Object.keys(likes).filter((nick) => Boolean(likes[nick]));
@@ -73,6 +63,7 @@ export const LikersBottomSheetModal: React.FC<LikersBottomSheetModalProps> = ({
         WebkitTapHighlightColor: 'transparent',
         overflow: 'hidden',
         overflowX: 'hidden',
+        overscrollBehavior: 'contain',
       }}
     >
       <div
