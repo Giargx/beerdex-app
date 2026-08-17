@@ -1,6 +1,5 @@
 import React from 'react';
 import { createPortal } from 'react-dom';
-import { StarRating } from './StarRating';
 import { getPostParticipants } from '../beers';
 
 interface ParticipantsBottomSheetModalProps {
@@ -127,7 +126,7 @@ export const ParticipantsBottomSheetModal: React.FC<ParticipantsBottomSheetModal
         </div>
 
         {/* User Accounts List */}
-        <div style={{ overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '10px', paddingRight: '2px', WebkitOverflowScrolling: 'touch' }}>
+        <div style={{ overflowY: 'auto', overflowX: 'hidden', display: 'flex', flexDirection: 'column', gap: '10px', paddingRight: '2px', WebkitOverflowScrolling: 'touch', width: '100%', boxSizing: 'border-box' }}>
           {parts.map((pNick) => {
             const uKey = pNick.toLowerCase();
             let av = globalAvatars[pNick] || globalAvatars[uKey];
@@ -156,19 +155,22 @@ export const ParticipantsBottomSheetModal: React.FC<ParticipantsBottomSheetModal
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'space-between',
-                  padding: '10px 14px',
+                  padding: '10px 12px',
                   borderRadius: '16px',
                   background: '#F8FAFC',
                   border: '1px solid #E2E8F0',
                   cursor: 'pointer',
+                  width: '100%',
+                  boxSizing: 'border-box',
+                  overflow: 'hidden',
                   transition: 'all 0.15s ease',
                 }}
               >
-                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', minWidth: 0, flex: 1, marginRight: '8px' }}>
                   <div
                     style={{
-                      width: '42px',
-                      height: '42px',
+                      width: '40px',
+                      height: '40px',
                       borderRadius: '50%',
                       padding: '2px',
                       background: isAuthor
@@ -193,16 +195,16 @@ export const ParticipantsBottomSheetModal: React.FC<ParticipantsBottomSheetModal
                       {av ? (
                         <img src={av} alt={cleanNick} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                       ) : (
-                        <span style={{ fontSize: '16px', fontWeight: 900, color: '#64748B', textTransform: 'uppercase' }}>
+                        <span style={{ fontSize: '15px', fontWeight: 900, color: '#64748B', textTransform: 'uppercase' }}>
                           {disp.charAt(0).toUpperCase()}
                         </span>
                       )}
                     </div>
                   </div>
 
-                  <div>
-                    <div style={{ fontSize: '14px', fontWeight: 800, color: '#0F172A', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                      <span>{disp}</span>
+                  <div style={{ minWidth: 0, flex: 1, overflow: 'hidden' }}>
+                    <div style={{ fontSize: '13.5px', fontWeight: 800, color: '#0F172A', display: 'flex', alignItems: 'center', gap: '5px', overflow: 'hidden', whiteSpace: 'nowrap' }}>
+                      <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{disp}</span>
                       {isAuthor && (
                         <span
                           style={{
@@ -212,24 +214,25 @@ export const ParticipantsBottomSheetModal: React.FC<ParticipantsBottomSheetModal
                             padding: '1px 6px',
                             borderRadius: '8px',
                             fontWeight: 900,
+                            flexShrink: 0,
                           }}
                         >
                           Creatore
                         </span>
                       )}
                     </div>
-                    <div style={{ fontSize: '11px', color: '#64748B', fontWeight: 600 }}>@{cleanNick}</div>
+                    <div style={{ fontSize: '11px', color: '#64748B', fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>@{cleanNick}</div>
                   </div>
                 </div>
 
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0 }}>
                   {pRating > 0 && (
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '3px', background: '#FEF3C7', padding: '3px 8px', borderRadius: '8px' }}>
-                      <StarRating rating={pRating} readOnly size={12} />
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '3px', background: '#FEF3C7', padding: '3px 7px', borderRadius: '8px' }}>
+                      <span className="material-symbols-outlined" style={{ fontSize: '13px', color: '#D97706', fontVariationSettings: "'FILL' 1" }}>star</span>
                       <span style={{ fontSize: '11px', fontWeight: 800, color: '#B45309' }}>{pRating.toFixed(1)}</span>
                     </div>
                   )}
-                  <span className="material-symbols-outlined" style={{ color: '#CBD5E1', fontSize: '20px' }}>
+                  <span className="material-symbols-outlined" style={{ color: '#CBD5E1', fontSize: '18px' }}>
                     chevron_right
                   </span>
                 </div>

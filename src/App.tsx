@@ -724,7 +724,7 @@ export default function App() {
 
   useEffect(() => {
     if (mainTabsSliderRef.current) {
-      mainTabsSliderRef.current.style.transition = 'transform 0.28s cubic-bezier(0.25, 1, 0.5, 1)';
+      mainTabsSliderRef.current.style.transition = 'transform 0.32s cubic-bezier(0.2, 0.9, 0.3, 1)';
       mainTabsSliderRef.current.style.transform = `translateX(-${activeIndex * 20}%)`;
     }
   }, [activeIndex]);
@@ -755,9 +755,9 @@ export default function App() {
     }
 
     if (isHorizontalSwipe.current === null) {
-      if (absX >= 3 && absX > absY * 0.35) {
+      if (absX >= 8 && absX > absY * 0.7) {
         isHorizontalSwipe.current = true;
-      } else if (absY >= 10 && absY > absX * 1.4) {
+      } else if (absY >= 12 && absY > absX * 1.4) {
         isHorizontalSwipe.current = false;
       }
     }
@@ -774,17 +774,27 @@ export default function App() {
       const duration = Date.now() - touchStartTime.current;
       const offset = currentDragOffset.current;
       const absOffset = Math.abs(offset);
-      const isQuickFlick = duration < 450 && absOffset > 8;
-      const isNormalSwipe = absOffset > 15;
+      const isQuickFlick = duration < 320 && absOffset > 25;
+      const isNormalSwipe = absOffset > 45;
       const mainTabs = ['page-home', 'page-explore', 'page-leaderboard', 'page-social', 'page-profile'];
       const currentIndex = mainTabs.indexOf(currentPage);
 
       if ((isQuickFlick || isNormalSwipe) && offset < 0 && currentIndex < mainTabs.length - 1) {
-        navigateTo(mainTabs[currentIndex + 1]);
+        const nextIndex = currentIndex + 1;
+        if (mainTabsSliderRef.current) {
+          mainTabsSliderRef.current.style.transition = 'transform 0.32s cubic-bezier(0.2, 0.9, 0.3, 1)';
+          mainTabsSliderRef.current.style.transform = `translateX(-${nextIndex * 20}%)`;
+        }
+        navigateTo(mainTabs[nextIndex]);
       } else if ((isQuickFlick || isNormalSwipe) && offset > 0 && currentIndex > 0) {
-        navigateTo(mainTabs[currentIndex - 1]);
+        const prevIndex = currentIndex - 1;
+        if (mainTabsSliderRef.current) {
+          mainTabsSliderRef.current.style.transition = 'transform 0.32s cubic-bezier(0.2, 0.9, 0.3, 1)';
+          mainTabsSliderRef.current.style.transform = `translateX(-${prevIndex * 20}%)`;
+        }
+        navigateTo(mainTabs[prevIndex]);
       } else if (mainTabsSliderRef.current) {
-        mainTabsSliderRef.current.style.transition = 'transform 0.28s cubic-bezier(0.25, 1, 0.5, 1)';
+        mainTabsSliderRef.current.style.transition = 'transform 0.25s cubic-bezier(0.2, 0.9, 0.3, 1)';
         mainTabsSliderRef.current.style.transform = `translateX(-${activeIndex * 20}%)`;
       }
     }
