@@ -3,6 +3,7 @@ import { StarRating } from '../components/StarRating';
 import { formatBeerTitle, getBasePoints, getBeerRarity, getUniqueParticipantPosts, getPostParticipants, type Beer } from '../beers';
 import { ReportPostModal } from '../components/ReportPostModal';
 import { LikersBottomSheetModal } from '../components/LikersBottomSheetModal';
+import { ParticipantsBottomSheetModal } from '../components/ParticipantsBottomSheetModal';
 
 interface UserPostsDetailViewProps {
   username: string;
@@ -219,7 +220,14 @@ export const UserPostsDetailView: React.FC<UserPostsDetailViewProps> = ({
               const postUserDisplayName = globalDisplayNames[post.user] || displayName || post.user;
               const isLiked = post.likes && post.likes[currentUserNick];
               const likesCount = post.likes ? Object.keys(post.likes).length : 0;
-              const dateStr = new Date(post.time).toLocaleDateString('it-IT', {
+              const date = new Date(post.time);
+              const timeStr = date.toLocaleDateString('it-IT', {
+                day: 'numeric',
+                month: 'short',
+                hour: '2-digit',
+                minute: '2-digit',
+              });
+              const dateStr = date.toLocaleDateString('it-IT', {
                 day: 'numeric',
                 month: 'long',
                 year: 'numeric'
@@ -238,7 +246,16 @@ export const UserPostsDetailView: React.FC<UserPostsDetailViewProps> = ({
                   style={{ animation: 'fadeIn 0.2s ease-out' }}
                 >
                   {/* Card Header: Dual/Multi Avatars for Shared Drinks or Single Avatar */}
-                  <div className="post-header" style={{ padding: '12px 16px' }}>
+                  <div
+                    className="post-header"
+                    style={{
+                      padding: '14px 16px',
+                      background: '#FFFFFF',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                    }}
+                  >
                     {(() => {
                       const allParticipants = getPostParticipants(post);
                       const isShared = allParticipants.length > 1;
@@ -375,7 +392,6 @@ export const UserPostsDetailView: React.FC<UserPostsDetailViewProps> = ({
                                 fontWeight: 800,
                                 textTransform: 'uppercase',
                                 fontSize: '14px',
-                                marginRight: '12px',
                               }}
                             >
                               {postUserAvatar ? (
@@ -431,9 +447,10 @@ export const UserPostsDetailView: React.FC<UserPostsDetailViewProps> = ({
                                          e.stopPropagation();
                                          setSelectedParticipantsPost(post);
                                        }}
+                                       title="Apri partecipanti allo stappo"
                                        style={{
                                          background: 'rgba(245, 158, 11, 0.15)',
-                                         color: '#D97706',
+                                         color: '#B45309',
                                          border: 'none',
                                          borderRadius: '12px',
                                          padding: '3px 10px',
@@ -456,11 +473,15 @@ export const UserPostsDetailView: React.FC<UserPostsDetailViewProps> = ({
                               <div
                                 className="clickable-user"
                                 onClick={() => onOpenPublicProfile(post.user)}
-                                style={{ fontWeight: 800, fontSize: '14px', color: 'var(--dark)', cursor: 'pointer' }}
+                                style={{ fontSize: '14px', fontWeight: 800, color: '#0F172A', cursor: 'pointer', margin: 0, padding: 0 }}
                               >
                                 {postUserDisplayName}
                               </div>
                             )}
+
+                            <div style={{ fontSize: '11px', color: '#94A3B8', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '4px', marginTop: '2px' }}>
+                              {isShared ? 'Bevuta condivisa 🍻 • ' : ''}{timeStr}
+                            </div>
                           </div>
                         </div>
                       );
@@ -896,174 +917,17 @@ export const UserPostsDetailView: React.FC<UserPostsDetailViewProps> = ({
 
 
       {/* Participants Sheet / Tendina Modal */}
-      {selectedParticipantsPost && (
-        <div
-          style={{
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            width: '100vw',
-            height: '100vh',
-            background: 'rgba(15, 23, 42, 0.65)',
-            backdropFilter: 'blur(8px)',
-            WebkitBackdropFilter: 'blur(8px)',
-            zIndex: 999999,
-            display: 'flex',
-            alignItems: 'flex-end',
-            justifyContent: 'center',
-          }}
-          onClick={() => setSelectedParticipantsPost(null)}
-        >
-          <div
-            onClick={(e) => e.stopPropagation()}
-            style={{
-              width: '100%',
-              maxWidth: '500px',
-              background: '#FFFFFF',
-              borderRadius: '24px 24px 0 0',
-              padding: '20px 20px calc(24px + env(safe-area-inset-bottom, 0px)) 20px',
-              boxSizing: 'border-box',
-              maxHeight: '80vh',
-              overflowY: 'auto',
-              animation: 'slideUp 0.2s cubic-bezier(0.16, 1, 0.3, 1)',
-              boxShadow: '0 -10px 30px rgba(0,0,0,0.2)',
-            }}
-          >
-            <div
-              style={{
-                width: '36px',
-                height: '4px',
-                background: '#CBD5E1',
-                borderRadius: '2px',
-                margin: '0 auto 16px auto',
-              }}
-            />
-
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
-              <div style={{ fontSize: '17px', fontWeight: 900, color: '#0F172A', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <span style={{ fontSize: '20px' }}>🍻</span>
-                <span>Partecipanti allo Stappo ({getPostParticipants(selectedParticipantsPost).length})</span>
-              </div>
-              <button
-                type="button"
-                onClick={() => setSelectedParticipantsPost(null)}
-                style={{
-                  background: '#F1F5F9',
-                  border: 'none',
-                  borderRadius: '50%',
-                  width: '32px',
-                  height: '32px',
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  color: '#64748B',
-                }}
-              >
-                <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>close</span>
-              </button>
-            </div>
-
-            {(() => {
-              const parts = getPostParticipants(selectedParticipantsPost);
-
-              return (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                  {parts.map((pNick) => {
-                    const av = globalAvatars[pNick] || (pNick === username ? avatar : undefined);
-                    const disp = globalDisplayNames?.[pNick] || pNick;
-                    const isAuthor = pNick === selectedParticipantsPost.user;
-                    const postRating = (selectedParticipantsPost as any).ratings && typeof (selectedParticipantsPost as any).ratings[pNick] === 'number' ? (selectedParticipantsPost as any).ratings[pNick] : 0;
-                    const userPokedex = allPokedexProfiles?.[pNick];
-                    const dexRating = userPokedex?.[`${selectedParticipantsPost.brand}-${selectedParticipantsPost.variant}`]?.rating || 0;
-                    const fallbackRating = isAuthor && typeof selectedParticipantsPost.rating === 'number' ? selectedParticipantsPost.rating : 0;
-                    const pRating = postRating || dexRating || fallbackRating || 0;
-
-                    return (
-                      <div
-                        key={pNick}
-                        onClick={() => {
-                          setSelectedParticipantsPost(null);
-                          onOpenPublicProfile(pNick);
-                        }}
-                        style={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'space-between',
-                          padding: '12px 14px',
-                          borderRadius: '16px',
-                          background: '#F8FAFC',
-                          border: '1px solid #E2E8F0',
-                          cursor: 'pointer',
-                          transition: 'background 0.15s ease',
-                        }}
-                      >
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                          <div
-                            style={{
-                              width: '42px',
-                              height: '42px',
-                              borderRadius: '50%',
-                              overflow: 'hidden',
-                              background: '#E2E8F0',
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              border: '2px solid #FFFFFF',
-                              boxShadow: '0 2px 6px rgba(0,0,0,0.1)',
-                              flexShrink: 0,
-                            }}
-                          >
-                            {av ? (
-                              <img src={av} alt={disp} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                            ) : (
-                              <span style={{ fontSize: '18px', fontWeight: 900, color: '#334155', textTransform: 'uppercase' }}>
-                                {disp.charAt(0).toUpperCase()}
-                              </span>
-                            )}
-                          </div>
-                          <div>
-                            <div style={{ fontSize: '14px', fontWeight: 800, color: '#0F172A', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                              <span>{disp}</span>
-                              {isAuthor && (
-                                <span
-                                  style={{
-                                    fontSize: '10px',
-                                    background: 'linear-gradient(135deg, #F59E0B, #D97706)',
-                                    color: 'white',
-                                    padding: '2px 8px',
-                                    borderRadius: '10px',
-                                    fontWeight: 800,
-                                  }}
-                                >
-                                  Creatore
-                                </span>
-                              )}
-                            </div>
-                            <div style={{ fontSize: '12px', color: '#64748B', fontWeight: 500 }}>@{pNick}</div>
-                          </div>
-                        </div>
-
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                          {pRating > 0 && (
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '3px', background: '#FEF3C7', padding: '3px 8px', borderRadius: '8px' }}>
-                              <span className="material-symbols-outlined" style={{ fontSize: '14px', color: '#D97706', fontVariationSettings: "'FILL' 1" }}>star</span>
-                              <span style={{ fontSize: '11px', fontWeight: 800, color: '#B45309' }}>{pRating.toFixed(1)}</span>
-                            </div>
-                          )}
-                          <span className="material-symbols-outlined" style={{ color: '#94A3B8', fontSize: '20px' }}>
-                            chevron_right
-                          </span>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              );
-            })()}
-          </div>
-        </div>
-      )}
+      <ParticipantsBottomSheetModal
+        isOpen={Boolean(selectedParticipantsPost)}
+        post={selectedParticipantsPost}
+        onClose={() => setSelectedParticipantsPost(null)}
+        globalDisplayNames={globalDisplayNames}
+        globalAvatars={globalAvatars}
+        allPokedexProfiles={allPokedexProfiles}
+        onOpenPublicProfile={onOpenPublicProfile}
+        currentUserAvatar={avatar}
+        currentUserNick={username}
+      />
 
       {/* Likers Bottom Sheet Modal */}
       <LikersBottomSheetModal
