@@ -1051,8 +1051,8 @@ header.hero p {
     border-bottom: none; 
     background: var(--white);
 }
-.post-user { font-weight: 800; font-size: 15px; color: var(--dark); margin-left: 12px; } 
-.post-time { font-size: 11px; color: var(--text-muted); margin-left: 12px; } 
+.post-user { font-weight: 800; font-size: 15px; color: var(--dark); margin-left: 0; } 
+.post-time { font-size: 11px; color: var(--text-muted); margin-left: 0; } 
 
 .post-image-container { 
     width: 100%; 

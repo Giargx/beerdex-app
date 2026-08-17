@@ -1048,16 +1048,19 @@ export const PublicProfileView: React.FC<PublicProfileViewProps> = ({
               </h4>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                 {[
-                  { name: 'Comuni', count: rarityCounts.comune, color: '#10B981', label: 'comune' },
-                  { name: 'Medie', count: rarityCounts.media, color: '#0EA5E9', label: 'media' },
-                  { name: 'Rare', count: rarityCounts.rara, color: '#EF4444', label: 'rara' },
+                  { name: 'Comuni', count: rarityCounts.comune, color: '#10B981', label: 'comune', pts: '+1 pt' },
+                  { name: 'Medie', count: rarityCounts.media, color: '#0EA5E9', label: 'media', pts: '+2 pt' },
+                  { name: 'Rare', count: rarityCounts.rara, color: '#EF4444', label: 'rara', pts: '+5 pt' },
                 ].map(rarity => {
                   const totalCalculated = (rarityCounts.comune + rarityCounts.media + rarityCounts.rara) || 1;
                   const percent = Math.round((rarity.count / totalCalculated) * 100);
                   return (
                     <div key={rarity.name} style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px' }}>
-                        <span style={{ fontWeight: 'bold', color: 'var(--dark)' }}>{rarity.name}</span>
+                        <span style={{ fontWeight: 'bold', color: 'var(--dark)', display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                          <span>{rarity.name}</span>
+                          <span style={{ fontSize: '11px', color: 'var(--text-muted)', fontWeight: 600 }}>({rarity.pts})</span>
+                        </span>
                         <span style={{ color: 'var(--text-muted)' }}>{rarity.count} sbloccate ({percent}%)</span>
                       </div>
                       <div style={{ width: '100%', height: '8px', background: 'var(--gray)', borderRadius: '4px', overflow: 'hidden' }}>

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { StarRating } from '../components/StarRating';
-import { formatBeerTitle, getBasePoints, getUniqueParticipantPosts, getPostParticipants, type Beer } from '../beers';
+import { formatBeerTitle, getBasePoints, getBeerRarity, getUniqueParticipantPosts, getPostParticipants, type Beer } from '../beers';
 import { ReportPostModal } from '../components/ReportPostModal';
 import { LikersBottomSheetModal } from '../components/LikersBottomSheetModal';
 
@@ -226,6 +226,7 @@ export const UserPostsDetailView: React.FC<UserPostsDetailViewProps> = ({
                 year: 'numeric'
               });
               const basePts = getBasePoints(post.brand, post.variant, allBeersCatalog, post.rarity);
+              const postRarity = getBeerRarity(post.brand, post.variant, allBeersCatalog, post.rarity);
               let earnedPts = basePts;
               if (post.isShiny) earnedPts *= 2;
 
@@ -393,7 +394,7 @@ export const UserPostsDetailView: React.FC<UserPostsDetailViewProps> = ({
                             </div>
                           )}
 
-                          <div style={{ marginLeft: '4px' }}>
+                          <div style={{ marginLeft: isShared ? '2px' : '12px', display: 'flex', flexDirection: 'column', alignItems: 'flex-start', textAlign: 'left' }}>
                             {isShared ? (
                               <div style={{ fontSize: '14px', fontWeight: 800, color: '#0F172A', display: 'flex', alignItems: 'center', gap: '4px', flexWrap: 'wrap' }}>
                                 {allParticipants.length <= 2 ? (
@@ -848,25 +849,41 @@ export const UserPostsDetailView: React.FC<UserPostsDetailViewProps> = ({
                                 <span>{likesCount === 1 ? '1 brindisi' : `${likesCount} brindisi`}</span>
                               </span>
                             </div>
-                            <span
-                              className="pts-tag"
-                              style={{
-                                color: 'white',
-                                fontWeight: 800,
-                                fontSize: '11px',
-                                background: post.isShiny
-                                  ? 'linear-gradient(135deg, #F59E0B, #D97706)'
-                                  : 'linear-gradient(135deg, #E67E22, #D35400)',
-                                padding: '3px 8px',
-                                borderRadius: '12px',
-                                display: 'inline-flex',
-                                alignItems: 'center',
-                                gap: '3px',
-                                boxShadow: '0 2px 6px rgba(230, 126, 34, 0.3)',
-                                verticalAlign: 'middle',
-                              }}
-                            >
-                              +{earnedPts} pt
+                            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', verticalAlign: 'middle' }}>
+                              <span
+                                style={{
+                                  fontSize: '10px',
+                                  fontWeight: 800,
+                                  padding: '2px 7px',
+                                  borderRadius: '10px',
+                                  textTransform: 'uppercase',
+                                  background: postRarity === 'rara' ? '#FEF3C7' : postRarity === 'media' ? '#E0F2FE' : '#F1F5F9',
+                                  color: postRarity === 'rara' ? '#B45309' : postRarity === 'media' ? '#0369A1' : '#475569',
+                                  border: postRarity === 'rara' ? '1px solid #FDE68A' : postRarity === 'media' ? '1px solid #BAE6FD' : '1px solid #E2E8F0',
+                                }}
+                              >
+                                {postRarity}
+                              </span>
+                              <span
+                                className="pts-tag"
+                                style={{
+                                  color: 'white',
+                                  fontWeight: 800,
+                                  fontSize: '11px',
+                                  background: post.isShiny
+                                    ? 'linear-gradient(135deg, #F59E0B, #D97706)'
+                                    : 'linear-gradient(135deg, #E67E22, #D35400)',
+                                  padding: '3px 8px',
+                                  borderRadius: '12px',
+                                  display: 'inline-flex',
+                                  alignItems: 'center',
+                                  gap: '3px',
+                                  boxShadow: '0 2px 6px rgba(230, 126, 34, 0.3)',
+                                  verticalAlign: 'middle',
+                                }}
+                              >
+                                +{earnedPts} pt
+                              </span>
                             </span>
                           </div>
 

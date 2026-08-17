@@ -91,7 +91,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
     const hour = new Date().getHours();
     if (hour >= 5 && hour < 12) return 'Buongiorno ☕';
     if (hour >= 12 && hour < 18) return 'Buon pomeriggio 🍺';
-    return 'Buona serata al pub! 🌙';
+    return 'Buonasera 🌙';
   };
 
   const activeEvents = useMemo<Array<{ name: string; desc: string }>>(() => {
@@ -615,8 +615,8 @@ export const HomeView: React.FC<HomeViewProps> = ({
           </div>
 
           {/* Header Row */}
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', gap: '10px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', minWidth: 0, flex: 1 }}>
               <div
                 onClick={() => {
                   const opened = onOpenUserStory ? onOpenUserStory(currentUserNick) : false;
@@ -639,7 +639,8 @@ export const HomeView: React.FC<HomeViewProps> = ({
                   boxShadow: '0 4px 15px rgba(255, 179, 0, 0.3)',
                   border: '2px solid rgba(255, 255, 255, 0.8)',
                   overflow: 'hidden',
-                  cursor: 'pointer'
+                  cursor: 'pointer',
+                  flexShrink: 0,
                 }}
               >
                 {currentUserAvatar ? (
@@ -652,11 +653,11 @@ export const HomeView: React.FC<HomeViewProps> = ({
                   greetingName.charAt(0).toUpperCase()
                 )}
               </div>
-              <div style={{ textAlign: 'left' }}>
-                <div style={{ fontSize: '12px', color: '#94A3B8', fontWeight: 600 }}>
+              <div style={{ textAlign: 'left', minWidth: 0, overflow: 'hidden' }}>
+                <div style={{ fontSize: '12px', color: '#94A3B8', fontWeight: 600, whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', gap: '4px' }}>
                   {getGreeting()}
                 </div>
-                <h2 style={{ margin: 0, color: '#FFFFFF', fontSize: '20px', fontWeight: 800 }}>
+                <h2 style={{ margin: 0, color: '#FFFFFF', fontSize: '20px', fontWeight: 800, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                   {greetingName}
                 </h2>
               </div>
@@ -673,7 +674,9 @@ export const HomeView: React.FC<HomeViewProps> = ({
                 fontWeight: 800,
                 borderRadius: '20px',
                 backdropFilter: 'blur(8px)',
-                letterSpacing: '0.3px'
+                letterSpacing: '0.3px',
+                flexShrink: 0,
+                whiteSpace: 'nowrap',
               }}
             >
               {rankLabel}

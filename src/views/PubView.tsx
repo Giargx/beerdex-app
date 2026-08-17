@@ -679,6 +679,20 @@ export const PubView: React.FC<PubViewProps> = ({
               const pointsBadge = (
                 <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', verticalAlign: 'middle' }}>
                   <span
+                    style={{
+                      fontSize: '10px',
+                      fontWeight: 800,
+                      padding: '2px 7px',
+                      borderRadius: '10px',
+                      textTransform: 'uppercase',
+                      background: postRarity === 'rara' ? '#FEF3C7' : postRarity === 'media' ? '#E0F2FE' : '#F1F5F9',
+                      color: postRarity === 'rara' ? '#B45309' : postRarity === 'media' ? '#0369A1' : '#475569',
+                      border: postRarity === 'rara' ? '1px solid #FDE68A' : postRarity === 'media' ? '1px solid #BAE6FD' : '1px solid #E2E8F0',
+                    }}
+                  >
+                    {postRarity}
+                  </span>
+                  <span
                     className="pts-tag"
                     style={{
                       color: 'white',
@@ -696,20 +710,6 @@ export const PubView: React.FC<PubViewProps> = ({
                     }}
                   >
                     +{earnedPts} pt
-                  </span>
-                  <span
-                    style={{
-                      fontSize: '10px',
-                      fontWeight: 800,
-                      padding: '2px 7px',
-                      borderRadius: '10px',
-                      textTransform: 'uppercase',
-                      background: postRarity === 'rara' ? '#FEF3C7' : postRarity === 'media' ? '#E0F2FE' : '#F1F5F9',
-                      color: postRarity === 'rara' ? '#B45309' : postRarity === 'media' ? '#0369A1' : '#475569',
-                      border: postRarity === 'rara' ? '1px solid #FDE68A' : postRarity === 'media' ? '1px solid #BAE6FD' : '1px solid #E2E8F0',
-                    }}
-                  >
-                    {postRarity}
                   </span>
                 </span>
               );
@@ -927,7 +927,7 @@ export const PubView: React.FC<PubViewProps> = ({
                         })()
                       )}
 
-                          <div style={{ marginLeft: '4px' }}>
+                          <div style={{ marginLeft: isShared ? '2px' : '12px', display: 'flex', flexDirection: 'column', alignItems: 'flex-start', textAlign: 'left' }}>
                             {isShared ? (
                               <div style={{ fontSize: '14px', fontWeight: 800, color: '#0F172A', display: 'flex', alignItems: 'center', gap: '4px', flexWrap: 'wrap' }}>
                                  {allParticipants.length <= 2 ? (
@@ -1001,9 +1001,9 @@ export const PubView: React.FC<PubViewProps> = ({
                               </div>
                             ) : (
                               <div
-                                className="post-user clickable-user"
+                                className="clickable-user"
                                 onClick={() => handleUserAvatarClick(user1)}
-                                style={{ fontSize: '14px', fontWeight: 800, color: '#0F172A', cursor: 'pointer' }}
+                                style={{ fontSize: '14px', fontWeight: 800, color: '#0F172A', cursor: 'pointer', margin: 0, padding: 0 }}
                               >
                                 {disp1}
                               </div>

@@ -8,14 +8,22 @@ interface PullToRefreshHandlerProps {
 export const PullToRefreshHandler: React.FC<PullToRefreshHandlerProps> = ({ onRefresh, children }) => {
   const [pullDistance, setPullDistance] = useState<number>(0);
   const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
-  
-  const startYRef = useRef<number>(0);
+
+  const pullDistanceRef = useRef<number>(0);
   const isPullingRef = useRef<boolean>(false);
+  const isRefreshingRef = useRef<boolean>(false);
+  const startYRef = useRef<number>(0);
+  const onRefreshRef = useRef(onRefresh);
+
+  useEffect(() => {
+    onRefreshRef.current = onRefresh;
+  }, [onRefresh]);
 
   const PULL_THRESHOLD = 70; // Pixel per attivare il refresh
 
   useEffect(() => {
     const handleTouchStart = (e: TouchEvent) => {
+      if (isRefreshingRef.current) return;
       // Attiva solo se la scrollbar è in cima alla pagina
       const scrollTop = window.scrollY || document.documentElement.scrollTop || document.body.scrollTop || 0;
       if (scrollTop <= 2 && e.touches.length === 1) {
@@ -27,11 +35,12 @@ export const PullToRefreshHandler: React.FC<PullToRefreshHandlerProps> = ({ onRe
     };
 
     const handleTouchMove = (e: TouchEvent) => {
-      if (!isPullingRef.current || isRefreshing) return;
-      
+      if (!isPullingRef.current || isRefreshingRef.current) return;
+
       const scrollTop = window.scrollY || document.documentElement.scrollTop || document.body.scrollTop || 0;
       if (scrollTop > 5) {
         isPullingRef.current = false;
+        pullDistanceRef.current = 0;
         setPullDistance(0);
         return;
       }
@@ -40,53 +49,68 @@ export const PullToRefreshHandler: React.FC<PullToRefreshHandlerProps> = ({ onRe
       const deltaY = currentY - startYRef.current;
 
       if (deltaY > 0) {
-        // Aggiungi una resistenza fisica (effetto elastico iOS)
+        // Resistenza elastica stile mobile
         const distance = Math.min(deltaY * 0.45, 110);
+        pullDistanceRef.current = distance;
         setPullDistance(distance);
-
-        // Previene lo scroll sgradevole di Safari se stiamo trascinando in giù
-        if (distance > 10 && e.cancelable) {
-          // Si può eventualmente prevenire l'azione di default se necessario
-        }
       } else {
+        pullDistanceRef.current = 0;
         setPullDistance(0);
       }
     };
 
-    const handleTouchEnd = async () => {
-      if (!isPullingRef.current) return;
+    const handleRelease = async () => {
+      if (isRefreshingRef.current) return;
+
+      const wasPulling = isPullingRef.current;
+      const currentDistance = pullDistanceRef.current;
       isPullingRef.current = false;
 
-      if (pullDistance >= PULL_THRESHOLD && !isRefreshing) {
+      if (wasPulling && currentDistance >= PULL_THRESHOLD) {
+        isRefreshingRef.current = true;
         setIsRefreshing(true);
-        setPullDistance(60); // Mantieni la rotellina visibile in alto durante il refresh
+        pullDistanceRef.current = 60;
+        setPullDistance(60);
 
         try {
-          await onRefresh();
+          if (onRefreshRef.current) {
+            await onRefreshRef.current();
+          }
         } catch (err) {
           console.error("Errore durante il pull-to-refresh:", err);
         } finally {
-          // Attendi un istante per far vedere l'animazione completata
           setTimeout(() => {
+            isRefreshingRef.current = false;
             setIsRefreshing(false);
+            pullDistanceRef.current = 0;
             setPullDistance(0);
-          }, 600);
+          }, 500);
         }
       } else {
+        // Rilasciato prima della soglia o gesto annullato: reset immediato
+        pullDistanceRef.current = 0;
         setPullDistance(0);
       }
     };
 
     window.addEventListener('touchstart', handleTouchStart, { passive: true });
     window.addEventListener('touchmove', handleTouchMove, { passive: true });
-    window.addEventListener('touchend', handleTouchEnd);
+    window.addEventListener('touchend', handleRelease, { passive: true });
+    window.addEventListener('touchcancel', handleRelease, { passive: true });
+    window.addEventListener('pointercancel', handleRelease, { passive: true });
+    window.addEventListener('pointerup', handleRelease, { passive: true });
+    window.addEventListener('blur', handleRelease);
 
     return () => {
       window.removeEventListener('touchstart', handleTouchStart);
       window.removeEventListener('touchmove', handleTouchMove);
-      window.removeEventListener('touchend', handleTouchEnd);
+      window.removeEventListener('touchend', handleRelease);
+      window.removeEventListener('touchcancel', handleRelease);
+      window.removeEventListener('pointercancel', handleRelease);
+      window.removeEventListener('pointerup', handleRelease);
+      window.removeEventListener('blur', handleRelease);
     };
-  }, [pullDistance, isRefreshing, onRefresh]);
+  }, []);
 
   const rotation = Math.min(pullDistance * 3.5, 360);
   const opacity = Math.min(pullDistance / 40, 1);
@@ -106,8 +130,8 @@ export const PullToRefreshHandler: React.FC<PullToRefreshHandlerProps> = ({ onRe
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            opacity: opacity,
-            transition: isPullingRef.current ? 'none' : 'top 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.2s ease',
+            opacity: isRefreshing ? 1 : opacity,
+            transition: isPullingRef.current ? 'none' : 'top 0.25s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.2s ease',
           }}
         >
           <div
