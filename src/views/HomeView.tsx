@@ -55,7 +55,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
   myPokedex = {},
   allBeersCatalog = beers,
   onInitUnlock: _onInitUnlock,
-  onOpenScanner,
+  onOpenScanner: _onOpenScanner,
   onOpenPublicProfile,
   globalUserPrivacy = {},
   isAdminUser = false,
@@ -736,7 +736,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
           }}
         >
           <button
-            onClick={() => onOpenScanner ? onOpenScanner() : onNavigate('page-explore')}
+            onClick={() => onNavigate('page-explore')}
             style={{
               background: 'linear-gradient(135deg, #FFB300, #FF6F00)',
               border: 'none',
