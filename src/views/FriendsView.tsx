@@ -585,21 +585,8 @@ export const FriendsView: React.FC<FriendsViewProps> = ({
                         </div>
 
                         <div>
-                          <div style={{ fontSize: '15px', fontWeight: 800, color: '#0F172A', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                            <span>{disp}</span>
-                            <span
-                              style={{
-                                fontSize: '10px',
-                                fontWeight: 800,
-                                color: '#10B981',
-                                background: '#ECFDF5',
-                                padding: '2px 6px',
-                                borderRadius: '10px',
-                                border: '1px solid #A7F3D0',
-                              }}
-                            >
-                              Amico ✓
-                            </span>
+                          <div style={{ fontSize: '15px', fontWeight: 800, color: '#0F172A' }}>
+                            {disp}
                           </div>
                           <div style={{ fontSize: '12px', color: '#64748B', fontWeight: 600 }}>@{friend}</div>
                         </div>
