@@ -306,11 +306,11 @@ export function getEventMedals(userPosts: any[] = [], catalog: Beer[] = beers, p
     targetCount: 10,
   });
 
-  // Sort medals in chronological order throughout the year
+  // Sort medals in reverse chronological order (most recent events first)
   medals.sort((a, b) => {
     const timeA = a.startDate ? a.startDate.getTime() : 0;
     const timeB = b.startDate ? b.startDate.getTime() : 0;
-    return timeA - timeB;
+    return timeB - timeA;
   });
 
   // Keep all unlocked medals, plus active or future upcoming events
@@ -336,6 +336,165 @@ export interface TrophyGridProps {
   userPosts?: any[];
   allBeersCatalog?: Beer[];
 }
+
+export const RealisticMedal: React.FC<{ medal: EventMedal }> = ({ medal }) => {
+  const isUnlocked = medal.isUnlocked;
+
+  const ribbonGradients: Record<string, string> = {
+    ac_unit: 'linear-gradient(180deg, #1D4ED8 0%, #3B82F6 50%, #93C5FD 100%)',
+    eco: 'linear-gradient(180deg, #15803D 0%, #22C55E 50%, #86EFAC 100%)',
+    local_florist: 'linear-gradient(180deg, #BE185D 0%, #EC4899 50%, #FBCFE8 100%)',
+    egg: 'linear-gradient(180deg, #B45309 0%, #F59E0B 50%, #FEF3C7 100%)',
+    wb_sunny: 'linear-gradient(180deg, #C2410C 0%, #EA580C 50%, #FDE047 100%)',
+    celebration: 'linear-gradient(180deg, #B91C1C 0%, #EF4444 50%, #FCA5A5 100%)',
+    sports_bar: 'linear-gradient(180deg, #1E3A8A 0%, #2563EB 50%, #F59E0B 100%)',
+    wb_twilight: 'linear-gradient(180deg, #7C2D12 0%, #C2410C 50%, #FDBA74 100%)',
+  };
+
+  const ribbonBg = isUnlocked
+    ? (ribbonGradients[medal.icon] || 'linear-gradient(180deg, #B45309 0%, #F59E0B 50%, #FDE68A 100%)')
+    : 'linear-gradient(180deg, #475569 0%, #64748B 50%, #94A3B8 100%)';
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', position: 'relative', width: '68px', margin: '0 auto 8px auto' }}>
+      {/* Top Ribbon */}
+      <div
+        style={{
+          width: '28px',
+          height: '24px',
+          background: ribbonBg,
+          borderRadius: '4px 4px 0 0',
+          position: 'relative',
+          boxShadow: '0 2px 5px rgba(0,0,0,0.2)',
+          clipPath: 'polygon(0% 0%, 100% 0%, 85% 100%, 15% 100%)',
+          zIndex: 1,
+        }}
+      >
+        {/* Ribbon center stripe */}
+        <div
+          style={{
+            position: 'absolute',
+            left: '50%',
+            top: 0,
+            bottom: 0,
+            width: '6px',
+            transform: 'translateX(-50%)',
+            background: isUnlocked ? 'rgba(255,255,255,0.45)' : 'rgba(255,255,255,0.2)',
+          }}
+        />
+      </div>
+
+      {/* Gold/Silver Connector Loop */}
+      <div
+        style={{
+          width: '14px',
+          height: '6px',
+          borderRadius: '3px',
+          background: isUnlocked
+            ? 'linear-gradient(90deg, #B45309 0%, #FDE047 50%, #92400E 100%)'
+            : 'linear-gradient(90deg, #334155 0%, #CBD5E1 50%, #334155 100%)',
+          boxShadow: '0 1px 2px rgba(0,0,0,0.3)',
+          marginTop: '-3px',
+          zIndex: 2,
+        }}
+      />
+
+      {/* Circular Medallion */}
+      <div
+        style={{
+          width: '62px',
+          height: '62px',
+          borderRadius: '50%',
+          marginTop: '-2px',
+          position: 'relative',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          background: isUnlocked
+            ? 'linear-gradient(135deg, #FEF08A 0%, #EAB308 25%, #CA8A04 60%, #854D0E 100%)'
+            : 'linear-gradient(135deg, #F1F5F9 0%, #94A3B8 50%, #475569 100%)',
+          padding: '3px',
+          boxSizing: 'border-box',
+          boxShadow: isUnlocked
+            ? '0 6px 16px rgba(234, 179, 8, 0.35), 0 2px 4px rgba(0,0,0,0.2)'
+            : '0 4px 10px rgba(0,0,0,0.15)',
+          zIndex: 3,
+        }}
+      >
+        {/* Beaded / Embossed Outer Rim */}
+        <div
+          style={{
+            width: '100%',
+            height: '100%',
+            borderRadius: '50%',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            position: 'relative',
+            border: isUnlocked ? '1.5px dashed rgba(254, 240, 138, 0.7)' : '1.5px dashed rgba(255, 255, 255, 0.4)',
+            background: isUnlocked
+              ? 'radial-gradient(circle at 35% 30%, #FEF9C3 0%, #FDE047 35%, #EAB308 75%, #A16207 100%)'
+              : 'radial-gradient(circle at 35% 30%, #F8FAFC 0%, #E2E8F0 45%, #94A3B8 100%)',
+            boxShadow: isUnlocked
+              ? 'inset 0 2px 4px rgba(255,255,255,0.7), inset 0 -2px 4px rgba(113, 63, 18, 0.4)'
+              : 'inset 0 2px 4px rgba(255,255,255,0.6), inset 0 -2px 4px rgba(30, 41, 59, 0.3)',
+          }}
+        >
+          {/* Specular Highlight Sheen */}
+          <div
+            style={{
+              position: 'absolute',
+              top: '2px',
+              left: '6px',
+              width: '18px',
+              height: '9px',
+              borderRadius: '50%',
+              background: 'linear-gradient(180deg, rgba(255,255,255,0.6) 0%, rgba(255,255,255,0) 100%)',
+              transform: 'rotate(-25deg)',
+              pointerEvents: 'none',
+            }}
+          />
+
+          {/* Central Theme Icon */}
+          <span
+            className="material-symbols-outlined"
+            style={{
+              fontSize: '22px',
+              color: isUnlocked ? '#78350F' : '#64748B',
+              marginTop: '1px',
+              textShadow: isUnlocked ? '0 1px 0 rgba(255,255,255,0.8)' : '0 1px 0 rgba(255,255,255,0.4)',
+              lineHeight: 1,
+            }}
+          >
+            {isUnlocked ? medal.icon : 'lock'}
+          </span>
+
+          {/* Engraved Year Badge */}
+          <div
+            style={{
+              fontSize: '9px',
+              fontWeight: 900,
+              letterSpacing: '0.4px',
+              color: isUnlocked ? '#78350F' : '#475569',
+              background: isUnlocked ? 'rgba(254, 240, 138, 0.85)' : 'rgba(241, 245, 249, 0.85)',
+              border: isUnlocked ? '1px solid rgba(180, 83, 9, 0.35)' : '1px solid rgba(148, 163, 184, 0.5)',
+              borderRadius: '4px',
+              padding: '0 4px',
+              marginTop: '2px',
+              boxShadow: '0 1px 2px rgba(0,0,0,0.1)',
+              textShadow: '0 1px 0 rgba(255,255,255,0.6)',
+              lineHeight: 1.2,
+            }}
+          >
+            {medal.year}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 export const TrophyGrid: React.FC<TrophyGridProps> = ({
   pokedex,
@@ -466,7 +625,6 @@ export const TrophyGrid: React.FC<TrophyGridProps> = ({
   });
 
   const completedMedalsCount = brandMedalsList.filter((m) => m.isCompleted).length;
-  const unlockedEventsCount = eventMedalsList.filter((e) => e.isUnlocked).length;
   const unlockedVariantsCount = allVariantsList.filter((v) => v.isUnlocked).length;
 
   return (
@@ -565,9 +723,6 @@ export const TrophyGrid: React.FC<TrophyGridProps> = ({
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 'bold', fontSize: '14px', color: 'var(--dark)' }}>
                 <span className="material-symbols-outlined" style={{ color: '#27ae60' }}>event_available</span>
                 <span>Medaglie Evento</span>
-                <span style={{ fontSize: '11px', color: 'var(--text-muted)', background: '#F1F5F9', padding: '2px 8px', borderRadius: '10px' }}>
-                  {unlockedEventsCount} / {eventMedalsList.length}
-                </span>
               </div>
               <span
                 className="material-symbols-outlined"
@@ -585,35 +740,41 @@ export const TrophyGrid: React.FC<TrophyGridProps> = ({
           {(mode || eventsOpen) && (
             <div className="trophy-grid" id="eventMedalsGrid" style={{ animation: 'fadeIn 0.2s ease-out' }}>
               {eventMedalsList.map((medal) => {
-                const iconColor = medal.isUnlocked ? medal.color : 'var(--text-muted)';
-                const medalIcon = medal.isUnlocked ? medal.icon : 'lock';
                 return (
                   <div
                     key={medal.id}
                     className={`medal-badge-card ${medal.isUnlocked ? 'unlocked' : ''}`}
                     style={{
-                      opacity: medal.isUnlocked ? 1 : 0.65,
-                      padding: '12px 10px',
+                      background: medal.isUnlocked ? 'linear-gradient(180deg, #FFFDF5 0%, #FEFCE8 100%)' : '#F8FAFC',
+                      border: medal.isUnlocked ? '1.5px solid #FDE047' : '1px solid #E2E8F0',
+                      borderRadius: '20px',
+                      padding: '14px 8px 12px 8px',
                       display: 'flex',
                       flexDirection: 'column',
                       alignItems: 'center',
                       textAlign: 'center',
+                      position: 'relative',
+                      boxShadow: medal.isUnlocked ? '0 6px 16px rgba(234, 179, 8, 0.12)' : '0 2px 6px rgba(0,0,0,0.03)',
+                      opacity: medal.isUnlocked ? 1 : 0.75,
+                      transition: 'all 0.2s ease',
                     }}
                   >
                     {medal.isUnlocked && (
-                      <div className="pts-badge" style={{ background: '#27ae60' }}>
+                      <div
+                        className="pts-badge"
+                        style={{
+                          background: 'linear-gradient(135deg, #16A34A 0%, #15803D 100%)',
+                          boxShadow: '0 2px 6px rgba(22, 163, 74, 0.3)',
+                        }}
+                      >
                         +{medal.points}pt
                       </div>
                     )}
-                    <div className="medal-icon-container" style={{ color: iconColor, marginBottom: '6px' }}>
-                      <span className="material-symbols-outlined" style={{ fontSize: '40px' }}>
-                        {medalIcon}
-                      </span>
-                    </div>
-                    <div style={{ fontSize: '11px', fontWeight: 'bold', color: 'var(--dark)', lineHeight: 1.2 }}>
+                    <RealisticMedal medal={medal} />
+                    <div style={{ fontSize: '11px', fontWeight: 900, color: '#0F172A', lineHeight: 1.2, marginTop: '2px' }}>
                       {medal.name}
                     </div>
-                    <div style={{ fontSize: '9px', color: 'var(--text-muted)', marginTop: '4px', lineHeight: 1.2 }}>
+                    <div style={{ fontSize: '9.5px', color: '#64748B', marginTop: '4px', lineHeight: 1.25, fontWeight: 500 }}>
                       {medal.desc}
                     </div>
                   </div>

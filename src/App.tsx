@@ -715,6 +715,7 @@ export default function App() {
   // Main Tab Touch Swipe State & Handlers
   const touchStartX = useRef<number>(0);
   const touchStartY = useRef<number>(0);
+  const touchStartTime = useRef<number>(0);
   const isHorizontalSwipe = useRef<boolean | null>(null);
   const [dragOffset, setDragOffset] = useState<number>(0);
   const [isDragging, setIsDragging] = useState<boolean>(false);
@@ -722,6 +723,7 @@ export default function App() {
   const handleMainTouchStart = (e: React.TouchEvent) => {
     touchStartX.current = e.touches[0].clientX;
     touchStartY.current = e.touches[0].clientY;
+    touchStartTime.current = Date.now();
     isHorizontalSwipe.current = null;
     setIsDragging(false);
     setDragOffset(0);
@@ -733,6 +735,8 @@ export default function App() {
     const currentY = e.touches[0].clientY;
     const diffX = currentX - touchStartX.current;
     const diffY = currentY - touchStartY.current;
+    const absX = Math.abs(diffX);
+    const absY = Math.abs(diffY);
 
     const mainTabs = ['page-home', 'page-explore', 'page-leaderboard', 'page-social', 'page-profile'];
     const currentIndex = mainTabs.indexOf(currentPage);
@@ -743,9 +747,9 @@ export default function App() {
     }
 
     if (isHorizontalSwipe.current === null) {
-      if (Math.abs(diffX) > 5 && Math.abs(diffX) > Math.abs(diffY)) {
+      if (absX >= 6 && absX > absY * 0.7) {
         isHorizontalSwipe.current = true;
-      } else if (Math.abs(diffY) > 5) {
+      } else if (absY >= 14 && absY > absX * 1.5) {
         isHorizontalSwipe.current = false;
       }
     }
@@ -757,19 +761,23 @@ export default function App() {
   };
 
   const handleMainTouchEnd = () => {
-    if (isDragging && touchStartX.current !== 0) {
-      const threshold = 18; // Ultra-sensitive 18px swipe threshold to switch tab
+    if ((isDragging || isHorizontalSwipe.current) && touchStartX.current !== 0) {
+      const duration = Date.now() - touchStartTime.current;
+      const absOffset = Math.abs(dragOffset);
+      const isQuickFlick = duration < 350 && absOffset > 14;
+      const isNormalSwipe = absOffset > 24;
       const mainTabs = ['page-home', 'page-explore', 'page-leaderboard', 'page-social', 'page-profile'];
       const currentIndex = mainTabs.indexOf(currentPage);
 
-      if (dragOffset < -threshold && currentIndex < mainTabs.length - 1) {
+      if ((isQuickFlick || isNormalSwipe) && dragOffset < 0 && currentIndex < mainTabs.length - 1) {
         navigateTo(mainTabs[currentIndex + 1]);
-      } else if (dragOffset > threshold && currentIndex > 0) {
+      } else if ((isQuickFlick || isNormalSwipe) && dragOffset > 0 && currentIndex > 0) {
         navigateTo(mainTabs[currentIndex - 1]);
       }
     }
     touchStartX.current = 0;
     touchStartY.current = 0;
+    touchStartTime.current = 0;
     isHorizontalSwipe.current = null;
     setIsDragging(false);
     setDragOffset(0);

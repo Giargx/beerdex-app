@@ -65,8 +65,9 @@ export const ParticipantsBottomSheetModal: React.FC<ParticipantsBottomSheetModal
         left: 0,
         right: 0,
         bottom: 0,
-        width: '100vw',
-        height: '100vh',
+        width: '100%',
+        maxWidth: '100vw',
+        height: '100%',
         background: 'rgba(15, 23, 42, 0.65)',
         backdropFilter: 'blur(6px)',
         WebkitBackdropFilter: 'blur(6px)',
@@ -78,6 +79,8 @@ export const ParticipantsBottomSheetModal: React.FC<ParticipantsBottomSheetModal
         touchAction: 'none',
         pointerEvents: 'auto',
         WebkitTapHighlightColor: 'transparent',
+        overflow: 'hidden',
+        overflowX: 'hidden',
       }}
     >
       <div
@@ -89,11 +92,15 @@ export const ParticipantsBottomSheetModal: React.FC<ParticipantsBottomSheetModal
           borderRadius: '28px 28px 0 0',
           padding: '16px 20px calc(28px + env(safe-area-inset-bottom, 16px)) 20px',
           maxHeight: '80vh',
+          width: '100%',
+          maxWidth: '540px',
+          margin: '0 auto',
           display: 'flex',
           flexDirection: 'column',
           boxShadow: '0 -10px 40px rgba(0,0,0,0.25)',
           animation: 'slideUp 0.25s cubic-bezier(0.16, 1, 0.3, 1)',
           boxSizing: 'border-box',
+          overflowX: 'hidden',
           WebkitOverflowScrolling: 'touch',
         }}
       >

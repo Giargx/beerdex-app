@@ -158,7 +158,7 @@ export const UserPostsDetailView: React.FC<UserPostsDetailViewProps> = ({
   };
 
   return (
-    <div className="page-container-view" style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', background: 'var(--light)' }}>
+    <div className="page-container-view" style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', background: 'var(--light)', overflowX: 'hidden' }}>
       {/* Top Navbar */}
       <div
         style={{
