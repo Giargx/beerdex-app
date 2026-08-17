@@ -724,7 +724,7 @@ export default function App() {
 
   useEffect(() => {
     if (mainTabsSliderRef.current) {
-      mainTabsSliderRef.current.style.transition = 'transform 0.32s cubic-bezier(0.2, 0.9, 0.3, 1)';
+      mainTabsSliderRef.current.style.transition = 'transform 0.3s cubic-bezier(0.25, 1, 0.5, 1)';
       mainTabsSliderRef.current.style.transform = `translateX(-${activeIndex * 20}%)`;
     }
   }, [activeIndex]);
@@ -749,9 +749,10 @@ export default function App() {
     const mainTabs = ['page-home', 'page-explore', 'page-leaderboard', 'page-social', 'page-profile'];
     const currentIndex = mainTabs.indexOf(currentPage);
 
-    // Prevent dragging past left edge on Home or past right edge on Profile
+    // Damped drag past boundaries
+    let effectiveDiffX = diffX;
     if ((currentIndex === 0 && diffX > 0) || (currentIndex === mainTabs.length - 1 && diffX < 0)) {
-      return;
+      effectiveDiffX = diffX * 0.25;
     }
 
     if (isHorizontalSwipe.current === null) {
@@ -763,18 +764,18 @@ export default function App() {
     }
 
     if (isHorizontalSwipe.current && mainTabsSliderRef.current) {
-      currentDragOffset.current = diffX;
+      currentDragOffset.current = effectiveDiffX;
       mainTabsSliderRef.current.style.transition = 'none';
-      mainTabsSliderRef.current.style.transform = `translateX(calc(-${activeIndex * 20}% + ${diffX}px))`;
+      mainTabsSliderRef.current.style.transform = `translateX(calc(-${activeIndex * 20}% + ${effectiveDiffX}px))`;
     }
   };
 
   const handleMainTouchEnd = () => {
-    if (touchStartX.current !== 0) {
+    if (touchStartX.current !== 0 && isHorizontalSwipe.current) {
       const duration = Date.now() - touchStartTime.current;
       const offset = currentDragOffset.current;
       const absOffset = Math.abs(offset);
-      const isQuickFlick = duration < 320 && absOffset > 25;
+      const isQuickFlick = duration < 300 && absOffset > 25;
       const isNormalSwipe = absOffset > 45;
       const mainTabs = ['page-home', 'page-explore', 'page-leaderboard', 'page-social', 'page-profile'];
       const currentIndex = mainTabs.indexOf(currentPage);
@@ -782,19 +783,19 @@ export default function App() {
       if ((isQuickFlick || isNormalSwipe) && offset < 0 && currentIndex < mainTabs.length - 1) {
         const nextIndex = currentIndex + 1;
         if (mainTabsSliderRef.current) {
-          mainTabsSliderRef.current.style.transition = 'transform 0.32s cubic-bezier(0.2, 0.9, 0.3, 1)';
+          mainTabsSliderRef.current.style.transition = 'transform 0.3s cubic-bezier(0.25, 1, 0.5, 1)';
           mainTabsSliderRef.current.style.transform = `translateX(-${nextIndex * 20}%)`;
         }
         navigateTo(mainTabs[nextIndex]);
       } else if ((isQuickFlick || isNormalSwipe) && offset > 0 && currentIndex > 0) {
         const prevIndex = currentIndex - 1;
         if (mainTabsSliderRef.current) {
-          mainTabsSliderRef.current.style.transition = 'transform 0.32s cubic-bezier(0.2, 0.9, 0.3, 1)';
+          mainTabsSliderRef.current.style.transition = 'transform 0.3s cubic-bezier(0.25, 1, 0.5, 1)';
           mainTabsSliderRef.current.style.transform = `translateX(-${prevIndex * 20}%)`;
         }
         navigateTo(mainTabs[prevIndex]);
       } else if (mainTabsSliderRef.current) {
-        mainTabsSliderRef.current.style.transition = 'transform 0.25s cubic-bezier(0.2, 0.9, 0.3, 1)';
+        mainTabsSliderRef.current.style.transition = 'transform 0.25s cubic-bezier(0.25, 1, 0.5, 1)';
         mainTabsSliderRef.current.style.transform = `translateX(-${activeIndex * 20}%)`;
       }
     }
@@ -4438,14 +4439,12 @@ export default function App() {
       {/* MAIN CONTAINER CONTENT VIEW */}
       <div className="main-content">
         {/* Main 5 Tabs Horizontal Slider */}
-        <div className={`page-view ${isMainTab ? 'active' : ''}`}>
+        <div className={`page-view main-tabs-view ${isMainTab ? 'active' : ''}`}>
           <div className="main-tabs-wrapper">
             <div
               ref={mainTabsSliderRef}
               className="main-tabs-slider-container"
               style={{
-                transform: `translateX(-${activeIndex * 20}%)`,
-                transition: 'transform 0.28s cubic-bezier(0.25, 1, 0.5, 1)',
                 touchAction: 'pan-y',
               }}
               onTouchStart={handleMainTouchStart}
