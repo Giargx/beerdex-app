@@ -111,23 +111,48 @@ export default function App() {
   const [proposeVariantPrefill, setProposeVariantPrefill] = useState<string>('');
   const [proposeRarityPrefill, setProposeRarityPrefill] = useState<"comune" | "media" | "rara">('comune');
   const [proposeDescPrefill, setProposeDescPrefill] = useState<string>('');
+  const [proposeCountryPrefill, setProposeCountryPrefill] = useState<string>('');
+  const [proposeRegionePrefill, setProposeRegionePrefill] = useState<string>('Tutte');
+  const [proposeBeerTypePrefill, setProposeBeerTypePrefill] = useState<"bionda" | "rossa" | "scura" | "bianca" | "ipa" | "">('');
+  const [proposeIsVariantPrefill, setProposeIsVariantPrefill] = useState<boolean | undefined>(undefined);
 
-  const handleOpenProposeModal = (prefill?: { brand?: string; variant?: string; rarity?: "comune" | "media" | "rara"; desc?: string } | string) => {
+  const handleOpenProposeModal = (prefill?: {
+    brand?: string;
+    variant?: string;
+    rarity?: "comune" | "media" | "rara";
+    desc?: string;
+    country?: string;
+    regione?: string;
+    beerType?: "bionda" | "rossa" | "scura" | "bianca" | "ipa" | "";
+    isVariantProposal?: boolean;
+  } | string) => {
     if (typeof prefill === 'string') {
       setProposeBrandPrefill(prefill);
       setProposeVariantPrefill('');
       setProposeRarityPrefill('comune');
       setProposeDescPrefill('');
+      setProposeCountryPrefill('');
+      setProposeRegionePrefill('Tutte');
+      setProposeBeerTypePrefill('');
+      setProposeIsVariantPrefill(undefined);
     } else if (prefill) {
       setProposeBrandPrefill(prefill.brand || '');
       setProposeVariantPrefill(prefill.variant || '');
       setProposeRarityPrefill(prefill.rarity || 'comune');
       setProposeDescPrefill(prefill.desc || '');
+      setProposeCountryPrefill(prefill.country || '');
+      setProposeRegionePrefill(prefill.regione || 'Tutte');
+      setProposeBeerTypePrefill(prefill.beerType || '');
+      setProposeIsVariantPrefill(prefill.isVariantProposal);
     } else {
       setProposeBrandPrefill('');
       setProposeVariantPrefill('');
       setProposeRarityPrefill('comune');
       setProposeDescPrefill('');
+      setProposeCountryPrefill('');
+      setProposeRegionePrefill('Tutte');
+      setProposeBeerTypePrefill('');
+      setProposeIsVariantPrefill(undefined);
     }
     setProposeModalOpen(true);
   };
@@ -4570,6 +4595,7 @@ export default function App() {
                     isAdminUser={isAdminUser}
                     myPokedex={myPokedex}
                     globalAvatars={globalAvatars}
+                    globalDisplayNames={globalDisplayNames}
                     leaderboardScores={globalLeaderboardScores}
                     allBeersCatalog={allBeersCatalog}
                     onToggleSettings={() => {
@@ -4623,6 +4649,17 @@ export default function App() {
                     onOpenStoryUpload={() => requestPermission('camera', handleOpenStoryUpload)}
                     onOpenUserStory={handleOpenUserStory}
                     onOpenAdminMoveModal={handleOpenAdminMoveModal}
+                    userProposals={(beerProposals || []).filter((p: BeerProposalItem) => p && p.proposedBy && p.proposedBy.toLowerCase() === currentUserNick.toLowerCase())}
+                    onOpenProposeVariant={(brand: string, country?: string, regione?: string, desc?: string, beerType?: string) => {
+                      handleOpenProposeModal({
+                        brand,
+                        country,
+                        regione,
+                        desc,
+                        beerType: (beerType as any) || '',
+                        isVariantProposal: true,
+                      });
+                    }}
                   />
                 )}
               </div>
@@ -4967,6 +5004,10 @@ export default function App() {
         initialVariantPrefill={proposeVariantPrefill}
         initialRarityPrefill={proposeRarityPrefill}
         initialDescPrefill={proposeDescPrefill}
+        initialCountryPrefill={proposeCountryPrefill}
+        initialRegionePrefill={proposeRegionePrefill}
+        initialBeerTypePrefill={proposeBeerTypePrefill}
+        initialIsVariantProposal={proposeIsVariantPrefill}
         allBeersCatalog={allBeersCatalog}
         myFriendsList={myFriendsList}
         globalAvatars={globalAvatars}

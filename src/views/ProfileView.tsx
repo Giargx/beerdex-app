@@ -4,6 +4,7 @@ import { beers, formatBeerTitle, getUniqueParticipantPosts, resolvePokedexEntryB
 import { StarRating } from '../components/StarRating';
 import { ScoreBreakdownCard } from '../components/ScoreBreakdownCard';
 import { calculateScoreBreakdown } from '../utils/score';
+import type { BeerProposalItem } from '../components/AdminProposalsModal';
 
 interface ProfileViewProps {
   currentUserNick: string;
@@ -11,6 +12,7 @@ interface ProfileViewProps {
   isAdminUser: boolean;
   myPokedex: Record<string, PokedexEntry>;
   globalAvatars: Record<string, string>;
+  globalDisplayNames?: Record<string, string>;
   leaderboardScores: Record<string, number>;
   onToggleSettings: () => void;
   onDeleteVariant: (brand: string, variant: string) => void;
@@ -38,6 +40,8 @@ interface ProfileViewProps {
   onOpenUserStory?: (username: string) => boolean;
   onOpenAdminMoveModal?: (username?: string, oldKey?: string) => void;
   onOpenShareProfileModal?: () => void;
+  userProposals?: BeerProposalItem[];
+  onOpenProposeVariant?: (brand: string, country?: string, regione?: string, desc?: string, beerType?: string) => void;
 }
 
 export const ProfileView: React.FC<ProfileViewProps> = ({
@@ -46,6 +50,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
   isAdminUser,
   myPokedex = {},
   globalAvatars = {},
+  globalDisplayNames = {},
   leaderboardScores: _leaderboardScores = {},
   onToggleSettings,
   onDeleteVariant,
@@ -73,6 +78,8 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
   onOpenUserStory,
   onOpenAdminMoveModal,
   onOpenShareProfileModal,
+  userProposals = [],
+  onOpenProposeVariant,
 }) => {
   const catalog = (allBeersCatalog && allBeersCatalog.length > 0) ? allBeersCatalog : beers;
   const [activeTab, setActiveTab] = useState<'collection' | 'posts' | 'saved' | 'stats' | 'ratings'>('posts');
@@ -94,6 +101,9 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
   const [eventsOpen, setEventsOpen] = useState<boolean>(false);
   const [variantsOpen, setVariantsOpen] = useState<boolean>(false);
   const [selectedStyleFilter, setSelectedStyleFilter] = useState<string | null>(null);
+  const [isProposalsBannerExpanded, setIsProposalsBannerExpanded] = useState<boolean>(false);
+
+  const pendingUserProposals = (userProposals || []).filter((p) => p && p.status === 'pending');
 
   const myPosts = getUniqueParticipantPosts(posts, currentUserNick);
   const breakdown = calculateScoreBreakdown(myPokedex, myPosts, catalog);
@@ -707,6 +717,289 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
               </button>
             )}
           </div>
+        </div>
+      )}
+
+      {/* PENDING PROPOSALS BANNER (EXPANDABLE) */}
+      {pendingUserProposals.length > 0 && (
+        <div
+          style={{
+            background: 'linear-gradient(135deg, #1E293B 0%, #0F172A 100%)',
+            borderRadius: '20px',
+            padding: isProposalsBannerExpanded ? '18px 18px' : '14px 18px',
+            margin: '12px 20px 14px 20px',
+            border: '1px solid rgba(245, 158, 11, 0.35)',
+            boxShadow: '0 8px 20px rgba(15, 23, 42, 0.15)',
+            color: 'white',
+            transition: 'all 0.3s ease',
+          }}
+        >
+          {/* Header Row - Clickable toggle banner */}
+          <div
+            onClick={() => setIsProposalsBannerExpanded(!isProposalsBannerExpanded)}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              cursor: 'pointer',
+              userSelect: 'none',
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <div
+                style={{
+                  width: '34px',
+                  height: '34px',
+                  borderRadius: '10px',
+                  background: 'rgba(245, 158, 11, 0.15)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  flexShrink: 0,
+                }}
+              >
+                <span className="material-symbols-outlined" style={{ color: '#F59E0B', fontSize: '20px' }}>
+                  hourglass_top
+                </span>
+              </div>
+              <div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <h3 style={{ margin: 0, fontSize: '14px', fontWeight: 800, color: '#F8FAFC' }}>
+                    Le Tue Proposte in Attesa
+                  </h3>
+                  <span
+                    style={{
+                      background: '#F59E0B',
+                      color: '#0F172A',
+                      fontSize: '10px',
+                      fontWeight: 900,
+                      padding: '1px 7px',
+                      borderRadius: '10px',
+                    }}
+                  >
+                    {pendingUserProposals.length}
+                  </span>
+                </div>
+                {!isProposalsBannerExpanded && (
+                  <div style={{ fontSize: '11px', color: '#94A3B8', fontWeight: 500, marginTop: '1px' }}>
+                    In attesa di valutazione dagli Admin
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              {!isProposalsBannerExpanded && (
+                <span
+                  style={{
+                    fontSize: '10px',
+                    fontWeight: 800,
+                    background: 'rgba(245, 158, 11, 0.12)',
+                    color: '#FCD34D',
+                    padding: '3px 8px',
+                    borderRadius: '8px',
+                    border: '1px solid rgba(245, 158, 11, 0.25)',
+                  }}
+                >
+                  Dettagli
+                </span>
+              )}
+              <span className="material-symbols-outlined" style={{ color: '#F59E0B', fontSize: '20px' }}>
+                {isProposalsBannerExpanded ? 'expand_less' : 'expand_more'}
+              </span>
+            </div>
+          </div>
+
+          {/* Expanded Proposals List */}
+          {isProposalsBannerExpanded && (
+            <div style={{ marginTop: '14px', paddingTop: '12px', borderTop: '1px solid rgba(255, 255, 255, 0.1)' }}>
+              <p style={{ fontSize: '11.5px', color: '#94A3B8', margin: '0 0 14px 0', lineHeight: 1.45 }}>
+                Hai <strong>{pendingUserProposals.length}</strong> {pendingUserProposals.length === 1 ? 'proposta in attesa' : 'proposte in attesa'} di verifica. Non appena approvata, la birra entrerà a catalogo e la sbloccherai nella tua collezione con i punti bonus!
+              </p>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                {pendingUserProposals.map((prop) => {
+                  const isVar = prop.isVariantProposal ?? false;
+                  const bonusPts = prop.bonusPoints ?? (isVar ? 1 : 2);
+
+                  return (
+                    <div
+                      key={prop.proposalId}
+                      style={{
+                        background: 'rgba(255, 255, 255, 0.05)',
+                        border: '1px solid rgba(245, 158, 11, 0.2)',
+                        borderRadius: '16px',
+                        padding: '14px',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: '10px',
+                      }}
+                    >
+                      {/* Top: Brand & Variant Title + Type Badge */}
+                      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '8px' }}>
+                        <div>
+                          <div style={{ fontSize: '15px', fontWeight: 900, color: '#FFFFFF' }}>
+                            {formatBeerTitle(prop.brand)}
+                          </div>
+                          <div style={{ fontSize: '13px', fontWeight: 700, color: '#F59E0B' }}>
+                            {formatBeerTitle(prop.variant)}
+                          </div>
+                        </div>
+
+                        <span
+                          style={{
+                            fontSize: '10px',
+                            fontWeight: 800,
+                            padding: '3px 8px',
+                            borderRadius: '8px',
+                            background: isVar ? 'rgba(59, 130, 246, 0.2)' : 'rgba(245, 158, 11, 0.2)',
+                            color: isVar ? '#93C5FD' : '#FDE68A',
+                            border: isVar ? '1px solid rgba(59, 130, 246, 0.4)' : '1px solid rgba(245, 158, 11, 0.4)',
+                            whiteSpace: 'nowrap',
+                            flexShrink: 0,
+                          }}
+                        >
+                          {isVar ? `Variante (+${bonusPts}pt)` : `Nuova Marca (+${bonusPts}pt)`}
+                        </span>
+                      </div>
+
+                      {/* Mid: Photo + Metadata Column */}
+                      <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+                        {prop.photo && (
+                          <img
+                            src={prop.photo}
+                            alt={prop.brand}
+                            style={{
+                              width: '64px',
+                              height: '64px',
+                              borderRadius: '12px',
+                              objectFit: 'cover',
+                              border: '1px solid rgba(255, 255, 255, 0.15)',
+                              flexShrink: 0,
+                            }}
+                          />
+                        )}
+
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', flex: 1, minWidth: 0 }}>
+                          {/* Badges row */}
+                          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
+                            {prop.beerType && (
+                              <span
+                                style={{
+                                  fontSize: '10px',
+                                  fontWeight: 700,
+                                  background: 'rgba(255, 255, 255, 0.1)',
+                                  color: '#E2E8F0',
+                                  padding: '2px 6px',
+                                  borderRadius: '6px',
+                                }}
+                              >
+                                🍺 {formatBeerTitle(prop.beerType)}
+                              </span>
+                            )}
+                            <span
+                              style={{
+                                fontSize: '10px',
+                                fontWeight: 700,
+                                background: 'rgba(255, 255, 255, 0.1)',
+                                color: '#E2E8F0',
+                                padding: '2px 6px',
+                                borderRadius: '6px',
+                              }}
+                            >
+                              📍 {prop.country || 'Italia'}{prop.regione && prop.regione !== 'Tutte' ? ` (${prop.regione})` : ''}
+                            </span>
+                          </div>
+
+                          {prop.desc && (
+                            <div
+                              style={{
+                                fontSize: '11px',
+                                color: '#CBD5E1',
+                                fontStyle: 'italic',
+                                lineHeight: 1.3,
+                                overflow: 'hidden',
+                                textOverflow: 'ellipsis',
+                                whiteSpace: 'nowrap',
+                              }}
+                            >
+                              "{prop.desc}"
+                            </div>
+                          )}
+
+                          {prop.taggedFriends && prop.taggedFriends.length > 0 && (
+                            <div style={{ fontSize: '10.5px', color: '#94A3B8' }}>
+                              👥 In compagnia di: {prop.taggedFriends.map((f) => '@' + (globalDisplayNames[f] || f)).join(', ')}
+                            </div>
+                          )}
+
+                          <div style={{ fontSize: '10px', color: '#64748B', marginTop: '2px' }}>
+                            🕒 Inviata il {new Date(prop.timestamp).toLocaleDateString()} alle {new Date(prop.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Status bar */}
+                      <div
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '6px',
+                          background: 'rgba(245, 158, 11, 0.1)',
+                          border: '1px dashed rgba(245, 158, 11, 0.3)',
+                          borderRadius: '10px',
+                          padding: '6px 10px',
+                          fontSize: '11px',
+                          color: '#FDE68A',
+                          fontWeight: 700,
+                        }}
+                      >
+                        <span
+                          style={{
+                            width: '7px',
+                            height: '7px',
+                            borderRadius: '50%',
+                            background: '#F59E0B',
+                            boxShadow: '0 0 6px rgba(245, 158, 11, 0.8)',
+                          }}
+                        />
+                        <span>Stato: In attesa di valutazione dagli Admin</span>
+                      </div>
+
+                      {/* Propose Another Variant for this Brand Button */}
+                      {onOpenProposeVariant && (
+                        <button
+                          onClick={() => onOpenProposeVariant(prop.brand, prop.country, prop.regione, prop.desc, prop.beerType)}
+                          style={{
+                            marginTop: '2px',
+                            width: '100%',
+                            padding: '9px 12px',
+                            background: 'linear-gradient(135deg, rgba(245, 158, 11, 0.2) 0%, rgba(217, 119, 6, 0.35) 100%)',
+                            border: '1px solid rgba(245, 158, 11, 0.5)',
+                            borderRadius: '12px',
+                            color: '#FDE68A',
+                            fontWeight: 800,
+                            fontSize: '11.5px',
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            gap: '6px',
+                            transition: 'all 0.15s ease',
+                          }}
+                        >
+                          <span className="material-symbols-outlined" style={{ fontSize: '16px', color: '#F59E0B' }}>
+                            add_circle
+                          </span>
+                          <span>+ Proponi un'altra variante per {formatBeerTitle(prop.brand)}</span>
+                        </button>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
         </div>
       )}
 

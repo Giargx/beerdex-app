@@ -23,6 +23,10 @@ interface ProposeBeerModalProps {
   initialVariantPrefill?: string;
   initialRarityPrefill?: "comune" | "media" | "rara";
   initialDescPrefill?: string;
+  initialCountryPrefill?: string;
+  initialRegionePrefill?: string;
+  initialBeerTypePrefill?: "bionda" | "rossa" | "scura" | "bianca" | "ipa" | "";
+  initialIsVariantProposal?: boolean;
   allBeersCatalog?: Beer[];
   myFriendsList?: string[];
   globalAvatars?: Record<string, string>;
@@ -36,6 +40,10 @@ export const ProposeBeerModal: React.FC<ProposeBeerModalProps> = ({
   initialBrandSearch = '',
   initialVariantPrefill = '',
   initialDescPrefill = '',
+  initialCountryPrefill = '',
+  initialRegionePrefill = 'Tutte',
+  initialBeerTypePrefill = '',
+  initialIsVariantProposal,
   allBeersCatalog = [],
   myFriendsList = [],
   globalAvatars = {},
@@ -44,9 +52,9 @@ export const ProposeBeerModal: React.FC<ProposeBeerModalProps> = ({
 }) => {
   const [brand, setBrand] = useState(initialBrandSearch);
   const [variant, setVariant] = useState(initialVariantPrefill);
-  const [beerType, setBeerType] = useState<"bionda" | "rossa" | "scura" | "bianca" | "ipa" | "">('');
-  const [country, setCountry] = useState('');
-  const [regione, setRegione] = useState('Tutte');
+  const [beerType, setBeerType] = useState<"bionda" | "rossa" | "scura" | "bianca" | "ipa" | "">(initialBeerTypePrefill);
+  const [country, setCountry] = useState(initialCountryPrefill);
+  const [regione, setRegione] = useState(initialRegionePrefill || 'Tutte');
   const [desc, setDesc] = useState(initialDescPrefill);
   const [photoBase64, setPhotoBase64] = useState<string>('');
   const [selectedTaggedFriends, setSelectedTaggedFriends] = useState<string[]>([]);
@@ -72,7 +80,7 @@ export const ProposeBeerModal: React.FC<ProposeBeerModalProps> = ({
       setBrand(searchBrand);
       const vPrefill = initialVariantPrefill || '';
       setVariant(vPrefill);
-      setBeerType('');
+      setBeerType(initialBeerTypePrefill || '');
       setPhotoBase64('');
       setSelectedTaggedFriends([]);
       setErrorMessage('');
@@ -89,16 +97,16 @@ export const ProposeBeerModal: React.FC<ProposeBeerModalProps> = ({
         : undefined;
 
       if (matched) {
-        setCountry(matched.country || '');
-        setRegione(matched.regione || 'Tutte');
-        setDesc(matched.desc || '');
+        setCountry(initialCountryPrefill || matched.country || '');
+        setRegione(initialRegionePrefill && initialRegionePrefill !== 'Tutte' ? initialRegionePrefill : (matched.regione || 'Tutte'));
+        setDesc(initialDescPrefill || matched.desc || '');
       } else {
-        setCountry('');
-        setRegione('Tutte');
+        setCountry(initialCountryPrefill || '');
+        setRegione(initialRegionePrefill || 'Tutte');
         setDesc(initialDescPrefill || '');
       }
     }
-  }, [isOpen, initialBrandSearch, initialVariantPrefill, initialDescPrefill, allBeersCatalog]);
+  }, [isOpen, initialBrandSearch, initialVariantPrefill, initialDescPrefill, initialCountryPrefill, initialRegionePrefill, initialBeerTypePrefill, allBeersCatalog]);
 
   // Auto-compilazione Nazione, Regione e Descrizione quando la marca inserita esiste nel catalogo
   useEffect(() => {
@@ -196,9 +204,9 @@ export const ProposeBeerModal: React.FC<ProposeBeerModalProps> = ({
       setErrorMessage(safety.reason || 'La foto contiene contenuto per adulti o esplicito e non può essere caricata.');
       return;
     }
-
     const formattedBrand = formatBeerTitle(brand.trim());
     const formattedVariant = formatBeerTitle(effectiveVariant);
+    const isEffectiveVariant = initialIsVariantProposal !== undefined ? initialIsVariantProposal : !!existingBeer;
 
     onSubmitProposal({
       brand: formattedBrand,
@@ -208,7 +216,7 @@ export const ProposeBeerModal: React.FC<ProposeBeerModalProps> = ({
       regione: effectiveCountry.toLowerCase() === 'italia' && regione !== 'Tutte' ? regione : undefined,
       desc: desc.trim() || `Birra ${formattedBrand} (${formattedVariant})`,
       photo: photoBase64,
-      isVariantProposal: !!existingBeer,
+      isVariantProposal: isEffectiveVariant,
       taggedFriends: selectedTaggedFriends,
     });
     setIsSubmitting(false);
@@ -218,16 +226,18 @@ export const ProposeBeerModal: React.FC<ProposeBeerModalProps> = ({
   const ItalianRegions = [
     'Abruzzo', 'Basilicata', 'Calabria', 'Campania', 'Emilia-Romagna',
     'Friuli-Venezia Giulia', 'Lazio', 'Liguria', 'Lombardia', 'Marche',
-    'Molise', 'Piemonte', 'Puglia', 'Sardegna', 'Sicilia', 'Toscana',
-    'Trentino-Alto Adige', 'Umbria', "Valle d'Aosta", 'Veneto'
+    'Molise', 'Piemonte', 'Puglia', 'Sardegna', 'Sicilia',
+    'Toscana', 'Trentino-Alto Adige', 'Umbria', "Valle d'Aosta", 'Veneto'
   ];
+
+  const isEffectiveVariant = initialIsVariantProposal !== undefined ? initialIsVariantProposal : !!existingBeer;
 
   const isBrandLocked = !!(initialBrandSearch && initialBrandSearch.trim() && (allBeersCatalog || []).some(
     (b) => b && b.brand && stripStr(b.brand) === stripStr(initialBrandSearch)
   ));
 
   return (
-    <div className="auth-modal" style={{ zIndex: 19000, padding: '20px 10px 70px 10px', boxSizing: 'border-box', overflowY: 'auto' }}>
+    <div className="auth-overlay" style={{ zIndex: 100000 }}>
       <div
         className="auth-container"
         style={{
@@ -261,18 +271,18 @@ export const ProposeBeerModal: React.FC<ProposeBeerModalProps> = ({
               display: 'flex',
               alignItems: 'center',
               gap: '8px',
-              background: existingBeer ? '#E0F2FE' : '#FEF3C7',
-              color: existingBeer ? '#0369A1' : '#92400E',
-              border: existingBeer ? '1px solid #BAE6FD' : '1px solid #FDE68A',
+              background: isEffectiveVariant ? '#E0F2FE' : '#FEF3C7',
+              color: isEffectiveVariant ? '#0369A1' : '#92400E',
+              border: isEffectiveVariant ? '1px solid #BAE6FD' : '1px solid #FDE68A',
             }}
           >
             <span className="material-symbols-outlined" style={{ fontSize: '20px', flexShrink: 0 }}>
-              {existingBeer ? 'lightbulb' : 'auto_awesome'}
+              {isEffectiveVariant ? 'lightbulb' : 'auto_awesome'}
             </span>
             <div style={{ lineHeight: 1.3 }}>
-              {existingBeer ? (
+              {isEffectiveVariant ? (
                 <>
-                  Marca <strong>{existingBeer.brand}</strong> presente: proposta come <strong>Nuova Variante (+1 Pt Bonus)</strong>
+                  Marca <strong>{existingBeer ? existingBeer.brand : formatBeerTitle(brand)}</strong>: proposta come <strong>Nuova Variante (+1 Pt Bonus)</strong>
                 </>
               ) : (
                 <>
