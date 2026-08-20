@@ -196,7 +196,7 @@ export const LeaderboardView: React.FC<LeaderboardViewProps> = ({
   };
 
   return (
-    <div className="page-container-view" style={{ paddingBottom: '90px' }}>
+    <div className="page-container-view">
       {/* HERO HEADER (CLASSIC STYLE LIKE PUB & EXPLORE) */}
       <header className="hero">
         <FoamBubbles />

@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import { ref, onValue } from 'firebase/database';
+import { db } from '../firebase';
 import { TrophyGrid, type PokedexEntry } from '../components/TrophyGrid';
 import { FoamBubbles } from '../components/FoamBubbles';
 import { beers, formatBeerTitle, getUniqueParticipantPosts, resolvePokedexEntryBeer } from '../beers';
@@ -67,6 +69,20 @@ export const PublicProfileView: React.FC<PublicProfileViewProps> = ({
   onOpenAdminMoveModal,
 }) => {
   const [activeTab, setActiveTab] = useState<'collection' | 'posts' | 'stats' | 'ratings' | 'medals'>('posts');
+  const [userFriendsCount, setUserFriendsCount] = useState<number>(0);
+
+  useEffect(() => {
+    if (!username) return;
+    const friendsRef = ref(db, `users_friends/${username}`);
+    const unsubscribe = onValue(friendsRef, (snap) => {
+      if (snap.exists()) {
+        setUserFriendsCount(Object.keys(snap.val() || {}).length);
+      } else {
+        setUserFriendsCount(0);
+      }
+    });
+    return () => unsubscribe();
+  }, [username]);
 
   const isPrivateProfile = isPrivate && !isFriend && username.toLowerCase() !== currentUserNick.toLowerCase() && !isAdminUser;
 
@@ -523,17 +539,25 @@ export const PublicProfileView: React.FC<PublicProfileViewProps> = ({
         
         {/* Instagram-style user stats row */}
         <div style={{ display: 'flex', justifyContent: 'center', gap: '30px', marginTop: '18px', padding: '0 10px', position: 'relative', zIndex: 2 }}>
-          <div style={{ textAlign: 'center', flex: '1' }}>
-            <div style={{ fontWeight: 900, fontSize: '18px', color: 'var(--dark)' }}>{myPosts.length}</div>
-            <div style={{ fontSize: '10px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: 600 }}>Post</div>
+          <div
+            style={{ textAlign: 'center', flex: '1', cursor: !isPrivateProfile ? 'pointer' : 'default' }}
+            onClick={() => !isPrivateProfile && setActiveTab('collection')}
+            title="Sblocchi"
+          >
+            <div style={{ fontWeight: 900, fontSize: '18px', color: 'var(--dark)' }}>{totalUnlocked}</div>
+            <div style={{ fontSize: '10px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: 600 }}>Sblocchi</div>
           </div>
-          <div style={{ textAlign: 'center', flex: '1', borderLeft: '1px solid rgba(0,0,0,0.1)', borderRight: '1px solid rgba(0,0,0,0.1)' }}>
+          <div
+            style={{ textAlign: 'center', flex: '1', borderLeft: '1px solid rgba(0,0,0,0.1)', borderRight: '1px solid rgba(0,0,0,0.1)', cursor: 'pointer' }}
+            onClick={() => setActiveTab('stats')}
+            title="Punti"
+          >
             <div style={{ fontWeight: 900, fontSize: '18px', color: 'var(--dark)' }}>{displayScore}</div>
             <div style={{ fontSize: '10px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: 600 }}>Punti</div>
           </div>
           <div style={{ textAlign: 'center', flex: '1' }}>
-            <div style={{ fontWeight: 900, fontSize: '18px', color: 'var(--dark)' }}>{totalUnlocked}</div>
-            <div style={{ fontSize: '10px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: 600 }}>Sblocchi</div>
+            <div style={{ fontWeight: 900, fontSize: '18px', color: 'var(--dark)' }}>{userFriendsCount}</div>
+            <div style={{ fontSize: '10px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: 600 }}>Amici</div>
           </div>
         </div>
       </header>

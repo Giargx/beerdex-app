@@ -199,7 +199,7 @@ export const ExploreView: React.FC<ExploreViewProps> = ({
   }, [allPokedexProfiles, globalPosts]);
 
   return (
-    <div className="page-container-view" style={{ overflowX: 'hidden', paddingBottom: '90px' }}>
+    <div className="page-container-view" style={{ overflowX: 'hidden' }}>
       {/* 🌟 Modern Hero Banner with Glassmorphism Stats */}
       <header className="hero">
         <FoamBubbles />

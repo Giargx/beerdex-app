@@ -547,7 +547,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
   const greetingName = currentUserDisplayName ? currentUserDisplayName : currentUserNick;
 
   return (
-    <div className="page-container-view" style={{ paddingBottom: '90px' }}>
+    <div className="page-container-view">
       {/* Toast notification for cheers */}
       {cheersToast && (
         <div style={{

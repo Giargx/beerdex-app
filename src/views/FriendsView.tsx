@@ -62,7 +62,7 @@ export const FriendsView: React.FC<FriendsViewProps> = ({
   ];
 
   return (
-    <div className="page-container-view" style={{ paddingBottom: '60px' }}>
+    <div className="page-container-view">
       <header className="hero" style={{ position: 'relative' }}>
         <FoamBubbles />
         {onBack && (

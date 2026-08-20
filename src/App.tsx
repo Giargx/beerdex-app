@@ -4601,6 +4601,7 @@ export default function App() {
                     unreadFeedbackCount={Object.values(appFeedbacks || {}).filter((f: any) => f && f.status !== 'read').length}
                     onRateBeer={handleRateBeer}
                     myReceivedRequests={myReceivedRequests}
+                    myFriendsList={myFriendsList}
                     onNavigateToFriends={() => navigateTo('page-friends')}
                     myTagRequests={myTagRequests}
                     onOpenTagRequest={(req) => setActiveTagRequestModal(req)}

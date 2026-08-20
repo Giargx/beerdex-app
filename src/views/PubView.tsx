@@ -353,7 +353,7 @@ export const PubView: React.FC<PubViewProps> = ({
   };
 
   return (
-    <div className="page-container-view" style={{ paddingBottom: '40px' }}>
+    <div className="page-container-view">
       {/* Pub Hero Banner - Identico a Esplora e Classifiche */}
       <header className="hero">
         <FoamBubbles />

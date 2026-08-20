@@ -25,6 +25,7 @@ interface ProfileViewProps {
   flaggedPostsCount?: number;
   onRateBeer?: (brand: string, variant: string, rating: number) => void;
   myReceivedRequests?: string[];
+  myFriendsList?: string[];
   onNavigateToFriends?: () => void;
   myTagRequests?: any[];
   onOpenTagRequest?: (req: any) => void;
@@ -62,7 +63,8 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
   unreadFeedbackCount = 0,
   onRateBeer,
   myReceivedRequests: _myReceivedRequests = [],
-  onNavigateToFriends: _onNavigateToFriends,
+  myFriendsList = [],
+  onNavigateToFriends,
   myTagRequests = [],
   onOpenTagRequest,
   onChangeAvatar,
@@ -211,7 +213,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
   const favoriteStyleMeta = favoriteStyleKey ? beerTypeMeta[favoriteStyleKey] : null;
 
   return (
-    <div className="page-container-view" style={{ minHeight: '100%' }}>
+    <div className="page-container-view">
       <div className="profile-header-card" style={{ position: 'relative', width: '100%' }}>
         <button
           id="profileSettingsBtn"
@@ -430,19 +432,33 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
 
           {/* Instagram-style user stats row */}
           <div style={{ display: 'flex', justifyContent: 'center', gap: '30px', marginTop: '18px', padding: '0 10px' }}>
-            <div style={{ textAlign: 'center', flex: '1' }}>
+            <div
+              style={{ textAlign: 'center', flex: '1', cursor: 'pointer' }}
+              onClick={() => setActiveTab('collection')}
+              title="Vedi Sblocchi & Collezione"
+            >
               <div style={{ fontWeight: 900, fontSize: '18px', color: 'var(--dark)' }}>
-                {myPosts.length}
+                {totalUnlocked}
               </div>
-              <div style={{ fontSize: '10px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: 600 }}>Post</div>
+              <div style={{ fontSize: '10px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: 600 }}>Sblocchi</div>
             </div>
-            <div style={{ textAlign: 'center', flex: '1', borderLeft: '1px solid var(--gray)', borderRight: '1px solid var(--gray)' }}>
+            <div
+              style={{ textAlign: 'center', flex: '1', borderLeft: '1px solid var(--gray)', borderRight: '1px solid var(--gray)', cursor: 'pointer' }}
+              onClick={() => setActiveTab('stats')}
+              title="Vedi Dettaglio Punti"
+            >
               <div style={{ fontWeight: 900, fontSize: '18px', color: 'var(--dark)' }}>{score}</div>
               <div style={{ fontSize: '10px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: 600 }}>Punti</div>
             </div>
-            <div style={{ textAlign: 'center', flex: '1' }}>
-              <div style={{ fontWeight: 900, fontSize: '18px', color: 'var(--dark)' }}>{totalUnlocked}</div>
-              <div style={{ fontSize: '10px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: 600 }}>Sblocchi</div>
+            <div
+              style={{ textAlign: 'center', flex: '1', cursor: onNavigateToFriends ? 'pointer' : 'default' }}
+              onClick={() => onNavigateToFriends && onNavigateToFriends()}
+              title="Vedi Lista Amici"
+            >
+              <div style={{ fontWeight: 900, fontSize: '18px', color: 'var(--dark)' }}>
+                {Array.isArray(myFriendsList) ? myFriendsList.length : 0}
+              </div>
+              <div style={{ fontSize: '10px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: 600 }}>Amici</div>
             </div>
           </div>
         </div>
