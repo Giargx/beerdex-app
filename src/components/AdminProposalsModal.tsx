@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { formatBeerTitle } from '../beers';
+import { AdminReviewProposalModal } from './AdminReviewProposalModal';
 
 export interface BeerProposalItem {
   proposalId: string;
@@ -41,13 +42,6 @@ interface AdminProposalsModalProps {
   onMarkFeedbackRead?: (feedbackId: string) => void;
 }
 
-const ItalianRegions = [
-  'Abruzzo', 'Basilicata', 'Calabria', 'Campania', 'Emilia-Romagna',
-  'Friuli-Venezia Giulia', 'Lazio', 'Liguria', 'Lombardia', 'Marche',
-  'Molise', 'Piemonte', 'Puglia', 'Sardegna', 'Sicilia', 'Toscana',
-  'Trentino-Alto Adige', 'Umbria', "Valle d'Aosta", 'Veneto'
-];
-
 export const AdminProposalsModal: React.FC<AdminProposalsModalProps> = ({
   isOpen,
   onClose,
@@ -75,18 +69,8 @@ export const AdminProposalsModal: React.FC<AdminProposalsModalProps> = ({
   const [userSortOption, setUserSortOption] = useState<'score_desc' | 'score_asc' | 'unlocked_desc' | 'name_asc'>('score_desc');
   const [userPageLimit, setUserPageLimit] = useState<number>(15);
   const [recalculatingUserMap, setRecalculatingUserMap] = useState<Record<string, boolean>>({});
-  const [showEditMap, setShowEditMap] = useState<Record<string, boolean>>({});
-  const [editedDataMap, setEditedDataMap] = useState<Record<string, {
-    brand: string;
-    variant: string;
-    beerType?: string;
-    country: string;
-    regione: string;
-    rarity: "comune" | "media" | "rara";
-    desc: string;
-    isVariantProposal?: boolean;
-    bonusPoints?: number;
-  }>>({});
+  const [selectedProposalToReview, setSelectedProposalToReview] = useState<BeerProposalItem | null>(null);
+  const [recalculateBannerMsg, setRecalculateBannerMsg] = useState<string | null>(null);
 
   React.useEffect(() => {
     if (isOpen) {
@@ -95,90 +79,6 @@ export const AdminProposalsModal: React.FC<AdminProposalsModalProps> = ({
   }, [isOpen, initialTab]);
 
   if (!isOpen) return null;
-
-  const toggleEdit = (item: BeerProposalItem) => {
-    const isCurrentlyEditing = !!showEditMap[item.proposalId];
-    if (!isCurrentlyEditing && !editedDataMap[item.proposalId]) {
-      setEditedDataMap((prev) => ({
-        ...prev,
-        [item.proposalId]: {
-          brand: formatBeerTitle(item.brand),
-          variant: formatBeerTitle(item.variant),
-          beerType: item.beerType || 'bionda',
-          country: item.country || 'Non specificata',
-          regione: item.regione || 'Tutte',
-          rarity: item.rarity || 'comune',
-          desc: item.desc || '',
-          isVariantProposal: !!item.isVariantProposal,
-          bonusPoints: item.bonusPoints ?? (item.isVariantProposal ? 1 : 2),
-        },
-      }));
-    }
-    setShowEditMap((prev) => ({
-      ...prev,
-      [item.proposalId]: !isCurrentlyEditing,
-    }));
-  };
-
-  const updateField = (proposalId: string, field: string, value: any) => {
-    setEditedDataMap((prev) => {
-      const item = proposals.find((p) => p.proposalId === proposalId);
-      const existing = prev[proposalId] || {
-        brand: formatBeerTitle(item?.brand || ''),
-        variant: formatBeerTitle(item?.variant || ''),
-        beerType: item?.beerType || 'bionda',
-        country: item?.country || 'Non specificata',
-        regione: item?.regione || 'Tutte',
-        rarity: item?.rarity || 'comune',
-        desc: item?.desc || '',
-        isVariantProposal: !!item?.isVariantProposal,
-        bonusPoints: item?.bonusPoints ?? (item?.isVariantProposal ? 1 : 2),
-      };
-      const updated = {
-        ...existing,
-        [field]: value,
-      };
-      if (field === 'isVariantProposal') {
-        updated.bonusPoints = value ? 1 : 2;
-      }
-      return {
-        ...prev,
-        [proposalId]: updated,
-      };
-    });
-  };
-
-  const handleAcceptClick = (item: BeerProposalItem) => {
-    const edit = editedDataMap[item.proposalId];
-    const rawBrand = edit?.brand ?? item.brand;
-    const rawVariant = edit?.variant ?? item.variant;
-    const rawBeerType = edit?.beerType ?? item.beerType;
-    const rawCountry = edit?.country ?? item.country;
-    const rawRegione = edit?.regione ?? item.regione;
-    const rawRarity = edit?.rarity ?? item.rarity;
-    const rawDesc = edit?.desc ?? item.desc;
-    const rawIsVariant = edit?.isVariantProposal !== undefined ? edit.isVariantProposal : !!item.isVariantProposal;
-    const rawBonusPoints = edit?.bonusPoints !== undefined ? edit.bonusPoints : (item.bonusPoints ?? (rawIsVariant ? 1 : 2));
-
-    const formattedBrand = formatBeerTitle(rawBrand.trim());
-    const formattedVariant = formatBeerTitle(rawVariant.trim());
-    const formattedCountry = formatBeerTitle((rawCountry || 'Non specificata').trim());
-
-    const finalProposal: BeerProposalItem = {
-      ...item,
-      brand: formattedBrand,
-      variant: formattedVariant,
-      beerType: (rawBeerType as any) || 'bionda',
-      country: formattedCountry,
-      regione: formattedCountry.toLowerCase() === 'italia' && rawRegione && rawRegione !== 'Tutte' ? rawRegione : undefined,
-      rarity: rawRarity,
-      desc: rawDesc && rawDesc.trim() ? rawDesc.trim() : `Birra ${formattedBrand} (${formattedVariant})`,
-      isVariantProposal: rawIsVariant,
-      bonusPoints: rawBonusPoints,
-    };
-
-    onAcceptProposal(finalProposal);
-  };
 
   const pendingProposals = (proposals || []).filter((p) => p && p.status === 'pending');
   const flaggedList = Object.values(flaggedPosts || {});
@@ -236,6 +136,94 @@ export const AdminProposalsModal: React.FC<AdminProposalsModalProps> = ({
           </button>
         </div>
 
+        {/* Tab Navigation Buttons */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '6px', marginBottom: '14px' }}>
+          <button
+            onClick={() => setActiveTab('proposals')}
+            style={{
+              padding: '8px 4px',
+              borderRadius: '12px',
+              border: activeTab === 'proposals' ? '2px solid #F59E0B' : '1px solid #E2E8F0',
+              background: activeTab === 'proposals' ? '#FEF3C7' : '#FFFFFF',
+              color: activeTab === 'proposals' ? '#92400E' : '#64748B',
+              fontWeight: 800,
+              fontSize: '11px',
+              cursor: 'pointer',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              gap: '2px',
+            }}
+          >
+            <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>sports_bar</span>
+            Proposte ({pendingProposals.length})
+          </button>
+
+          <button
+            onClick={() => setActiveTab('flagged')}
+            style={{
+              padding: '8px 4px',
+              borderRadius: '12px',
+              border: activeTab === 'flagged' ? '2px solid #E11D48' : '1px solid #E2E8F0',
+              background: activeTab === 'flagged' ? '#FFE4E6' : '#FFFFFF',
+              color: activeTab === 'flagged' ? '#9F1239' : '#64748B',
+              fontWeight: 800,
+              fontSize: '11px',
+              cursor: 'pointer',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              gap: '2px',
+            }}
+          >
+            <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>report_problem</span>
+            Segnalati ({flaggedList.length})
+          </button>
+
+          <button
+            onClick={() => setActiveTab('users')}
+            style={{
+              padding: '8px 4px',
+              borderRadius: '12px',
+              border: activeTab === 'users' ? '2px solid #6366F1' : '1px solid #E2E8F0',
+              background: activeTab === 'users' ? '#EEF2FF' : '#FFFFFF',
+              color: activeTab === 'users' ? '#3730A3' : '#64748B',
+              fontWeight: 800,
+              fontSize: '11px',
+              cursor: 'pointer',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              gap: '2px',
+            }}
+          >
+            <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>manage_accounts</span>
+            Utenti
+          </button>
+
+          <button
+            onClick={() => setActiveTab('feedback')}
+            style={{
+              padding: '8px 4px',
+              borderRadius: '12px',
+              border: activeTab === 'feedback' ? '2px solid #10B981' : '1px solid #E2E8F0',
+              background: activeTab === 'feedback' ? '#D1FAE5' : '#FFFFFF',
+              color: activeTab === 'feedback' ? '#065F46' : '#64748B',
+              fontWeight: 800,
+              fontSize: '11px',
+              cursor: 'pointer',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              gap: '2px',
+            }}
+          >
+            <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>rate_review</span>
+            Consigli ({feedbacksList.length})
+          </button>
+        </div>
+
+        {/* Content Container */}
         <div style={{ overflowY: 'auto', flexGrow: 1, paddingRight: '4px' }}>
           {activeTab === 'users' ? (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
@@ -295,8 +283,6 @@ export const AdminProposalsModal: React.FC<AdminProposalsModalProps> = ({
                   if (score < 1200) return "🍺 Sommelier del Bancone";
                   return "👑 Mastro Birraio";
                 };
-
-                const [recalculateBannerMsg, setRecalculateBannerMsg] = useState<string | null>(null);
 
                 const handleRecalculateSingle = async (nick: string) => {
                   if (!onRecalculateUserScore) return;
@@ -620,8 +606,7 @@ export const AdminProposalsModal: React.FC<AdminProposalsModalProps> = ({
                                 borderRadius: '12px',
                                 border: '1px solid #CBD5E1',
                                 background: '#F1F5F9',
-                                color: '#334155',
-                                fontSize: '12px',
+                                      fontSize: '12px',
                                 fontWeight: 800,
                                 cursor: 'pointer',
                               }}
@@ -656,7 +641,6 @@ export const AdminProposalsModal: React.FC<AdminProposalsModalProps> = ({
                     minute: '2-digit',
                   });
                   const isRead = fb.status === 'read';
-
                   return (
                     <div
                       key={fb.feedbackId || fb.timestamp}
@@ -867,8 +851,9 @@ export const AdminProposalsModal: React.FC<AdminProposalsModalProps> = ({
             )
           ) : pendingProposals.length === 0 ? (
             <div style={{ textAlign: 'center', padding: '40px 20px', color: 'var(--text-muted)' }}>
-              <span className="material-symbols-outlined" style={{ fontSize: '48px', marginBottom: '10px' }}>check_circle</span>
-              <p style={{ margin: 0, fontSize: '14px' }}>Nessuna proposta pendente al momento.</p>
+              <span className="material-symbols-outlined" style={{ fontSize: '48px', marginBottom: '10px', color: '#10B981' }}>check_circle</span>
+              <p style={{ margin: 0, fontSize: '14px', fontWeight: 800 }}>Nessuna proposta pendente al momento.</p>
+              <p style={{ fontSize: '12px', marginTop: '4px' }}>Le nuove birre e varianti proposte dagli utenti appariranno qui per l'approvazione.</p>
             </div>
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
@@ -881,27 +866,17 @@ export const AdminProposalsModal: React.FC<AdminProposalsModalProps> = ({
                   hour: '2-digit',
                   minute: '2-digit',
                 });
-
-                const isEditing = !!showEditMap[item.proposalId];
-                const currentData = editedDataMap[item.proposalId] || {
-                  brand: formatBeerTitle(item.brand),
-                  variant: formatBeerTitle(item.variant),
-                  beerType: item.beerType || 'bionda',
-                  country: item.country || 'Non specificata',
-                  regione: item.regione || 'Tutte',
-                  rarity: item.rarity || 'comune',
-                  desc: item.desc || '',
-                  isVariantProposal: !!item.isVariantProposal,
-                  bonusPoints: item.bonusPoints ?? (item.isVariantProposal ? 1 : 2),
-                };
+                const isVariant = Boolean(item.isVariantProposal);
+                const bonusPts = item.bonusPoints ?? (isVariant ? 1 : 2);
+                const tags = Array.isArray(item.taggedFriends) ? item.taggedFriends : [];
 
                 return (
                   <div
                     key={item.proposalId}
                     style={{
                       background: 'var(--white)',
-                      border: isEditing ? '2px solid var(--primary)' : '1px solid var(--gray)',
-                      borderRadius: '16px',
+                      border: '1px solid #E2E8F0',
+                      borderRadius: '18px',
                       padding: '16px',
                       boxShadow: 'var(--card-shadow)',
                       display: 'flex',
@@ -909,10 +884,9 @@ export const AdminProposalsModal: React.FC<AdminProposalsModalProps> = ({
                       gap: '12px',
                     }}
                   >
-                    {/* Proposal Header */}
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid #F1F5F9', paddingBottom: '8px' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <div style={{ width: '32px', height: '32px', borderRadius: '50%', overflow: 'hidden', background: '#e2e8f0' }}>
+                        <div style={{ width: '34px', height: '34px', borderRadius: '50%', overflow: 'hidden', background: '#e2e8f0', flexShrink: 0 }}>
                           {authorAvatar ? (
                             <img src={authorAvatar} alt={item.proposedBy} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                           ) : (
@@ -922,354 +896,105 @@ export const AdminProposalsModal: React.FC<AdminProposalsModalProps> = ({
                         <div>
                           <div style={{ fontSize: '13px', fontWeight: 'bold', color: 'var(--dark)' }}>@{authorName}</div>
                           <div style={{ fontSize: '10px', color: 'var(--text-muted)' }}>Proposta il {dateStr}</div>
-                          {Array.isArray(item.taggedFriends) && item.taggedFriends.length > 0 && (
-                            <div style={{ fontSize: '11px', color: '#D97706', fontWeight: 800, marginTop: '2px', display: 'flex', alignItems: 'center', gap: '3px' }}>
-                              <span className="material-symbols-outlined" style={{ fontSize: '13px' }}>group</span>
-                              In compagnia di: {item.taggedFriends.map((f) => '@' + (globalDisplayNames[f] || f)).join(', ')}
-                            </div>
-                          )}
                         </div>
                       </div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <button
-                          onClick={() => toggleEdit(item)}
-                          style={{
-                            border: '1px solid var(--gray)',
-                            background: isEditing ? '#FEF3C7' : '#F8FAFC',
-                            color: isEditing ? '#92400E' : 'var(--dark)',
-                            borderRadius: '8px',
-                            padding: '4px 10px',
-                            fontSize: '11px',
-                            fontWeight: 'bold',
-                            cursor: 'pointer',
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '4px'
-                          }}
-                        >
-                          <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>edit</span>
-                          {isEditing ? 'Chiudi Modifica' : 'Modifica Campi'}
-                        </button>
-                        <span
-                          style={{
-                            fontSize: '11px',
-                            fontWeight: 'bold',
-                            padding: '3px 8px',
-                            borderRadius: '8px',
-                            background: currentData.rarity === 'rara' ? '#fef3c7' : currentData.rarity === 'media' ? '#e0f2fe' : '#f1f5f9',
-                            color: currentData.rarity === 'rara' ? '#b45309' : currentData.rarity === 'media' ? '#0369a1' : '#475569',
-                            textTransform: 'uppercase',
-                          }}
-                        >
-                          {currentData.rarity}
-                        </span>
-                      </div>
-                    </div>
 
-                    {/* Content & Photo Display */}
-                    <div style={{ display: 'flex', gap: '14px', alignItems: 'center' }}>
-                      {item.photo && (
-                        <div style={{ width: '80px', height: '80px', borderRadius: '12px', overflow: 'hidden', flexShrink: 0, border: '2px solid var(--gray)' }}>
-                          <img src={item.photo} alt={currentData.brand} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                        </div>
-                      )}
-                      <div style={{ flexGrow: 1, textAlign: 'left' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-                          <span style={{ fontSize: '16px', fontWeight: 900, color: 'var(--primary-dark)' }}>
-                            {currentData.brand}
-                          </span>
-                          <span style={{
-                            fontSize: '10px',
-                            fontWeight: 800,
-                            padding: '2px 8px',
-                            borderRadius: '12px',
-                            background: currentData.isVariantProposal ? '#E0F2FE' : '#FEF3C7',
-                            color: currentData.isVariantProposal ? '#0369A1' : '#B45309',
-                            border: currentData.isVariantProposal ? '1px solid #BAE6FD' : '1px solid #FDE68A',
-                          }}>
-                            {currentData.isVariantProposal ? '💡 Nuova Variante (+1 Pt Bonus)' : '✨ Nuova Marca (+2 Pt Bonus)'}
-                          </span>
-                        </div>
-                        <div style={{ fontSize: '14px', fontWeight: 'bold', color: 'var(--dark)', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                          {currentData.variant}
-                          {currentData.beerType && (
-                            <span style={{ fontSize: '11px', background: '#F1F5F9', color: '#475569', padding: '1px 6px', borderRadius: '8px', textTransform: 'capitalize', fontWeight: 600 }}>
-                              {currentData.beerType === 'rossa' ? '🔴 Rossa' : currentData.beerType === 'scura' ? '🌑 Scura' : currentData.beerType === 'bianca' ? '⚪ Bianca' : currentData.beerType === 'ipa' ? '🌿 IPA' : '🍺 Bionda'}
-                            </span>
-                          )}
-                        </div>
-                        <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '2px' }}>
-                          Nazione: <strong>{currentData.country}</strong> {currentData.country.trim().toLowerCase() === 'italia' && currentData.regione && currentData.regione !== 'Tutte' ? `(${currentData.regione})` : ''}
-                        </div>
-                        {currentData.desc && (
-                          <div style={{ fontSize: '12px', color: 'var(--dark)', marginTop: '4px', fontStyle: 'italic', background: '#F8FAFC', padding: '4px 8px', borderRadius: '6px' }}>
-                            "{currentData.desc}"
-                          </div>
-                        )}
-                        {(!currentData.country || currentData.country === 'Non specificata' || (currentData.country === 'Italia' && (!currentData.regione || currentData.regione === 'Tutte'))) && (
-                          <div style={{ fontSize: '11px', background: '#FEF3C7', color: '#92400E', padding: '6px 10px', borderRadius: '8px', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '6px', marginTop: '6px' }}>
-                            <span className="material-symbols-outlined" style={{ fontSize: '15px' }}>warning</span>
-                            Info mancanti: {!currentData.country || currentData.country === 'Non specificata' ? 'Nazione non specificata. ' : ''}{currentData.country === 'Italia' && (!currentData.regione || currentData.regione === 'Tutte') ? 'Regione italiana non specificata.' : ''} Completa i campi prima di approvare!
-                          </div>
-                        )}
-                      </div>
-                    </div>
-
-                    {/* ALWAYS VISIBLE ADMIN RARITY SELECTOR */}
-                    <div
-                      style={{
-                        background: '#F8FAFC',
-                        border: '1px solid #CBD5E1',
-                        borderRadius: '14px',
-                        padding: '10px 12px',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        gap: '6px',
-                        textAlign: 'left',
-                      }}
-                    >
-                      <div
+                      <span
                         style={{
                           fontSize: '11px',
                           fontWeight: 800,
-                          color: '#475569',
-                          textTransform: 'uppercase',
-                          letterSpacing: '0.5px',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'space-between',
+                          padding: '3px 8px',
+                          borderRadius: '10px',
+                          background: isVariant ? '#E0F2FE' : '#FEF3C7',
+                          color: isVariant ? '#0369A1' : '#92400E',
+                          border: `1px solid ${isVariant ? '#BAE6FD' : '#FDE68A'}`,
                         }}
                       >
-                        <span style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-                          <span className="material-symbols-outlined" style={{ fontSize: '17px', color: '#F59E0B' }}>workspace_premium</span>
-                          Rarità Decisa dall'Admin:
-                        </span>
-                        <span style={{ fontSize: '11px', color: '#0F172A', fontWeight: 900, textTransform: 'capitalize' }}>
-                          {currentData.rarity === 'rara' ? '👑 Rara (5 pt)' : currentData.rarity === 'media' ? '🔵 Media (2 pt)' : '🟢 Comune (1 pt)'}
-                        </span>
-                      </div>
-                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '6px' }}>
-                        <button
-                          type="button"
-                          onClick={() => updateField(item.proposalId, 'rarity', 'comune')}
-                          style={{
-                            padding: '9px 6px',
-                            borderRadius: '10px',
-                            border: currentData.rarity === 'comune' ? '2px solid #22C55E' : '1px solid #CBD5E1',
-                            background: currentData.rarity === 'comune' ? '#DCFCE7' : '#FFFFFF',
-                            color: currentData.rarity === 'comune' ? '#15803D' : '#64748B',
-                            fontWeight: 800,
-                            fontSize: '12px',
-                            cursor: 'pointer',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            gap: '4px',
-                            boxShadow: currentData.rarity === 'comune' ? '0 2px 8px rgba(34, 197, 94, 0.25)' : 'none',
-                            transition: 'all 0.15s ease',
-                          }}
-                        >
-                          🟢 Comune (1 pt)
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => updateField(item.proposalId, 'rarity', 'media')}
-                          style={{
-                            padding: '9px 6px',
-                            borderRadius: '10px',
-                            border: currentData.rarity === 'media' ? '2px solid #0284C7' : '1px solid #CBD5E1',
-                            background: currentData.rarity === 'media' ? '#E0F2FE' : '#FFFFFF',
-                            color: currentData.rarity === 'media' ? '#0369A1' : '#64748B',
-                            fontWeight: 800,
-                            fontSize: '12px',
-                            cursor: 'pointer',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            gap: '4px',
-                            boxShadow: currentData.rarity === 'media' ? '0 2px 8px rgba(2, 132, 199, 0.25)' : 'none',
-                            transition: 'all 0.15s ease',
-                          }}
-                        >
-                          🔵 Media (2 pt)
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => updateField(item.proposalId, 'rarity', 'rara')}
-                          style={{
-                            padding: '9px 6px',
-                            borderRadius: '10px',
-                            border: currentData.rarity === 'rara' ? '2px solid #D97706' : '1px solid #CBD5E1',
-                            background: currentData.rarity === 'rara' ? '#FEF3C7' : '#FFFFFF',
-                            color: currentData.rarity === 'rara' ? '#B45309' : '#64748B',
-                            fontWeight: 800,
-                            fontSize: '12px',
-                            cursor: 'pointer',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            gap: '4px',
-                            boxShadow: currentData.rarity === 'rara' ? '0 2px 8px rgba(217, 119, 6, 0.25)' : 'none',
-                            transition: 'all 0.15s ease',
-                          }}
-                        >
-                          👑 Rara (5 pt)
-                        </button>
+                        {isVariant ? 'Nuova Variante (+1pt)' : 'Nuova Marca (+2pt)'}
+                      </span>
+                    </div>
+
+                    <div style={{ display: 'flex', gap: '12px', alignItems: 'flex-start' }}>
+                      {item.photo && (
+                        <div style={{ width: '75px', height: '75px', borderRadius: '12px', overflow: 'hidden', flexShrink: 0, border: '1.5px solid var(--primary)' }}>
+                          <img src={item.photo} alt={item.brand} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                        </div>
+                      )}
+                      <div style={{ flexGrow: 1, textAlign: 'left' }}>
+                        <h4 style={{ margin: '0 0 2px 0', fontSize: '16px', fontWeight: 900, color: 'var(--primary-dark)' }}>
+                          {formatBeerTitle(item.brand)}
+                        </h4>
+                        <div style={{ fontSize: '13px', fontWeight: 'bold', color: 'var(--dark)' }}>
+                          {formatBeerTitle(item.variant)}
+                        </div>
+                        <div style={{ display: 'flex', gap: '4px', margin: '6px 0 0 0', flexWrap: 'wrap' }}>
+                          <span style={{ fontSize: '10px', background: '#F1F5F9', color: '#334155', padding: '2px 6px', borderRadius: '8px', fontWeight: 800, textTransform: 'capitalize' }}>
+                            🍺 {item.beerType || 'bionda'}
+                          </span>
+                          <span style={{ fontSize: '10px', background: '#ECFDF5', color: '#047857', padding: '2px 6px', borderRadius: '8px', fontWeight: 800 }}>
+                            ⭐ {item.rarity || 'comune'}
+                          </span>
+                          <span style={{ fontSize: '10px', background: '#F8FAFC', color: '#64748B', padding: '2px 6px', borderRadius: '8px', fontWeight: 700, border: '1px solid #E2E8F0' }}>
+                            📍 {item.country || 'Italia'} {item.regione && item.regione !== 'Tutte' ? `(${item.regione})` : ''}
+                          </span>
+                        </div>
+                        {item.desc && (
+                          <div style={{ fontSize: '11px', color: '#475569', marginTop: '6px', fontStyle: 'italic' }}>
+                            "{item.desc}"
+                          </div>
+                        )}
+                        {tags.length > 0 && (
+                          <div style={{ fontSize: '11px', color: '#D97706', fontWeight: 800, marginTop: '4px', display: 'flex', alignItems: 'center', gap: '3px' }}>
+                            <span className="material-symbols-outlined" style={{ fontSize: '13px' }}>group</span>
+                            In compagnia di: {tags.map((f) => '@' + (globalDisplayNames[f] || f)).join(', ')}
+                          </div>
+                        )}
                       </div>
                     </div>
 
-                    {/* EDITABLE FORM FOR ADMIN */}
-                    {isEditing && (
-                      <div style={{ background: '#FFFDF5', border: '1px dashed #F59E0B', borderRadius: '12px', padding: '12px', marginTop: '4px', textAlign: 'left' }}>
-                        <div style={{ fontSize: '12px', fontWeight: 'bold', color: '#92400E', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                          <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>tune</span>
-                          Modifica / Completa Campi Proposta prima di Approvare:
-                        </div>
-
-                        <div style={{ marginBottom: '8px' }}>
-                          <label style={{ fontSize: '11px', fontWeight: 'bold', display: 'block', marginBottom: '2px' }}>Tipo Proposta</label>
-                          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px' }}>
-                            <button
-                              type="button"
-                              onClick={() => updateField(item.proposalId, 'isVariantProposal', false)}
-                              style={{
-                                padding: '6px',
-                                borderRadius: '8px',
-                                border: !currentData.isVariantProposal ? '2px solid #F59E0B' : '1px solid #CBD5E1',
-                                background: !currentData.isVariantProposal ? '#FEF3C7' : '#FFFFFF',
-                                color: !currentData.isVariantProposal ? '#B45309' : '#64748B',
-                                fontWeight: 800,
-                                fontSize: '11px',
-                                cursor: 'pointer',
-                              }}
-                            >
-                              ✨ Nuova Marca (+2 pt)
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => updateField(item.proposalId, 'isVariantProposal', true)}
-                              style={{
-                                padding: '6px',
-                                borderRadius: '8px',
-                                border: currentData.isVariantProposal ? '2px solid #0284C7' : '1px solid #CBD5E1',
-                                background: currentData.isVariantProposal ? '#E0F2FE' : '#FFFFFF',
-                                color: currentData.isVariantProposal ? '#0369A1' : '#64748B',
-                                fontWeight: 800,
-                                fontSize: '11px',
-                                cursor: 'pointer',
-                              }}
-                            >
-                              💡 Nuova Variante (+1 pt)
-                            </button>
-                          </div>
-                        </div>
-
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px', marginBottom: '8px' }}>
-                          <div>
-                            <label style={{ fontSize: '11px', fontWeight: 'bold', display: 'block', marginBottom: '2px' }}>Marca / Birrificio</label>
-                            <input
-                              type="text"
-                              value={currentData.brand}
-                              onChange={(e) => updateField(item.proposalId, 'brand', e.target.value)}
-                              style={{ width: '100%', boxSizing: 'border-box', padding: '6px 8px', fontSize: '12px', margin: 0 }}
-                            />
-                          </div>
-                          <div>
-                            <label style={{ fontSize: '11px', fontWeight: 'bold', display: 'block', marginBottom: '2px' }}>Nome Variante</label>
-                            <input
-                              type="text"
-                              value={currentData.variant}
-                              onChange={(e) => updateField(item.proposalId, 'variant', e.target.value)}
-                              style={{ width: '100%', boxSizing: 'border-box', padding: '6px 8px', fontSize: '12px', margin: 0 }}
-                            />
-                          </div>
-                          <div>
-                            <label style={{ fontSize: '11px', fontWeight: 'bold', display: 'block', marginBottom: '2px' }}>Tipologia</label>
-                            <select
-                              value={currentData.beerType || 'bionda'}
-                              onChange={(e) => updateField(item.proposalId, 'beerType', e.target.value)}
-                              style={{ width: '100%', padding: '6px', fontSize: '12px', borderRadius: '8px' }}
-                            >
-                              <option value="bionda">🍺 Bionda</option>
-                              <option value="rossa">🔴 Rossa</option>
-                              <option value="scura">🌑 Scura</option>
-                              <option value="bianca">⚪ Bianca</option>
-                              <option value="ipa">🌿 IPA</option>
-                            </select>
-                          </div>
-                        </div>
-
-                        <div style={{ display: 'grid', gridTemplateColumns: currentData.country.trim().toLowerCase() === 'italia' ? '1fr 1fr' : '1fr', gap: '8px', marginBottom: '8px' }}>
-                          <div>
-                            <label style={{ fontSize: '11px', fontWeight: 'bold', display: 'block', marginBottom: '2px' }}>Nazione</label>
-                            <input
-                              type="text"
-                              value={currentData.country}
-                              onChange={(e) => updateField(item.proposalId, 'country', e.target.value)}
-                              placeholder="es. Giappone, Italia, Germania..."
-                              style={{ width: '100%', boxSizing: 'border-box', padding: '6px 8px', fontSize: '12px', borderRadius: '8px', border: '1px solid var(--gray)', margin: 0 }}
-                            />
-                          </div>
-
-                          {currentData.country.trim().toLowerCase() === 'italia' && (
-                            <div>
-                              <label style={{ fontSize: '11px', fontWeight: 'bold', display: 'block', marginBottom: '2px' }}>Regione</label>
-                              <select
-                                value={currentData.regione || 'Tutte'}
-                                onChange={(e) => updateField(item.proposalId, 'regione', e.target.value)}
-                                style={{ width: '100%', padding: '6px', fontSize: '12px', borderRadius: '8px' }}
-                              >
-                                <option value="Tutte">Nessuna specifica</option>
-                                {ItalianRegions.map((reg) => (
-                                  <option key={reg} value={reg}>{reg}</option>
-                                ))}
-                              </select>
-                            </div>
-                          )}
-                        </div>
-
-                        <div>
-                          <label style={{ fontSize: '11px', fontWeight: 'bold', display: 'block', marginBottom: '2px' }}>Descrizione / Note</label>
-                          <input
-                            type="text"
-                            value={currentData.desc || ''}
-                            onChange={(e) => updateField(item.proposalId, 'desc', e.target.value)}
-                            style={{ width: '100%', boxSizing: 'border-box', padding: '6px 8px', fontSize: '12px', margin: 0 }}
-                          />
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Action Buttons */}
-                    <div style={{ display: 'flex', gap: '10px', marginTop: '4px' }}>
+                    <div style={{ display: 'flex', gap: '8px', marginTop: '4px' }}>
                       <button
                         className="btn-main"
-                        onClick={() => handleAcceptClick(item)}
+                        onClick={() => setSelectedProposalToReview(item)}
                         style={{
                           flex: 1,
                           margin: 0,
                           padding: '10px',
-                          fontSize: '13px',
-                          background: '#10B981',
+                          fontSize: '12px',
+                          fontWeight: 900,
+                          background: 'linear-gradient(135deg, #10B981 0%, #059669 100%)',
                           boxShadow: '0 2px 8px rgba(16, 185, 129, 0.25)',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          gap: '6px',
                         }}
                       >
-                        <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>check_circle</span>
-                        Accetta (+{currentData.isVariantProposal ? (currentData.bonusPoints || 1) : (currentData.bonusPoints || 2)}pt a @{item.proposedBy})
+                        <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>edit_document</span>
+                        Valuta & Modifica (+{bonusPts}pt)
                       </button>
                       <button
                         className="btn-secondary"
-                        onClick={() => onRejectProposal(item.proposalId)}
+                        onClick={() => {
+                          if (window.confirm(`Sei sicuro di voler rifiutare la proposta per "${item.brand} - ${item.variant}"?`)) {
+                            onRejectProposal(item.proposalId);
+                          }
+                        }}
                         style={{
-                          flex: 1,
                           margin: 0,
-                          padding: '10px',
-                          fontSize: '13px',
-                          color: 'var(--danger)',
-                          borderColor: 'rgba(239, 68, 68, 0.3)',
+                          padding: '10px 14px',
+                          fontSize: '12px',
+                          fontWeight: 800,
+                          color: '#EF4444',
+                          background: '#FEF2F2',
+                          borderColor: '#FECACA',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          gap: '4px',
                         }}
                       >
-                        <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>cancel</span>
+                        <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>cancel</span>
                         Rifiuta
                       </button>
                     </div>
@@ -1280,6 +1005,22 @@ export const AdminProposalsModal: React.FC<AdminProposalsModalProps> = ({
           )}
         </div>
       </div>
+
+      <AdminReviewProposalModal
+        isOpen={!!selectedProposalToReview}
+        onClose={() => setSelectedProposalToReview(null)}
+        proposal={selectedProposalToReview}
+        onAccept={(updatedProposal) => {
+          onAcceptProposal(updatedProposal);
+          setSelectedProposalToReview(null);
+        }}
+        onReject={(propId) => {
+          onRejectProposal(propId);
+          setSelectedProposalToReview(null);
+        }}
+        globalAvatars={globalAvatars}
+        globalDisplayNames={globalDisplayNames}
+      />
     </div>
   );
 };

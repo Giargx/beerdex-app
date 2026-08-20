@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { formatBeerTitle } from '../beers';
 import { FoamBubbles } from '../components/FoamBubbles';
 import type { BeerProposalItem } from '../components/AdminProposalsModal';
+import { AdminReviewProposalModal } from '../components/AdminReviewProposalModal';
 
 import type { Beer } from '../beers';
 
@@ -70,6 +71,7 @@ export const AdminView: React.FC<AdminViewProps> = ({
   const [moveCustomVariant, setMoveCustomVariant] = useState<string>('');
   const [isMoveSubmitting, setIsMoveSubmitting] = useState(false);
   const [moveMessage, setMoveMessage] = useState<{ text: string; type: 'success' | 'error' } | null>(null);
+  const [selectedProposalToReview, setSelectedProposalToReview] = useState<BeerProposalItem | null>(null);
 
   React.useEffect(() => {
     setActiveTab(initialTab);
@@ -130,91 +132,10 @@ export const AdminView: React.FC<AdminViewProps> = ({
     }
   };
 
-  const [showEditMap, setShowEditMap] = useState<Record<string, boolean>>({});
-  const [editedDataMap, setEditedDataMap] = useState<Record<string, {
-    brand: string;
-    variant: string;
-    beerType?: string;
-    country: string;
-    regione: string;
-    rarity: "comune" | "media" | "rara";
-    desc: string;
-  }>>({});
-
   const pendingProposals = (proposals || []).filter((p) => p && p.status === 'pending');
   const flaggedList = Object.values(flaggedPosts || {});
   const feedbacksList = Array.isArray(feedbacks) ? feedbacks : Object.values(feedbacks || {});
   const unreadFeedbackCount = feedbacksList.filter((f: any) => f && f.status !== 'read').length;
-
-  const toggleEdit = (item: BeerProposalItem) => {
-    const isCurrentlyEditing = !!showEditMap[item.proposalId];
-    if (!isCurrentlyEditing && !editedDataMap[item.proposalId]) {
-      setEditedDataMap((prev) => ({
-        ...prev,
-        [item.proposalId]: {
-          brand: formatBeerTitle(item.brand),
-          variant: formatBeerTitle(item.variant),
-          beerType: item.beerType || 'bionda',
-          country: item.country || 'Non specificata',
-          regione: item.regione || 'Tutte',
-          rarity: item.rarity || 'comune',
-          desc: item.desc || '',
-        },
-      }));
-    }
-    setShowEditMap((prev) => ({
-      ...prev,
-      [item.proposalId]: !isCurrentlyEditing,
-    }));
-  };
-
-  const updateField = (proposalId: string, field: string, value: any) => {
-    setEditedDataMap((prev) => ({
-      ...prev,
-      [proposalId]: {
-        ...(prev[proposalId] || {
-          brand: '',
-          variant: '',
-          beerType: 'bionda',
-          country: 'Italia',
-          regione: 'Tutte',
-          rarity: 'comune',
-          desc: '',
-        }),
-        [field]: value,
-      },
-    }));
-  };
-
-  const handleAcceptClick = (item: BeerProposalItem) => {
-    const edit = editedDataMap[item.proposalId];
-    const rawBrand = edit ? edit.brand : item.brand;
-    const rawVariant = edit ? edit.variant : item.variant;
-    const rawBeerType = edit ? edit.beerType : item.beerType;
-    const rawCountry = edit ? edit.country : item.country;
-    const rawRegione = edit ? edit.regione : item.regione;
-    const rawRarity = edit ? edit.rarity : item.rarity;
-    const rawDesc = edit ? edit.desc : item.desc;
-
-    const formattedBrand = formatBeerTitle(rawBrand.trim());
-    const formattedVariant = formatBeerTitle(rawVariant.trim());
-    const formattedCountry = formatBeerTitle((rawCountry || 'Non specificata').trim());
-
-    const finalProposal: BeerProposalItem = {
-      ...item,
-      brand: formattedBrand,
-      variant: formattedVariant,
-      beerType: (rawBeerType as any) || 'bionda',
-      country: formattedCountry,
-      regione: formattedCountry.toLowerCase() === 'italia' && rawRegione && rawRegione !== 'Tutte' ? rawRegione : undefined,
-      rarity: rawRarity,
-      desc: rawDesc && rawDesc.trim() ? rawDesc.trim() : `Birra ${formattedBrand} (${formattedVariant})`,
-      isVariantProposal: item.isVariantProposal,
-  bonusPoints: item.bonusPoints ?? (item.isVariantProposal ? 1 : 2),
-    };
-
-    onAcceptProposal(finalProposal);
-  };
 
   return (
     <div
@@ -1034,38 +955,32 @@ export const AdminView: React.FC<AdminViewProps> = ({
                   hour: '2-digit',
                   minute: '2-digit',
                 });
-
-                const isEditing = !!showEditMap[item.proposalId];
-                const currentData = editedDataMap[item.proposalId] || {
-                  brand: formatBeerTitle(item.brand),
-                  variant: formatBeerTitle(item.variant),
-                  country: item.country || 'Non specificata',
-                  regione: item.regione || 'Tutte',
-                  rarity: item.rarity || 'comune',
-                  desc: item.desc || '',
-                };
+                const isVariant = Boolean(item.isVariantProposal);
+                const bonusPts = item.bonusPoints ?? (isVariant ? 1 : 2);
+                const tags = Array.isArray(item.taggedFriends) ? item.taggedFriends : [];
 
                 return (
                   <div
                     key={item.proposalId}
                     style={{
                       background: 'var(--white)',
-                      border: isEditing ? '2px solid #F59E0B' : '1px solid #E2E8F0',
-                      borderRadius: '18px',
+                      border: '1px solid #E2E8F0',
+                      borderRadius: '20px',
                       padding: '18px',
-                      boxShadow: '0 4px 16px rgba(0,0,0,0.03)',
+                      boxShadow: '0 4px 16px rgba(0,0,0,0.04)',
                       display: 'flex',
                       flexDirection: 'column',
                       gap: '14px',
                     }}
                   >
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    {/* Card Header with Author and Proposal Type */}
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid #F1F5F9', paddingBottom: '10px' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                        <div style={{ width: '36px', height: '36px', borderRadius: '50%', overflow: 'hidden', background: '#e2e8f0', border: '1px solid #CBD5E1' }}>
+                        <div style={{ width: '38px', height: '38px', borderRadius: '50%', overflow: 'hidden', background: '#e2e8f0', border: '1.5px solid #CBD5E1', flexShrink: 0 }}>
                           {authorAvatar ? (
                             <img src={authorAvatar} alt={item.proposedBy} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                           ) : (
-                            <span className="material-symbols-outlined" style={{ fontSize: '22px', margin: '7px' }}>person</span>
+                            <span className="material-symbols-outlined" style={{ fontSize: '24px', margin: '7px' }}>person</span>
                           )}
                         </div>
                         <div style={{ textAlign: 'left' }}>
@@ -1073,101 +988,88 @@ export const AdminView: React.FC<AdminViewProps> = ({
                           <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Proposta il {dateStr}</div>
                         </div>
                       </div>
-                      <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
-                        <button
-                          onClick={() => toggleEdit(item)}
-                          style={{
-                            background: isEditing ? '#FEF3C7' : '#F1F5F9',
-                            color: isEditing ? '#D97706' : '#475569',
-                            border: '1px solid ' + (isEditing ? '#FDE68A' : '#CBD5E1'),
-                            borderRadius: '10px',
-                            padding: '6px 12px',
-                            fontSize: '11px',
-                            fontWeight: 800,
-                            cursor: 'pointer',
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '4px',
-                          }}
-                        >
-                          <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>edit</span>
-                          {isEditing ? 'Chiudi' : 'Modifica'}
-                        </button>
-                      </div>
+
+                      <span
+                        style={{
+                          fontSize: '11px',
+                          fontWeight: 800,
+                          padding: '4px 10px',
+                          borderRadius: '12px',
+                          background: isVariant ? '#E0F2FE' : '#FEF3C7',
+                          color: isVariant ? '#0369A1' : '#92400E',
+                          border: `1px solid ${isVariant ? '#BAE6FD' : '#FDE68A'}`,
+                        }}
+                      >
+                        {isVariant ? 'Nuova Variante (+1pt)' : 'Nuova Marca (+2pt)'}
+                      </span>
                     </div>
 
-                    <div style={{ display: 'flex', gap: '14px', alignItems: 'center' }}>
+                    {/* Proposal Details Body */}
+                    <div style={{ display: 'flex', gap: '14px', alignItems: 'flex-start' }}>
                       {item.photo ? (
-                        <img
-                          src={item.photo}
-                          alt={item.brand}
-                          style={{ width: '90px', height: '90px', borderRadius: '14px', objectFit: 'cover', border: '1px solid #E2E8F0' }}
-                        />
+                        <div
+                          style={{
+                            width: '88px',
+                            height: '88px',
+                            borderRadius: '14px',
+                            overflow: 'hidden',
+                            border: '1.5px solid var(--primary)',
+                            flexShrink: 0,
+                            boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
+                          }}
+                        >
+                          <img
+                            src={item.photo}
+                            alt={item.brand}
+                            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                          />
+                        </div>
                       ) : (
-                        <div style={{ width: '90px', height: '90px', borderRadius: '14px', background: '#F1F5F9', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <div style={{ width: '88px', height: '88px', borderRadius: '14px', background: '#F1F5F9', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                           <span className="material-symbols-outlined" style={{ fontSize: '36px', color: 'var(--text-muted)' }}>sports_bar</span>
                         </div>
                       )}
 
-                      {!isEditing ? (
-                        <div style={{ textAlign: 'left', flex: 1 }}>
-                          <h4 style={{ margin: '0 0 2px 0', fontSize: '17px', color: 'var(--dark)', fontWeight: 900 }}>
-                            {formatBeerTitle(item.brand)}
-                          </h4>
-                          <p style={{ margin: 0, fontSize: '14px', color: 'var(--primary-dark)', fontWeight: 800 }}>
-                            {formatBeerTitle(item.variant)}
+                      <div style={{ textAlign: 'left', flex: 1 }}>
+                        <h4 style={{ margin: '0 0 2px 0', fontSize: '17px', color: 'var(--dark)', fontWeight: 900 }}>
+                          {formatBeerTitle(item.brand)}
+                        </h4>
+                        <p style={{ margin: 0, fontSize: '14px', color: 'var(--primary-dark)', fontWeight: 800 }}>
+                          {formatBeerTitle(item.variant)}
+                        </p>
+
+                        <div style={{ display: 'flex', gap: '6px', margin: '8px 0 0 0', flexWrap: 'wrap' }}>
+                          <span style={{ fontSize: '10px', background: '#F1F5F9', color: '#334155', padding: '3px 8px', borderRadius: '10px', fontWeight: 800, textTransform: 'capitalize' }}>
+                            🍺 {item.beerType || 'bionda'}
+                          </span>
+                          <span style={{ fontSize: '10px', background: '#ECFDF5', color: '#047857', padding: '3px 8px', borderRadius: '10px', fontWeight: 800 }}>
+                            ⭐ Rarità: {item.rarity || 'comune'}
+                          </span>
+                          <span style={{ fontSize: '10px', background: '#F8FAFC', color: '#64748B', padding: '3px 8px', borderRadius: '10px', fontWeight: 700, border: '1px solid #E2E8F0' }}>
+                            📍 {item.country || 'Italia'} {item.regione && item.regione !== 'Tutte' ? `(${item.regione})` : ''}
+                          </span>
+                        </div>
+
+                        {item.desc && (
+                          <p style={{ margin: '8px 0 0 0', fontSize: '12px', color: '#475569', lineHeight: 1.3, fontStyle: 'italic' }}>
+                            "{item.desc}"
                           </p>
-                          <div style={{ display: 'flex', gap: '6px', margin: '8px 0 0 0', flexWrap: 'wrap' }}>
-                            <span style={{ fontSize: '10px', background: '#FEF3C7', color: '#D97706', padding: '3px 10px', borderRadius: '12px', fontWeight: 800 }}>
-                              Rarità: {item.rarity || 'comune'}
-                            </span>
-                            <span style={{ fontSize: '10px', background: '#F1F5F9', color: '#475569', padding: '3px 10px', borderRadius: '12px', fontWeight: 700 }}>
-                              {item.country || 'Italia'}
-                            </span>
+                        )}
+
+                        {tags.length > 0 && (
+                          <div style={{ marginTop: '8px', fontSize: '11px', color: '#92400E', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '4px' }}>
+                            <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>group</span>
+                            Taggati: {tags.map((t) => '@' + t).join(', ')}
                           </div>
-                        </div>
-                      ) : (
-                        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                          <input
-                            type="text"
-                            value={currentData.brand}
-                            onChange={(e) => updateField(item.proposalId, 'brand', e.target.value)}
-                            placeholder="Marca Birra"
-                            style={{ padding: '8px 12px', borderRadius: '10px', border: '1px solid #CBD5E1', fontSize: '13px', fontWeight: 800, outline: 'none' }}
-                          />
-                          <input
-                            type="text"
-                            value={currentData.variant}
-                            onChange={(e) => updateField(item.proposalId, 'variant', e.target.value)}
-                            placeholder="Variante (es. Classica)"
-                            style={{ padding: '8px 12px', borderRadius: '10px', border: '1px solid #CBD5E1', fontSize: '13px', outline: 'none' }}
-                          />
-                          <div style={{ display: 'flex', gap: '6px' }}>
-                            <select
-                              value={currentData.rarity}
-                              onChange={(e) => updateField(item.proposalId, 'rarity', e.target.value)}
-                              style={{ flex: 1, padding: '8px', borderRadius: '10px', border: '1px solid #CBD5E1', fontSize: '11px', fontWeight: 700 }}
-                            >
-                              <option value="comune">Comune (1pt)</option>
-                              <option value="media">Media (2pt)</option>
-                              <option value="rara">Rara (5pt)</option>
-                            </select>
-                            <input
-                              type="text"
-                              value={currentData.country}
-                              onChange={(e) => updateField(item.proposalId, 'country', e.target.value)}
-                              placeholder="Paese"
-                              style={{ flex: 1, padding: '8px', borderRadius: '10px', border: '1px solid #CBD5E1', fontSize: '11px' }}
-                            />
-                          </div>
-                        </div>
-                      )}
+                        )}
+                      </div>
                     </div>
 
+                    {/* Action Buttons */}
                     <div style={{ display: 'flex', gap: '10px', marginTop: '4px' }}>
                       <button
                         className="btn-main"
-                        onClick={() => handleAcceptClick(item)}
+                        onClick={() => setSelectedProposalToReview(item)}
                         style={{
                           flex: 1,
                           margin: 0,
@@ -1176,9 +1078,9 @@ export const AdminView: React.FC<AdminViewProps> = ({
                           background: 'linear-gradient(135deg, #10B981 0%, #059669 100%)',
                           boxShadow: '0 4px 14px rgba(16, 185, 129, 0.3)',
                           border: 'none',
-                          borderRadius: '12px',
+                          borderRadius: '14px',
                           color: '#FFFFFF',
-                          fontWeight: 800,
+                          fontWeight: 900,
                           cursor: 'pointer',
                           display: 'flex',
                           alignItems: 'center',
@@ -1186,21 +1088,24 @@ export const AdminView: React.FC<AdminViewProps> = ({
                           gap: '6px',
                         }}
                       >
-                        <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>check_circle</span>
-                        Accetta (+{item.isVariantProposal ? '1' : '2'}pt a @{item.proposedBy})
+                        <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>edit_document</span>
+                        Valuta & Modifica (+{bonusPts}pt)
                       </button>
                       <button
                         className="btn-secondary"
-                        onClick={() => onRejectProposal(item.proposalId)}
+                        onClick={() => {
+                          if (window.confirm(`Sei sicuro di voler rifiutare la proposta per "${item.brand} - ${item.variant}"?`)) {
+                            onRejectProposal(item.proposalId);
+                          }
+                        }}
                         style={{
-                          flex: 1,
                           margin: 0,
-                          padding: '12px',
+                          padding: '12px 16px',
                           fontSize: '13px',
                           color: '#EF4444',
                           background: '#FEF2F2',
                           border: '1px solid #FECACA',
-                          borderRadius: '12px',
+                          borderRadius: '14px',
                           fontWeight: 800,
                           cursor: 'pointer',
                           display: 'flex',
@@ -1379,6 +1284,24 @@ export const AdminView: React.FC<AdminViewProps> = ({
           )}
         </div>
       </div>
+
+      {/* Full Dedicated Proposal Review & Edit Modal for Admins */}
+      <AdminReviewProposalModal
+        isOpen={!!selectedProposalToReview}
+        onClose={() => setSelectedProposalToReview(null)}
+        proposal={selectedProposalToReview}
+        onAccept={(updatedProposal) => {
+          onAcceptProposal(updatedProposal);
+          setSelectedProposalToReview(null);
+        }}
+        onReject={(propId) => {
+          onRejectProposal(propId);
+          setSelectedProposalToReview(null);
+        }}
+        allBeersCatalog={allBeersCatalog}
+        globalAvatars={globalAvatars}
+        globalDisplayNames={globalDisplayNames}
+      />
     </div>
   );
 };
