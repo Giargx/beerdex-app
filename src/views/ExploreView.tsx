@@ -496,19 +496,14 @@ export const ExploreView: React.FC<ExploreViewProps> = ({
                   alignItems: 'stretch',
                 }}
               >
-                {sortedBeers.map((beer, index) => {
+                {sortedBeers.map((beer) => {
                   const isExpanded = !!expandedCards[beer.brand];
-                  const pairIndex = Math.floor(index / (viewMode === 'grid' ? 2 : 1));
-                  const cardOrder = isExpanded
-                    ? pairIndex * 10 - 1
-                    : pairIndex * 10 + (index % (viewMode === 'grid' ? 2 : 1));
 
                   return (
                     <div
                       key={beer.brand}
                       style={{
                         gridColumn: isExpanded ? '1 / -1' : 'span 1',
-                        order: cardOrder,
                         height: '100%',
                         display: 'flex',
                         flexDirection: 'column',

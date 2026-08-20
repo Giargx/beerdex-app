@@ -232,12 +232,8 @@ export const ProposeBeerModal: React.FC<ProposeBeerModalProps> = ({
 
   const isEffectiveVariant = initialIsVariantProposal !== undefined ? initialIsVariantProposal : !!existingBeer;
 
-  const isBrandLocked = !!(initialBrandSearch && initialBrandSearch.trim() && (allBeersCatalog || []).some(
-    (b) => b && b.brand && stripStr(b.brand) === stripStr(initialBrandSearch)
-  ));
-
   return (
-    <div className="auth-overlay" style={{ zIndex: 100000 }}>
+    <div className="auth-modal" style={{ zIndex: 100000 }}>
       <div
         className="auth-container"
         style={{
@@ -309,15 +305,12 @@ export const ProposeBeerModal: React.FC<ProposeBeerModalProps> = ({
               placeholder="Moretti, Ichnusa, Heineken,..."
               value={brand}
               onChange={(e) => setBrand(e.target.value)}
-              disabled={isBrandLocked}
               style={{
                 width: '100%',
                 boxSizing: 'border-box',
                 margin: 0,
                 padding: '12px',
-                opacity: isBrandLocked ? 0.75 : 1,
-                background: isBrandLocked ? '#F1F5F9' : 'white',
-                cursor: isBrandLocked ? 'not-allowed' : 'text',
+                background: 'white',
               }}
             />
           </div>
@@ -381,7 +374,6 @@ export const ProposeBeerModal: React.FC<ProposeBeerModalProps> = ({
                 placeholder="es. Italia, Germania, Belgio, Giappone..."
                 value={country}
                 onChange={(e) => setCountry(e.target.value)}
-                disabled={!!existingBeer && !!existingBeer.country}
                 style={{
                   width: '100%',
                   padding: '12px 14px',
@@ -389,9 +381,7 @@ export const ProposeBeerModal: React.FC<ProposeBeerModalProps> = ({
                   border: '1px solid var(--gray)',
                   fontSize: '13px',
                   fontWeight: 600,
-                  opacity: existingBeer && existingBeer.country ? 0.8 : 1,
-                  background: existingBeer && existingBeer.country ? '#F1F5F9' : 'white',
-                  cursor: existingBeer && existingBeer.country ? 'not-allowed' : 'text',
+                  background: 'white',
                   boxSizing: 'border-box',
                   margin: 0,
                 }}
@@ -478,16 +468,13 @@ export const ProposeBeerModal: React.FC<ProposeBeerModalProps> = ({
               placeholder=""
               value={desc}
               onChange={(e) => setDesc(e.target.value)}
-              disabled={!!existingBeer}
               style={{
                 width: '100%',
                 boxSizing: 'border-box',
                 margin: 0,
                 padding: '10px 12px',
                 fontSize: '13px',
-                opacity: existingBeer ? 0.75 : 1,
-                background: existingBeer ? '#F1F5F9' : 'white',
-                cursor: existingBeer ? 'not-allowed' : 'text',
+                background: 'white',
               }}
             />
           </div>
