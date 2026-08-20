@@ -16,6 +16,7 @@ interface BeerCardProps {
   onRateBeer?: (brand: string, variant: string, rating: number) => void;
   isAdminUser?: boolean;
   onDeleteCustomBeerCatalog?: (brand: string) => void;
+  allBeersCatalog?: Beer[];
 }
 
 export const BeerCard: React.FC<BeerCardProps> = ({
@@ -30,6 +31,7 @@ export const BeerCard: React.FC<BeerCardProps> = ({
   onRateBeer,
   isAdminUser,
   onDeleteCustomBeerCatalog,
+  allBeersCatalog,
 }) => {
   if (!beer || !beer.brand) return null;
 
@@ -150,7 +152,7 @@ export const BeerCard: React.FC<BeerCardProps> = ({
             });
             const entry = matchingKey ? safePokedex[matchingKey] : undefined;
             const hasPhoto = entry !== undefined;
-            const specificPts = getBasePoints(beer.brand, variant);
+            const specificPts = getBasePoints(beer.brand, variant, allBeersCatalog, beer.rarity);
             const typeKey = (beer.variantTypes && (beer.variantTypes[variant] || Object.entries(beer.variantTypes).find(([k]) => stripStr(k) === normVar)?.[1])) ||
                             beer.beerType ||
                             getBeerType(beer.brand, variant);

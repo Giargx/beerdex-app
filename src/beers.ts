@@ -469,7 +469,8 @@ export function getBeerRarity(brandName: string, _variantName?: string | Beer[],
     (b) => b && b.brand && (
       b.brand.toLowerCase() === (brandName || '').toLowerCase() ||
       formatBeerTitle(b.brand) === formatBeerTitle(brandName || '') ||
-      stripStr(b.brand) === stripStr(brandName || '')
+      stripStr(b.brand) === stripStr(brandName || '') ||
+      normalizeStr(b.brand) === normalizeStr(brandName || '')
     )
   );
   const r = (beer?.rarity || 'comune').toLowerCase().trim();
@@ -491,7 +492,8 @@ export function getBasePoints(brandName: string, _variantName: string = 'Classic
     (b) => b && b.brand && (
       b.brand.toLowerCase() === (brandName || '').toLowerCase() ||
       formatBeerTitle(b.brand) === formatBeerTitle(brandName || '') ||
-      stripStr(b.brand) === stripStr(brandName || '')
+      stripStr(b.brand) === stripStr(brandName || '') ||
+      normalizeStr(b.brand) === normalizeStr(brandName || '')
     )
   );
   if (!beer) return 1;

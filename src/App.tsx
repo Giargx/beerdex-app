@@ -2769,7 +2769,8 @@ export default function App() {
       await recalculateTotalScore(currentUserNick);
       playPopSound();
 
-      let msg = `Birra sbloccata con successo! (+${getBeerPoints(brand, variant, isShiny, isShared)} Punti)`;
+      const earnedPts = getBeerPoints(brand, variant, isShiny, isShared, allBeersCatalog);
+      let msg = `Birra sbloccata con successo! (+${earnedPts} Punti)`;
       if (isShiny) msg += '\nSBLOCCO SHINY IN TRASFERTA!';
       if (isShared) msg += `\nBEVUTA CON ${taggedFriendStr?.toUpperCase()}!`;
 
@@ -5055,6 +5056,7 @@ export default function App() {
         myPokedex={myPokedex}
         globalDisplayNames={globalDisplayNames}
         globalAvatars={globalAvatars}
+        allBeersCatalog={allBeersCatalog}
       />
 
       {/* Instagram-style 24h Story Studio Modal */}

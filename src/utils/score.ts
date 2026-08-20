@@ -36,7 +36,7 @@ export function calculateScoreBreakdown(
     const entry = safePokedex[key];
     if (!entry) return;
 
-    const { beer, brand, variant } = resolvePokedexEntryBeer(key, entry, safeCatalog);
+    const { beer, brand, variant, rarity } = resolvePokedexEntryBeer(key, entry, safeCatalog);
     const targetBrand = beer ? beer.brand : brand;
     const canonicalV = variant ? formatBeerTitle(variant) : 'Classica';
     const uniqueVariantKey = `${stripStr(targetBrand)}-${stripStr(canonicalV)}`;
@@ -47,7 +47,7 @@ export function calculateScoreBreakdown(
     }
     countedVariantsSet.add(uniqueVariantKey);
 
-    const base = getBasePoints(targetBrand, canonicalV, safeCatalog);
+    const base = getBasePoints(targetBrand, canonicalV, safeCatalog, rarity || entry?.rarity || beer?.rarity);
 
     beerUnlocks += base;
 

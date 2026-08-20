@@ -522,6 +522,7 @@ export const ExploreView: React.FC<ExploreViewProps> = ({
                         onRateBeer={onRateBeer}
                         isAdminUser={isAdminUser}
                         onDeleteCustomBeerCatalog={onDeleteCustomBeerCatalog}
+                        allBeersCatalog={safeCatalog}
                       />
                     </div>
                   );

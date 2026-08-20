@@ -9,6 +9,11 @@ export interface PokedexEntry {
   brand: string;
   variant?: string;
   rating?: number;
+  rarity?: 'comune' | 'media' | 'rara' | string;
+  beerType?: string;
+  proposalBonus?: number | boolean;
+  proposalType?: 'variant' | 'brand';
+  isProposalBonus?: boolean;
 }
 
 export interface EventMedal {
@@ -548,7 +553,7 @@ export const TrophyGrid: React.FC<TrophyGridProps> = ({
         brandUnlockCounts[beer.brand]++;
       }
 
-      const basePts = getBasePoints(beer.brand, variant, allBeersCatalog);
+      const basePts = getBasePoints(beer.brand, variant, allBeersCatalog, entry?.rarity || beer.rarity);
       let finalPts = basePts;
       const muls: string[] = [];
       let isShiny = false;

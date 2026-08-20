@@ -1,5 +1,5 @@
 import React from 'react';
-import { getBeerPoints } from '../beers';
+import { getBeerPoints, type Beer } from '../beers';
 
 export interface TagRequestItem {
   requestId: string;
@@ -24,6 +24,7 @@ interface TagRequestModalProps {
   myPokedex: Record<string, any>;
   globalDisplayNames?: Record<string, string>;
   globalAvatars?: Record<string, string>;
+  allBeersCatalog?: Beer[];
 }
 
 export const TagRequestModal: React.FC<TagRequestModalProps> = ({
@@ -35,6 +36,7 @@ export const TagRequestModal: React.FC<TagRequestModalProps> = ({
   myPokedex = {},
   globalDisplayNames = {},
   globalAvatars = {},
+  allBeersCatalog,
 }) => {
   if (!isOpen || !request) return null;
 
@@ -46,9 +48,9 @@ export const TagRequestModal: React.FC<TagRequestModalProps> = ({
   const existingEntry = myPokedex[uniqueId];
   const hasAlreadyUnlocked = existingEntry !== undefined;
 
-  const newPoints = getBeerPoints(request.brand, request.variant, request.isShiny, true);
+  const newPoints = getBeerPoints(request.brand, request.variant, request.isShiny, true, allBeersCatalog);
   const oldPoints = hasAlreadyUnlocked
-    ? getBeerPoints(request.brand, request.variant, existingEntry.isShiny, existingEntry.isShared)
+    ? getBeerPoints(request.brand, request.variant, existingEntry.isShiny, existingEntry.isShared, allBeersCatalog)
     : 0;
 
   return (
