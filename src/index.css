@@ -300,6 +300,27 @@ select:focus {
     overflow-x: hidden;
 }
 
+.main-tab-slide:not(.active) {
+    height: 0 !important;
+    max-height: 0 !important;
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+    margin-top: 0 !important;
+    margin-bottom: 0 !important;
+    overflow: hidden !important;
+    visibility: hidden;
+    pointer-events: none;
+}
+
+.main-tabs-slider-container.is-swiping .main-tab-slide {
+    height: auto !important;
+    max-height: none !important;
+    padding-bottom: 100px !important;
+    overflow: visible !important;
+    visibility: visible !important;
+    pointer-events: auto;
+}
+
 @keyframes pageFadeIn {
     from {
         opacity: 0;

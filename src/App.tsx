@@ -724,8 +724,13 @@ export default function App() {
 
   useEffect(() => {
     if (mainTabsSliderRef.current) {
+      mainTabsSliderRef.current.classList.add('is-swiping');
       mainTabsSliderRef.current.style.transition = 'transform 0.3s cubic-bezier(0.25, 1, 0.5, 1)';
       mainTabsSliderRef.current.style.transform = `translateX(-${activeIndex * 20}%)`;
+      const timer = setTimeout(() => {
+        mainTabsSliderRef.current?.classList.remove('is-swiping');
+      }, 320);
+      return () => clearTimeout(timer);
     }
   }, [activeIndex]);
 
@@ -764,6 +769,9 @@ export default function App() {
     }
 
     if (isHorizontalSwipe.current && mainTabsSliderRef.current) {
+      if (!mainTabsSliderRef.current.classList.contains('is-swiping')) {
+        mainTabsSliderRef.current.classList.add('is-swiping');
+      }
       currentDragOffset.current = effectiveDiffX;
       mainTabsSliderRef.current.style.transition = 'none';
       mainTabsSliderRef.current.style.transform = `translateX(calc(-${activeIndex * 20}% + ${effectiveDiffX}px))`;
@@ -798,6 +806,11 @@ export default function App() {
         mainTabsSliderRef.current.style.transition = 'transform 0.25s cubic-bezier(0.25, 1, 0.5, 1)';
         mainTabsSliderRef.current.style.transform = `translateX(-${activeIndex * 20}%)`;
       }
+    }
+    if (mainTabsSliderRef.current) {
+      setTimeout(() => {
+        mainTabsSliderRef.current?.classList.remove('is-swiping');
+      }, 320);
     }
     touchStartX.current = 0;
     touchStartY.current = 0;
